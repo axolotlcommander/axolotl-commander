@@ -33,6 +33,13 @@ final class PanelViewController: NSViewController {
     let statusField = NSTextField(labelWithString: "")
     private let volumeBar = VolumeBar()
     let tabStrip = TabStrip()
+    let briefView = BriefGridView()
+    let briefScroll = NSScrollView()
+    private let tableScroll = NSScrollView()
+    /// Detailed table or brief grid; switched with ⌃⌥1 / ⌃⌥2 and saved with the layout.
+    var viewMode: PanelViewMode = .detailed { didSet { if viewMode != oldValue { viewModeChanged() } } }
+    /// The view that holds keyboard focus in the current mode.
+    var listView: NSView { viewMode == .brief ? briefView : tableView }
     /// Saved states of this panel's tabs; the active one mirrors the model (see PanelTabs.swift).
     var tabs: TabList
 
@@ -47,6 +54,11 @@ final class PanelViewController: NSViewController {
     private var shiftMarkState: Bool?
     /// Items shown by Quick Look (see QuickLook.swift).
     var previewURLs: [URL] = []
+    // Brief grid reload bookkeeping: a cursor move only redraws the cursor.
+    private var briefCount = -1
+    private var briefLocation: URL?
+    private var briefSelection: Set<String> = []
+    private var briefSizes = 0
     /// True while a tab's saved state is being loaded; the model then does not mirror into `tabs`.
     var isRestoringTab = false
 
@@ -112,7 +124,7 @@ final class PanelViewController: NSViewController {
             router?.panelDidBecomeFirstResponder(self)
         }
 
-        let scroll = NSScrollView()
+        let scroll = tableScroll
         scroll.documentView = tableView
         scroll.hasVerticalScroller = true
         scroll.autohidesScrollers = true
@@ -129,7 +141,22 @@ final class PanelViewController: NSViewController {
 
         configureTabStrip()
 
-        let stack = NSStackView(views: [volumeBar, tabStrip, pathField, scroll, statusField])
+        configureBriefView()
+        // Both modes share one frame, so the hidden table keeps its column widths.
+        let lists = NSView()
+        for list in [scroll, briefScroll] {
+            list.translatesAutoresizingMaskIntoConstraints = false
+            lists.addSubview(list)
+            NSLayoutConstraint.activate([
+                list.leadingAnchor.constraint(equalTo: lists.leadingAnchor),
+                list.trailingAnchor.constraint(equalTo: lists.trailingAnchor),
+                list.topAnchor.constraint(equalTo: lists.topAnchor),
+                list.bottomAnchor.constraint(equalTo: lists.bottomAnchor),
+            ])
+        }
+        lists.setContentHuggingPriority(.defaultLow, for: .vertical)
+
+        let stack = NSStackView(views: [volumeBar, tabStrip, pathField, lists, statusField])
         stack.orientation = .vertical
         stack.alignment = .leading
         stack.spacing = 2
@@ -144,10 +171,12 @@ final class PanelViewController: NSViewController {
             volumeBar.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -8),
             tabStrip.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -8),
             pathField.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -8),
-            scroll.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -8),
+            lists.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -8),
             statusField.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -8),
         ])
         view = root
+        briefScroll.isHidden = viewMode != .brief
+        tableScroll.isHidden = viewMode == .brief
         updateActiveAppearance()
         updateSortIndicator()
         observeModel()
@@ -161,6 +190,17 @@ final class PanelViewController: NSViewController {
             (rowView as? PanelRowView)?.panelIsActive = isActive
             rowView.needsDisplay = true
         }
+        if viewMode == .brief { updateBriefCursor() }
+    }
+
+    private func viewModeChanged() {
+        guard isViewLoaded else { return }
+        let focused = view.window?.firstResponder === tableView || view.window?.firstResponder === briefView
+        briefScroll.isHidden = viewMode != .brief
+        tableScroll.isHidden = viewMode == .brief
+        if viewMode == .brief { reloadBrief() } else { modelChanged() }
+        if focused { view.window?.makeFirstResponder(listView) }
+        router?.layoutChanged()
     }
 
     // MARK: Model observation
@@ -180,16 +220,30 @@ final class PanelViewController: NSViewController {
         }
     }
 
-    private func modelChanged() {
+    func modelChanged() {
         // A reload would end in-place rename editing; the rename refreshes afterwards.
         guard renaming == nil else { return }
-        syncingSelection = true
-        tableView.reloadData()
-        if !model.items.isEmpty {
-            tableView.selectRowIndexes([model.cursor], byExtendingSelection: false)
-            tableView.scrollRowToVisible(model.cursor)
+        if viewMode == .brief {
+            if briefCount != model.items.count || briefLocation != model.location || briefSelection != model.selection
+                || briefSizes != model.directorySizes.count {
+                briefCount = model.items.count
+                briefLocation = model.location
+                briefSelection = model.selection
+                briefSizes = model.directorySizes.count
+                reloadBrief()
+            } else {
+                updateBriefCursor()
+                scrollBriefToCursor()
+            }
+        } else {
+            syncingSelection = true
+            tableView.reloadData()
+            if !model.items.isEmpty {
+                tableView.selectRowIndexes([model.cursor], byExtendingSelection: false)
+                tableView.scrollRowToVisible(model.cursor)
+            }
+            syncingSelection = false
         }
-        syncingSelection = false
         if pathField.currentEditor() == nil { pathField.stringValue = model.location.displayPath }
         volumeBar.show(location: model.location)
         router?.panelLocationChanged(self)
@@ -239,7 +293,7 @@ final class PanelViewController: NSViewController {
 
     // MARK: Keys
 
-    private func handleKey(_ event: NSEvent) -> Bool {
+    func handleKey(_ event: NSEvent) -> Bool {
         guard let chord = KeyChord(event: event) else {
             log.debug("unmapped key code \(event.keyCode)")
             return false
@@ -287,7 +341,9 @@ final class PanelViewController: NSViewController {
     private func handleMovement(_ chord: KeyChord) -> Bool {
         let rows = model.items.count
         guard rows > 0 else { return false }
-        let page = max(1, Int(tableView.visibleRect.height / tableView.rowHeight) - 1)
+        let brief = viewMode == .brief
+        let page = brief ? briefRows * briefVisibleColumns
+                         : max(1, Int(tableView.visibleRect.height / tableView.rowHeight) - 1)
         let from = model.cursor
         let target: Int
         switch chord.key {
@@ -297,6 +353,8 @@ final class PanelViewController: NSViewController {
         case .pageDown: target = from + page
         case .home: target = 0
         case .end: target = rows - 1
+        case .left where brief: target = from - briefRows
+        case .right where brief: target = from + briefRows
         default: return false
         }
         let extra = chord.modifiers.subtracting(.shift)
@@ -336,7 +394,7 @@ final class PanelViewController: NSViewController {
         .copyFullPath, .copyName, .calculateSizes,
         .copy, .move, .delete, .deletePermanently, .makeDirectory, .rename, .copyFiles, .pasteFiles,
         .view, .quickLook, .properties, .openTerminal, .revealInFinder,
-        .newTab, .closeTab, .nextTab, .previousTab, .hotPaths,
+        .newTab, .closeTab, .nextTab, .previousTab, .hotPaths, .viewModeDetailed, .viewModeBrief,
     ]
 
     private static let needTargets: Set<Command> = [
@@ -352,6 +410,7 @@ final class PanelViewController: NSViewController {
         case .goBack: return model.canGoBack
         case .goForward: return model.canGoForward
         case .closeTab, .nextTab, .previousTab: return tabs.tabs.count > 1
+        case .rename: return viewMode == .detailed && !targets().isEmpty
         case .selectSameExtension, .deselectSameExtension:
             return model.cursorItem.map { !$0.isDirectory && !$0.fileExtension.isEmpty } ?? false
         default: return true
@@ -369,6 +428,8 @@ final class PanelViewController: NSViewController {
         case .goForward: Task { await navigate { try await model.goForward() } }
         case .changeDirectory: Task { await askGoToFolder() }
         case .newTab: newTab()
+        case .viewModeDetailed: viewMode = .detailed
+        case .viewModeBrief: viewMode = .brief
         case .closeTab: closeTab(at: tabs.active)
         case .nextTab: switchTab { $0.next() }
         case .previousTab: switchTab { $0.previous() }

@@ -186,7 +186,10 @@ extension PanelViewController {
                                                name: .appearanceChanged, object: nil)
     }
 
-    @objc private func appearanceChanged() { tableView.reloadData() }
+    @objc private func appearanceChanged() {
+        tableView.reloadData()
+        if viewMode == .brief { reloadBrief() }
+    }
 
     /// Marked items use the mark color; others the first matching highlight rule.
     func textColor(for item: FileItem, marked: Bool) -> NSColor {

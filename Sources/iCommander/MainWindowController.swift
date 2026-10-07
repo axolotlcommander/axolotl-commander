@@ -28,6 +28,8 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         let layout = Self.loadLayout()
         left = PanelViewController(side: .left, tabs: layout.left)
         right = PanelViewController(side: .right, tabs: layout.right)
+        left.viewMode = layout.leftMode
+        right.viewMode = layout.rightMode
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1100, height: 700),
                               styleMask: [.titled, .closable, .miniaturizable, .resizable],
                               backing: .buffered, defer: false)
@@ -107,7 +109,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         layoutChanged()
         left.isActive = side == .left
         right.isActive = side == .right
-        window?.makeFirstResponder(activePanel.tableView)
+        window?.makeFirstResponder(activePanel.listView)
         panelLocationChanged(activePanel)
     }
 
@@ -135,7 +137,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
 
     /// True when a panel table (not a text field) has keyboard focus.
     var panelHasFocus: Bool {
-        window?.firstResponder === activePanel.tableView
+        window?.firstResponder === activePanel.listView
     }
 
     func canPerform(_ command: Command) -> Bool {
@@ -231,7 +233,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
                   let previous = WindowLayout.decode(data) {
             fraction = previous.splitFraction
         }
-        let layout = WindowLayout(left: left.tabs, right: right.tabs,
+        let layout = WindowLayout(left: left.tabs, right: right.tabs, leftMode: left.viewMode, rightMode: right.viewMode,
                                   activeSide: activeSide == .left ? .left : .right,
                                   maximized: maximizedSide.map { $0 == .left ? .left : .right },
                                   splitFraction: fraction)
@@ -350,6 +352,8 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
     func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
         guard let command = menuItem.command else { return true }
         if command == .toggleHidden { menuItem.state = activePanel.showsHidden ? .on : .off }
+        if command == .viewModeDetailed { menuItem.state = activePanel.viewMode == .detailed ? .on : .off }
+        if command == .viewModeBrief { menuItem.state = activePanel.viewMode == .brief ? .on : .off }
         if command == .maximizePanel { menuItem.title = maximizedSide == nil ? "Maximize Panel" : "Restore Panels" }
         return canPerform(command)
     }

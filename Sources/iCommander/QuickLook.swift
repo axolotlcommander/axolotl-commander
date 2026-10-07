@@ -68,7 +68,7 @@ extension PanelViewController: @preconcurrency QLPreviewPanelDataSource, @precon
                 return true
             }
         }
-        tableView.keyDown(with: event)
+        listView.keyDown(with: event)
         return true
     }
 
@@ -76,7 +76,9 @@ extension PanelViewController: @preconcurrency QLPreviewPanelDataSource, @precon
         guard let url = item as? URL ?? (item as? NSURL) as URL?,
               let row = model.items.firstIndex(where: { $0.url == url }),
               let window = view.window else { return .zero }
-        let rect = tableView.convert(tableView.frameOfCell(atColumn: 0, row: row), to: nil)
+        let rect = viewMode == .brief
+            ? briefView.convert(briefView.frameForItem(at: row), to: nil)
+            : tableView.convert(tableView.frameOfCell(atColumn: 0, row: row), to: nil)
         return window.convertToScreen(rect)
     }
 }
