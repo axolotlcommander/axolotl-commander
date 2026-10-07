@@ -315,6 +315,26 @@ import Foundation
         #expect(m.results == listing)
     }
 
+    @Test func resultsFollowRenamedItems() async throws {
+        let f = try Fixture()
+        let m = PanelModel(location: f.root)
+        let listing = ResultsListing(title: "Found", urls: [
+            f.root.appendingPathComponent("docs/sub/deep.bin"),
+            f.root.appendingPathComponent("docs/inner.txt"),
+        ])
+        try await m.showResults(listing)
+        let docs = f.root.appendingPathComponent("docs")
+        try FileManager.default.moveItem(at: docs.appendingPathComponent("sub"), to: docs.appendingPathComponent("lower"))
+        m.replaceResult(docs.appendingPathComponent("sub"), with: docs.appendingPathComponent("lower"))
+        try FileManager.default.moveItem(at: docs.appendingPathComponent("inner.txt"), to: docs.appendingPathComponent("outer.txt"))
+        m.replaceResult(docs.appendingPathComponent("inner.txt"), with: docs.appendingPathComponent("outer.txt"))
+        await m.refresh()
+        #expect(names(m) == ["..", "lower/deep.bin", "outer.txt"])
+        // A sibling whose name merely starts the same is left alone.
+        let other = listing.replacing(docs.appendingPathComponent("su"), with: docs.appendingPathComponent("x"))
+        #expect(other.urls == listing.urls)
+    }
+
     @Test func resultsRefreshDropsVanishedItems() async throws {
         let f = try Fixture()
         let m = PanelModel(location: f.root)

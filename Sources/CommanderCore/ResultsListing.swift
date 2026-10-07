@@ -30,6 +30,21 @@ public struct ResultsListing: Hashable, Sendable {
         return URL(filePath: "/" + common.dropFirst().joined(separator: "/"), directoryHint: .isDirectory)
     }
 
+    /// The listing after `old` was renamed or moved to `new`: the item itself and, for a folder,
+    /// the items inside it point to the new place. The root stays, so names keep their prefix.
+    public func replacing(_ old: URL, with new: URL) -> ResultsListing {
+        let oldParts = old.standardized.pathComponents
+        let newParts = new.standardized.pathComponents
+        var listing = self
+        listing.urls = urls.map { url in
+            let parts = url.standardized.pathComponents
+            guard parts.count >= oldParts.count, Array(parts.prefix(oldParts.count)) == oldParts else { return url }
+            let rest = parts.dropFirst(oldParts.count)
+            return URL(filePath: "/" + (newParts.dropFirst() + rest).joined(separator: "/"))
+        }
+        return listing
+    }
+
     /// Path of `url` below `root`.
     public func relativeName(of url: URL) -> String {
         let base = root.standardized.pathComponents

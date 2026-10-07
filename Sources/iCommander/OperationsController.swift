@@ -234,8 +234,9 @@ final class OperationsController {
         Task {
             do {
                 let renamed = try await operations.rename(url, to: newName)
+                panel.model.replaceResult(url, with: renamed)
                 await panel.model.refresh()
-                panel.focus(name: renamed.lastPathComponent)
+                panel.focus(name: panel.model.results?.relativeName(of: renamed) ?? renamed.lastPathComponent)
             } catch {
                 report(error)
             }

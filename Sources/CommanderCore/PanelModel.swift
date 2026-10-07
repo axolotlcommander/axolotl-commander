@@ -222,6 +222,11 @@ public final class PanelModel {
         lastError = nil
     }
 
+    /// Find results: an item was renamed, so the listing follows it (call `refresh` afterwards).
+    public func replaceResult(_ old: URL, with new: URL) {
+        results = results?.replacing(old, with: new)
+    }
+
     /// Reloads the current directory, keeping cursor, selection and sizes where possible.
     public func refresh() async {
         let token = navToken

@@ -431,7 +431,7 @@ final class PanelViewController: NSViewController {
         // Find results have no folder of their own to create or paste into.
         case .makeDirectory, .newFile: return model.results == nil
         case .pasteFiles: return model.results == nil && Self.pasteboardHasFilesOrPath
-        case .rename: return viewMode == .detailed && !targets().isEmpty && model.results == nil
+        case .rename: return viewMode == .detailed && !targets().isEmpty
         case .edit: return model.cursorItem.map { !$0.isParent && (!$0.isDirectory || $0.isPackage) } ?? false
         case .selectSameExtension, .deselectSameExtension:
             return model.cursorItem.map { !$0.isDirectory && !$0.fileExtension.isEmpty } ?? false
@@ -776,14 +776,16 @@ final class PanelViewController: NSViewController {
         guard let cell = tableView.view(atColumn: columnIndex, row: row, makeIfNecessary: true) as? NSTableCellView,
               let field = cell.textField else { return }
         renaming = (row, item)
-        field.stringValue = item.name
+        // Find results show the path below their root; only the last part is renamed.
+        let name = model.results == nil ? item.name : item.url.lastPathComponent
+        field.stringValue = name
         field.isEditable = true
         field.delegate = self
         tableView.editColumn(columnIndex, row: row, with: nil, select: false)
         if field.currentEditor() == nil { view.window?.makeFirstResponder(field) }
         log.debug("rename begin editor=\(field.currentEditor() != nil)")
         // Finder selects the base name only, so typing keeps the extension.
-        let base = item.isDirectory ? item.name : item.baseName
+        let base = item.isDirectory ? name : model.results == nil ? item.baseName : (name as NSString).deletingPathExtension
         field.currentEditor()?.selectedRange = NSRange(location: 0, length: (base as NSString).length)
     }
 
