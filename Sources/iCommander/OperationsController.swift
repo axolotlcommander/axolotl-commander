@@ -277,7 +277,7 @@ final class OperationsController {
 
     /// Quoted name of a single item, or the item count.
     static func describe(_ urls: [URL]) -> String {
-        urls.count == 1 ? "“\(urls[0].lastPathComponent)”" : String(localized: "\(urls.count) items")
+        urls.count == 1 ? String(localized: "“\(urls[0].lastPathComponent)”") : String(localized: "\(urls.count) items")
     }
 
     static func describe(_ error: any Error) -> String {

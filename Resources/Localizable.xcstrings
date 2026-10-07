@@ -3857,6 +3857,16 @@
         }
       }
     },
+    "“%@”": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“"
+          }
+        }
+      }
+    },
     "“%@” already exists in “%@”.": {
       "localizations": {
         "cs": {
