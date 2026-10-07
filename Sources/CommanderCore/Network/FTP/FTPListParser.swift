@@ -3,31 +3,43 @@ public import Foundation
 /// Parses FTP directory listings: MLSD facts (RFC 3659), Unix `ls -l` and DOS/IIS LIST output.
 /// "." and ".." are dropped.
 ///
-/// Names arrive as raw bytes. Each line is decoded as UTF-8; a line that is not valid UTF-8
-/// is decoded as ISO Latin-1 instead (legacy servers send their local 8-bit code page; Latin-1
-/// never fails, so such names stay visible, although they may not round-trip to the server).
+/// Names arrive as raw bytes and each line is decoded with the connection's `ServerEncoding`.
+/// `.auto` reads a line as UTF-8, or as ISO Latin-1 when it is not valid UTF-8 (legacy servers
+/// send their local 8-bit code page; Latin-1 never fails, so such names stay visible and
+/// `ServerNameCodec` sends them back as the same bytes).
 public enum FTPListParser {
     // MARK: Lines
 
     /// Splits a listing into decoded lines (LF or CRLF), skipping empty ones.
-    public static func lines(_ data: Data) -> [String] {
+    public static func lines(_ data: Data, encoding: ServerEncoding = .auto) -> [String] {
+        decodedLines(data, encoding).map(\.text)
+    }
+
+    /// Lines with whether `.auto` read them as Latin-1.
+    static func decodedLines(_ data: Data, _ encoding: ServerEncoding) -> [(text: String, latin1: Bool)] {
         data.split(separator: 0x0A, omittingEmptySubsequences: true).compactMap { raw in
             var line = raw
             if line.last == 0x0D { line = line.dropLast() }
-            return line.isEmpty ? nil : decode(line)
+            if line.isEmpty { return nil }
+            let r = encoding.decodeReportingFallback(line)
+            return (r.text, r.fallback)
         }
     }
 
     /// UTF-8, or ISO Latin-1 when the bytes are not valid UTF-8.
     public static func decode(_ bytes: some Collection<UInt8>) -> String {
-        if let s = String(validating: bytes, as: UTF8.self) { return s }
-        return String(bytes.map { Character(Unicode.Scalar($0)) })
+        ServerEncoding.auto.decode(bytes)
     }
 
     // MARK: MLSD
 
-    public static func parseMLSD(_ data: Data) -> [RemoteEntry] {
-        lines(data).compactMap(parseMLSDLine)
+    public static func parseMLSD(_ data: Data, encoding: ServerEncoding = .auto) -> [RemoteEntry] {
+        parseMLSDReportingLatin1(data, encoding).map(\.entry)
+    }
+
+    /// Entries with whether `.auto` read their line as Latin-1.
+    static func parseMLSDReportingLatin1(_ data: Data, _ encoding: ServerEncoding) -> [(entry: RemoteEntry, latin1: Bool)] {
+        decodedLines(data, encoding).compactMap { line in parseMLSDLine(line.text).map { ($0, line.latin1) } }
     }
 
     /// One `fact=value;fact=value; name` line; nil for "cdir"/"pdir", "." and "..", or garbage.
@@ -97,9 +109,18 @@ public enum FTPListParser {
     /// "Mon dd hh:mm" date (no year) falls in the year of `referenceDate`, or the previous one
     /// when that would put it more than a day after `referenceDate`.
     public static func parseLIST(
-        _ data: Data, referenceDate: Date = Date(), timeZone: TimeZone = .current
+        _ data: Data, encoding: ServerEncoding = .auto, referenceDate: Date = Date(), timeZone: TimeZone = .current
     ) -> [RemoteEntry] {
-        lines(data).compactMap { parseLISTLine($0, referenceDate: referenceDate, timeZone: timeZone) }
+        parseLISTReportingLatin1(data, encoding, referenceDate: referenceDate, timeZone: timeZone).map(\.entry)
+    }
+
+    /// Entries with whether `.auto` read their line as Latin-1.
+    static func parseLISTReportingLatin1(
+        _ data: Data, _ encoding: ServerEncoding, referenceDate: Date = Date(), timeZone: TimeZone = .current
+    ) -> [(entry: RemoteEntry, latin1: Bool)] {
+        decodedLines(data, encoding).compactMap { line in
+            parseLISTLine(line.text, referenceDate: referenceDate, timeZone: timeZone).map { ($0, line.latin1) }
+        }
     }
 
     public static func parseLISTLine(

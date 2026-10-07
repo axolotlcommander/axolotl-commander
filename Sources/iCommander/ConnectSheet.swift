@@ -15,6 +15,7 @@ struct ConnectSheet: View {
         var remember = true
         var initialPath = ""
         var passive = true
+        var encoding = ServerEncoding.auto
 
         init() {}
 
@@ -26,6 +27,7 @@ struct ConnectSheet: View {
             user = profile.endpoint.user ?? ""
             initialPath = profile.initialPath
             passive = profile.passiveMode
+            encoding = profile.encoding
         }
 
         var endpoint: RemoteEndpoint? {
@@ -39,7 +41,8 @@ struct ConnectSheet: View {
         func profile(id: UUID) -> ConnectionProfile? {
             endpoint.map {
                 ConnectionProfile(id: id, name: name.trimmingCharacters(in: .whitespaces), endpoint: $0,
-                                  initialPath: initialPath.trimmingCharacters(in: .whitespaces), passiveMode: passive)
+                                  initialPath: initialPath.trimmingCharacters(in: .whitespaces), passiveMode: passive,
+                                  encoding: encoding)
             }
         }
     }
@@ -110,6 +113,12 @@ struct ConnectSheet: View {
                     TextField("Folder:", text: $draft.initialPath, prompt: Text("Login folder"))
                     if draft.proto != .sftp {
                         Toggle("Passive mode", isOn: $draft.passive)
+                        Picker("Encoding:", selection: $draft.encoding) {
+                            ForEach(ServerEncoding.allCases, id: \.self) { encoding in
+                                Text(encoding.localizedTitle).tag(encoding)
+                            }
+                        }
+                        .fixedSize()
                     }
                 }
                 .frame(minWidth: 360)
@@ -124,7 +133,7 @@ struct ConnectSheet: View {
             }
         }
         .padding(20)
-        .frame(width: 640, height: 420)
+        .frame(width: 640, height: 450)
         .onAppear { addressFocused = true }
         .onChange(of: selection) { _, id in
             if let profile = profiles.first(where: { $0.id == id }) {
@@ -189,7 +198,7 @@ struct ConnectSheet: View {
             onConnect: { profile, password, remember in
                 close()
                 panel.connect(to: profile.location, password: password,
-                              options: ConnectOptions(passiveMode: profile.passiveMode)) { url in
+                              options: profile.connectOptions) { url in
                     if remember, let password {
                         try? KeychainPasswordStore().save(password, for: profile.endpoint)
                     }

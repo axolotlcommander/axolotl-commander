@@ -868,6 +868,17 @@
         }
       }
     },
+    "Automatic (UTF-8, else Latin-1)": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automaticky (UTF-8, jinak Latin-1)"
+          }
+        }
+      }
+    },
     "Available": {
       "localizations": {
         "cs": {
@@ -1060,6 +1071,39 @@
           "stringUnit": {
             "state": "translated",
             "value": "Rozlišovat velikost písmen"
+          }
+        }
+      }
+    },
+    "Central European (DOS 852)": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Středoevropské (DOS 852)"
+          }
+        }
+      }
+    },
+    "Central European (ISO 8859-2)": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Středoevropské (ISO 8859-2)"
+          }
+        }
+      }
+    },
+    "Central European (Windows-1250)": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Středoevropské (Windows-1250)"
           }
         }
       }
@@ -2019,6 +2063,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Název nadřazené složky"
+          }
+        }
+      }
+    },
+    "Encoding:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kódování:"
           }
         }
       }
@@ -6741,6 +6795,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Svazek…"
+          }
+        }
+      }
+    },
+    "Western (ISO 8859-1)": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Západoevropské (ISO 8859-1)"
+          }
+        }
+      }
+    },
+    "Western (Windows-1252)": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Západoevropské (Windows-1252)"
           }
         }
       }

@@ -8,3 +8,10 @@ extension CommandSpec {
         Bundle.main.localizedString(forKey: title, value: title, table: nil)
     }
 }
+
+extension ServerEncoding {
+    /// `title` (English, from CommanderCore) in the app language.
+    var localizedTitle: String {
+        Bundle.main.localizedString(forKey: title, value: title, table: nil)
+    }
+}
