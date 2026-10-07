@@ -17,11 +17,11 @@ public struct ResultsListing: Hashable, Sendable {
 
     /// The deepest folder that contains all `urls` ("/" when they share nothing).
     public static func commonFolder(of urls: [URL]) -> URL {
-        guard var common = urls.first?.standardizedFileURL.deletingLastPathComponent().pathComponents else {
+        guard var common = urls.first?.standardized.deletingLastPathComponent().pathComponents else {
             return URL(filePath: "/")
         }
         for url in urls.dropFirst() {
-            let parts = url.standardizedFileURL.deletingLastPathComponent().pathComponents
+            let parts = url.standardized.deletingLastPathComponent().pathComponents
             var n = 0
             while n < min(common.count, parts.count), common[n] == parts[n] { n += 1 }
             common.removeLast(common.count - n)
@@ -32,8 +32,8 @@ public struct ResultsListing: Hashable, Sendable {
 
     /// Path of `url` below `root`.
     public func relativeName(of url: URL) -> String {
-        let base = root.standardizedFileURL.pathComponents
-        let parts = url.standardizedFileURL.pathComponents
+        let base = root.standardized.pathComponents
+        let parts = url.standardized.pathComponents
         guard parts.count > base.count, Array(parts.prefix(base.count)) == base else { return url.path }
         return parts.dropFirst(base.count).joined(separator: "/")
     }
