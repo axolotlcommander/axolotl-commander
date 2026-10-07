@@ -13,11 +13,15 @@ func archiveMessage(_ a: OpaquePointer, _ fallback: String) -> String {
 final class ArchiveReadHandle {
     let a: OpaquePointer
 
-    init(path: String) throws(ArchiveError) {
+    /// `passphrases` are tried in turn for encrypted entries (zip only).
+    init(path: String, passphrases: [String] = []) throws(ArchiveError) {
         guard let a = archive_read_new() else { throw .library("archive_read_new failed") }
         self.a = a
         archive_read_support_filter_all(a)
         archive_read_support_format_all(a)
+        for passphrase in passphrases where !passphrase.isEmpty {
+            archive_read_add_passphrase(a, passphrase)
+        }
         let r = archive_read_open_filename(a, path, 64 * 1024)
         if r != ARCHIVE_OK && r != ARCHIVE_WARN { throw .library(archiveMessage(a, "Cannot open archive")) }
     }
@@ -45,6 +49,16 @@ final class ArchiveReadHandle {
         let n = archive_read_data(a, buffer.baseAddress, buffer.count)
         if n < 0 { throw .library(archiveMessage(a, "Cannot read archive data")) }
         return n
+    }
+
+    /// Error for a failed data read of the encrypted entry `path` after passphrases were given.
+    /// libarchive tells only by its message ("Incorrect passphrase"); other failures (bad CRC,
+    /// broken stream) also mean a wrong passphrase that slipped past the check bytes.
+    static func passphraseError(for path: String, after error: ArchiveError) -> ArchiveError {
+        guard case .library(let message) = error else { return error }
+        let text = message.lowercased()
+        if text.contains("not supported") || text.contains("unsupported") { return .encrypted(path) }
+        return .wrongPassword(path)
     }
 
     /// Format of the open archive, from libarchive's detection (valid after the first `next()`).
