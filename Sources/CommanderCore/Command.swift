@@ -310,20 +310,116 @@ public enum CommandRegistry {
         Dictionary(uniqueKeysWithValues: all.map { ($0.command, $0) })
 }
 
-/// Chord → command lookup. Later stages let the user override bindings.
+/// User key binding overrides on top of the factory chords in `CommandRegistry`.
+public struct KeyBindings: Codable, Sendable, Equatable {
+    /// Commands whose chords the user replaced; an empty array means "no shortcut".
+    public var overrides: [Command: [KeyChord]]
+
+    public init(overrides: [Command: [KeyChord]] = [:]) {
+        self.overrides = overrides.filter { $0.value != CommandRegistry.spec($0.key).chords }
+    }
+
+    public static let factory = KeyBindings()
+
+    /// The user's chords when overridden, otherwise the factory chords.
+    public func chords(for command: Command) -> [KeyChord] {
+        overrides[command] ?? CommandRegistry.spec(command).chords
+    }
+
+    public func isCustomized(_ command: Command) -> Bool { overrides[command] != nil }
+
+    /// Replaces the chords of `command`; chords equal to the factory ones remove the override.
+    public mutating func set(_ chords: [KeyChord], for command: Command) {
+        if chords == CommandRegistry.spec(command).chords {
+            overrides[command] = nil
+        } else {
+            overrides[command] = chords
+        }
+    }
+
+    public mutating func reset(_ command: Command) { overrides[command] = nil }
+
+    public mutating func resetAll() { overrides = [:] }
+
+    /// Commands (other than `command`) that currently use `chord` in a context overlapping `command`'s scope.
+    public func conflicts(_ chord: KeyChord, for command: Command) -> [Command] {
+        let scope = CommandRegistry.spec(command).scope
+        let contexts = CommandContext.allCases.filter { $0.includes(scope) }
+        return CommandRegistry.all.compactMap { spec in
+            guard spec.command != command, contexts.contains(where: { $0.includes(spec.scope) }),
+                  chords(for: spec.command).contains(chord) else { return nil }
+            return spec.command
+        }
+    }
+
+    // Encoded as `{ "<command rawValue>": ["cmd+shift+F5", …] }`; unknown commands and malformed
+    // chord lists are ignored so files written by other versions still load.
+    public init(from decoder: any Decoder) throws {
+        let raw = try decoder.singleValueContainer().decode([String: [String]].self)
+        var result: [Command: [KeyChord]] = [:]
+        for (name, texts) in raw {
+            guard let command = Command(rawValue: name) else { continue }
+            let chords = texts.compactMap(KeyChord.init(storageString:))
+            guard chords.count == texts.count else { continue }
+            result[command] = chords
+        }
+        self.init(overrides: result)
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(Dictionary(uniqueKeysWithValues: overrides.map {
+            ($0.key.rawValue, $0.value.map(\.storageString))
+        }))
+    }
+}
+
+/// Chord → command lookup built from the factory chords and optional user overrides.
 public struct KeyMap: Sendable {
     public private(set) var bindings: [KeyChord: Command]
+    /// Candidate chords per command in declaration order (including ones another command won).
+    private let candidates: [Command: [KeyChord]]
 
+    /// Factory chords first-wins, then `overrides` (chord → command) replace whatever they hit.
     public init(context: CommandContext = .panel, overrides: [KeyChord: Command] = [:]) {
         var map: [KeyChord: Command] = [:]
+        var order: [Command: [KeyChord]] = [:]
         for spec in CommandRegistry.all where context.includes(spec.scope) {
+            order[spec.command] = spec.chords
             for chord in spec.chords where map[chord] == nil { map[chord] = spec.command }
+        }
+        for (chord, command) in overrides.sorted(by: { $0.key.storageString < $1.key.storageString }) {
+            if order[command]?.contains(chord) != true { order[command, default: []].append(chord) }
         }
         map.merge(overrides) { _, new in new }
         bindings = map
+        candidates = order
+    }
+
+    /// Builds the map from `bindings.chords(for:)` of every command in the context. Chords the user
+    /// assigned explicitly win over factory chords of other commands; among factory chords the
+    /// declaration order decides.
+    public init(context: CommandContext = .panel, bindings userBindings: KeyBindings) {
+        var map: [KeyChord: Command] = [:]
+        var order: [Command: [KeyChord]] = [:]
+        let specs = CommandRegistry.all.filter { context.includes($0.scope) }
+        for spec in specs { order[spec.command] = userBindings.chords(for: spec.command) }
+        for spec in specs where userBindings.isCustomized(spec.command) {
+            for chord in order[spec.command] ?? [] where map[chord] == nil { map[chord] = spec.command }
+        }
+        for spec in specs where !userBindings.isCustomized(spec.command) {
+            for chord in order[spec.command] ?? [] where map[chord] == nil { map[chord] = spec.command }
+        }
+        self.bindings = map
+        candidates = order
     }
 
     public func command(for chord: KeyChord) -> Command? { bindings[chord] }
+
+    /// Chords that actually trigger `command` in this map, in the command's order.
+    public func chords(for command: Command) -> [KeyChord] {
+        (candidates[command] ?? []).filter { bindings[$0] == command }
+    }
 
     public static let standard = KeyMap()
     public static let viewer = KeyMap(context: .viewer)
