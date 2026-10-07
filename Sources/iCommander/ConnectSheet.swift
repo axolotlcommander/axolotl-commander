@@ -102,6 +102,7 @@ struct ConnectSheet: View {
                     TextField("Server:", text: $draft.host)
                     TextField("Port:", text: $draft.port, prompt: Text(verbatim: String(draft.proto.defaultPort)))
                         .frame(maxWidth: 160)
+                        .help(draft.proto == .ftps ? String(localized: "Port 990 uses implicit TLS; other ports start TLS with AUTH TLS.") : "")
                     TextField("User:", text: $draft.user,
                               prompt: Text(draft.proto == .sftp ? "From SSH settings" : "Anonymous"))
                     SecureField("Password:", text: $draft.password, prompt: Text("Ask or use Keychain"))

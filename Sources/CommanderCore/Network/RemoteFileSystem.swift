@@ -5,7 +5,8 @@ public enum RemoteProtocol: String, Codable, Sendable, CaseIterable {
     case sftp
     /// Plain FTP.
     case ftp
-    /// FTP with explicit TLS (AUTH TLS on the control connection, protected data connections).
+    /// FTP with TLS: explicit (AUTH TLS on the control connection, protected data connections),
+    /// implicit on port 990.
     case ftps
 
     public var defaultPort: Int {

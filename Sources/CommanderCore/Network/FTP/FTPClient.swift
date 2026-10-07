@@ -287,7 +287,9 @@ public actor FTPClient: RemoteFileSystem {
 
     private static func baseURL(_ e: RemoteEndpoint) -> String {
         let host = e.host.contains(":") ? "[\(e.host)]" : e.host
-        return "ftp://\(host):\(e.effectivePort)"
+        // Port 990 is implicit FTPS (TLS from the first byte); elsewhere TLS starts with AUTH TLS.
+        let scheme = e.proto == .ftps && e.effectivePort == 990 ? "ftps" : "ftp"
+        return "\(scheme)://\(host):\(e.effectivePort)"
     }
 
     private static let unreserved = CharacterSet(
