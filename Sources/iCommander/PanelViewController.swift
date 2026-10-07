@@ -395,6 +395,7 @@ final class PanelViewController: NSViewController {
         .copy, .move, .delete, .deletePermanently, .makeDirectory, .rename, .copyFiles, .pasteFiles,
         .view, .quickLook, .edit, .newFile, .properties, .openTerminal, .revealInFinder,
         .newTab, .closeTab, .nextTab, .previousTab, .hotPaths, .viewModeDetailed, .viewModeBrief,
+        .find,
     ]
 
     private static let needTargets: Set<Command> = [
@@ -470,6 +471,7 @@ final class PanelViewController: NSViewController {
         case .copyFiles: copyFilesToPasteboard()
         case .pasteFiles: pasteFromPasteboard()
         case .view: openViewer()
+        case .find: if let router { FindWindowController.show(from: router) }
         case .quickLook: toggleQuickLook()
         case .edit:
             if let item = model.cursorItem { edit(item.url) }

@@ -6,7 +6,7 @@ import Testing
         #expect(CommandRegistry.all.count == Command.allCases.count)
     }
 
-    @Test(arguments: [CommandContext.panel, .viewer])
+    @Test(arguments: CommandContext.allCases)
     func noChordBoundTwice(context: CommandContext) {
         var seen: [KeyChord: Command] = [:]
         for spec in CommandRegistry.all where context.includes(spec.scope) {

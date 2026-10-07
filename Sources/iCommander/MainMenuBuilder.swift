@@ -16,6 +16,8 @@ enum MainMenuBuilder {
         .selectAll: #selector(NSText.selectAll(_:)),
         .viewerCopy: #selector(NSText.copy(_:)),
         .viewerSelectAll: #selector(NSText.selectAll(_:)),
+        .findCopyFiles: #selector(NSText.copy(_:)),
+        .findSelectAll: #selector(NSText.selectAll(_:)),
     ]
 
     /// Menus whose items depend on the context; the rest hold app-scope items only.
@@ -30,10 +32,14 @@ enum MainMenuBuilder {
                                                           object: nil, queue: .main) { note in
             let window = note.object as? NSWindow
             MainActor.assumeIsolated {
-                let viewer = window?.windowController is ViewerWindowController
                 // Sheets and panels keep the context of the window they belong to.
-                guard window?.sheetParent == nil, !(window is NSPanel) || viewer else { return }
-                update(viewer ? .viewer : .panel)
+                guard let window, window.sheetParent == nil, !(window is NSPanel) else { return }
+                switch window.windowController {
+                case is ViewerWindowController: update(.viewer)
+                case is FindWindowController: update(.find)
+                case is MainWindowController: update(.panel)
+                default: break
+                }
             }
         }
     }

@@ -53,6 +53,11 @@ public enum Command: String, CaseIterable, Hashable, Sendable {
     case viewerNextEncoding, viewerPreviousEncoding, viewerSetDefaultEncoding
     case viewerZoomIn, viewerZoomOut, viewerActualSize, viewerReload
 
+    // Find window (⌃⌥F7)
+    case findStart, findStop, findOpen, findShowInPanel, findView, findEdit, findQuickLook
+    case findProperties, findTrash, findRemove, findCopyFiles, findCopyPaths, findCopyNames
+    case findSelectAll, findToPanel, findClose
+
     public static let goHotPaths: [Command] = [
         .goHotPath1, .goHotPath2, .goHotPath3, .goHotPath4, .goHotPath5,
         .goHotPath6, .goHotPath7, .goHotPath8, .goHotPath9, .goHotPath10,
@@ -75,20 +80,22 @@ public enum MenuID: String, CaseIterable, Sendable {
 /// Where a command lives. Panel commands need keyboard focus in a panel and are
 /// disabled while a text field edits, so their keys fall through to the field.
 /// Viewer commands exist only while a viewer window is key; the menu bar swaps
-/// panel and viewer items, so the two scopes may reuse chords.
+/// panel and viewer items, so the two scopes may reuse chords. Find commands
+/// work the same way for the find window.
 public enum CommandScope: Sendable {
-    case app, panel, viewer
+    case app, panel, viewer, find
 }
 
 /// Which window kind the menu bar and key map currently serve.
-public enum CommandContext: Sendable {
-    case panel, viewer
+public enum CommandContext: Sendable, CaseIterable {
+    case panel, viewer, find
 
     public func includes(_ scope: CommandScope) -> Bool {
         switch scope {
         case .app: true
         case .panel: self == .panel
         case .viewer: self == .viewer
+        case .find: self == .find
         }
     }
 }
@@ -241,6 +248,26 @@ public enum CommandRegistry {
         viewer(.viewerZoomOut, "Smaller", .view, [ch("-", m)])
         viewer(.viewerActualSize, "Actual Size", .view, [ch("0", m)])
         viewer(.viewerReload, "Reload", .view, [ch("r", m)], sep: true)
+
+        func find(_ cmd: Command, _ title: String, _ menu: MenuID?, _ chords: [K] = [], sep: Bool = false) {
+            add(cmd, title, menu, chords, scope: .find, sep: sep)
+        }
+        find(.findOpen, "Open", .file, [ch("o", m), K(.down, m), K(.enter), K(.numEnter)])
+        find(.findShowInPanel, "Show in Panel", .file, [ch("r", m), K(.space)])
+        find(.findView, "View", .file, [f(3)], sep: true)
+        find(.findEdit, "Edit", .file, [f(4)])
+        find(.findQuickLook, "Quick Look", .file, [ch("y", m), f(3, o)])
+        find(.findProperties, "Get Info", .file, [ch("i", m)])
+        find(.findTrash, "Move to Trash", .file, [f(8), K(.backspace, m), K(.forwardDelete)], sep: true)
+        find(.findRemove, "Remove from List", .file, [K(.backspace)])
+        find(.findCopyFiles, "Copy Files", .edit, [ch("c", m)])
+        find(.findCopyPaths, "Copy Path as Text", .edit, [ch("c", [m, o])])
+        find(.findCopyNames, "Copy Name as Text", .edit, [ch("c", [m, s])])
+        find(.findSelectAll, "Select All", .edit, [ch("a", m)], sep: true)
+        find(.findStart, "Find Now", .commands, [K(.enter, m)])
+        find(.findStop, "Stop", .commands, [ch(".", m)])
+        find(.findToPanel, "Show Results in Panel", .commands, [ch("p", [m, s])], sep: true)
+        find(.findClose, "Close", nil, [K(.escape)])
         return list
     }()
 
@@ -265,4 +292,5 @@ public struct KeyMap: Sendable {
 
     public static let standard = KeyMap()
     public static let viewer = KeyMap(context: .viewer)
+    public static let find = KeyMap(context: .find)
 }
