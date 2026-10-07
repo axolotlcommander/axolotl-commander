@@ -358,6 +358,10 @@ final class PanelViewController: NSViewController {
         }
         guard quickSearch != nil else { return false }
         switch chord.key {
+        case .space where chord.modifiers.isEmpty:
+            // Names with spaces: while searching, Space types instead of marking.
+            let candidate = quickSearch! + " "
+            if model.quickSearch(candidate) { quickSearch = candidate } else { NSSound.beep() }
         case .backspace:
             quickSearch?.removeLast()
             if quickSearch?.isEmpty == true { quickSearch = nil } else { model.quickSearch(quickSearch!) }
@@ -381,6 +385,19 @@ final class PanelViewController: NSViewController {
         let page = brief ? briefRows * briefVisibleColumns
                          : max(1, Int(tableView.visibleRect.height / tableView.rowHeight) - 1)
         let from = model.cursor
+        if chord.modifiers == .option {
+            // ⌥↑ ⌥↓ previous / next marked item, ⌥Home ⌥End first / last one.
+            let found: Int? = switch chord.key {
+            case .up: model.selectedIndex(after: from, forward: false)
+            case .down: model.selectedIndex(after: from, forward: true)
+            case .home: model.selectedIndex(after: -1, forward: true)
+            case .end: model.selectedIndex(after: rows, forward: false)
+            default: nil
+            }
+            guard [.up, .down, .home, .end].contains(chord.key) else { return false }
+            if let found { model.moveCursor(to: found) } else { NSSound.beep() }
+            return true
+        }
         let target: Int
         switch chord.key {
         case .up: target = from - 1
@@ -421,6 +438,9 @@ final class PanelViewController: NSViewController {
 
     // MARK: Commands
 
+    /// ⌃⇧F5 remembers the names of the marked items, ⌃⇧F6 marks them in any panel (for this session).
+    private static var rememberedSelection: [String] = []
+
     private static let handled: Set<Command> = [
         .open, .goParent, .goRoot, .goHome, .goBack, .goForward, .changeDirectory, .refresh,
         .sortByName, .sortByExtension, .sortByDate, .sortBySize, .toggleHidden, .filter,
@@ -433,7 +453,7 @@ final class PanelViewController: NSViewController {
         .newTab, .closeTab, .nextTab, .previousTab, .hotPaths, .viewModeDetailed, .viewModeBrief,
         .find, .pack, .unpack, .connectToServer, .disconnect, .compareFiles,
         .changeCase, .batchRename, .calculateChecksums, .verifyChecksums, .occupiedSpace, .userMenu,
-        .contextMenu, .moveFilesHere,
+        .contextMenu, .moveFilesHere, .invertAll, .restoreSelection, .saveSelection, .loadSelection, .volumeInfo,
     ]
 
     private static let needTargets: Set<Command> = [
@@ -443,7 +463,7 @@ final class PanelViewController: NSViewController {
 
     /// Work on files on disk only: not inside archives, not on servers.
     private static let diskOnly: Set<Command> = [
-        .changeCase, .batchRename, .calculateChecksums, .verifyChecksums, .occupiedSpace, .moveFilesHere,
+        .changeCase, .batchRename, .calculateChecksums, .verifyChecksums, .occupiedSpace, .moveFilesHere, .volumeInfo,
     ]
 
     func canPerform(_ command: Command) -> Bool {
@@ -461,6 +481,9 @@ final class PanelViewController: NSViewController {
         case .makeDirectory, .newFile: return model.results == nil
         case .pasteFiles: return model.results == nil && Self.pasteboardHasFilesOrPath
         case .moveFilesHere: return model.results == nil && Self.pasteboardHasFiles
+        case .restoreSelection: return !model.previousSelection.isEmpty
+        case .saveSelection: return !model.selectedItems.isEmpty
+        case .loadSelection: return !Self.rememberedSelection.isEmpty
         case .edit: return model.cursorItem.map { !$0.isParent && (!$0.isDirectory || $0.isPackage) } ?? false
         case .selectSameExtension, .deselectSameExtension:
             return model.cursorItem.map { !$0.isDirectory && !$0.fileExtension.isEmpty } ?? false
@@ -541,6 +564,11 @@ final class PanelViewController: NSViewController {
         case .invertByMask: Task { await askMask(title: String(localized: "Invert Selection"), action: { self.model.invertSelection(mask: $0) }) }
         case .selectAll: model.selectAll()
         case .deselectAll: model.deselectAll()
+        case .invertAll: model.invertSelection(includeDirectories: true)
+        case .restoreSelection: model.restorePreviousSelection()
+        case .saveSelection: Self.rememberedSelection = model.selectedItems.map(\.name)
+        case .loadSelection: model.setSelection(names: Self.rememberedSelection + model.selectedItems.map(\.name))
+        case .volumeInfo: VolumeInfoSheet.show(for: diskFolder, in: view.window)
         case .selectSameExtension: model.selectSameExtension(true)
         case .deselectSameExtension: model.selectSameExtension(false)
         case .copyFullPath: copyText(targets().map { $0.url.path(percentEncoded: false) })

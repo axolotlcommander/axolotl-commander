@@ -122,6 +122,30 @@ private func dir(_ name: String) -> FileItem {
         #expect(decoded.selectedNames.isEmpty)
     }
 
+    @Test func previousSelectionAndMarkedNavigation() async throws {
+        let f = try Fixture()
+        let m = PanelModel(location: f.root)
+        await m.refresh()
+        // items: .., a, b, c, f1.txt, g.md
+        m.select(mask: WildcardMask("*.txt;*.md"), true)
+        #expect(m.selectedIndex(after: 0, forward: true) == 4)
+        #expect(m.selectedIndex(after: 4, forward: true) == 5)
+        #expect(m.selectedIndex(after: 5, forward: true) == nil)
+        #expect(m.selectedIndex(after: 5, forward: false) == 4)
+        #expect(m.selectedIndex(after: 4, forward: false) == nil)
+        #expect(m.selectedIndex(after: m.items.count, forward: false) == 5)
+        m.deselectAll()
+        #expect(m.selectedItems.isEmpty)
+        m.restorePreviousSelection()
+        #expect(m.selectedItems.map(\.name) == ["f1.txt", "g.md"])
+        // Navigation clears the marks; coming back, ⌃W restores what is still there.
+        try await m.go(to: f.root.appendingPathComponent("a"))
+        try FileManager.default.removeItem(at: f.root.appendingPathComponent("g.md"))
+        try await m.goParent()
+        m.restorePreviousSelection()
+        #expect(m.selectedItems.map(\.name) == ["f1.txt"])
+    }
+
     @Test func restoreFocusesCursorName() async throws {
         let f = try Fixture()
         let m = PanelModel(location: f.root)

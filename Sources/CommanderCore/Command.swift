@@ -13,6 +13,7 @@ public enum Command: String, CaseIterable, Hashable, Sendable {
     case copyFiles, pasteFiles, moveFilesHere, copyFullPath, copyName
     case selectByMask, deselectByMask, invertByMask
     case selectAll, deselectAll, selectSameExtension, deselectSameExtension
+    case invertAll, restoreSelection, saveSelection, loadSelection
 
     // View
     case sortByName, sortByExtension, sortByDate, sortBySize
@@ -29,7 +30,7 @@ public enum Command: String, CaseIterable, Hashable, Sendable {
     case leftVolumeMenu, rightVolumeMenu
 
     // Commands
-    case find, occupiedSpace, openTerminal, revealInFinder, userMenu
+    case find, occupiedSpace, openTerminal, revealInFinder, userMenu, volumeInfo
     case connectToServer, disconnect, compareFiles
     case calculateChecksums, verifyChecksums
 
@@ -173,6 +174,10 @@ public enum CommandRegistry {
         add(.invertByMask, "Invert Selection…", .edit, [K(.numStar), ch("8", [c, o])])
         add(.selectAll, "Select All", .edit, [ch("a", m), K(.numPlus, c)])
         add(.deselectAll, "Deselect All", .edit, [ch("a", [m, s]), K(.numMinus, c)])
+        add(.invertAll, "Invert All", .edit, [K(.numStar, c)])
+        add(.restoreSelection, "Restore Selection", .edit, [ch("w", c)])
+        add(.saveSelection, "Remember Selection", .edit, [f(5, [c, s])])
+        add(.loadSelection, "Apply Remembered Selection", .edit, [f(6, [c, s])])
         add(.selectSameExtension, "Select Same Extension", .edit, [K(.numPlus, s)])
         add(.deselectSameExtension, "Deselect Same Extension", .edit, [K(.numMinus, s)])
 
@@ -209,6 +214,7 @@ public enum CommandRegistry {
 
         add(.find, "Find Files…", .commands, [f(7, o), f(7, [c, o]), ch("f", m)])
         add(.occupiedSpace, "Disk Map…", .commands, [f(10, o), f(10, [c, o]), ch("d", [c, s])])
+        add(.volumeInfo, "Volume Information…", .commands, [ch("l", c)])
         add(.compareFiles, "Compare Files…", .commands)
         add(.calculateChecksums, "Calculate Checksums…", .commands, sep: true)
         add(.verifyChecksums, "Verify Checksums…", .commands, [ch("v", [c, s])])

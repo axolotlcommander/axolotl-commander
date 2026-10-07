@@ -27,7 +27,12 @@ public final class PanelModel {
     public private(set) var items: [FileItem] = []
     public private(set) var cursor: Int = 0
     /// `rules.key(name)` of every selected item.
-    public private(set) var selection: Set<String> = []
+    public private(set) var selection: Set<String> = [] {
+        didSet { if selection.isEmpty, !oldValue.isEmpty { previousSelection = oldValue } }
+    }
+    /// The last non-empty selection before it was cleared (by an operation, navigation or a refresh
+    /// after the items moved away); ⌃W brings it back. Keys as in `selection`.
+    public private(set) var previousSelection: Set<String> = []
     public private(set) var rules: NameRules = .apfsDefault
     public private(set) var isLoading = false
     public private(set) var lastError: (any Error)?
@@ -366,6 +371,19 @@ public final class PanelModel {
         for item in items where includeDirectories || !item.isDirectory {
             if mask.matches(item.name, rules: rules) { set(item, !isSelected(item)) }
         }
+    }
+
+    /// ⌃W: marks again the items of the last cleared selection that are listed here.
+    public func restorePreviousSelection() {
+        let present = Set(items.filter(selectable).map { rules.key($0.name) })
+        selection.formUnion(previousSelection.intersection(present))
+    }
+
+    /// Index of the next (or previous) marked item after `index`; nil when there is none.
+    public func selectedIndex(after index: Int, forward: Bool) -> Int? {
+        let range = forward ? Array(items.indices.dropFirst(max(index + 1, 0)))
+                            : Array(items.indices.prefix(max(index, 0)).reversed())
+        return range.first { isSelected(items[$0]) }
     }
 
     public func selectAll() {

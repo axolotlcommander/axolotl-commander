@@ -767,6 +767,17 @@
         }
       }
     },
+    "Apply Remembered Selection": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Použít zapamatovaný výběr"
+          }
+        }
+      }
+    },
     "Archive error: %@": {
       "localizations": {
         "cs": {
@@ -853,6 +864,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zvuk"
+          }
+        }
+      }
+    },
+    "Available": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volné"
           }
         }
       }
@@ -1019,6 +1040,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nelze ověřit, že „%@“ je jiný soubor; nic nebylo odstraněno."
+          }
+        }
+      }
+    },
+    "Capacity": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kapacita"
           }
         }
       }
@@ -2517,6 +2548,16 @@
         }
       }
     },
+    "Format": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Formát"
+          }
+        }
+      }
+    },
     "Format:": {
       "localizations": {
         "cs": {
@@ -3169,6 +3210,17 @@
         }
       }
     },
+    "Invert All": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invertovat vše"
+          }
+        }
+      }
+    },
     "Invert Selection": {
       "localizations": {
         "cs": {
@@ -3297,6 +3349,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pouze klávesnice"
+          }
+        }
+      }
+    },
+    "Kind": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Druh"
           }
         }
       }
@@ -3621,6 +3683,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Další volby"
+          }
+        }
+      }
+    },
+    "Mounted at": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Připojeno v"
           }
         }
       }
@@ -4780,6 +4852,17 @@
         }
       }
     },
+    "Remember Selection": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapamatovat výběr"
+          }
+        }
+      }
+    },
     "Remember in Keychain": {
       "localizations": {
         "cs": {
@@ -4928,6 +5011,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Obnovit panely"
+          }
+        }
+      }
+    },
+    "Restore Selection": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obnovit výběr"
           }
         }
       }
@@ -6315,6 +6409,16 @@
         }
       }
     },
+    "UUID": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "UUID"
+          }
+        }
+      }
+    },
     "Undo": {
       "localizations": {
         "cs": {
@@ -6447,6 +6551,16 @@
         }
       }
     },
+    "Used": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obsazeno"
+          }
+        }
+      }
+    },
     "Used by Open Terminal Here (⌃/) and by commands typed in the command line.": {
       "localizations": {
         "cs": {
@@ -6572,6 +6686,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Prohlížeč (F3)"
+          }
+        }
+      }
+    },
+    "Volume Information…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Informace o svazku…"
           }
         }
       }
@@ -6880,6 +7005,16 @@
         }
       }
     },
+    "external": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "externí"
+          }
+        }
+      }
+    },
     "folder": {
       "localizations": {
         "cs": {
@@ -6941,6 +7076,16 @@
         }
       }
     },
+    "internal": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "interní"
+          }
+        }
+      }
+    },
     "lowercase": {
       "localizations": {
         "cs": {
@@ -6961,6 +7106,16 @@
         }
       }
     },
+    "network": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "síťový"
+          }
+        }
+      }
+    },
     "not a valid name": {
       "localizations": {
         "cs": {
@@ -6977,6 +7132,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "pozice %@ (%@)"
+          }
+        }
+      }
+    },
+    "read-only": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "jen pro čtení"
+          }
+        }
+      }
+    },
+    "removable": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "vyměnitelný"
           }
         }
       }
