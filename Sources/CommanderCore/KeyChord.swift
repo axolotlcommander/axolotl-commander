@@ -1,5 +1,5 @@
 /// A key plus modifiers, independent of AppKit so the key map is testable.
-public struct KeyChord: Hashable, CustomStringConvertible, Sendable {
+public struct KeyChord: Hashable, CustomStringConvertible, Sendable, Codable {
     public struct Modifiers: OptionSet, Hashable, Sendable {
         public let rawValue: Int
         public init(rawValue: Int) { self.rawValue = rawValue }
@@ -67,4 +67,101 @@ public struct KeyChord: Hashable, CustomStringConvertible, Sendable {
         }
         return s
     }
+}
+
+// MARK: - Stable string form
+
+extension KeyChord {
+    private static let modifierNames: [(Modifiers, String)] = [
+        (.control, "ctrl"), (.option, "opt"), (.shift, "shift"), (.command, "cmd"),
+    ]
+    private static let keyNames: [(Key, String)] = [
+        (.tab, "tab"), (.enter, "enter"), (.space, "space"), (.escape, "escape"),
+        (.backspace, "backspace"), (.forwardDelete, "forwardDelete"), (.insert, "insert"),
+        (.up, "up"), (.down, "down"), (.left, "left"), (.right, "right"),
+        (.home, "home"), (.end, "end"), (.pageUp, "pageUp"), (.pageDown, "pageDown"),
+        (.numPlus, "numPlus"), (.numMinus, "numMinus"), (.numStar, "numStar"),
+        (.numSlash, "numSlash"), (.numEnter, "numEnter"),
+    ]
+
+    /// Lossless, readable text form: modifiers in the order `ctrl+opt+shift+cmd+` followed by the key,
+    /// e.g. `cmd+shift+F5`, `tab`, `numPlus`, `ctrl+opt+char:a`. A character key is `char:` plus the
+    /// character itself (so `char:+` and `char:` followed by a colon round-trip); whitespace and
+    /// control characters are written as `char:U+0020` (several scalars joined by `-`).
+    public var storageString: String {
+        var s = ""
+        for (modifier, name) in Self.modifierNames where modifiers.contains(modifier) { s += name + "+" }
+        switch key {
+        case .function(let n): s += "F\(n)"
+        case .character(let c):
+            let plain = c.unicodeScalars.allSatisfy {
+                !$0.properties.isWhitespace && $0.properties.generalCategory != .control
+                    && $0.properties.generalCategory != .format
+            }
+            if plain {
+                s += "char:" + String(c)
+            } else {
+                s += "char:U+" + c.unicodeScalars.map { hex4($0.value) }.joined(separator: "-")
+            }
+        default:
+            s += Self.keyNames.first { $0.0 == key }?.1 ?? ""
+        }
+        return s
+    }
+
+    /// Parses `storageString`; nil for anything malformed.
+    public init?(storageString: String) {
+        var rest = Substring(storageString)
+        var mods: Modifiers = []
+        scan: while true {
+            for (modifier, name) in Self.modifierNames where rest.hasPrefix(name + "+") {
+                mods.insert(modifier)
+                rest = rest.dropFirst(name.count + 1)
+                continue scan
+            }
+            break
+        }
+        if rest.hasPrefix("char:") {
+            let body = rest.dropFirst(5)
+            if body.count == 1, let c = body.first {
+                self.init(.character(c), mods)
+            } else if body.hasPrefix("U+") {
+                var text = ""
+                for part in body.dropFirst(2).split(separator: "-", omittingEmptySubsequences: false) {
+                    guard let value = UInt32(part, radix: 16), let scalar = Unicode.Scalar(value) else { return nil }
+                    text.unicodeScalars.append(scalar)
+                }
+                guard text.count == 1, let c = text.first else { return nil }
+                self.init(.character(c), mods)
+            } else {
+                return nil
+            }
+        } else if rest.hasPrefix("F"), let n = Int(rest.dropFirst()), n > 0, rest.dropFirst().allSatisfy(\.isWholeNumber) {
+            self.init(.function(n), mods)
+        } else if let key = Self.keyNames.first(where: { $0.1 == rest })?.0 {
+            self.init(key, mods)
+        } else {
+            return nil
+        }
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let text = try container.decode(String.self)
+        guard let chord = KeyChord(storageString: text) else {
+            throw DecodingError.dataCorruptedError(
+                in: container, debugDescription: "Invalid key chord \"\(text)\"")
+        }
+        self = chord
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(storageString)
+    }
+}
+
+private func hex4(_ value: UInt32) -> String {
+    let digits = String(value, radix: 16, uppercase: true)
+    return String(repeating: "0", count: max(0, 4 - digits.count)) + digits
 }
