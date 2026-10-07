@@ -145,4 +145,53 @@ public enum Treemap {
         }
         return best
     }
+
+    /// Direction of keyboard movement between cells; `up` is towards the smaller `y`.
+    public enum Direction: Sendable, CaseIterable {
+        case left, right, up, down
+    }
+
+    /// The cell next to `rects[index]` in `direction`, for arrow key navigation (empty rects are skipped).
+    /// Prefers cells lying wholly beyond the current cell's edge that overlap its span on the other axis:
+    /// the nearest edge first, then the greatest overlap. Without such a cell, the cell beyond that edge
+    /// whose center is nearest. nil if nothing lies beyond the edge (the cell is at the border).
+    public static func neighbor(of index: Int, in rects: [TreemapRect], toward direction: Direction) -> Int? {
+        guard rects.indices.contains(index) else { return nil }
+        let current = rects[index]
+        let tolerance = 1e-6
+        let horizontal = direction == .left || direction == .right
+        // Distance from the current cell's edge to the candidate's near edge; negative when not wholly beyond.
+        func gap(_ r: TreemapRect) -> Double {
+            switch direction {
+            case .right: r.x - current.maxX
+            case .left: current.x - r.maxX
+            case .down: r.y - current.maxY
+            case .up: current.y - r.maxY
+            }
+        }
+        func overlap(_ r: TreemapRect) -> Double {
+            horizontal ? min(r.maxY, current.maxY) - max(r.y, current.y)
+                : min(r.maxX, current.maxX) - max(r.x, current.x)
+        }
+
+        var best: (index: Int, gap: Double, overlap: Double)?
+        for (i, r) in rects.enumerated() where i != index && !r.isEmpty {
+            let g = gap(r), o = overlap(r)
+            guard g >= -tolerance, o > tolerance else { continue }
+            if let b = best, !(g < b.gap - tolerance || (abs(g - b.gap) <= tolerance && o > b.overlap + tolerance)) {
+                continue
+            }
+            best = (i, g, o)
+        }
+        if let best { return best.index }
+
+        let cx = current.x + current.width / 2, cy = current.y + current.height / 2
+        var nearest: (index: Int, distance: Double)?
+        for (i, r) in rects.enumerated() where i != index && !r.isEmpty && gap(r) >= -tolerance {
+            let dx = r.x + r.width / 2 - cx, dy = r.y + r.height / 2 - cy
+            let distance = dx * dx + dy * dy
+            if nearest == nil || distance < nearest!.distance { nearest = (i, distance) }
+        }
+        return nearest?.index
+    }
 }
