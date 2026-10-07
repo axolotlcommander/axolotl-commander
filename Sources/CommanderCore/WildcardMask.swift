@@ -18,6 +18,16 @@ public struct WildcardMask: Sendable, Hashable {
         excludes = exc
     }
 
+    /// Mask built from already split parts (used by `SearchMask`).
+    init(pattern: String, includes: [String], excludes: [String]) {
+        self.pattern = pattern
+        self.includes = includes
+        self.excludes = excludes
+    }
+
+    /// The parsed include and exclude parts (without `|`, `;` separators).
+    var parts: (includes: [String], excludes: [String]) { (includes, excludes) }
+
     public func matches(_ name: String, rules: NameRules = .apfsDefault) -> Bool {
         let n = Array(rules.key(name))
         if !includes.isEmpty && !includes.contains(where: { Self.matchPart($0, n, rules) }) { return false }
