@@ -3,9 +3,14 @@ import CommanderCore
 
 /// Virtualized hex dump: offset, 16 bytes, characters. Draws only the visible
 /// lines, so a memory-mapped file of any size opens instantly.
+///
+/// The view is the scroll view's document but its height is capped (`maxHeight`): view and layer
+/// coordinates lose precision far below the height of a large file. The position in the content
+/// (`contentTop`, a Double) maps linearly onto the capped height; a canvas that follows the visible
+/// area draws the lines from it, and the wheel and keys move it by exact lines.
 final class HexView: NSView {
     var data = Data() { didSet { caret = 0; anchor = nil; relayout() } }
-    var encoding: TextEncoding = .utf8 { didSet { needsDisplay = true } }
+    var encoding: TextEncoding = .utf8 { didSet { redraw() } }
     var font = NSFont.monospacedSystemFont(ofSize: 12, weight: .regular) { didSet { relayout() } }
 
     /// Viewer keys (next file, Esc…) get the first chance at every key press.
@@ -28,37 +33,125 @@ final class HexView: NSView {
     private var lineHeight: CGFloat = 15
     private var offsetDigits = 8
     private var lineCount: Int { max(1, (data.count + HexFormat.bytesPerLine - 1) / HexFormat.bytesPerLine) }
+    /// Content y at the top of the visible area (unscaled: the same as the view's).
+    private var contentTop: Double = 0
+    private let canvas = HexCanvas()
+    private static let maxHeight: Double = 1_000_000
     private var hexX: CGFloat { inset + CGFloat(offsetDigits + 2) * charWidth }
     private var charsX: CGFloat { hexX + CGFloat(48 + 2) * charWidth }
 
     override var isFlipped: Bool { true }
     override var acceptsFirstResponder: Bool { true }
-    override func becomeFirstResponder() -> Bool { needsDisplay = true; return true }
-    override func resignFirstResponder() -> Bool { needsDisplay = true; return true }
+    override func becomeFirstResponder() -> Bool { redraw(); return true }
+    override func resignFirstResponder() -> Bool { redraw(); return true }
+
+    override init(frame: NSRect) {
+        super.init(frame: frame)
+        canvas.owner = self
+        addSubview(canvas)
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { fatalError() }
 
     private func relayout() {
         charWidth = ceil(("0" as NSString).size(withAttributes: [.font: font]).width)
         lineHeight = ceil(font.ascender - font.descender + font.leading) + 2
         offsetDigits = HexFormat.offsetText(0, fileSize: Int64(data.count)).count
-        let width = charsX + CGFloat(HexFormat.bytesPerLine) * charWidth + inset
-        let height = CGFloat(lineCount) * lineHeight + 2 * inset
-        setFrameSize(NSSize(width: width, height: max(height, superview?.bounds.height ?? 0)))
-        needsDisplay = true
+        resize()
+        setContentTop(contentTop)
         onSelectionChange?()
+    }
+
+    private func resize() {
+        let width = charsX + CGFloat(HexFormat.bytesPerLine) * charWidth + inset
+        setFrameSize(NSSize(width: width, height: max(min(naturalHeight, Self.maxHeight), clipHeight)))
+    }
+
+    override func viewWillMove(toSuperview newSuperview: NSView?) {
+        super.viewWillMove(toSuperview: newSuperview)
+        NotificationCenter.default.removeObserver(self, name: NSView.frameDidChangeNotification, object: nil)
+        NotificationCenter.default.removeObserver(self, name: NSView.boundsDidChangeNotification, object: nil)
     }
 
     override func viewDidMoveToSuperview() {
         super.viewDidMoveToSuperview()
+        if let clip = superview as? NSClipView {
+            clip.postsFrameChangedNotifications = true
+            clip.postsBoundsChangedNotifications = true
+            NotificationCenter.default.addObserver(self, selector: #selector(clipFrameChanged),
+                                                   name: NSView.frameDidChangeNotification, object: clip)
+            NotificationCenter.default.addObserver(self, selector: #selector(clipBoundsChanged),
+                                                   name: NSView.boundsDidChangeNotification, object: clip)
+        }
         relayout()
+    }
+
+    @objc private func clipFrameChanged(_ note: Notification) {
+        resize()
+        setContentTop(contentTop)
+    }
+
+    /// A scroll by the scroller (or anything else that is not ours) moves the content to match.
+    @objc private func clipBoundsChanged(_ note: Notification) {
+        let y = Double(visibleRect.minY)
+        if !isScaled || abs(y - scrollY(for: contentTop)) > 1 { contentTop = content(forScrollY: y) }
+        placeCanvas()
+    }
+
+    // MARK: Content position
+
+    private var clipHeight: Double { Double(superview?.bounds.height ?? 0) }
+    private var naturalHeight: Double { Double(lineCount) * lineHeight + 2 * inset }
+    private var isScaled: Bool { naturalHeight > Self.maxHeight }
+    private var maxContentTop: Double { max(0, naturalHeight - clipHeight) }
+    private var maxScrollY: Double { max(0, Double(bounds.height) - clipHeight) }
+
+    private func content(forScrollY y: Double) -> Double {
+        guard isScaled else { return y }
+        return maxScrollY > 0 ? y / maxScrollY * maxContentTop : 0
+    }
+
+    private func scrollY(for content: Double) -> Double {
+        guard isScaled else { return content }
+        return maxContentTop > 0 ? content / maxContentTop * maxScrollY : 0
+    }
+
+    private func setContentTop(_ top: Double) {
+        contentTop = min(max(top, 0), maxContentTop)
+        if let clip = superview as? NSClipView {
+            let target = NSPoint(x: clip.bounds.minX, y: scrollY(for: contentTop))
+            if abs(clip.bounds.minY - target.y) > 0.01 {
+                clip.scroll(to: target)
+                enclosingScrollView?.reflectScrolledClipView(clip)
+            }
+        }
+        placeCanvas()
+    }
+
+    private func placeCanvas() {
+        let visible = visibleRect
+        canvas.frame = NSRect(x: 0, y: visible.minY, width: bounds.width, height: max(visible.height, 1))
+        canvas.needsDisplay = true
+    }
+
+    private func redraw() { canvas.needsDisplay = true }
+
+    /// When scaled, a wheel step would move many lines; the content moves by the wheel's distance.
+    override func scrollWheel(with event: NSEvent) {
+        guard isScaled, abs(event.scrollingDeltaY) >= abs(event.scrollingDeltaX) else { return super.scrollWheel(with: event) }
+        let delta = event.hasPreciseScrollingDeltas ? event.scrollingDeltaY : event.scrollingDeltaY * lineHeight * 3
+        setContentTop(contentTop - delta)
     }
 
     // MARK: Drawing
 
-    override func draw(_ dirtyRect: NSRect) {
+    /// Draws the lines visible in the canvas (`rect` in canvas coordinates; its top is `contentTop`).
+    fileprivate func drawLines(_ rect: NSRect) {
         NSColor.textBackgroundColor.setFill()
-        dirtyRect.fill()
-        let first = max(0, Int((dirtyRect.minY - inset) / lineHeight))
-        let last = min(lineCount - 1, Int((dirtyRect.maxY - inset) / lineHeight))
+        rect.fill()
+        let first = max(0, Int((contentTop + rect.minY - inset) / lineHeight))
+        let last = min(lineCount - 1, Int((contentTop + rect.maxY - inset) / lineHeight))
         guard first <= last else { return }
         let dim: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: NSColor.secondaryLabelColor]
         let plain: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: NSColor.textColor]
@@ -66,7 +159,7 @@ final class HexView: NSView {
         let selected = selection
         let base = data.startIndex
         for line in first...last {
-            let y = inset + CGFloat(line) * lineHeight
+            let y = inset + Double(line) * lineHeight - contentTop
             let start = line * HexFormat.bytesPerLine
             let end = min(start + HexFormat.bytesPerLine, data.count)
             drawSelection(line: start..<end, selected: selected, y: y, focused: focused)
@@ -119,29 +212,32 @@ final class HexView: NSView {
         changed()
     }
 
+    /// Scrolls so the line of `offset` is visible with a line of context.
     private func scrollTo(_ offset: Int) {
-        let line = offset / HexFormat.bytesPerLine
-        scrollToVisible(NSRect(x: 0, y: inset + CGFloat(line) * lineHeight - lineHeight,
-                               width: 1, height: lineHeight * 3))
+        let top = inset + Double(offset / HexFormat.bytesPerLine) * lineHeight
+        if top - lineHeight < contentTop {
+            setContentTop(top - lineHeight)
+        } else if top + 2 * lineHeight > contentTop + clipHeight {
+            setContentTop(top + 2 * lineHeight - clipHeight)
+        }
     }
 
     private func changed() {
-        needsDisplay = true
+        redraw()
         onSelectionChange?()
     }
 
     /// First byte of the top visible line.
     var topOffset: Int {
-        let y = max(0, visibleRect.minY - inset)
+        let y = max(0, contentTop - inset)
         return min(Int(y / lineHeight) * HexFormat.bytesPerLine, max(0, data.count - 1))
     }
 
     func scrollToTop(offset: Int) {
-        let line = offset / HexFormat.bytesPerLine
-        scroll(NSPoint(x: 0, y: inset + CGFloat(line) * lineHeight))
+        setContentTop(inset + Double(offset / HexFormat.bytesPerLine) * lineHeight)
     }
 
-    private var pageLines: Int { max(1, Int(visibleRect.height / lineHeight) - 1) }
+    private var pageLines: Int { max(1, Int(clipHeight / lineHeight) - 1) }
 
     override func keyDown(with event: NSEvent) {
         if onKey?(event) == true { return }
@@ -165,7 +261,7 @@ final class HexView: NSView {
     }
 
     private func offset(at point: NSPoint) -> Int {
-        let line = max(0, Int((point.y - inset) / lineHeight))
+        let line = max(0, Int((contentTop + point.y - visibleRect.minY - inset) / lineHeight))
         let index: Int
         if point.x >= charsX - charWidth {
             index = Int((point.x - charsX) / charWidth)
@@ -183,8 +279,10 @@ final class HexView: NSView {
         moveCaret(to: offset(at: point), extend: event.modifierFlags.contains(.shift))
         let start = anchor ?? caret
         while let next = window?.nextEvent(matching: [.leftMouseDragged, .leftMouseUp]), next.type == .leftMouseDragged {
-            autoscroll(with: next)
-            let target = offset(at: convert(next.locationInWindow, from: nil))
+            let point = convert(next.locationInWindow, from: nil)
+            if point.y < visibleRect.minY { setContentTop(contentTop - lineHeight) }
+            if point.y > visibleRect.maxY { setContentTop(contentTop + lineHeight) }
+            let target = offset(at: point)
             anchor = target == start ? nil : start
             caret = target
             changed()
@@ -205,4 +303,12 @@ final class HexView: NSView {
         caret = data.count - 1
         changed()
     }
+}
+
+/// Follows the visible area of its `HexView` and draws the lines there; clicks go to the view.
+private final class HexCanvas: NSView {
+    weak var owner: HexView?
+    override var isFlipped: Bool { true }
+    override func hitTest(_ point: NSPoint) -> NSView? { nil }
+    override func draw(_ dirtyRect: NSRect) { owner?.drawLines(dirtyRect) }
 }
