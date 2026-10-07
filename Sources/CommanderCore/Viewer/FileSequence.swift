@@ -41,4 +41,20 @@ public struct FileSequence: Sendable, Equatable {
         index = target
         return entries[target].url
     }
+
+    /// Like `move(_:)`, but only lands on entries `accept` takes (e.g. pictures in the image viewer).
+    public mutating func move(_ step: Step, where accept: (Entry) -> Bool) -> URL? {
+        let candidates: [Int]
+        switch step {
+        case .next: candidates = Array(entries.indices.dropFirst(index + 1))
+        case .previous: candidates = entries.indices.prefix(index).reversed()
+        case .first: candidates = Array(entries.indices.prefix(index))
+        case .last: candidates = entries.indices.dropFirst(index + 1).reversed()
+        case .nextSelected: candidates = entries.indices.dropFirst(index + 1).filter { entries[$0].isSelected }
+        case .previousSelected: candidates = entries.indices.prefix(index).reversed().filter { entries[$0].isSelected }
+        }
+        guard let target = candidates.first(where: { accept(entries[$0]) }) else { return nil }
+        index = target
+        return entries[target].url
+    }
 }

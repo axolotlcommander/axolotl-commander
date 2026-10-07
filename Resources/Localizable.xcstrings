@@ -61,6 +61,16 @@
         }
       }
     },
+    "%lld differences": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rozdílů: %lld"
+          }
+        }
+      }
+    },
     "%lld files, %lld folders — %@": {
       "localizations": {
         "cs": {
@@ -87,6 +97,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "nalezeno: %lld"
+          }
+        }
+      }
+    },
+    "%lld frames": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "snímků: %lld"
           }
         }
       }
@@ -644,6 +664,27 @@
         }
       }
     },
+    "Compare Files": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Porovnat soubory"
+          }
+        }
+      }
+    },
+    "Compare Files…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Porovnat soubory…"
+          }
+        }
+      }
+    },
     "Compare Panels": {
       "localizations": {
         "cs": {
@@ -660,6 +701,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Porovnávám soubory (%lld)…"
+          }
+        }
+      }
+    },
+    "Comparing…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Porovnávám…"
           }
         }
       }
@@ -1003,6 +1054,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Rozpoznat automaticky"
+          }
+        }
+      }
+    },
+    "Difference %lld of %lld": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rozdíl %lld z %lld"
+          }
+        }
+      }
+    },
+    "Differences only": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "jen rozdíly"
           }
         }
       }
@@ -1390,6 +1461,17 @@
         }
       }
     },
+    "First Difference": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "První rozdíl"
+          }
+        }
+      }
+    },
     "First File": {
       "extractionState": "manual",
       "localizations": {
@@ -1397,6 +1479,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "První soubor"
+          }
+        }
+      }
+    },
+    "First difference at offset %@ (%@)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "První rozdíl na offsetu %@ (%@)"
+          }
+        }
+      }
+    },
+    "First file:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "První soubor:"
           }
         }
       }
@@ -1765,6 +1867,27 @@
         }
       }
     },
+    "Highlight Syntax": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zvýrazňovat syntaxi"
+          }
+        }
+      }
+    },
+    "Highlight syntax in source code": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zvýrazňovat syntaxi ve zdrojovém kódu"
+          }
+        }
+      }
+    },
     "Highlighting — the first matching rule from the top wins:": {
       "localizations": {
         "cs": {
@@ -1836,12 +1959,34 @@
         }
       }
     },
+    "Ignore All Whitespace": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ignorovat všechny mezery"
+          }
+        }
+      }
+    },
     "Ignore Case": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Ignorovat velikost písmen"
+          }
+        }
+      }
+    },
+    "Ignore Whitespace Changes": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ignorovat změny v mezerách"
           }
         }
       }
@@ -1862,6 +2007,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ignorovat složky:"
+          }
+        }
+      }
+    },
+    "Ignoring all whitespace": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "bez ohledu na mezery"
+          }
+        }
+      }
+    },
+    "Ignoring case": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "bez ohledu na velikost písmen"
+          }
+        }
+      }
+    },
+    "Ignoring whitespace changes": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "bez ohledu na změny v mezerách"
           }
         }
       }
@@ -2012,6 +2187,17 @@
         }
       }
     },
+    "Last Difference": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Poslední rozdíl"
+          }
+        }
+      }
+    },
     "Last File": {
       "extractionState": "manual",
       "localizations": {
@@ -2029,6 +2215,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Levý"
+          }
+        }
+      }
+    },
+    "Left: %@ (%@ bytes)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vlevo: %@ (%@ bajtů)"
+          }
+        }
+      }
+    },
+    "Left: %lld lines, right: %lld lines": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vlevo řádků: %lld, vpravo: %lld"
           }
         }
       }
@@ -2059,6 +2265,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Odkazy"
+          }
+        }
+      }
+    },
+    "Load Images from the Internet": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Načíst obrázky z internetu"
           }
         }
       }
@@ -2377,6 +2594,17 @@
         }
       }
     },
+    "Next Difference": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Další rozdíl"
+          }
+        }
+      }
+    },
     "Next Encoding": {
       "extractionState": "manual",
       "localizations": {
@@ -2437,6 +2665,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Žádné oblíbené cesty"
+          }
+        }
+      }
+    },
+    "No differences": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bez rozdílů"
+          }
+        }
+      }
+    },
+    "No differences (with the current options).": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Žádné rozdíly (při současném nastavení)."
           }
         }
       }
@@ -2748,6 +2996,16 @@
         }
       }
     },
+    "Paths may be on disk, in an archive or on a server.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cesty mohou vést na disk, do archivu i na server."
+          }
+        }
+      }
+    },
     "Permissions": {
       "localizations": {
         "cs": {
@@ -2774,6 +3032,27 @@
           "stringUnit": {
             "state": "translated",
             "value": "Port:"
+          }
+        }
+      }
+    },
+    "Preview": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Náhled"
+          }
+        }
+      }
+    },
+    "Previous Difference": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Předchozí rozdíl"
           }
         }
       }
@@ -2838,6 +3117,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Fialová"
+          }
+        }
+      }
+    },
+    "Quality:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kvalita:"
           }
         }
       }
@@ -3018,6 +3307,16 @@
         }
       }
     },
+    "Right: %@ (%@ bytes)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vpravo: %@ (%@ bajtů)"
+          }
+        }
+      }
+    },
     "Same Content": {
       "localizations": {
         "cs": {
@@ -3054,6 +3353,37 @@
           "stringUnit": {
             "state": "translated",
             "value": "Uložit"
+          }
+        }
+      }
+    },
+    "Save Image As…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uložit obrázek jako…"
+          }
+        }
+      }
+    },
+    "Saving…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ukládám…"
+          }
+        }
+      }
+    },
+    "Second file:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Druhý soubor:"
           }
         }
       }
@@ -3323,6 +3653,17 @@
         }
       }
     },
+    "Show Differences Only": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zobrazit jen rozdíly"
+          }
+        }
+      }
+    },
     "Show Hidden Files": {
       "extractionState": "manual",
       "localizations": {
@@ -3392,6 +3733,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Velikost:"
+          }
+        }
+      }
+    },
+    "Size: %@ (%@ bytes)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Velikost: %@ (%@ bajtů)"
           }
         }
       }
@@ -3507,6 +3858,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Podsložky"
+          }
+        }
+      }
+    },
+    "Swap Sides": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prohodit strany"
           }
         }
       }
@@ -3633,6 +3995,36 @@
         }
       }
     },
+    "The files are different.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soubory se liší."
+          }
+        }
+      }
+    },
+    "The files are identical.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soubory jsou shodné."
+          }
+        }
+      }
+    },
+    "The files could not be compared.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soubory nelze porovnat."
+          }
+        }
+      }
+    },
     "The folder does not exist.": {
       "localizations": {
         "cs": {
@@ -3693,6 +4085,16 @@
         }
       }
     },
+    "The original file was not changed.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Původní soubor zůstal beze změny."
+          }
+        }
+      }
+    },
     "The password for %@ was not accepted.": {
       "localizations": {
         "cs": {
@@ -3719,6 +4121,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Cesta je příliš dlouhá; nic nebylo změněno."
+          }
+        }
+      }
+    },
+    "The picture could not be read.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obrázek nelze přečíst."
+          }
+        }
+      }
+    },
+    "The picture could not be saved.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obrázek nelze uložit."
           }
         }
       }
@@ -3763,6 +4185,16 @@
         }
       }
     },
+    "This Mac cannot write %@.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tento Mac neumí zapsat %@."
+          }
+        }
+      }
+    },
     "This archive cannot be modified.": {
       "localizations": {
         "cs": {
@@ -3779,6 +4211,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tuto akci nelze vrátit zpět."
+          }
+        }
+      }
+    },
+    "This document refers to %lld image(s) on the internet. They have not been loaded.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dokument odkazuje na obrázky na internetu (%lld). Nebyly načteny."
           }
         }
       }
@@ -4108,6 +4550,17 @@
         }
       }
     },
+    "Zoom to Fit": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přizpůsobit oknu"
+          }
+        }
+      }
+    },
     "at least": {
       "localizations": {
         "cs": {
@@ -4245,6 +4698,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nápověda iCommander"
+          }
+        }
+      }
+    },
+    "images from the internet blocked": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "obrázky z internetu zablokovány"
+          }
+        }
+      }
+    },
+    "images from the internet loaded": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "obrázky z internetu načteny"
           }
         }
       }
@@ -4425,6 +4898,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "⇧F9 zobrazí oblíbené cesty a uloží aktuální složku."
+          }
+        }
+      }
+    },
+    "⋯ %lld identical lines": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⋯ shodných řádků: %lld"
           }
         }
       }

@@ -18,6 +18,7 @@ enum MainMenuBuilder {
         .viewerSelectAll: #selector(NSText.selectAll(_:)),
         .findCopyFiles: #selector(NSText.copy(_:)),
         .findSelectAll: #selector(NSText.selectAll(_:)),
+        .compareCopy: #selector(NSText.copy(_:)),
     ]
 
     /// Menus whose items depend on the context; the rest hold app-scope items only.
@@ -37,6 +38,7 @@ enum MainMenuBuilder {
                 switch window.windowController {
                 case is ViewerWindowController: update(.viewer)
                 case is FindWindowController: update(.find)
+                case is CompareWindowController: update(.compare)
                 case is MainWindowController: update(.panel)
                 default: break
                 }

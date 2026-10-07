@@ -28,7 +28,7 @@ public enum Command: String, CaseIterable, Hashable, Sendable {
 
     // Commands
     case find, occupiedSpace, openTerminal, revealInFinder, userMenu
-    case connectToServer, disconnect
+    case connectToServer, disconnect, compareFiles
 
     // Options
     case configureKeys
@@ -53,11 +53,17 @@ public enum Command: String, CaseIterable, Hashable, Sendable {
     case viewerText, viewerHex, viewerWrap, viewerEncoding, viewerAutoEncoding
     case viewerNextEncoding, viewerPreviousEncoding, viewerSetDefaultEncoding
     case viewerZoomIn, viewerZoomOut, viewerActualSize, viewerReload
+    case viewerPreview, viewerHighlight, viewerZoomToFit, viewerSaveImageAs, viewerLoadRemote
 
     // Find window (⌃⌥F7)
     case findStart, findStop, findOpen, findShowInPanel, findView, findEdit, findQuickLook
     case findProperties, findTrash, findRemove, findCopyFiles, findCopyPaths, findCopyNames
     case findSelectAll, findToPanel, findClose
+
+    // Compare files window
+    case compareNextDifference, comparePreviousDifference, compareFirstDifference, compareLastDifference
+    case compareIgnoreWhitespace, compareIgnoreAllWhitespace, compareIgnoreCase, compareDifferencesOnly
+    case compareSwap, compareReload, compareCopy, compareZoomIn, compareZoomOut, compareActualSize, compareClose
 
     public static let goHotPaths: [Command] = [
         .goHotPath1, .goHotPath2, .goHotPath3, .goHotPath4, .goHotPath5,
@@ -82,14 +88,14 @@ public enum MenuID: String, CaseIterable, Sendable {
 /// disabled while a text field edits, so their keys fall through to the field.
 /// Viewer commands exist only while a viewer window is key; the menu bar swaps
 /// panel and viewer items, so the two scopes may reuse chords. Find commands
-/// work the same way for the find window.
+/// work the same way for the find window and the compare window.
 public enum CommandScope: Sendable {
-    case app, panel, viewer, find
+    case app, panel, viewer, find, compare
 }
 
 /// Which window kind the menu bar and key map currently serve.
 public enum CommandContext: Sendable, CaseIterable {
-    case panel, viewer, find
+    case panel, viewer, find, compare
 
     public func includes(_ scope: CommandScope) -> Bool {
         switch scope {
@@ -97,6 +103,7 @@ public enum CommandContext: Sendable, CaseIterable {
         case .panel: self == .panel
         case .viewer: self == .viewer
         case .find: self == .find
+        case .compare: self == .compare
         }
     }
 }
@@ -194,6 +201,7 @@ public enum CommandRegistry {
 
         add(.find, "Find Files…", .commands, [f(7, [c, o])])
         add(.occupiedSpace, "Occupied Space", .commands, [f(10, [c, o])])
+        add(.compareFiles, "Compare Files…", .commands)
         add(.openTerminal, "Open Terminal Here", .commands, [ch("/", c), K(.numSlash)], sep: true)
         add(.revealInFinder, "Show in Finder", .commands, [f(3, s)])
         add(.userMenu, "User Menu…", .commands, [f(9)], sep: true)
@@ -231,6 +239,7 @@ public enum CommandRegistry {
         viewer(.viewerFirstFile, "First File", .file, [K(.backspace, s)])
         viewer(.viewerLastFile, "Last File", .file, [K(.space, s)])
         viewer(.viewerSaveAs, "Copy to File…", .file, [ch("s", m)], sep: true)
+        viewer(.viewerSaveImageAs, "Save Image As…", .file, [ch("s", [m, s])])
         viewer(.viewerClose, "Close Viewer", nil, [K(.escape)])
         viewer(.viewerCopy, "Copy", .edit, [ch("c", m)])
         viewer(.viewerSelectAll, "Select All", .edit, [ch("a", m)])
@@ -241,7 +250,10 @@ public enum CommandRegistry {
         viewer(.viewerGoTo, "Go to Line or Offset…", .edit, [ch("l", m)], sep: true)
         viewer(.viewerText, "Text", .view, [ch("1", m), f(5)])
         viewer(.viewerHex, "Hex", .view, [ch("2", m), f(4)])
+        viewer(.viewerPreview, "Preview", .view, [ch("3", m), f(6)])
+        viewer(.viewerLoadRemote, "Load Images from the Internet", .view)
         viewer(.viewerWrap, "Wrap Lines", .view, [ch("w", c)], sep: true)
+        viewer(.viewerHighlight, "Highlight Syntax", .view, [ch("h", c)])
         viewer(.viewerEncoding, "Text Encoding", .view, sep: true)
         viewer(.viewerNextEncoding, "Next Encoding", .view, [f(8)])
         viewer(.viewerPreviousEncoding, "Previous Encoding", .view, [f(8, s)])
@@ -250,6 +262,7 @@ public enum CommandRegistry {
         viewer(.viewerZoomIn, "Bigger", .view, [ch("+", m), ch("=", m)], sep: true)
         viewer(.viewerZoomOut, "Smaller", .view, [ch("-", m)])
         viewer(.viewerActualSize, "Actual Size", .view, [ch("0", m)])
+        viewer(.viewerZoomToFit, "Zoom to Fit", .view, [ch("9", m)])
         viewer(.viewerReload, "Reload", .view, [ch("r", m)], sep: true)
 
         func find(_ cmd: Command, _ title: String, _ menu: MenuID?, _ chords: [K] = [], sep: Bool = false) {
@@ -271,6 +284,25 @@ public enum CommandRegistry {
         find(.findStop, "Stop", .commands, [ch(".", m)])
         find(.findToPanel, "Show Results in Panel", .commands, [ch("p", [m, s])], sep: true)
         find(.findClose, "Close", nil, [K(.escape)])
+
+        func compare(_ cmd: Command, _ title: String, _ menu: MenuID?, _ chords: [K] = [], sep: Bool = false) {
+            add(cmd, title, menu, chords, scope: .compare, sep: sep)
+        }
+        compare(.compareCopy, "Copy", .edit, [ch("c", m)])
+        compare(.compareNextDifference, "Next Difference", .go, [K(.down, m), K(.space)])
+        compare(.comparePreviousDifference, "Previous Difference", .go, [K(.up, m), K(.backspace)])
+        compare(.compareFirstDifference, "First Difference", .go, [K(.up, [m, o])], sep: true)
+        compare(.compareLastDifference, "Last Difference", .go, [K(.down, [m, o])])
+        compare(.compareDifferencesOnly, "Show Differences Only", .view, [ch("d", [m, s])])
+        compare(.compareIgnoreWhitespace, "Ignore Whitespace Changes", .view, sep: true)
+        compare(.compareIgnoreAllWhitespace, "Ignore All Whitespace", .view)
+        compare(.compareIgnoreCase, "Ignore Case", .view)
+        compare(.compareSwap, "Swap Sides", .view, [ch("s", [m, o])], sep: true)
+        compare(.compareZoomIn, "Bigger", .view, [ch("+", m), ch("=", m)], sep: true)
+        compare(.compareZoomOut, "Smaller", .view, [ch("-", m)])
+        compare(.compareActualSize, "Actual Size", .view, [ch("0", m)])
+        compare(.compareReload, "Reload", .view, [ch("r", m)], sep: true)
+        compare(.compareClose, "Close", nil, [K(.escape)])
         return list
     }()
 
@@ -296,4 +328,5 @@ public struct KeyMap: Sendable {
     public static let standard = KeyMap()
     public static let viewer = KeyMap(context: .viewer)
     public static let find = KeyMap(context: .find)
+    public static let compare = KeyMap(context: .compare)
 }

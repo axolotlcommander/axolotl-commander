@@ -14,10 +14,17 @@ let package = Package(
     products: [
         .executable(name: "iCommander", targets: ["iCommander"]),
     ],
+    dependencies: [
+        .package(url: "https://github.com/swiftlang/swift-markdown.git", from: "0.7.0"),
+    ],
     targets: [
         .systemLibrary(name: "CArchive", path: "Sources/CArchive"),
         .systemLibrary(name: "CCurl", path: "Sources/CCurl"),
-        .target(name: "CommanderCore", dependencies: ["CArchive", "CCurl"], swiftSettings: strict),
+        .target(
+            name: "CommanderCore",
+            dependencies: ["CArchive", "CCurl", .product(name: "Markdown", package: "swift-markdown")],
+            swiftSettings: strict
+        ),
         .executableTarget(
             name: "iCommander",
             dependencies: ["CommanderCore"],

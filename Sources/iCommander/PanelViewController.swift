@@ -403,7 +403,7 @@ final class PanelViewController: NSViewController {
         .copy, .move, .delete, .deletePermanently, .makeDirectory, .rename, .copyFiles, .pasteFiles,
         .view, .quickLook, .edit, .newFile, .properties, .openTerminal, .revealInFinder,
         .newTab, .closeTab, .nextTab, .previousTab, .hotPaths, .viewModeDetailed, .viewModeBrief,
-        .find, .pack, .unpack, .connectToServer, .disconnect,
+        .find, .pack, .unpack, .connectToServer, .disconnect, .compareFiles,
     ]
 
     private static let needTargets: Set<Command> = [
@@ -518,6 +518,7 @@ final class PanelViewController: NSViewController {
         case .pasteFiles: pasteFromPasteboard()
         case .view: openViewer()
         case .find: if let router { FindWindowController.show(from: router) }
+        case .compareFiles: Task { await CompareFiles.ask(from: self) }
         case .connectToServer: ConnectSheet.show(for: self)
         case .disconnect: DisconnectSheet.show(for: self)
         case .pack: router?.operations.pack(targets(), from: self)
@@ -568,6 +569,10 @@ final class PanelViewController: NSViewController {
 
     /// F3: the internal viewer for the file under the cursor; folders and media go to Quick Look.
     private func openViewer() {
+        if let (left, right) = CompareFiles.selectedPair(in: self) {
+            Task { await CompareFiles.open(left, right, from: self) }
+            return
+        }
         guard let item = model.cursorItem, !item.isParent else { return }
         if let remote = RemoteURL.parse(item.url) {
             Task {

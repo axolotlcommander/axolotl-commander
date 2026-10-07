@@ -386,6 +386,20 @@ private func bytes(_ s: String, _ e: TextEncoding) -> Data { Data(e.encode(s)!) 
         #expect(none.move(.previousSelected) == nil)
     }
 
+    @Test func filteredMove() throws {
+        let vowel: (FileSequence.Entry) -> Bool = { ["a", "e"].contains($0.url.lastPathComponent) }
+        var s = try #require(make(current: "b", selected: ["c", "e"]))
+        #expect(s.move(.next, where: vowel) == url("e"))
+        #expect(s.move(.next, where: vowel) == nil)
+        #expect(s.current == url("e"))
+        #expect(s.move(.previous, where: vowel) == url("a"))
+        #expect(s.move(.first, where: vowel) == nil)
+        #expect(s.move(.last, where: vowel) == url("e"))
+        #expect(s.move(.first, where: vowel) == url("a"))
+        #expect(s.move(.nextSelected, where: vowel) == url("e"))
+        #expect(s.move(.previousSelected, where: { _ in true }) == url("c"))
+    }
+
     @Test func unknownAndStandardizedURL() throws {
         #expect(make(current: "zzz") == nil)
         let s = try #require(FileSequence(

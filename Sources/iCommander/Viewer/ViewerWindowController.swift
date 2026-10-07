@@ -6,11 +6,14 @@ import UniformTypeIdentifiers
 enum ViewerDefaults {
     static let encodingKey = "viewer.encoding"
     static let wrapKey = "viewer.wrap"
+    static let highlightKey = "viewer.highlight"
     static let fontSizeKey = "viewer.fontSize"
     static let defaultFontSize: Double = 12
     static let fontSizes: ClosedRange<Double> = 8...36
     /// Text mode decodes at most this much; hex mode always shows the whole file.
     static let textLimit = 64 << 20
+    /// Longer texts (UTF-16 units) are shown without syntax colors.
+    static let highlightLimit = 4 << 20
 
     /// Encoding for text that has no BOM and is not UTF-8: Central European for
     /// Czech and its neighbours (Windows-1250 as in the Windows version), Western otherwise.
@@ -22,16 +25,20 @@ enum ViewerDefaults {
         UserDefaults.standard.string(forKey: encodingKey).flatMap(TextEncoding.init(rawValue:)) ?? fallbackEncoding
     }
     static var wrap: Bool { UserDefaults.standard.object(forKey: wrapKey) as? Bool ?? true }
+    static var highlight: Bool { UserDefaults.standard.object(forKey: highlightKey) as? Bool ?? true }
     static var fontSize: Double {
         let size = UserDefaults.standard.double(forKey: fontSizeKey)
         return size == 0 ? defaultFontSize : min(max(size, fontSizes.lowerBound), fontSizes.upperBound)
     }
 
-    /// Types F3 hands to Quick Look until the type viewers of stage 10 exist.
+    /// Types F3 hands to Quick Look: documents and media the viewer has no preview for.
     static func prefersQuickLook(_ url: URL) -> Bool {
         guard let type = UTType(filenameExtension: url.pathExtension) else { return false }
+        if ImageExport.canRead(url) { return false }
         return [UTType.image, .pdf, .audiovisualContent, .font].contains { type.conforms(to: $0) }
     }
+
+    static let markdownExtensions: Set<String> = ["md", "markdown", "mdown", "mkd", "mkdn", "mdwn"]
 }
 
 /// Text view of the viewer: viewer keys (Space, ⌫, Esc…) first, then normal selection keys.
@@ -55,7 +62,15 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         controller.load()
     }
 
-    enum Mode { case text, hex }
+    enum Mode { case text, hex, preview }
+    /// What the Preview mode shows for a file.
+    enum PreviewKind { case markdown, image }
+
+    static func previewKind(for url: URL) -> PreviewKind? {
+        if ViewerDefaults.markdownExtensions.contains(url.pathExtension.lowercased()) { return .markdown }
+        if ImageExport.canRead(url) { return .image }
+        return nil
+    }
 
     /// File contents read off the main actor.
     private nonisolated struct Loaded: Sendable {
@@ -91,13 +106,25 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
     private var loadTask: Task<Void, Never>?
     private var decodeTask: Task<Void, Never>?
     private var findTask: Task<Void, Never>?
+    private var previewTask: Task<Void, Never>?
+    private var highlightTask: Task<Void, Never>?
+    private var previewKind: PreviewKind?
+    /// The user let this Markdown file load images from the internet.
+    private var remoteAllowed = false
+    private var highlight = ViewerDefaults.highlight
+    /// Bumped whenever the text view gets new text; stale highlighting is dropped.
+    private var textGeneration = 0
+    private var language: SyntaxLanguage? { SyntaxLanguage.forFile(named: sequence.current.lastPathComponent) }
 
     private let textScroll = NSScrollView()
     private let textView = ViewerTextView(usingTextLayoutManager: true)
     private let hexScroll = NSScrollView()
     private let hexView = HexView()
     private let findBar = HexFindBar()
-    private let modeControl = NSSegmentedControl(labels: [String(localized: "Text"), String(localized: "Hex")],
+    private let markdownPreview = MarkdownPreview()
+    private let imagePreview = ImagePreview()
+    private let modeControl = NSSegmentedControl(labels: [String(localized: "Text"), String(localized: "Hex"),
+                                                          String(localized: "Preview")],
                                                  trackingMode: .selectOne, target: nil, action: nil)
     private let encodingPopup = NSPopUpButton(frame: .zero, pullsDown: false)
     private let wrapBox = NSButton(checkboxWithTitle: String(localized: "Wrap Lines"), target: nil, action: nil)
@@ -157,12 +184,23 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         hexScroll.backgroundColor = .textBackgroundColor
 
         findBar.isHidden = true
-        findBar.onFind = { [weak self] in self?.findInHex(backward: $0) }
+        findBar.onFind = { [weak self] in self?.findInBar(backward: $0) }
         findBar.onClose = { [weak self] in self?.closeFindBar() }
 
+        markdownPreview.webView.onKey = { [weak self] in self?.handleKey($0) ?? false }
+        markdownPreview.onAllowRemote = { [weak self] in self?.perform(.viewerLoadRemote) }
+        markdownPreview.onOpenFile = { file in
+            if let sequence = FileSequence(entries: [.init(url: file, isSelected: false)], current: file) {
+                ViewerWindowController.show(sequence)
+            }
+        }
+        imagePreview.onKey = { [weak self] in self?.handleKey($0) ?? false }
+        imagePreview.onArrow = { [weak self] previous in self?.step(previous ? .previous : .next) }
+        imagePreview.onZoomChange = { [weak self] in self?.updateInfo() }
+
         let lists = NSView()
-        for scroll in [textScroll, hexScroll] {
-            scroll.borderType = .noBorder
+        for scroll in [textScroll, hexScroll, markdownPreview, imagePreview] as [NSView] {
+            (scroll as? NSScrollView)?.borderType = .noBorder
             scroll.translatesAutoresizingMaskIntoConstraints = false
             lists.addSubview(scroll)
             NSLayoutConstraint.activate([
@@ -224,8 +262,13 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         loadTask?.cancel()
         decodeTask?.cancel()
         findTask?.cancel()
+        previewTask?.cancel()
+        highlightTask?.cancel()
         let url = sequence.current
         let position = keepingPosition ? positionFraction() : 0
+        if !keepingPosition { remoteAllowed = false }
+        previewKind = Self.previewKind(for: url)
+        modeControl.setEnabled(previewKind != nil, forSegment: 2)
         window?.title = url.lastPathComponent
         window?.subtitle = url.deletingLastPathComponent().displayPath
         window?.representedURL = url
@@ -242,7 +285,13 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
             decodedAs = nil
             hexView.data = data
             hexView.encoding = encoding
-            mode = loadError != nil ? .text : modeOverride ?? (isBinary ? .hex : .text)
+            if loadError != nil {
+                mode = .text
+            } else if let modeOverride, modeOverride != .preview || previewKind != nil {
+                mode = modeOverride
+            } else {
+                mode = previewKind != nil ? .preview : isBinary ? .hex : .text
+            }
             show(at: position)
         }
     }
@@ -251,10 +300,19 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
     private func show(at position: Double) {
         textScroll.isHidden = mode != .text
         hexScroll.isHidden = mode != .hex
-        if mode == .text { findBar.isHidden = true }
-        modeControl.selectedSegment = mode == .text ? 0 : 1
+        markdownPreview.isHidden = !(mode == .preview && previewKind == .markdown)
+        imagePreview.isHidden = !(mode == .preview && previewKind == .image)
+        if mode == .text || mode == .preview && previewKind == .image { findBar.isHidden = true }
+        findBar.allowsHex = mode == .hex
+        modeControl.selectedSegment = switch mode {
+        case .text: 0
+        case .hex: 1
+        case .preview: 2
+        }
         updateStatus()
         switch mode {
+        case .preview:
+            showPreview()
         case .hex:
             hexView.scrollToTop(offset: Int(position * Double(data.count)))
             window?.makeFirstResponder(hexView)
@@ -269,6 +327,32 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
                 return
             }
             decode(restoring: .fraction(position))
+        }
+    }
+
+    private func showPreview() {
+        previewTask?.cancel()
+        switch previewKind {
+        case .image?:
+            markdownPreview.clear()
+            imagePreview.show(sequence.current)
+            window?.makeFirstResponder(imagePreview)
+        case .markdown?:
+            imagePreview.clear()
+            window?.makeFirstResponder(markdownPreview.webView)
+            let data = data, encoding = encoding, url = sequence.current, allow = remoteAllowed, limit = ViewerDefaults.textLimit
+            let bom = EncodingDetector.bom(in: data)
+            let skip = bom?.encoding == encoding ? bom?.length ?? 0 : 0
+            previewTask = Task {
+                let text = await Task.detached(priority: .userInitiated) {
+                    TextDecoding.decode(data, as: encoding, skip: skip, limit: limit)
+                }.value
+                guard !Task.isCancelled else { return }
+                await markdownPreview.show(text, of: url, allowRemote: allow)
+                updateInfo()
+            }
+        case nil:
+            break
         }
     }
 
@@ -297,10 +381,33 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
     }
 
     private func setText(_ text: String) {
+        textGeneration += 1
+        highlightTask?.cancel()
         textView.textStorage?.setAttributedString(NSAttributedString(string: text, attributes: [
             .font: font, .foregroundColor: NSColor.textColor,
         ]))
         textView.setSelectedRange(NSRange(location: 0, length: 0))
+        applyHighlight()
+    }
+
+    /// Colors the text by the language its file name suggests, off the main actor.
+    private func applyHighlight() {
+        highlightTask?.cancel()
+        guard let storage = textView.textStorage, storage.length > 0, loadError == nil else { return }
+        guard highlight, let language, storage.length <= ViewerDefaults.highlightLimit else {
+            storage.addAttribute(.foregroundColor, value: NSColor.textColor, range: NSRange(location: 0, length: storage.length))
+            return
+        }
+        let text = storage.string, generation = textGeneration
+        highlightTask = Task {
+            let spans = await Task.detached(priority: .userInitiated) {
+                SyntaxHighlighter.spans(in: text, language: language)
+            }.value
+            guard !Task.isCancelled, generation == textGeneration, storage.length == (text as NSString).length else { return }
+            storage.beginEditing()
+            for span in spans { storage.addAttribute(.foregroundColor, value: SyntaxColors.color(for: span.kind), range: span.range) }
+            storage.endEditing()
+        }
     }
 
     // MARK: Position
@@ -308,6 +415,8 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
     /// Where the view is, as a fraction of the file (text: characters, hex: bytes).
     private func positionFraction() -> Double {
         switch mode {
+        case .preview:
+            return 0
         case .hex:
             return data.isEmpty ? 0 : Double(hexView.topOffset) / Double(data.count)
         case .text:
@@ -342,12 +451,27 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         encodingPopup.lastItem?.state = encodingOverride == nil ? .on : .off
         wrapBox.state = wrap ? .on : .off
         wrapBox.isEnabled = mode == .text
+        encodingPopup.isEnabled = mode != .preview || previewKind == .markdown
         updateInfo()
     }
 
     private func updateInfo() {
         var parts = [Format.grouped(Int64(data.count)) + " B"]
+        if mode == .preview, previewKind == .image {
+            if let info = imagePreview.info {
+                parts.insert("\(info.width) × \(info.height) px", at: 0)
+                if let type = info.type.flatMap({ UTType($0) }), let name = type.localizedDescription { parts.append(name) }
+                if info.frames > 1 { parts.append(String(localized: "\(info.frames) frames")) }
+            }
+            parts.append("\(Int((imagePreview.zoom * 100).rounded())) %")
+            infoField.stringValue = parts.joined(separator: " · ")
+            return
+        }
         if let source = sourceText { parts.append(source) }
+        if mode == .preview, previewKind == .markdown, markdownPreview.remoteCount > 0 {
+            parts.append(markdownPreview.allowsRemote ? String(localized: "images from the internet loaded")
+                                                      : String(localized: "images from the internet blocked"))
+        }
         if mode == .text, truncated {
             parts.append(String(localized: "text shows the first \(Format.bytes(Int64(ViewerDefaults.textLimit))), Hex shows all"))
         }
@@ -403,6 +527,18 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         case .viewerGoTo: Task { await goTo() }
         case .viewerText: setMode(.text)
         case .viewerHex: setMode(.hex)
+        case .viewerPreview:
+            if previewKind == nil { NSSound.beep() } else { setMode(.preview) }
+        case .viewerHighlight:
+            highlight.toggle()
+            UserDefaults.standard.set(highlight, forKey: ViewerDefaults.highlightKey)
+            applyHighlight()
+        case .viewerLoadRemote:
+            guard mode == .preview, previewKind == .markdown, !remoteAllowed else { return }
+            remoteAllowed = true
+            showPreview()
+        case .viewerSaveImageAs: Task { await saveImage() }
+        case .viewerZoomToFit: imagePreview.fit()
         case .viewerWrap:
             wrap.toggle()
             UserDefaults.standard.set(wrap, forKey: ViewerDefaults.wrapKey)
@@ -412,9 +548,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         case .viewerNextEncoding: cycleEncoding(by: 1)
         case .viewerPreviousEncoding: cycleEncoding(by: -1)
         case .viewerSetDefaultEncoding: UserDefaults.standard.set(encoding.rawValue, forKey: ViewerDefaults.encodingKey)
-        case .viewerZoomIn: zoom(to: fontSize + 1)
-        case .viewerZoomOut: zoom(to: fontSize - 1)
-        case .viewerActualSize: zoom(to: ViewerDefaults.defaultFontSize)
+        case .viewerZoomIn, .viewerZoomOut, .viewerActualSize: zoom(command)
         case .viewerReload: load(keepingPosition: true)
         default:
             if CommandRegistry.spec(command).scope == .app { (NSApp.delegate as? AppDelegate)?.perform(command) }
@@ -431,17 +565,39 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         switch command {
         case .viewerText: menuItem.state = mode == .text ? .on : .off
         case .viewerHex: menuItem.state = mode == .hex ? .on : .off
+        case .viewerPreview:
+            menuItem.state = mode == .preview ? .on : .off
+            return previewKind != nil && loadError == nil
+        case .viewerHighlight:
+            menuItem.state = highlight ? .on : .off
+            return mode == .text && language != nil
+        case .viewerLoadRemote:
+            return mode == .preview && previewKind == .markdown && !remoteAllowed && markdownPreview.remoteCount > 0
+        case .viewerSaveImageAs: return previewKind == .image && loadError == nil
+        case .viewerZoomToFit: return mode == .preview && previewKind == .image
+        case .viewerFind, .viewerFindNext, .viewerFindPrevious, .viewerUseSelectionForFind:
+            return !(mode == .preview && previewKind == .image)
         case .viewerWrap:
             menuItem.state = wrap ? .on : .off
             return mode == .text
         case .viewerAutoEncoding: menuItem.state = encodingOverride == nil ? .on : .off
         case .viewerGoTo:
-            menuItem.title = mode == .text ? String(localized: "Go to Line…") : String(localized: "Go to Offset…")
-            return loadError == nil
+            menuItem.title = mode == .hex ? String(localized: "Go to Offset…") : String(localized: "Go to Line…")
+            return loadError == nil && mode != .preview
         case .viewerNextFile, .viewerPreviousFile, .viewerFirstFile, .viewerLastFile: return several
         case .viewerNextSelected, .viewerPreviousSelected: return several && sequence.entries.contains(where: \.isSelected)
-        case .viewerZoomIn: return fontSize < ViewerDefaults.fontSizes.upperBound
-        case .viewerZoomOut: return fontSize > ViewerDefaults.fontSizes.lowerBound
+        case .viewerZoomIn:
+            switch (mode, previewKind) {
+            case (.preview, .image?): return imagePreview.zoom < imagePreview.maxMagnification
+            case (.preview, .markdown?): return markdownPreview.zoom < 3
+            default: return fontSize < ViewerDefaults.fontSizes.upperBound
+            }
+        case .viewerZoomOut:
+            switch (mode, previewKind) {
+            case (.preview, .image?): return imagePreview.zoom > imagePreview.minMagnification
+            case (.preview, .markdown?): return markdownPreview.zoom > 0.5
+            default: return fontSize > ViewerDefaults.fontSizes.lowerBound
+            }
         case .viewerSaveAs: return loadError == nil
         default:
             if CommandRegistry.spec(command).scope == .app {
@@ -452,7 +608,10 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
     }
 
     private func step(_ step: FileSequence.Step) {
-        guard sequence.move(step) != nil else { NSSound.beep(); return }
+        // The image preview pages through pictures only.
+        let pictures = mode == .preview && previewKind == .image
+        let moved = pictures ? sequence.move(step) { ImageExport.canRead($0.url) } : sequence.move(step)
+        guard moved != nil else { NSSound.beep(); return }
         // Another file opens fresh: automatic mode and encoding again.
         encodingOverride = nil
         modeOverride = nil
@@ -469,7 +628,9 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         show(at: position)
     }
 
-    @objc private func modeControlChanged() { setMode(modeControl.selectedSegment == 0 ? .text : .hex) }
+    @objc private func modeControlChanged() {
+        setMode([Mode.text, .hex, .preview][min(max(modeControl.selectedSegment, 0), 2)])
+    }
     @objc private func wrapBoxChanged() { perform(.viewerWrap) }
 
     @objc func selectEncoding(_ sender: NSMenuItem) { setEncoding(TextEncoding.allCases[sender.tag]) }
@@ -492,6 +653,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         if mode == .text, loadError == nil, decodedAs != encoding {
             decode(restoring: .origin(textScroll.contentView.bounds.origin))
         }
+        if mode == .preview, previewKind == .markdown { showPreview() }
         updateStatus()
     }
 
@@ -519,6 +681,29 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         hexView.font = font
     }
 
+    private func zoom(_ command: Command) {
+        switch (mode, previewKind) {
+        case (.preview, .image?):
+            switch command {
+            case .viewerZoomIn: imagePreview.zoomIn()
+            case .viewerZoomOut: imagePreview.zoomOut()
+            default: imagePreview.zoom(to: 1)
+            }
+        case (.preview, .markdown?):
+            switch command {
+            case .viewerZoomIn: markdownPreview.zoom += 0.1
+            case .viewerZoomOut: markdownPreview.zoom -= 0.1
+            default: markdownPreview.zoom = 1
+            }
+        default:
+            switch command {
+            case .viewerZoomIn: zoom(to: fontSize + 1)
+            case .viewerZoomOut: zoom(to: fontSize - 1)
+            default: zoom(to: ViewerDefaults.defaultFontSize)
+            }
+        }
+    }
+
     private func zoom(to size: Double) {
         fontSize = min(max(size, ViewerDefaults.fontSizes.lowerBound), ViewerDefaults.fontSizes.upperBound)
         UserDefaults.standard.set(fontSize, forKey: ViewerDefaults.fontSizeKey)
@@ -529,6 +714,13 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
 
     private func find(_ action: NSTextFinder.Action) {
         switch mode {
+        case .preview:
+            guard previewKind == .markdown else { NSSound.beep(); return }
+            switch action {
+            case .showFindInterface, .setSearchString: showFindBar()
+            default:
+                if findBar.query.isEmpty { showFindBar() } else { findInBar(backward: action == .previousMatch) }
+            }
         case .text:
             let item = NSMenuItem()
             item.tag = action.rawValue
@@ -543,7 +735,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
                 findBar.field.stringValue = HexFormat.plainHex(bytes.prefix(256))
                 findBar.isHex = true
             default:
-                if findBar.query.isEmpty { showFindBar() } else { findInHex(backward: action == .previousMatch) }
+                if findBar.query.isEmpty { showFindBar() } else { findInBar(backward: action == .previousMatch) }
             }
         }
     }
@@ -556,7 +748,20 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
 
     private func closeFindBar() {
         findBar.isHidden = true
-        window?.makeFirstResponder(hexView)
+        window?.makeFirstResponder(mode == .preview ? markdownPreview.webView : hexView)
+    }
+
+    private func findInBar(backward: Bool) {
+        guard mode == .preview else { return findInHex(backward: backward) }
+        let query = findBar.query
+        guard !query.isEmpty else { return }
+        findTask?.cancel()
+        findTask = Task {
+            let found = await markdownPreview.find(query, backward: backward, ignoreCase: findBar.ignoresCase)
+            guard !Task.isCancelled, !found else { return }
+            NSSound.beep()
+            infoField.stringValue = String(localized: "Not found.")
+        }
     }
 
     private func findInHex(backward: Bool) {
@@ -592,6 +797,8 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
 
     private func goTo() async {
         switch mode {
+        case .preview:
+            NSSound.beep()
         case .hex:
             guard let text = await TextPrompt.ask(title: String(localized: "Go to Offset"),
                                                   message: String(localized: "Offset (decimal, or hex as 0x1F, $1F or 1Fh):"),
@@ -628,6 +835,8 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         case .hex:
             let range = hexView.hasSelection ? hexView.selection : 0..<data.count
             payload = data[(data.startIndex + range.lowerBound)..<(data.startIndex + range.upperBound)]
+        case .preview:
+            payload = data
         }
         let panel = NSSavePanel()
         panel.nameFieldStringValue = sequence.current.lastPathComponent
@@ -640,12 +849,56 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         }
     }
 
+    /// Saves the picture in a format the user picks; an existing file is replaced only by a
+    /// completely written new one.
+    private func saveImage() async {
+        guard let window, previewKind == .image else { return }
+        let source = sequence.current
+        let options = ImageSaveOptions(format: ImageFormat.forFile(named: source.lastPathComponent) ?? .png)
+        let panel = NSSavePanel()
+        panel.accessoryView = options.view
+        panel.allowedContentTypes = [options.format.type]
+        panel.isExtensionHidden = false
+        panel.canSelectHiddenExtension = false
+        panel.directoryURL = source.deletingLastPathComponent()
+        panel.nameFieldStringValue = source.lastPathComponent
+        options.onChange = { [weak panel] format in panel?.allowedContentTypes = [format.type] }
+        guard await panel.beginSheetModal(for: window) == .OK, let target = panel.url else { return }
+        let format = options.format, quality = options.quality
+        infoField.stringValue = String(localized: "Saving…")
+        do {
+            try await Task.detached(priority: .userInitiated) {
+                try ImageExport.export(source, to: target, format: format, quality: quality)
+            }.value
+        } catch {
+            let alert = NSAlert()
+            alert.alertStyle = .warning
+            alert.messageText = String(localized: "The picture could not be saved.")
+            alert.informativeText = switch error {
+            case ImageExportError.unreadable: String(localized: "The picture could not be read.")
+            case ImageExportError.cannotEncode(let format): String(localized: "This Mac cannot write \(format.title).")
+            default: Format.error(error)
+            }
+            alert.informativeText += "\n" + String(localized: "The original file was not changed.")
+            await alert.beginSheetModal(for: window)
+        }
+        if target.standardizedFileURL.resolvingSymlinksInPath() == source.standardizedFileURL.resolvingSymlinksInPath() {
+            load(keepingPosition: true)
+        } else {
+            updateInfo()
+        }
+    }
+
     // MARK: Window
 
     func windowWillClose(_ notification: Notification) {
         loadTask?.cancel()
         decodeTask?.cancel()
         findTask?.cancel()
+        previewTask?.cancel()
+        highlightTask?.cancel()
+        markdownPreview.clear()
+        imagePreview.clear()
         Self.open.removeAll { $0 === self }
     }
 }

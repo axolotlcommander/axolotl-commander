@@ -18,6 +18,13 @@ final class HexFindBar: NSView, NSSearchFieldDelegate {
         set { kind.selectedSegment = newValue ? 1 : 0 }
     }
     var ignoresCase: Bool { ignoreCase.state == .on }
+    /// The Markdown preview finds text only.
+    var allowsHex = true {
+        didSet {
+            kind.isHidden = !allowsHex
+            if !allowsHex { isHex = false }
+        }
+    }
 
     override init(frame: NSRect) {
         super.init(frame: frame)

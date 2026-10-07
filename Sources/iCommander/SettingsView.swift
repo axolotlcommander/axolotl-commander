@@ -42,6 +42,7 @@ private struct ViewerSettings: View {
     @AppStorage(Launcher.editorDefaultsKey) private var editor = "com.apple.TextEdit"
     @AppStorage(ViewerDefaults.encodingKey) private var encoding = ViewerDefaults.fallbackEncoding.rawValue
     @AppStorage(ViewerDefaults.wrapKey) private var wrap = true
+    @AppStorage(ViewerDefaults.highlightKey) private var highlight = true
     @AppStorage(ViewerDefaults.fontSizeKey) private var fontSize = ViewerDefaults.defaultFontSize
 
     var body: some View {
@@ -53,6 +54,7 @@ private struct ViewerSettings: View {
                 Text("A byte order mark or valid UTF-8 always wins; this encoding is used for other text.")
                     .font(.caption).foregroundStyle(.secondary)
                 Toggle("Wrap lines", isOn: $wrap)
+                Toggle("Highlight syntax in source code", isOn: $highlight)
                 Stepper(value: $fontSize, in: ViewerDefaults.fontSizes) {
                     Text("Font size: \(Int(fontSize)) pt")
                 }
