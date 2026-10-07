@@ -786,7 +786,7 @@ final class PanelViewController: NSViewController {
         if let urls = pb.readObjects(forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) as? [URL], !urls.isEmpty {
             router?.operations.transfer(.copy, sources: urls, from: self, to: model.location)
         } else if let text = pb.string(forType: .string)?.trimmingCharacters(in: .whitespacesAndNewlines),
-                  let url = try? PathInput.resolve(text, relativeTo: model.location) {
+                  let url = try? PathInput.resolve(text, relativeTo: model.location, absoluteIsLocal: true) {
             go(to: url)
         }
     }

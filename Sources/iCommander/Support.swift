@@ -97,9 +97,11 @@ extension URL {
 
 enum PathInput {
     /// Typed location: a server address (`sftp://…`, any password ignored), a path on the
-    /// server `base` is on, or a local path.
-    static func resolve(_ text: String, relativeTo base: URL) throws -> URL {
+    /// server `base` is on, or a local path. With `absoluteIsLocal` (transfer targets, hot paths)
+    /// "/…" is always on disk and only relative text stays on the server.
+    static func resolve(_ text: String, relativeTo base: URL, absoluteIsLocal: Bool = false) throws -> URL {
         if let typed = RemoteURL.parse(typed: text) { return typed.location.url }
+        if absoluteIsLocal, text.hasPrefix("/") { return try PathRules.resolve(text, relativeTo: base) }
         if let remote = RemoteURL.parse(base), !text.hasPrefix("~") {
             let path = text.hasPrefix("/") ? text : RemotePath.join(remote.path, text)
             return RemoteURL.make(remote.endpoint, path: RemotePath.normalize(path))

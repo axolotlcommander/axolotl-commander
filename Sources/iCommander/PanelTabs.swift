@@ -151,7 +151,7 @@ extension PanelViewController {
             return
         }
         do {
-            let url = try PathInput.resolve(hotPath.path, relativeTo: model.location)
+            let url = try PathInput.resolve(hotPath.path, relativeTo: model.location, absoluteIsLocal: true)
             Task { await navigate { try await model.go(to: url) } }
         } catch {
             NSSound.beep()
