@@ -280,6 +280,8 @@ final class OperationsController {
     }
 
     func report(_ error: any Error) {
+        // E.g. a password prompt that was cancelled.
+        if case ArchiveError.cancelled? = error as? ArchiveError { return }
         Task { await inform(String(localized: "The operation could not be completed."), OperationsController.describe(error)) }
     }
 

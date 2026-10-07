@@ -64,15 +64,16 @@ enum IconCache {
     }
 }
 
-/// Sheet with one text field; returns nil on Cancel/Esc.
+/// Sheet with one text field (`secure`: a password field); returns nil on Cancel/Esc.
 enum TextPrompt {
-    static func ask(title: String, message: String, initial: String, in window: NSWindow?) async -> String? {
+    static func ask(title: String, message: String, initial: String, secure: Bool = false,
+                    in window: NSWindow?) async -> String? {
         let alert = NSAlert()
         alert.messageText = title
         alert.informativeText = message
         alert.addButton(withTitle: String(localized: "OK"))
         alert.addButton(withTitle: String(localized: "Cancel"))
-        let field = NSTextField(string: initial)
+        let field = secure ? NSSecureTextField(string: initial) : NSTextField(string: initial)
         field.frame = NSRect(x: 0, y: 0, width: 300, height: 24)
         alert.accessoryView = field
         alert.window.initialFirstResponder = field

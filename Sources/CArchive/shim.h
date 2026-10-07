@@ -56,6 +56,7 @@ int archive_filter_code(struct archive *, int);
 struct archive *archive_read_new(void);
 int archive_read_support_filter_all(struct archive *);
 int archive_read_support_format_all(struct archive *);
+int archive_read_add_passphrase(struct archive *, const char *);
 int archive_read_open_filename(struct archive *, const char *_filename, size_t _block_size);
 int archive_read_next_header(struct archive *, struct archive_entry **);
 la_ssize_t archive_read_data(struct archive *, void *, size_t);
@@ -107,5 +108,9 @@ long archive_entry_mtime_nsec(struct archive_entry *);
 int archive_entry_mtime_is_set(struct archive_entry *);
 void archive_entry_set_mtime(struct archive_entry *, time_t, long);
 int archive_entry_is_encrypted(struct archive_entry *);
+void archive_entry_set_uid(struct archive_entry *, la_int64_t);
+void archive_entry_set_gid(struct archive_entry *, la_int64_t);
+void archive_entry_set_uname_utf8(struct archive_entry *, const char *);
+void archive_entry_set_gname_utf8(struct archive_entry *, const char *);
 
 #endif

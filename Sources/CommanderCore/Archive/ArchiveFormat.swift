@@ -39,8 +39,12 @@ public enum ArchiveError: Error, Equatable, Sendable {
     case unsupportedFormat
     /// Rar, or the archive has encrypted entries and would need rewriting.
     case readOnly
-    /// Member that is encrypted (no passphrase support yet).
+    /// Member encrypted with a method libarchive cannot decrypt (7z, rar, zip strong encryption).
     case encrypted(String)
+    /// Encrypted zip member and no passphrase was given.
+    case passwordRequired(String)
+    /// None of the given passphrases decrypts the member.
+    case wrongPassword(String)
     /// Inner folder or member not in the archive, or a source file that is missing.
     case notFound(String)
     case alreadyExists(String)
@@ -57,7 +61,11 @@ extension ArchiveError: LocalizedError {
         case .readOnly:
             String(localized: "This archive cannot be modified.")
         case .encrypted(let path):
-            String(localized: "“\(path)” is encrypted.")
+            String(localized: "“\(path)” is encrypted with a method that is not supported.")
+        case .passwordRequired(let path):
+            String(localized: "“\(path)” is encrypted and needs a password.")
+        case .wrongPassword(let path):
+            String(localized: "The password for “\(path)” is wrong.")
         case .notFound(let path):
             String(localized: "“\(path)” was not found in the archive.")
         case .alreadyExists(let path):

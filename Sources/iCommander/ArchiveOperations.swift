@@ -19,11 +19,15 @@ enum ArchiveScratch {
     }
 
     /// Extracts the member `name` of the folder `archive` into a fresh folder; returns the copy.
-    static func extract(_ name: String, from archive: ArchivePath) async throws -> URL {
+    /// An encrypted member asks for the password on `window` (the key window by default).
+    static func extract(_ name: String, from archive: ArchivePath, in window: NSWindow? = nil) async throws -> URL {
         let folder = try makeFolder()
-        _ = try await ArchiveExtractor.extract(
-            archive: archive.archive, members: [archive.member(name)], base: archive.inner,
-            to: folder, overwrite: true, progress: { _ in })
+        let members = [archive.member(name)]
+        try await ArchivePasswords.run(archive.archive, members: members, in: window) { passphrases in
+            _ = try await ArchiveExtractor.extract(
+                archive: archive.archive, members: members, base: archive.inner,
+                to: folder, overwrite: true, passphrases: passphrases, progress: { _ in })
+        }
         let copy = folder.appending(path: ArchiveExtractor.sanitize(name) ?? name)
         guard FileManager.default.fileExists(atPath: copy.path(percentEncoded: false)) else {
             throw ArchiveError.notFound(archive.member(name))
@@ -257,9 +261,11 @@ extension OperationsController {
         let staging = destination.appending(path: ".icommander-\(UUID().uuidString)", directoryHint: .isDirectory)
         try FileManager.default.createDirectory(at: staging, withIntermediateDirectories: false)
         do {
-            _ = try await ArchiveExtractor.extract(
-                archive: archive, members: members, base: base, to: staging, overwrite: true,
-                progress: { done in Task { @MainActor in state.progress.doneBytes = done } })
+            try await ArchivePasswords.run(archive, members: members, in: window) { passphrases in
+                _ = try await ArchiveExtractor.extract(
+                    archive: archive, members: members, base: base, to: staging, overwrite: true, passphrases: passphrases,
+                    progress: { done in Task { @MainActor in state.progress.doneBytes = done } })
+            }
         } catch {
             try? FileManager.default.removeItem(at: staging)
             throw error
@@ -285,9 +291,12 @@ extension OperationsController {
             if let source {
                 let folder = try ArchiveScratch.makeFolder()
                 staging = folder
-                _ = try await ArchiveExtractor.extract(
-                    archive: source.archive, members: names.map { source.member($0) }, base: source.inner,
-                    to: folder, overwrite: true, progress: { _ in })
+                let members = names.map { source.member($0) }
+                try await ArchivePasswords.run(source.archive, members: members, in: self.window) { passphrases in
+                    _ = try await ArchiveExtractor.extract(
+                        archive: source.archive, members: members, base: source.inner,
+                        to: folder, overwrite: true, passphrases: passphrases, progress: { _ in })
+                }
                 files = names.map { folder.appending(path: ArchiveExtractor.sanitize($0) ?? $0) }
             }
             let index = try await ArchiveCatalog.shared.index(of: target.archive)

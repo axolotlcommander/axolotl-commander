@@ -30,7 +30,9 @@ public enum ArchiveExtractor {
     /// Extracts `members` (directories recursively; "" means everything) into the existing
     /// directory `destination`, stripping the `base` folder prefix from member paths.
     /// Existing files are replaced only when `overwrite` is true, otherwise reported as skipped.
-    /// `progress` gets cumulative bytes written, from any thread.
+    /// Encrypted zip members are decrypted with `passphrases`; without one the extraction
+    /// stops with `passwordRequired`, with wrong ones with `wrongPassword` (other formats:
+    /// `encrypted`). `progress` gets cumulative bytes written, from any thread.
     @concurrent
     public static func extract(
         archive: URL,
@@ -38,11 +40,51 @@ public enum ArchiveExtractor {
         base: String,
         to destination: URL,
         overwrite: Bool,
+        passphrases: [String] = [],
         progress: @escaping @Sendable (Int64) -> Void
     ) async throws -> ExtractReport {
         try withUTF8Locale {
-            try run(archive: archive, members: members, base: base, to: destination, overwrite: overwrite, progress: progress)
+            try run(archive: archive, members: members, base: base, to: destination, overwrite: overwrite,
+                    passphrases: passphrases, progress: progress)
         }
+    }
+
+    /// Checks `passphrases` against the first encrypted file among `members` (directories
+    /// recursively, "" means everything) by decrypting its first block, so a password can be
+    /// asked for before anything is written. Returns quietly when no such member is encrypted;
+    /// throws like `extract`.
+    @concurrent
+    public static func verifyPassphrase(archive: URL, members: [String], passphrases: [String]) async throws {
+        try withUTF8Locale {
+            let members = members.map(normalizeMemberPath)
+            let reader = try ArchiveReadHandle(path: archive.path, passphrases: passphrases)
+            while let e = try reader.next() {
+                if Task.isCancelled { throw ArchiveError.cancelled }
+                let info = RawEntryInfo(e)
+                let path = normalizeMemberPath(info.path)
+                guard info.isEncrypted, !info.isDirectory, !path.isEmpty,
+                      members.contains(where: { memberPath(path, isAtOrBelow: $0) })
+                else {
+                    try reader.skip()
+                    continue
+                }
+                try checkEncrypted(path, reader: reader, passphrases: passphrases)
+                let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: 64 * 1024, alignment: 16)
+                defer { buffer.deallocate() }
+                do throws(ArchiveError) {
+                    _ = try reader.read(into: buffer)
+                } catch {
+                    throw ArchiveReadHandle.passphraseError(for: path, after: error)
+                }
+                return
+            }
+        }
+    }
+
+    /// Fails early for an encrypted member that cannot be decrypted at all.
+    private static func checkEncrypted(_ path: String, reader: ArchiveReadHandle, passphrases: [String]) throws(ArchiveError) {
+        guard reader.detectedFormat() == .zip else { throw .encrypted(path) }
+        if passphrases.allSatisfy(\.isEmpty) { throw .passwordRequired(path) }
     }
 
     private static func run(
@@ -51,6 +93,7 @@ public enum ArchiveExtractor {
         base: String,
         to destination: URL,
         overwrite: Bool,
+        passphrases: [String],
         progress: (Int64) -> Void
     ) throws -> ExtractReport {
         // libarchive checks every component of the absolute target for symlinks,
@@ -65,7 +108,7 @@ public enum ArchiveExtractor {
 
         let base = normalizeMemberPath(base)
         let members = members.map(normalizeMemberPath)
-        let reader = try ArchiveReadHandle(path: archive.path)
+        let reader = try ArchiveReadHandle(path: archive.path, passphrases: passphrases)
         let disk = try ArchiveWriteHandle(
             diskFlags: ARCHIVE_EXTRACT_TIME | ARCHIVE_EXTRACT_SECURE_SYMLINKS | ARCHIVE_EXTRACT_SECURE_NODOTDOT
         )
@@ -96,7 +139,9 @@ public enum ArchiveExtractor {
                 try reader.skip()
                 continue
             }
-            if info.isEncrypted { throw ArchiveError.encrypted(path) }
+            if info.isEncrypted && !info.isDirectory {
+                try checkEncrypted(path, reader: reader, passphrases: passphrases)
+            }
 
             var st = stat()
             if lstat(target, &st) == 0, !writtenTargets.contains(target) {
@@ -148,6 +193,9 @@ public enum ArchiveExtractor {
                     // Leave no half-written file behind.
                     disk.abandon()
                     unlink(target)
+                    if info.isEncrypted, let error = error as? ArchiveError, error != .cancelled {
+                        throw ArchiveReadHandle.passphraseError(for: path, after: error)
+                    }
                     throw error
                 }
             }

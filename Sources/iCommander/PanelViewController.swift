@@ -247,6 +247,7 @@ final class PanelViewController: NSViewController {
         if pathField.currentEditor() == nil { pathField.stringValue = locationText }
         volumeBar.show(location: model.location)
         router?.panelLocationChanged(self)
+        ArchivePasswords.panel(self, showsArchive: model.archive?.archive)
         updateQuickLook()
         updateStatus()
         watchLocation()
@@ -617,7 +618,7 @@ final class PanelViewController: NSViewController {
             // Members are viewed from a temporary copy.
             Task {
                 do {
-                    let copy = try await ArchiveScratch.extract(item.name, from: archive)
+                    let copy = try await ArchiveScratch.extract(item.name, from: archive, in: self.view.window)
                     if let sequence = FileSequence(entries: [.init(url: copy, isSelected: false)], current: copy) {
                         ViewerWindowController.show(sequence)
                     }
@@ -722,7 +723,7 @@ final class PanelViewController: NSViewController {
         do {
             guard let file = try await model.enterCursor() else { return }
             if let archive = model.archive {
-                NSWorkspace.shared.open(try await ArchiveScratch.extract(file.name, from: archive))
+                NSWorkspace.shared.open(try await ArchiveScratch.extract(file.name, from: archive, in: view.window))
             } else if let remote = RemoteURL.parse(file.url) {
                 // FTP listings do not say what a link points to: try it as a folder first.
                 if file.isSymlink, (try? await model.go(to: file.url)) != nil { return }
@@ -731,6 +732,7 @@ final class PanelViewController: NSViewController {
                 NSWorkspace.shared.open(file.url)
             }
         } catch RemoteError.cancelled {
+        } catch ArchiveError.cancelled {
         } catch {
             NSSound.beep()
             statusField.stringValue = Format.error(error)

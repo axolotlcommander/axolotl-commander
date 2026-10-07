@@ -186,6 +186,8 @@ public enum ArchiveWriter {
         var size: Int64
         var modified: timespec
         var perm: mode_t
+        var uid: uid_t
+        var gid: gid_t
         var linkTarget: String?
     }
 
@@ -198,7 +200,7 @@ public enum ArchiveWriter {
             guard lstat(file, &st) == 0 else { throw ArchiveError.notFound(file) }
             var item = Item(
                 file: file, member: member, kind: .file, size: 0,
-                modified: st.st_mtimespec, perm: st.st_mode & 0o777, linkTarget: nil
+                modified: st.st_mtimespec, perm: st.st_mode & 0o777, uid: st.st_uid, gid: st.st_gid, linkTarget: nil
             )
             switch st.st_mode & S_IFMT {
             case S_IFDIR:
@@ -233,6 +235,8 @@ public enum ArchiveWriter {
         let progress: (Int64) -> Void
         var total: Int64 = 0
         let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: 64 * 1024, alignment: 16)
+        private var userNames: [uid_t: String?] = [:]
+        private var groupNames: [gid_t: String?] = [:]
 
         init(progress: @escaping (Int64) -> Void) {
             self.progress = progress
@@ -257,6 +261,11 @@ public enum ArchiveWriter {
             archive_entry_set_pathname_utf8(e, ArchiveWriter.memberName(item.member, isDirectory: item.kind == .directory, format: format))
             archive_entry_set_mtime(e, item.modified.tv_sec, item.modified.tv_nsec)
             archive_entry_set_perm(e, item.perm)
+            // Owner of the source file, so tar listings show the real user, not root.
+            archive_entry_set_uid(e, Int64(item.uid))
+            archive_entry_set_gid(e, Int64(item.gid))
+            if let name = userName(item.uid) { archive_entry_set_uname_utf8(e, name) }
+            if let name = groupName(item.gid) { archive_entry_set_gname_utf8(e, name) }
             switch item.kind {
             case .directory:
                 archive_entry_set_filetype(e, UInt32(AE_IFDIR))
@@ -285,6 +294,28 @@ public enum ArchiveWriter {
                 }
             }
             try writer.finishEntry()
+        }
+
+        private func userName(_ uid: uid_t) -> String? {
+            if let cached = userNames[uid] { return cached }
+            var record = passwd()
+            var result: UnsafeMutablePointer<passwd>?
+            var storage = [CChar](repeating: 0, count: 4096)
+            let name = getpwuid_r(uid, &record, &storage, storage.count, &result) == 0 && result != nil
+                ? String(cString: record.pw_name) : nil
+            userNames[uid] = name
+            return name
+        }
+
+        private func groupName(_ gid: gid_t) -> String? {
+            if let cached = groupNames[gid] { return cached }
+            var record = group()
+            var result: UnsafeMutablePointer<group>?
+            var storage = [CChar](repeating: 0, count: 4096)
+            let name = getgrgid_r(gid, &record, &storage, storage.count, &result) == 0 && result != nil
+                ? String(cString: record.gr_name) : nil
+            groupNames[gid] = name
+            return name
         }
 
         private func advance(_ n: Int) {

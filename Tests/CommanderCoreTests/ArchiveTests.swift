@@ -519,3 +519,106 @@ func updateOtherFormats(format: ArchiveFormat) async throws {
         #expect(updated.map(\.name).sorted() == ["dir", "new.txt", "visible.txt"])
     }
 }
+
+// MARK: - Encryption and owners
+
+/// Zip with encrypted "a.txt" and "sub/big.bin" plus a plain "plain.txt" (password "secret").
+private func makeEncryptedZip(_ root: URL, method: String) throws -> (archive: URL, big: Data) {
+    let src = root.sub("src")
+    let big = noise(200_000)
+    try write(src.sub("a.txt"), "hello")
+    try write(src.sub("sub/big.bin"), big)
+    try write(src.sub("plain.txt"), "plain")
+    let archive = root.sub("enc.zip")
+    if method == "zip-P" {
+        try run("/usr/bin/zip", ["-q", "-r", "-P", "secret", archive.path, "a.txt", "sub"], in: src)
+    } else {
+        try run("/usr/bin/bsdtar", ["--format", "zip", "--options", "zip:encryption=\(method)", "--passphrase", "secret",
+                                    "-cf", archive.path, "a.txt", "sub"], in: src)
+    }
+    try run("/usr/bin/zip", ["-q", archive.path, "plain.txt"], in: src)
+    return (archive, big)
+}
+
+@Test(arguments: ["zip-P", "traditional", "aes256"])
+func encryptedZipNeedsRightPassword(method: String) async throws {
+    try await withSandbox { root in
+        let (archive, big) = try makeEncryptedZip(root, method: method)
+        let idx = try await index(archive)
+        #expect(idx.hasEncryptedEntries)
+        #expect(idx.entry(at: "a.txt")?.isEncrypted == true)
+        #expect(idx.entry(at: "plain.txt")?.isEncrypted == false)
+
+        // Plain members need no password.
+        try await ArchiveExtractor.verifyPassphrase(archive: archive, members: ["plain.txt"], passphrases: [])
+        let plain = root.sub("plain")
+        _ = try await extractAll(archive, to: plain, members: ["plain.txt"])
+        #expect(read(plain.sub("plain.txt")) == Data("plain".utf8))
+
+        await #expect(throws: ArchiveError.passwordRequired("a.txt")) {
+            try await ArchiveExtractor.verifyPassphrase(archive: archive, members: [""], passphrases: [])
+        }
+        await #expect(throws: ArchiveError.wrongPassword("a.txt")) {
+            try await ArchiveExtractor.verifyPassphrase(archive: archive, members: ["a.txt"], passphrases: ["wrong"])
+        }
+        try await ArchiveExtractor.verifyPassphrase(archive: archive, members: [""], passphrases: ["secret"])
+
+        let none = root.sub("none")
+        await #expect(throws: ArchiveError.passwordRequired("a.txt")) {
+            _ = try await extractAll(archive, to: none, members: ["a.txt"])
+        }
+        #expect(names(none).isEmpty)
+        let wrong = root.sub("wrong")
+        try FileManager.default.createDirectory(at: wrong, withIntermediateDirectories: true)
+        await #expect(throws: ArchiveError.wrongPassword("sub/big.bin")) {
+            _ = try await ArchiveExtractor.extract(archive: archive, members: ["sub"], base: "", to: wrong,
+                                                   overwrite: false, passphrases: ["wrong"], progress: noProgress)
+        }
+        #expect(read(wrong.sub("sub/big.bin")) == nil)
+
+        let right = root.sub("right")
+        try FileManager.default.createDirectory(at: right, withIntermediateDirectories: true)
+        _ = try await ArchiveExtractor.extract(archive: archive, members: [""], base: "", to: right,
+                                               overwrite: false, passphrases: ["wrong", "secret"], progress: noProgress)
+        #expect(read(right.sub("a.txt")) == Data("hello".utf8))
+        #expect(read(right.sub("sub/big.bin")) == big)
+        #expect(read(right.sub("plain.txt")) == Data("plain".utf8))
+
+        // Rewriting would drop the encryption: still refused.
+        await #expect(throws: ArchiveError.readOnly) {
+            try await ArchiveWriter.update(archive, removing: ["plain.txt"], progress: noProgress)
+        }
+    }
+}
+
+/// Reads a NUL-terminated field of a tar header.
+private func tarField(_ data: Data, _ offset: Int, _ length: Int) -> String {
+    let bytes = data[offset..<(offset + length)].prefix { $0 != 0 }
+    return String(decoding: bytes, as: UTF8.self).trimmingCharacters(in: .whitespaces)
+}
+
+@Test func addedMembersKeepTheSourceOwner() async throws {
+    try await withSandbox { root in
+        let file = root.sub("owned.txt")
+        try write(file, "mine")
+        var st = stat()
+        #expect(lstat(file.path, &st) == 0)
+        let user = try #require(getpwuid(st.st_uid).map { String(cString: $0.pointee.pw_name) })
+        let group = try #require(getgrgid(st.st_gid).map { String(cString: $0.pointee.gr_name) })
+
+        let created = root.sub("c.tar")
+        try await ArchiveWriter.create(created, format: .tar, adding: [.init(file: file, path: "owned.txt")], progress: noProgress)
+        let updated = root.sub("u.tar")
+        try await ArchiveWriter.create(updated, format: .tar, adding: [], progress: noProgress)
+        try await ArchiveWriter.update(updated, adding: [.init(file: file, path: "owned.txt")], progress: noProgress)
+
+        for archive in [created, updated] {
+            let header = try #require(read(archive))
+            #expect(tarField(header, 0, 100) == "owned.txt")
+            #expect(Int(tarField(header, 108, 8), radix: 8) == Int(st.st_uid))
+            #expect(Int(tarField(header, 116, 8), radix: 8) == Int(st.st_gid))
+            #expect(tarField(header, 265, 32) == user)
+            #expect(tarField(header, 297, 32) == group)
+        }
+    }
+}
