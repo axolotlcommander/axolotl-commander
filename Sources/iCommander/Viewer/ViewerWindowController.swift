@@ -39,6 +39,7 @@ enum ViewerDefaults {
     }
 
     static let markdownExtensions: Set<String> = ["md", "markdown", "mdown", "mkd", "mkdn", "mdwn"]
+    static let htmlExtensions: Set<String> = ["html", "htm", "xhtml"]
 }
 
 /// Text view of the viewer: viewer keys (Space, ⌫, Esc…) first, then normal selection keys.
@@ -64,10 +65,17 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
 
     enum Mode { case text, hex, preview }
     /// What the Preview mode shows for a file.
-    enum PreviewKind { case markdown, image }
+    enum PreviewKind {
+        case markdown, html, image
+
+        /// Shown in the web view (find, zoom, the internet bar).
+        var isPage: Bool { self != .image }
+    }
 
     static func previewKind(for url: URL) -> PreviewKind? {
-        if ViewerDefaults.markdownExtensions.contains(url.pathExtension.lowercased()) { return .markdown }
+        let ext = url.pathExtension.lowercased()
+        if ViewerDefaults.markdownExtensions.contains(ext) { return .markdown }
+        if ViewerDefaults.htmlExtensions.contains(ext) { return .html }
         if ImageExport.canRead(url) { return .image }
         return nil
     }
@@ -300,7 +308,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
     private func show(at position: Double) {
         textScroll.isHidden = mode != .text
         hexScroll.isHidden = mode != .hex
-        markdownPreview.isHidden = !(mode == .preview && previewKind == .markdown)
+        markdownPreview.isHidden = !(mode == .preview && previewKind?.isPage == true)
         imagePreview.isHidden = !(mode == .preview && previewKind == .image)
         if mode == .text || mode == .preview && previewKind == .image { findBar.isHidden = true }
         findBar.allowsHex = mode == .hex
@@ -337,10 +345,11 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
             markdownPreview.clear()
             imagePreview.show(sequence.current)
             window?.makeFirstResponder(imagePreview.keyView)
-        case .markdown?:
+        case .markdown?, .html?:
             imagePreview.clear()
             window?.makeFirstResponder(markdownPreview.webView)
             let data = data, encoding = encoding, url = sequence.current, allow = remoteAllowed, limit = ViewerDefaults.textLimit
+            let isHTML = previewKind == .html
             let bom = EncodingDetector.bom(in: data)
             let skip = bom?.encoding == encoding ? bom?.length ?? 0 : 0
             previewTask = Task {
@@ -348,7 +357,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
                     TextDecoding.decode(data, as: encoding, skip: skip, limit: limit)
                 }.value
                 guard !Task.isCancelled else { return }
-                await markdownPreview.show(text, of: url, allowRemote: allow)
+                await markdownPreview.show(text, of: url, isHTML: isHTML, allowRemote: allow)
                 updateInfo()
             }
         case nil:
@@ -469,7 +478,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
             return
         }
         if let source = sourceText { parts.append(source) }
-        if mode == .preview, previewKind == .markdown, markdownPreview.remoteCount > 0 {
+        if mode == .preview, previewKind?.isPage == true, markdownPreview.remoteCount > 0 {
             parts.append(markdownPreview.allowsRemote ? String(localized: "images from the internet loaded")
                                                       : String(localized: "images from the internet blocked"))
         }
@@ -535,7 +544,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
             UserDefaults.standard.set(highlight, forKey: ViewerDefaults.highlightKey)
             applyHighlight()
         case .viewerLoadRemote:
-            guard mode == .preview, previewKind == .markdown, !remoteAllowed else { return }
+            guard mode == .preview, previewKind?.isPage == true, !remoteAllowed else { return }
             remoteAllowed = true
             showPreview()
         case .viewerSaveImageAs: Task { await saveImage() }
@@ -573,7 +582,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
             menuItem.state = highlight ? .on : .off
             return mode == .text && language != nil
         case .viewerLoadRemote:
-            return mode == .preview && previewKind == .markdown && !remoteAllowed && markdownPreview.remoteCount > 0
+            return mode == .preview && previewKind?.isPage == true && !remoteAllowed && markdownPreview.remoteCount > 0
         case .viewerSaveImageAs: return previewKind == .image && loadError == nil
         case .viewerZoomToFit: return mode == .preview && previewKind == .image
         case .viewerFind, .viewerFindNext, .viewerFindPrevious, .viewerUseSelectionForFind:
@@ -590,13 +599,13 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         case .viewerZoomIn:
             switch (mode, previewKind) {
             case (.preview, .image?): return imagePreview.zoom < imagePreview.maxMagnification
-            case (.preview, .markdown?): return markdownPreview.zoom < 3
+            case (.preview, .markdown?), (.preview, .html?): return markdownPreview.zoom < 3
             default: return fontSize < ViewerDefaults.fontSizes.upperBound
             }
         case .viewerZoomOut:
             switch (mode, previewKind) {
             case (.preview, .image?): return imagePreview.zoom > imagePreview.minMagnification
-            case (.preview, .markdown?): return markdownPreview.zoom > 0.5
+            case (.preview, .markdown?), (.preview, .html?): return markdownPreview.zoom > 0.5
             default: return fontSize > ViewerDefaults.fontSizes.lowerBound
             }
         case .viewerSaveAs: return loadError == nil
@@ -654,7 +663,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         if mode == .text, loadError == nil, decodedAs != encoding {
             decode(restoring: .origin(textScroll.contentView.bounds.origin))
         }
-        if mode == .preview, previewKind == .markdown { showPreview() }
+        if mode == .preview, previewKind?.isPage == true { showPreview() }
         updateStatus()
     }
 
@@ -691,7 +700,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
             case .viewerZoomOut: imagePreview.zoomOut()
             default: imagePreview.zoom(to: 1)
             }
-        case (.preview, .markdown?):
+        case (.preview, .markdown?), (.preview, .html?):
             switch command {
             case .viewerZoomIn: markdownPreview.zoom += 0.1
             case .viewerZoomOut: markdownPreview.zoom -= 0.1
@@ -717,7 +726,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
     private func find(_ action: NSTextFinder.Action) {
         switch mode {
         case .preview:
-            guard previewKind == .markdown else { NSSound.beep(); return }
+            guard previewKind?.isPage == true else { NSSound.beep(); return }
             switch action {
             case .showFindInterface, .setSearchString: showFindBar()
             default:
