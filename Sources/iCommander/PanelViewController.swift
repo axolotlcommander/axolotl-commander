@@ -41,6 +41,8 @@ final class PanelViewController: NSViewController {
     private var quickSearch: String?
     /// Mark state applied while Shift+movement drags the selection.
     private var shiftMarkState: Bool?
+    /// Items shown by Quick Look (see QuickLook.swift).
+    var previewURLs: [URL] = []
 
     var showsHidden: Bool { model.showHidden }
     var isActive = false { didSet { updateActiveAppearance() } }
@@ -178,7 +180,8 @@ final class PanelViewController: NSViewController {
         }
         syncingSelection = false
         if pathField.currentEditor() == nil { pathField.stringValue = model.location.path(percentEncoded: false) }
-        if isActive { view.window?.title = model.location.path(percentEncoded: false) }
+        router?.panelLocationChanged(self)
+        updateQuickLook()
         updateStatus()
         watchLocation()
         UserDefaults.standard.set(model.location.path(percentEncoded: false), forKey: "\(defaultsKey).path")
@@ -312,9 +315,12 @@ final class PanelViewController: NSViewController {
         .selectAll, .deselectAll, .selectSameExtension, .deselectSameExtension,
         .copyFullPath, .copyName, .calculateSizes,
         .copy, .move, .delete, .deletePermanently, .makeDirectory, .rename, .copyFiles, .pasteFiles,
+        .view, .quickLook, .properties, .openTerminal, .revealInFinder,
     ]
 
-    private static let needTargets: Set<Command> = [.copy, .move, .delete, .deletePermanently, .rename, .copyFiles]
+    private static let needTargets: Set<Command> = [
+        .copy, .move, .delete, .deletePermanently, .rename, .copyFiles, .view, .quickLook,
+    ]
 
     func canPerform(_ command: Command) -> Bool {
         guard Self.handled.contains(command) else { return false }
@@ -373,6 +379,15 @@ final class PanelViewController: NSViewController {
         case .rename: beginRename()
         case .copyFiles: copyFilesToPasteboard()
         case .pasteFiles: pasteFromPasteboard()
+        case .view, .quickLook: toggleQuickLook()
+        case .properties:
+            let urls = targets().map(\.url)
+            PropertiesSheet.show(urls.isEmpty ? [model.location] : urls, in: view.window)
+        case .openTerminal:
+            Task {
+                do { try await Launcher.openTerminal(at: model.location) } catch { router?.operations.report(error) }
+            }
+        case .revealInFinder: Launcher.revealInFinder(targets().map(\.url), directory: model.location)
         case .calculateSizes:
             let dirs = model.selectedItems.filter(\.isDirectory)
             startSizing(dirs.isEmpty ? model.items.filter { $0.isDirectory && !$0.isParent } : dirs)
@@ -381,7 +396,7 @@ final class PanelViewController: NSViewController {
     }
 
     /// Selected items, or the item under the cursor when nothing is selected.
-    private func targets() -> [FileItem] {
+    func targets() -> [FileItem] {
         let selected = model.selectedItems
         if !selected.isEmpty { return selected }
         return model.cursorItem.flatMap { $0.isParent ? nil : [$0] } ?? []

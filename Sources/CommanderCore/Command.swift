@@ -85,7 +85,7 @@ public enum CommandRegistry {
         add(.quit, "Quit iCommander", .app, [ch("q", m)], scope: .app, sep: true)
 
         add(.view, "View", .file, [f(3)])
-        add(.quickLook, "Quick Look", .file, [K(.space, m)])
+        add(.quickLook, "Quick Look", .file, [ch("y", m)])
         add(.edit, "Edit", .file, [f(4)])
         add(.newFile, "New File…", .file, [f(4, s)])
         add(.copy, "Copy…", .file, [f(5)], sep: true)
@@ -158,7 +158,7 @@ public enum CommandRegistry {
         add(.openInRightPanel, "Open in Right Panel", nil, [K(.right, [c, s])])
         add(.focusCommandLine, "Command Line", nil, [K(.tab, c)])
         add(.insertNameToCommandLine, "Insert Name", nil, [K(.enter, c)])
-        add(.insertPathToCommandLine, "Insert Path", nil, [K(.space, c)])
+        add(.insertPathToCommandLine, "Insert Path", nil, [K(.space, c), K(.space, [c, s])])
         add(.insertLeftPathToCommandLine, "Insert Left Path", nil, [ch("[", c)])
         add(.insertRightPathToCommandLine, "Insert Right Path", nil, [ch("]", c)])
         return list

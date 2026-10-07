@@ -338,7 +338,7 @@ public final class PanelModel {
     }
 
     @concurrent
-    private static func recursiveSize(of directory: URL) async -> Int64? {
+    public static func recursiveSize(of directory: URL) async -> Int64? {
         let keys: [URLResourceKey] = [.fileSizeKey, .isSymbolicLinkKey, .isDirectoryKey]
         guard let walker = FileManager.default.enumerator(
             at: directory, includingPropertiesForKeys: keys, options: [], errorHandler: { _, _ in true }
