@@ -14,6 +14,18 @@ final class CenteringClipView: NSClipView {
     }
 }
 
+/// The picture itself; it holds the keyboard focus of the image preview.
+final class PictureView: NSImageView {
+    override var acceptsFirstResponder: Bool { true }
+    override func keyDown(with event: NSEvent) {
+        if (enclosingScrollView as? ImagePreview)?.handleKey(event) != true { super.keyDown(with: event) }
+    }
+    override func mouseDown(with event: NSEvent) {
+        window?.makeFirstResponder(self)
+        if event.clickCount == 2 { (enclosingScrollView as? ImagePreview)?.toggleFit() }
+    }
+}
+
 /// The picture of the image viewer: fitted to the window until the user zooms,
 /// ← → to the previous and next picture while nothing is scrolled sideways.
 final class ImagePreview: NSScrollView {
@@ -27,7 +39,9 @@ final class ImagePreview: NSScrollView {
     private nonisolated static let maxDecodedPixels = 16_384
     static let zoomSteps: [Double] = [0.05, 0.1, 0.25, 0.33, 0.5, 0.67, 0.75, 1, 1.5, 2, 3, 4, 6, 8, 12, 16]
 
-    private let imageView = NSImageView()
+    private let imageView = PictureView()
+    /// The view to focus for the viewer keys.
+    var keyView: NSView { imageView }
     private(set) var info: ImageInfo?
     /// True while the picture follows the window size.
     private(set) var fits = true
@@ -57,8 +71,6 @@ final class ImagePreview: NSScrollView {
     }
 
     required init?(coder: NSCoder) { fatalError() }
-
-    override var acceptsFirstResponder: Bool { true }
 
     func show(_ url: URL) {
         loadTask?.cancel()
@@ -139,21 +151,19 @@ final class ImagePreview: NSScrollView {
     /// Nothing to scroll sideways, so ← → may switch pictures.
     private var fitsHorizontally: Bool { imageView.frame.width * magnification <= contentSize.width + 0.5 }
 
-    override func keyDown(with event: NSEvent) {
-        if onKey?(event) == true { return }
+    /// Viewer keys first, then ← → for the previous and next picture; false lets the view scroll.
+    func handleKey(_ event: NSEvent) -> Bool {
+        if onKey?(event) == true { return true }
         if let key = event.specialKey, event.modifierFlags.intersection([.command, .option, .control, .shift]).isEmpty,
            key == .leftArrow || key == .rightArrow, fitsHorizontally {
             onArrow?(key == .leftArrow)
-            return
+            return true
         }
-        super.keyDown(with: event)
+        return false
     }
 
-    override func mouseDown(with event: NSEvent) {
-        window?.makeFirstResponder(self)
-        if event.clickCount == 2 {
-            if fits { zoom(to: 1) } else { fit() }
-        }
-        super.mouseDown(with: event)
+    /// Double click: 100 % ⇄ fitted.
+    func toggleFit() {
+        if fits { zoom(to: 1) } else { fit() }
     }
 }

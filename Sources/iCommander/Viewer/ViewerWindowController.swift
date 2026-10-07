@@ -336,7 +336,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         case .image?:
             markdownPreview.clear()
             imagePreview.show(sequence.current)
-            window?.makeFirstResponder(imagePreview)
+            window?.makeFirstResponder(imagePreview.keyView)
         case .markdown?:
             imagePreview.clear()
             window?.makeFirstResponder(markdownPreview.webView)
@@ -451,7 +451,8 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         encodingPopup.lastItem?.state = encodingOverride == nil ? .on : .off
         wrapBox.state = wrap ? .on : .off
         wrapBox.isEnabled = mode == .text
-        encodingPopup.isEnabled = mode != .preview || previewKind == .markdown
+        encodingPopup.isHidden = mode == .preview && previewKind == .image
+        wrapBox.isHidden = mode == .preview
         updateInfo()
     }
 

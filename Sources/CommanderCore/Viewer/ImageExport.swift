@@ -69,24 +69,25 @@ public enum ImageExport {
         guard (0..<frames).allSatisfy({ CGImageSourceCreateImageAtIndex(image, $0, nil) != nil }) else {
             throw ImageExportError.unreadable
         }
-        try SafeFileWriter.write(to: target) { temp in
-            guard let destination = CGImageDestinationCreateWithURL(temp as CFURL, format.type.identifier as CFString,
-                                                                    frames, nil) else {
-                throw ImageExportError.cannotEncode(format)
-            }
-            var options: [CFString: Any] = [:]
-            if format.hasQuality, let quality { options[kCGImageDestinationLossyCompressionQuality] = min(max(quality, 0), 1) }
-            if let properties = CGImageSourceCopyProperties(image, nil) as? [CFString: Any] {
-                // Container properties such as the GIF loop count.
-                CGImageDestinationSetProperties(destination, properties as CFDictionary)
-            }
-            for index in 0..<frames {
-                try Task.checkCancellation()
-                CGImageDestinationAddImageFromSource(destination, image, index, options as CFDictionary)
-            }
-            try Task.checkCancellation()
-            guard CGImageDestinationFinalize(destination) else { throw ImageExportError.cannotEncode(format) }
+        // Encoded in memory first, so a failing write reports the file system's error, not the encoder's.
+        let encoded = NSMutableData()
+        guard let destination = CGImageDestinationCreateWithData(encoded as CFMutableData, format.type.identifier as CFString,
+                                                                 frames, nil) else {
+            throw ImageExportError.cannotEncode(format)
         }
+        var options: [CFString: Any] = [:]
+        if format.hasQuality, let quality { options[kCGImageDestinationLossyCompressionQuality] = min(max(quality, 0), 1) }
+        if let properties = CGImageSourceCopyProperties(image, nil) as? [CFString: Any] {
+            // Container properties such as the GIF loop count.
+            CGImageDestinationSetProperties(destination, properties as CFDictionary)
+        }
+        for index in 0..<frames {
+            try Task.checkCancellation()
+            CGImageDestinationAddImageFromSource(destination, image, index, options as CFDictionary)
+        }
+        try Task.checkCancellation()
+        guard CGImageDestinationFinalize(destination) else { throw ImageExportError.cannotEncode(format) }
+        try SafeFileWriter.write(to: target) { temp in try (encoded as Data).write(to: temp) }
     }
 }
 

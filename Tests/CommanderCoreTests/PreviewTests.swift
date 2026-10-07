@@ -225,6 +225,24 @@ private func writePNG(_ url: URL, width: Int = 8, height: Int = 4) throws {
         #expect(dir.names() == ["fake.png", "out.jpg"])
     }
 
+    @Test func readOnlyFolderReportsWriteErrorAndKeepsTarget() throws {
+        let dir = try Scratch()
+        defer {
+            try? FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: dir.url.appending(path: "ro").path)
+            dir.remove()
+        }
+        let png = dir.url.appending(path: "a.png")
+        try writePNG(png)
+        let folder = dir.url.appending(path: "ro")
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: false)
+        let target = folder.appending(path: "x.jpg")
+        try Data("old".utf8).write(to: target)
+        try FileManager.default.setAttributes([.posixPermissions: 0o555], ofItemAtPath: folder.path)
+        #expect(throws: CocoaError.self) { try ImageExport.export(png, to: target, format: .jpeg) }
+        #expect(try String(contentsOf: target, encoding: .utf8) == "old")
+        #expect(try FileManager.default.contentsOfDirectory(atPath: folder.path) == ["x.jpg"])
+    }
+
     @Test func saveOverItself() throws {
         let dir = try Scratch()
         defer { dir.remove() }
