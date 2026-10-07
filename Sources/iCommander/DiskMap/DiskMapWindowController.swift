@@ -24,6 +24,8 @@ final class DiskMapWindowController: NSWindowController, NSWindowDelegate {
     private let revealButton = NSButton()
     private let statusField = PathLabel(labelWithString: "")
     private let detailField = PathLabel(labelWithString: "")
+    /// Size, share and kind of the item under the mouse or selected: never truncated, the path gives way.
+    private let infoField = NSTextField(labelWithString: "")
     private let spinner = NSProgressIndicator()
     private let stopButton = NSButton()
     private var scanTask: Task<Void, Never>?
@@ -79,15 +81,19 @@ final class DiskMapWindowController: NSWindowController, NSWindowDelegate {
             field.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         }
         detailField.textColor = .secondaryLabelColor
+        infoField.textColor = .secondaryLabelColor
+        infoField.setContentCompressionResistancePriority(.required, for: .horizontal)
 
         let top = NSStackView(views: [upButton, pathControl, NSView(), rescanButton, revealButton])
         top.edgeInsets = NSEdgeInsets(top: 8, left: 10, bottom: 8, right: 10)
         let legend = NSStackView(views: DiskMapKind.allCases.filter { $0 != .folder }.map(Self.legendItem))
         legend.spacing = 12
+        // The legend has its own row: next to the path it left the path only a few characters.
+        legend.edgeInsets = NSEdgeInsets(top: 2, left: 10, bottom: 8, right: 10)
         let bottom = NSStackView(views: [spinner, statusField, NSView(), stopButton])
         bottom.edgeInsets = NSEdgeInsets(top: 4, left: 10, bottom: 0, right: 10)
-        let detail = NSStackView(views: [detailField, NSView(), legend])
-        detail.edgeInsets = NSEdgeInsets(top: 2, left: 10, bottom: 8, right: 10)
+        let detail = NSStackView(views: [detailField, infoField, NSView()])
+        detail.edgeInsets = NSEdgeInsets(top: 2, left: 10, bottom: 0, right: 10)
 
         map.onSelect = { [weak self] in self?.updateStatus() }
         map.onHover = { [weak self] in self?.updateStatus() }
@@ -95,7 +101,8 @@ final class DiskMapWindowController: NSWindowController, NSWindowDelegate {
         map.onKey = { [weak self] event in self?.handleKey(event) ?? false }
         map.setContentHuggingPriority(.defaultLow, for: .vertical)
 
-        let stack = NSStackView(views: [top, map, bottom, detail])
+        let legendRow = NSStackView(views: [legend, NSView()])
+        let stack = NSStackView(views: [top, map, bottom, detail, legendRow])
         stack.orientation = .vertical
         stack.spacing = 0
         for view in stack.arrangedSubviews { view.widthAnchor.constraint(equalTo: stack.widthAnchor).isActive = true }
@@ -131,7 +138,9 @@ final class DiskMapWindowController: NSWindowController, NSWindowDelegate {
         spinner.startAnimation(nil)
         stopButton.isHidden = false
         statusField.stringValue = String(localized: "Scanning…")
+        detailField.lineBreakMode = .byTruncatingHead
         detailField.stringValue = folder.path(percentEncoded: false)
+        infoField.stringValue = ""
         updateButtons(scanning: true)
         let folder = folder
         scanTask = Task { [weak self] in
@@ -167,9 +176,11 @@ final class DiskMapWindowController: NSWindowController, NSWindowDelegate {
         case .failure(is CancellationError):
             statusField.stringValue = String(localized: "Stopped.")
             detailField.stringValue = ""
+            infoField.stringValue = ""
         case .failure(let error):
             statusField.stringValue = Format.error(error)
             detailField.stringValue = ""
+            infoField.stringValue = ""
         }
         updateButtons()
     }
@@ -182,6 +193,7 @@ final class DiskMapWindowController: NSWindowController, NSWindowDelegate {
         stopButton.isHidden = true
         statusField.stringValue = String(localized: "Stopped.")
         detailField.stringValue = ""
+        infoField.stringValue = ""
         updateButtons()
     }
 
@@ -250,11 +262,16 @@ final class DiskMapWindowController: NSWindowController, NSWindowDelegate {
         if let node = map.hoveredNode ?? map.selectedNode {
             let kind = node.isDirectory && !node.isPackage
                 ? String(localized: "\(node.fileCount) files") : DiskMapKind.of(node).title
-            detailField.stringValue = "\(node.url.path(percentEncoded: false))  —  \(Format.bytes(node.allocatedSize))"
+            // A long path loses its beginning, so the item's name and the folders just above it stay.
+            detailField.lineBreakMode = .byTruncatingHead
+            detailField.stringValue = node.url.path(percentEncoded: false)
+            infoField.stringValue = "—  \(Format.bytes(node.allocatedSize))"
                 + (shown.allocatedSize > 0 ? String(format: " (%.1f %%)", Double(node.allocatedSize) * 100 / Double(shown.allocatedSize)) : "")
                 + "  —  \(kind)"
         } else {
+            detailField.lineBreakMode = .byTruncatingTail
             detailField.stringValue = String(localized: "Arrow keys select, Return or double click enters a folder, ⌫ goes up.")
+            infoField.stringValue = ""
         }
     }
 
