@@ -28,6 +28,7 @@ public enum Command: String, CaseIterable, Hashable, Sendable {
 
     // Commands
     case find, occupiedSpace, openTerminal, revealInFinder, userMenu
+    case connectToServer, disconnect
 
     // Options
     case configureKeys
@@ -196,6 +197,8 @@ public enum CommandRegistry {
         add(.openTerminal, "Open Terminal Here", .commands, [ch("/", c), K(.numSlash)], sep: true)
         add(.revealInFinder, "Show in Finder", .commands, [f(3, s)])
         add(.userMenu, "User Menu…", .commands, [f(9)], sep: true)
+        add(.connectToServer, "Connect to Server…", .commands, [ch("k", m), ch("f", [c, s])], sep: true)
+        add(.disconnect, "Disconnect…", .commands, [f(12)])
 
         add(.configureKeys, "Keyboard Shortcuts…", .options, scope: .app)
 

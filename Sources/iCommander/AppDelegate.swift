@@ -11,6 +11,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         NSWindow.allowsAutomaticWindowTabbing = false
         NSApp.mainMenu = MainMenuBuilder.build()
         MainMenuBuilder.trackKeyWindow()
+        RemoteSetup.configure()
         let controller = MainWindowController()
         controller.showWindow(nil)
         mainWindow = controller

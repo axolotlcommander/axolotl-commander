@@ -72,7 +72,9 @@ extension PanelViewController {
         } catch is CancellationError {
         } catch {
             var fallback = state
-            fallback.location = PanelState.nearestExisting(state.location) { url in
+            // A server that can't be reached (or a cancelled login) leaves the tab at home.
+            fallback.location = RemoteURL.isRemote(state.location) ? FileManager.default.homeDirectoryForCurrentUser
+                : PanelState.nearestExisting(state.location) { url in
                 var isDirectory: ObjCBool = false
                 return FileManager.default.fileExists(atPath: url.path(percentEncoded: false), isDirectory: &isDirectory)
                     && isDirectory.boolValue

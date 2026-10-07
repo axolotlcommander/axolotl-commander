@@ -255,6 +255,13 @@ final class PanelViewController: NSViewController {
 
     /// Inside an archive the folder holding the archive is watched: rewriting it replaces the file.
     private func watchLocation() {
+        // Servers are not watched; ⌘R refreshes.
+        if model.remote != nil {
+            watcher?.cancel()
+            watcher = nil
+            watchedURL = nil
+            return
+        }
         guard watchedURL != diskFolder else { return }
         watcher?.cancel()
         watchedURL = diskFolder
@@ -396,7 +403,7 @@ final class PanelViewController: NSViewController {
         .copy, .move, .delete, .deletePermanently, .makeDirectory, .rename, .copyFiles, .pasteFiles,
         .view, .quickLook, .edit, .newFile, .properties, .openTerminal, .revealInFinder,
         .newTab, .closeTab, .nextTab, .previousTab, .hotPaths, .viewModeDetailed, .viewModeBrief,
-        .find, .pack, .unpack,
+        .find, .pack, .unpack, .connectToServer, .disconnect,
     ]
 
     private static let needTargets: Set<Command> = [
@@ -408,6 +415,7 @@ final class PanelViewController: NSViewController {
         guard Self.handled.contains(command) else { return false }
         if Self.needTargets.contains(command), targets().isEmpty { return false }
         if let archive = model.archive, let allowed = canPerform(command, inArchive: archive) { return allowed }
+        if model.remote != nil, let allowed = canPerformOnServer(command) { return allowed }
         switch command {
         case .goBack: return model.canGoBack
         case .goForward: return model.canGoForward
@@ -434,6 +442,18 @@ final class PanelViewController: NSViewController {
         case .makeDirectory: return writable
         case .rename: return writable && viewMode == .detailed && !targets().isEmpty
         case .move, .delete, .deletePermanently: return writable && !targets().isEmpty
+        case .edit, .view: return model.cursorItem.map { !$0.isParent && !$0.isDirectory } ?? false
+        default: return nil
+        }
+    }
+
+    /// On a server: no files on disk (Quick Look, Terminal, Finder, pasteboard, packing),
+    /// no new empty file yet. nil leaves the decision to the general rules.
+    private func canPerformOnServer(_ command: Command) -> Bool? {
+        switch command {
+        case .newFile, .pasteFiles, .copyFiles, .quickLook, .properties, .pack, .unpack,
+             .openTerminal, .revealInFinder, .find:
+            return false
         case .edit, .view: return model.cursorItem.map { !$0.isParent && !$0.isDirectory } ?? false
         default: return nil
         }
@@ -498,12 +518,22 @@ final class PanelViewController: NSViewController {
         case .pasteFiles: pasteFromPasteboard()
         case .view: openViewer()
         case .find: if let router { FindWindowController.show(from: router) }
+        case .connectToServer: ConnectSheet.show(for: self)
+        case .disconnect: DisconnectSheet.show(for: self)
         case .pack: router?.operations.pack(targets(), from: self)
         case .unpack: router?.operations.unpack(archiveTargets(), from: self)
         case .quickLook: toggleQuickLook()
         case .edit:
             if let item = model.cursorItem {
-                if let archive = model.archive { editMember(item.name, in: archive) } else { edit(item.url) }
+                if let archive = model.archive {
+                    editMember(item.name, in: archive)
+                } else if let remote = RemoteURL.parse(item.url) {
+                    Task {
+                        do { try await ArchiveEdits.shared.edit(remote) } catch { router?.operations.report(error) }
+                    }
+                } else {
+                    edit(item.url)
+                }
             }
         case .newFile: router?.operations.makeFile(in: self) { [weak self] in self?.edit($0) }
         case .properties:
@@ -529,14 +559,29 @@ final class PanelViewController: NSViewController {
         }
     }
 
-    /// The folder on disk: the location, or the folder holding the archive the panel is in.
+    /// The folder on disk: the location, the folder holding the archive the panel is in,
+    /// or the home folder while the panel shows a server.
     var diskFolder: URL {
-        model.archive?.archive.deletingLastPathComponent() ?? model.location
+        if model.remote != nil { return FileManager.default.homeDirectoryForCurrentUser }
+        return model.archive?.archive.deletingLastPathComponent() ?? model.location
     }
 
     /// F3: the internal viewer for the file under the cursor; folders and media go to Quick Look.
     private func openViewer() {
         guard let item = model.cursorItem, !item.isParent else { return }
+        if let remote = RemoteURL.parse(item.url) {
+            Task {
+                do {
+                    let copy = try await ArchiveScratch.download(remote)
+                    if let sequence = FileSequence(entries: [.init(url: copy, isSelected: false)], current: copy) {
+                        ViewerWindowController.show(sequence)
+                    }
+                } catch {
+                    router?.operations.report(error)
+                }
+            }
+            return
+        }
         if let archive = model.archive {
             // Members are viewed from a temporary copy.
             Task {
@@ -588,7 +633,28 @@ final class PanelViewController: NSViewController {
     }
 
     func go(to url: URL, focusing name: String? = nil) {
+        if let remote = RemoteURL.parse(url), remote.path.isEmpty { return connect(to: remote) }
         Task { await navigate { try await model.go(to: url, focusing: name) } }
+    }
+
+    /// Connects (asking for a password when needed) and shows `location`; "" path = the login folder.
+    func connect(to location: RemoteLocation, password: String? = nil, options: ConnectOptions? = nil,
+                 then done: ((URL) -> Void)? = nil) {
+        statusField.stringValue = String(localized: "Connecting to \(RemoteURL.displayName(location.endpoint))…")
+        Task {
+            do {
+                _ = try await RemoteConnections.shared.session(for: location.endpoint, password: password, options: options)
+                let resolved = try await RemoteConnections.shared.resolve(location)
+                try await model.go(to: resolved.url)
+                done?(resolved.url)
+            } catch RemoteError.cancelled {
+                updateStatus()
+            } catch {
+                NSSound.beep()
+                updateStatus()
+                router?.operations.report(error)
+            }
+        }
     }
 
     func showResults(_ listing: ResultsListing, focusing name: String? = nil) {
@@ -626,9 +692,12 @@ final class PanelViewController: NSViewController {
             guard let file = try await model.enterCursor() else { return }
             if let archive = model.archive {
                 NSWorkspace.shared.open(try await ArchiveScratch.extract(file.name, from: archive))
+            } else if let remote = RemoteURL.parse(file.url) {
+                NSWorkspace.shared.open(try await ArchiveScratch.download(remote))
             } else {
                 NSWorkspace.shared.open(file.url)
             }
+        } catch RemoteError.cancelled {
         } catch {
             NSSound.beep()
             statusField.stringValue = Format.error(error)
@@ -786,6 +855,21 @@ final class PanelViewController: NSViewController {
         let input = pathField.stringValue
         if model.results != nil, input == locationText {
             view.window?.makeFirstResponder(tableView)
+            return
+        }
+        // "sftp://user:password@host/path" connects; the password is used once and never stored in history.
+        if let typed = RemoteURL.parse(typed: input) {
+            connect(to: typed.location, password: typed.password) { [weak self] url in
+                AppSettings.shared.recentPaths.add(url.displayPath)
+                if let self { view.window?.makeFirstResponder(tableView) }
+            }
+            return
+        }
+        if let remote = model.remote, !input.hasPrefix("/"), !input.hasPrefix("~") {
+            go(to: RemoteURL.make(remote.endpoint, path: RemotePath.normalize(RemotePath.join(remote.path, input))))
+            return
+        } else if let remote = model.remote, input.hasPrefix("/") {
+            go(to: RemoteURL.make(remote.endpoint, path: RemotePath.normalize(input)))
             return
         }
         do {

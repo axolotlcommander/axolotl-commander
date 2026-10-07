@@ -34,20 +34,25 @@ public actor RemoteConnections {
 
     public static let shared = RemoteConnections()
 
-    private var connector: Connector?
-    private var ask: UserPrompter = { _ in nil }
-    private var passwords: any PasswordStore = MemoryPasswordStore()
+    private struct Setup {
+        var connector: Connector?
+        var ask: UserPrompter = { _ in nil }
+        var passwords: any PasswordStore = MemoryPasswordStore()
+    }
+
+    /// Set synchronously at launch, before any panel can ask for a session.
+    private let setup = Mutex(Setup())
     private var sessions: [RemoteEndpoint: any RemoteFileSystem] = [:]
     private var pending: [RemoteEndpoint: Task<any RemoteFileSystem, any Error>] = [:]
     private var options: [RemoteEndpoint: ConnectOptions] = [:]
 
     public init() {}
 
-    public func configure(connector: @escaping Connector, prompter: @escaping UserPrompter, passwords: any PasswordStore) {
-        self.connector = connector
-        ask = prompter
-        self.passwords = passwords
+    public nonisolated func configure(connector: @escaping Connector, prompter: @escaping UserPrompter, passwords: any PasswordStore) {
+        setup.withLock { $0 = Setup(connector: connector, ask: prompter, passwords: passwords) }
     }
+
+    private var passwords: any PasswordStore { setup.withLock { $0.passwords } }
 
     /// Endpoints with an open session, sorted by display name.
     public var connected: [RemoteEndpoint] {
@@ -69,10 +74,10 @@ public actor RemoteConnections {
             sessions[endpoint] = nil
         }
         if let task = pending[endpoint] { return try await task.value }
+        let (connector, ask) = setup.withLock { ($0.connector, $0.ask) }
         guard let connector else { throw RemoteError.connectionFailed("No connector") }
 
         let attempt = ConnectAttempt(typed: password, stored: passwords.password(for: endpoint))
-        let ask = self.ask
         let prompter: AuthPrompter = { prompt in
             if case .password = prompt, let automatic = attempt.nextAutomatic() { return automatic }
             let reply = await ask(prompt)

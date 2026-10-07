@@ -102,7 +102,7 @@ private struct Sandbox {
         }
         let one = DirectoryFileSystem(endpoint: endpoint, root: server)
         let two = DirectoryFileSystem(endpoint: endpoint2, root: server2)
-        await connections.configure(connector: { endpoint, _, _ in endpoint.host == "one" ? one : two },
+        connections.configure(connector: { endpoint, _, _ in endpoint.host == "one" ? one : two },
                                     prompter: { _ in nil }, passwords: MemoryPasswordStore())
     }
 

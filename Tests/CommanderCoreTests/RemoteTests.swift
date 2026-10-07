@@ -162,7 +162,7 @@ final class PromptLog<T: Sendable>: Sendable {
         let asked = PromptLog<AuthPrompt>()
         let queue = PromptLog<PromptReply?>(replies)
         let connections = RemoteConnections()
-        await connections.configure(connector: server.connector, prompter: { prompt in
+        connections.configure(connector: server.connector, prompter: { prompt in
             asked.append(prompt)
             return queue.popFirst() ?? nil
         }, passwords: store)

@@ -94,6 +94,11 @@ public enum RemoteURL {
         return (RemoteLocation(endpoint: endpoint, path: decode(path[...]) ?? path), password)
     }
 
+    /// The address as the path field shows it: `sftp://user@host:2222/path`, not percent-encoded.
+    public static func displayText(_ location: RemoteLocation) -> String {
+        "\(location.endpoint.proto.rawValue)://\(displayName(location.endpoint))\(location.path.isEmpty ? "/" : location.path)"
+    }
+
     /// Short text for titles and menus: `user@host` or `host:port`.
     public static func displayName(_ endpoint: RemoteEndpoint) -> String {
         let host = endpoint.host.contains(":") ? "[\(endpoint.host)]" : endpoint.host

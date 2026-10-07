@@ -23,7 +23,8 @@ enum Format {
     }
 
     static func error(_ error: any Error) -> String {
-        switch error as? PathError {
+        if let remote = error as? RemoteError { return remote.message }
+        return switch error as? PathError {
         case .empty?: String(localized: "Enter a path.")
         case .tooLong?: String(localized: "The path is too long; nothing was changed.")
         case .nameTooLong(let name)?: String(localized: "The name “\(name.prefix(40))…” is too long.")
@@ -88,6 +89,7 @@ enum TextPrompt {
 extension URL {
     /// File path for display and storage, without the trailing "/" a directory URL carries.
     var displayPath: String {
+        if let remote = RemoteURL.parse(self) { return RemoteURL.displayText(remote) }
         let path = path(percentEncoded: false)
         return path.count > 1 && path.hasSuffix("/") ? String(path.dropLast()) : path
     }

@@ -113,6 +113,9 @@ final class OperationsController {
     }
 
     private func run(_ kind: TransferKind, sources: [URL], destination: URL, mask: String, panel: PanelViewController) {
+        if RemoteURL.isRemote(sources[0]) || RemoteURL.isRemote(destination) {
+            return transferRemote(kind, sources: sources, destination: destination, mask: mask, panel: panel)
+        }
         if ArchivePath.split(sources[0].deletingLastPathComponent()) != nil || ArchivePath.split(destination) != nil {
             return transferArchive(kind, sources: sources, destination: destination, mask: mask, panel: panel)
         }
@@ -160,6 +163,7 @@ final class OperationsController {
         if let archive = ArchivePath.split(urls[0].deletingLastPathComponent()) {
             return deleteInArchive(urls, archive: archive)
         }
+        if RemoteURL.isRemote(urls[0]) { return deleteOnServer(urls) }
         Task {
             let names = Self.describe(urls)
             let alert = NSAlert()
@@ -194,6 +198,7 @@ final class OperationsController {
                                            initial: "", in: window),
                   !name.isEmpty else { return }
             if let archive = panel.model.archive { return makeDirectory(named: name, in: archive, panel: panel) }
+            if let remote = panel.model.remote { return makeDirectory(named: name, on: remote, panel: panel) }
             do {
                 let url = try await operations.makeDirectory(named: name, in: panel.model.location)
                 await panel.model.refresh()
@@ -225,6 +230,7 @@ final class OperationsController {
     func rename(_ url: URL, to newName: String, in panel: PanelViewController) {
         guard newName != url.lastPathComponent, !newName.isEmpty else { return }
         if let archive = panel.model.archive { return rename(url.lastPathComponent, to: newName, in: archive, panel: panel) }
+        if let remote = RemoteURL.parse(url) { return rename(remote, to: newName, panel: panel) }
         Task {
             do {
                 let renamed = try await operations.rename(url, to: newName)
@@ -251,6 +257,7 @@ final class OperationsController {
                 try await body()
             } catch OperationError.cancelled {
             } catch ArchiveError.cancelled {
+            } catch RemoteError.cancelled {
             } catch is CancellationError {
             } catch {
                 showTimer.cancel()

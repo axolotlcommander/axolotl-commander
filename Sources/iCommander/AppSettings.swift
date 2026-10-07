@@ -22,12 +22,15 @@ final class AppSettings {
     var hotPaths: HotPaths { didSet { save(hotPaths, "hotPaths") } }
     var comparison: ComparisonOptions { didSet { save(comparison, "comparison") } }
     var recentPaths: RecentPaths { didSet { save(recentPaths, "recentPaths") } }
+    /// Saved server connections (without passwords; those are in the keychain).
+    var connections: [ConnectionProfile] { didSet { save(connections, "connections") } }
 
     private init() {
         appearance = Self.load("appearance") ?? PanelAppearance()
         hotPaths = Self.load("hotPaths") ?? HotPaths()
         comparison = Self.load("comparison") ?? ComparisonOptions()
         recentPaths = Self.load("recentPaths") ?? RecentPaths()
+        connections = Self.load("connections") ?? []
     }
 
     private static func load<T: Decodable>(_ key: String) -> T? {

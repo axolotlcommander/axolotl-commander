@@ -38,15 +38,18 @@ final class ArchiveEdits {
     static let shared = ArchiveEdits()
 
     private final class Session {
-        let archive: URL
-        let member: String
+        enum Target: Equatable {
+            case member(archive: URL, path: String)
+            case server(RemoteLocation)
+        }
+
+        let target: Target
         let copy: URL
         /// State of the copy when it was extracted or last saved (or declined).
         var stamp: Stamp?
 
-        init(archive: URL, member: String, copy: URL) {
-            self.archive = archive
-            self.member = member
+        init(target: Target, copy: URL) {
+            self.target = target
             self.copy = copy
             stamp = Stamp(copy)
         }
@@ -69,14 +72,23 @@ final class ArchiveEdits {
     private var isAsking = false
 
     func edit(_ name: String, in archive: ArchivePath) async throws {
-        let member = archive.member(name)
-        // Editing the member again reuses its copy, so changes not yet saved stay.
-        if let session = sessions.first(where: { $0.archive == archive.archive && $0.member == member }) {
+        let target = Session.Target.member(archive: archive.archive, path: archive.member(name))
+        try await edit(target) { try await ArchiveScratch.extract(name, from: archive) }
+    }
+
+    /// F4 on a server file: the downloaded copy is edited and offered back to the server.
+    func edit(_ remote: RemoteLocation) async throws {
+        try await edit(.server(remote)) { try await ArchiveScratch.download(remote) }
+    }
+
+    private func edit(_ target: Session.Target, makeCopy: () async throws -> URL) async throws {
+        // Editing the same item again reuses its copy, so changes not yet saved stay.
+        if let session = sessions.first(where: { $0.target == target }) {
             try await Launcher.edit(session.copy)
             return
         }
-        let copy = try await ArchiveScratch.extract(name, from: archive)
-        sessions.append(Session(archive: archive.archive, member: member, copy: copy))
+        let copy = try await makeCopy()
+        sessions.append(Session(target: target, copy: copy))
         try await Launcher.edit(copy)
     }
 
@@ -91,7 +103,12 @@ final class ArchiveEdits {
         for session in sessions where session.isChanged {
             let alert = NSAlert()
             alert.messageText = String(localized: "“\(session.copy.lastPathComponent)” was changed.")
-            alert.informativeText = String(localized: "Update it in the archive “\(session.archive.lastPathComponent)”?")
+            switch session.target {
+            case .member(let archive, _):
+                alert.informativeText = String(localized: "Update it in the archive “\(archive.lastPathComponent)”?")
+            case .server(let remote):
+                alert.informativeText = String(localized: "Upload it to \(RemoteURL.displayName(remote.endpoint))?")
+            }
             alert.addButton(withTitle: String(localized: "Update"))
             alert.addButton(withTitle: String(localized: "Not Now"))
             NSApp.activate()
@@ -101,13 +118,24 @@ final class ArchiveEdits {
             }
             let saved = Stamp(session.copy)
             do {
-                try await ArchiveWriter.update(
-                    session.archive, adding: [ArchiveWriter.Source(file: session.copy, path: session.member)], progress: { _ in })
-                await ArchiveCatalog.shared.invalidate(session.archive)
+                switch session.target {
+                case .member(let archive, let path):
+                    try await ArchiveWriter.update(
+                        archive, adding: [ArchiveWriter.Source(file: session.copy, path: path)], progress: { _ in })
+                    await ArchiveCatalog.shared.invalidate(archive)
+                case .server(let remote):
+                    // The copy has the file's own name, so it replaces the file (complete upload first).
+                    let folder = RemoteLocation(endpoint: remote.endpoint, path: RemotePath.parent(remote.path))
+                    _ = try await RemoteTransfer().upload([session.copy], to: folder, kind: .copy, progress: { _ in },
+                                                          conflict: { _ in .overwrite })
+                }
                 session.stamp = saved
             } catch {
                 let failure = NSAlert()
-                failure.messageText = String(localized: "The archive was not updated.")
+                failure.messageText = {
+                    if case .server = session.target { return String(localized: "The file on the server was not updated.") }
+                    return String(localized: "The archive was not updated.")
+                }()
                 failure.informativeText = OperationsController.describe(error)
                 failure.runModal()
             }
