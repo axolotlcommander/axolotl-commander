@@ -720,6 +720,8 @@ final class PanelViewController: NSViewController {
             if let archive = model.archive {
                 NSWorkspace.shared.open(try await ArchiveScratch.extract(file.name, from: archive))
             } else if let remote = RemoteURL.parse(file.url) {
+                // FTP listings do not say what a link points to: try it as a folder first.
+                if file.isSymlink, (try? await model.go(to: file.url)) != nil { return }
                 NSWorkspace.shared.open(try await ArchiveScratch.download(remote))
             } else {
                 NSWorkspace.shared.open(file.url)
