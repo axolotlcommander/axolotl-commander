@@ -48,6 +48,7 @@ struct ConnectSheet: View {
     @State private var selection: UUID?
     @State private var draft = Draft()
     @State private var address = ""
+    @FocusState private var addressFocused: Bool
     let onConnect: (_ profile: ConnectionProfile, _ password: String?, _ remember: Bool) -> Void
     let onCancel: () -> Void
 
@@ -87,6 +88,7 @@ struct ConnectSheet: View {
 
                 Form {
                     TextField("Address:", text: $address, prompt: Text(verbatim: "sftp://user@server/path"))
+                        .focused($addressFocused)
                         .onSubmit(applyAddress)
                         .onChange(of: address) { _, _ in applyAddress() }
                     Divider()
@@ -122,6 +124,7 @@ struct ConnectSheet: View {
         }
         .padding(20)
         .frame(width: 640, height: 420)
+        .onAppear { addressFocused = true }
         .onChange(of: selection) { _, id in
             if let profile = profiles.first(where: { $0.id == id }) {
                 draft = Draft(profile)
