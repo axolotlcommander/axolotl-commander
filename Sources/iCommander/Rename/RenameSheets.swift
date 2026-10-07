@@ -3,19 +3,66 @@ import CommanderCore
 import SwiftUI
 
 /// Shared by Change Case and Batch Rename: runs a plan with the progress sheet, then says which
-/// names were skipped or failed.
+/// names were skipped or failed. A run that renamed something can be undone (Edit ▸ Undo Rename, ⌘Z).
 enum RenameRunner {
     static func run(_ plan: [RenamePlanEntry], title: String, in panel: PanelViewController) {
-        guard let operations = panel.router?.operations else { return }
-        let count = plan.filter { $0.status == .rename }.count
-        let skipped = plan.compactMap { entry -> String? in
-            guard case .skipped(let reason) = entry.status else { return nil }
-            return "\(entry.item.url.lastPathComponent) → \(entry.item.newName): \(describe(reason))"
+        execute(title: title, in: panel, plan: { plan }) { outcome in
+            registerUndo(of: Batch(outcome.renamed), in: panel)
         }
-        let focus = plan.first { $0.status == .rename && $0.item.url.deletingLastPathComponent() == panel.model.location }
+    }
+
+    /// The renames of one run; the inverse registered by undo/redo is filled in once that run is done.
+    private final class Batch {
+        var renamed: [RenamedItem]
+        init(_ renamed: [RenamedItem]) { self.renamed = renamed }
+    }
+
+    /// The end of the last run. Every run waits for it, so a quick ⌘Z ⌘Z (or ⌘Z ⇧⌘Z) works on finished renames.
+    private static var tail: Task<Void, Never>?
+
+    /// The undo manager is the main window's, the same one its text fields (path field, command line) use:
+    /// ⌘Z undoes whatever was done last in the window, as in Finder. A field editor drops its typing actions
+    /// when editing ends, so typing never hides a rename for long and the two do not conflict.
+    private static func registerUndo(of batch: Batch, in panel: PanelViewController) {
+        guard !batch.renamed.isEmpty, let manager = panel.view.window?.undoManager else { return }
+        manager.registerUndo(withTarget: panel) { panel in revert(batch, manager: manager, in: panel) }
+        manager.setActionName(String(localized: "Rename"))
+    }
+
+    /// Undo and redo alike: puts back the names of `batch`. The inverse is registered right away, while the
+    /// undo manager is undoing (or redoing), so it lands on the redo (or undo) stack; the renames run after.
+    private static func revert(_ batch: Batch, manager: UndoManager, in panel: PanelViewController) {
+        let inverse = Batch([])
+        manager.registerUndo(withTarget: panel) { panel in revert(inverse, manager: manager, in: panel) }
+        manager.setActionName(String(localized: "Rename"))
+        execute(title: String(localized: "Renaming…"), in: panel, plan: {
+            let renamed = batch.renamed
+            return await Task.detached(priority: .userInitiated) { RenameExecutor.undoPlan(renamed) }.value
+        }) { outcome in
+            inverse.renamed = outcome.renamed
+        }
+    }
+
+    private static func execute(title: String, in panel: PanelViewController,
+                                plan makePlan: @escaping () async -> [RenamePlanEntry],
+                                done: @escaping (RenameOutcome) -> Void) {
+        guard let operations = panel.router?.operations else { return }
+        let previous = tail
+        let (finished, signal) = AsyncStream<Void>.makeStream()
+        tail = Task { for await _ in finished {} }
         let state = OperationState(title: title)
-        state.progress.totalItems = count
         operations.perform(state) {
+            defer { signal.finish() }
+            await previous?.value
+            let plan = await makePlan()
+            let count = plan.filter { $0.status == .rename }.count
+            let skipped = plan.compactMap { entry -> String? in
+                guard case .skipped(let reason) = entry.status else { return nil }
+                return "\(entry.item.url.lastPathComponent) → \(entry.item.newName): \(describe(reason))"
+            }
+            let location = panel.model.location
+            let focus = plan.first { $0.status == .rename && $0.item.url.deletingLastPathComponent() == location }
+            state.progress.totalItems = count
             var outcome = RenameOutcome()
             if count > 0 {
                 outcome = try await RenameExecutor.run(plan) { done, total in
@@ -25,7 +72,12 @@ enum RenameRunner {
                     }
                 }
             }
-            if let focus { panel.focus(name: focus.item.newName) }
+            done(outcome)
+            // The listing must show the new names before the cursor can go to one.
+            if let focus, panel.model.location == location {
+                await panel.model.refresh()
+                panel.focus(name: focus.item.newName)
+            }
             let failures = outcome.failures.map { "\($0.url.lastPathComponent): \($0.message)" }
             guard !skipped.isEmpty || !failures.isEmpty else { return }
             var text = ""

@@ -15,8 +15,52 @@ public struct BatchRenameOptions: Codable, Sendable, Hashable {
     /// Search and replace touches the name part only (not the extension).
     public var excludeExtension = true
     public var caseChange = CaseChange(name: .keep, ext: .keep)
+    /// Selected folders also contribute everything inside them (applies only when folders are selected).
+    public var includeSubfolders = false
+    /// Which of the nested items join the batch; the selected items themselves always do.
+    public var subfolderItems = SubfolderItems.filesAndFolders
 
     public init() {}
+
+    private enum CodingKeys: String, CodingKey {
+        case mask, counterStart, counterStep, counterWidth, search, replace, useRegex, caseSensitive, onlyFirst
+        case excludeExtension, caseChange, includeSubfolders, subfolderItems
+    }
+
+    /// Every key is optional, so settings saved by an older version (or with an unknown value) still load.
+    public init(from decoder: any Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        let d = BatchRenameOptions()
+        func value<T: Decodable>(_ key: CodingKeys, _ fallback: T) -> T {
+            (try? c.decodeIfPresent(T.self, forKey: key)) ?? fallback
+        }
+        mask = value(.mask, d.mask)
+        counterStart = value(.counterStart, d.counterStart)
+        counterStep = value(.counterStep, d.counterStep)
+        counterWidth = value(.counterWidth, d.counterWidth)
+        search = value(.search, d.search)
+        replace = value(.replace, d.replace)
+        useRegex = value(.useRegex, d.useRegex)
+        caseSensitive = value(.caseSensitive, d.caseSensitive)
+        onlyFirst = value(.onlyFirst, d.onlyFirst)
+        excludeExtension = value(.excludeExtension, d.excludeExtension)
+        caseChange = value(.caseChange, d.caseChange)
+        includeSubfolders = value(.includeSubfolders, d.includeSubfolders)
+        subfolderItems = value(.subfolderItems, d.subfolderItems)
+    }
+}
+
+/// Which items found inside the selected folders take part in a batch rename.
+public enum SubfolderItems: String, Codable, Sendable, Hashable, CaseIterable {
+    case filesAndFolders, files, folders
+
+    func includes(isDirectory: Bool) -> Bool {
+        switch self {
+        case .filesAndFolders: true
+        case .files: !isDirectory
+        case .folders: isDirectory
+        }
+    }
 }
 
 /// One object of the batch with the attributes the mask variables can use.
@@ -69,6 +113,45 @@ public enum BatchRename {
                 newName: try compiled.newName(for: source, index: i)))
         }
         return RenamePlanner.plan(items, rules: rules, listing: listing)
+    }
+
+    /// The selected sources, each followed (when it is a real folder) by everything inside it, depth first,
+    /// names in Finder order; symbolic links are never followed. Nested items are filtered by `kinds` (folders
+    /// are still descended into) and, unless `includeHidden`, hidden ones are left out together with their
+    /// contents. Also returns the names found in every listed folder (keyed by path) for the planner.
+    /// Returns early, with what it has, when the task is cancelled.
+    public static func expand(
+        _ selected: [RenameSource], kinds: SubfolderItems, includeHidden: Bool
+    ) -> (sources: [RenameSource], listings: [String: [String]]) {
+        let keys: Set<URLResourceKey> = [.isDirectoryKey, .isSymbolicLinkKey, .isHiddenKey,
+                                         .contentModificationDateKey, .fileSizeKey]
+        var sources: [RenameSource] = []
+        var listings: [String: [String]] = [:]
+        func visit(_ folder: URL) {
+            // By name, not `contentsOfDirectory(at:)`: that resolves symlinks in the path (/var → /private/var),
+            // and the children must stay under the URL of their folder for depth ordering and undo.
+            guard !Task.isCancelled,
+                  let names = try? FileManager.default.contentsOfDirectory(atPath: folder.path) else { return }
+            listings[folder.path] = names
+            for name in names.sorted(by: { $0.localizedStandardCompare($1) == .orderedAscending }) {
+                let child = folder.appendingPathComponent(name)
+                let values = try? child.resourceValues(forKeys: keys)
+                if !includeHidden, values?.isHidden == true || child.lastPathComponent.hasPrefix(".") { continue }
+                let isDir = values?.isDirectory == true && values?.isSymbolicLink != true
+                if kinds.includes(isDirectory: isDir) {
+                    sources.append(RenameSource(
+                        url: child, isDirectory: isDir, modified: values?.contentModificationDate,
+                        size: isDir ? nil : values?.fileSize.map(Int64.init)))
+                }
+                if isDir { visit(child) }
+            }
+        }
+        for source in selected {
+            sources.append(source)
+            let values = try? source.url.resourceValues(forKeys: [.isDirectoryKey, .isSymbolicLinkKey])
+            if values?.isDirectory == true && values?.isSymbolicLink != true { visit(source.url) }
+        }
+        return (sources, listings)
     }
 }
 

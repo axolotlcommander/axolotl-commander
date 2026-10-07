@@ -58,6 +58,14 @@ enum MainMenuBuilder {
 
     private static func populate(_ menu: NSMenu, _ id: MenuID) {
         menu.removeAllItems()
+        if id == .edit {
+            // Standard actions, answered by text views and by windows (their undo manager), which also
+            // retitle them ("Undo Rename"). Selectors as strings: AppKit declares no Swift API for them.
+            menu.addItem(withTitle: String(localized: "Undo"), action: Selector(("undo:")), keyEquivalent: "z")
+            let redo = menu.addItem(withTitle: String(localized: "Redo"), action: Selector(("redo:")), keyEquivalent: "z")
+            redo.keyEquivalentModifierMask = [.command, .shift]
+            menu.addItem(.separator())
+        }
         for spec in CommandRegistry.items(in: id, context: context) {
             if spec.separatorBefore, !menu.items.isEmpty { menu.addItem(.separator()) }
             menu.addItem(spec.command == .viewerEncoding ? encodingItem(spec) : item(for: spec))
