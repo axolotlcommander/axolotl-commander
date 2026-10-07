@@ -8,8 +8,12 @@ public protocol FileSource: Sendable {
 public struct LocalFileSource: FileSource {
     public init() {}
 
-    /// Folders inside archives (`/x/a.zip/dir`) are listed from the archive's index.
+    /// Folders inside archives (`/x/a.zip/dir`) are listed from the archive's index,
+    /// server folders (`sftp://…`, `ftp://…`) through `RemoteConnections.shared`.
     public func list(_ directory: URL, includeHidden: Bool) async throws -> [FileItem] {
+        if let remote = RemoteURL.parse(directory) {
+            return try await RemoteConnections.shared.list(remote, includeHidden: includeHidden)
+        }
         if let inArchive = ArchivePath.split(directory) {
             return try await ArchiveCatalog.shared.list(inArchive, includeHidden: includeHidden)
         }
