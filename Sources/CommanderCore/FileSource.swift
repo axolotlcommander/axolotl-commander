@@ -8,8 +8,12 @@ public protocol FileSource: Sendable {
 public struct LocalFileSource: FileSource {
     public init() {}
 
+    /// Folders inside archives (`/x/a.zip/dir`) are listed from the archive's index.
     public func list(_ directory: URL, includeHidden: Bool) async throws -> [FileItem] {
-        try await Self.read(directory, includeHidden: includeHidden)
+        if let inArchive = ArchivePath.split(directory) {
+            return try await ArchiveCatalog.shared.list(inArchive, includeHidden: includeHidden)
+        }
+        return try await Self.read(directory, includeHidden: includeHidden)
     }
 
     @concurrent

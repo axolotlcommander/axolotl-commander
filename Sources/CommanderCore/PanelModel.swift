@@ -34,6 +34,8 @@ public final class PanelModel {
     public private(set) var directorySizes: [String: Int64] = [:]
     /// Set while the panel shows find results instead of a directory; `location` is then its root.
     public private(set) var results: ResultsListing?
+    /// Set while `location` is a folder inside an archive (`/x/a.zip/dir`).
+    public private(set) var archive: ArchivePath?
 
     public var sort: SortSpec = .default {
         didSet { if !isRestoring, sort != oldValue { rebuild() } }
@@ -71,7 +73,8 @@ public final class PanelModel {
 
     // MARK: Loading
 
-    private func load(_ url: URL, results: ResultsListing? = nil, includeHidden: Bool? = nil) async throws -> (raw: [FileItem], rules: NameRules) {
+    private func load(_ url: URL, results: ResultsListing? = nil, includeHidden: Bool? = nil) async throws
+        -> (raw: [FileItem], rules: NameRules, archive: ArchivePath?) {
         inFlight += 1
         isLoading = true
         defer {
@@ -84,7 +87,9 @@ public final class PanelModel {
             } else {
                 try await source.list(url, includeHidden: includeHidden ?? showHidden).filter { !$0.isParent }
             }
-            return (raw, NameRules.forVolume(containing: url))
+            // Member names are case-sensitive: "A.txt" and "a.txt" are two members.
+            let archive = results == nil ? ArchivePath.split(url) : nil
+            return (raw, archive == nil ? NameRules.forVolume(containing: url) : NameRules(caseSensitive: true), archive)
         } catch {
             lastError = error
             throw error
@@ -161,6 +166,7 @@ public final class PanelModel {
 
         location = url
         self.results = results
+        archive = loaded.archive
         rules = loaded.rules
         rawItems = loaded.raw
         selection = []
@@ -203,6 +209,7 @@ public final class PanelModel {
         forward = Array(state.forward.suffix(Self.historyLimit))
         location = state.location
         results = state.results
+        archive = loaded.archive
         rules = loaded.rules
         rawItems = loaded.raw
         selection = []
@@ -233,7 +240,7 @@ public final class PanelModel {
         lastError = nil
     }
 
-    /// Parent row goes up, directories are entered, files are returned untouched.
+    /// Parent row goes up, directories and archives are entered, files are returned untouched.
     public func enterCursor() async throws -> FileItem? {
         guard let item = cursorItem else { return nil }
         if item.isParent {
@@ -241,6 +248,11 @@ public final class PanelModel {
             return nil
         }
         if item.isDirectory {
+            try await go(to: item.url)
+            return nil
+        }
+        // Archives open like folders; an archive inside an archive is just a file.
+        if archive == nil, ArchiveFormat.detect(fileName: item.name) != nil {
             try await go(to: item.url)
             return nil
         }
@@ -396,7 +408,12 @@ public final class PanelModel {
         guard item.isDirectory, !item.isParent, !item.isSymlink else { return }
         let url = location
         let key = rules.key(item.name)
-        guard let size = await Self.recursiveSize(of: item.url) else { return }
+        let size: Int64? = if let archive {
+            try? await ArchiveCatalog.shared.index(of: archive.archive).totalSize(under: [archive.member(item.name)])
+        } else {
+            await Self.recursiveSize(of: item.url)
+        }
+        guard let size else { return }
         guard url == location else { return }
         directorySizes[key] = size
         if sort.field == .size { rebuild() }

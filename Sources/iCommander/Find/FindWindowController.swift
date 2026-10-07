@@ -35,7 +35,7 @@ final class FindWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
 
     static func show(from main: MainWindowController) {
         let panel = main.activePanel
-        let controller = FindWindowController(main: main, directory: panel.model.location, showHidden: panel.showsHidden)
+        let controller = FindWindowController(main: main, directory: panel.diskFolder, showHidden: panel.showsHidden)
         open.append(controller)
         controller.showWindow(nil)
     }

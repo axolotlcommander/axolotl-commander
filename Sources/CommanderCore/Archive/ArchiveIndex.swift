@@ -172,6 +172,8 @@ public actor ArchiveCatalog {
         guard index.contains(directory: path.inner) else { throw ArchiveError.notFound(path.inner) }
         let base = path.url
         return index.children(of: path.inner).compactMap { entry in
+            // "../x" stays in the index for extraction (as "x") but has no folder to show.
+            if entry.name == ".." || entry.name == "." { return nil }
             let hidden = entry.name.hasPrefix(".")
             if hidden && !includeHidden { return nil }
             return FileItem(

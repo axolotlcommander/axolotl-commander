@@ -19,6 +19,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
 
+    /// Back from the editor: changed copies of archive members are offered back to their archives.
+    func applicationDidBecomeActive(_ notification: Notification) {
+        Task { await ArchiveEdits.shared.offerChanges() }
+    }
+
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        guard ArchiveEdits.shared.hasChanges else { return .terminateNow }
+        Task {
+            await ArchiveEdits.shared.offerChanges()
+            sender.reply(toApplicationShouldTerminate: true)
+        }
+        return .terminateLater
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        ArchiveScratch.removeAll()
+    }
+
     func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool { true }
 
     // MARK: App-scope commands (end of the responder chain)

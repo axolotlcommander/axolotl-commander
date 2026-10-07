@@ -349,6 +349,40 @@ import Foundation
     func commonFolder(paths: [String], expected: String) {
         #expect(ResultsListing.commonFolder(of: paths.map { URL(filePath: $0) }).path == expected)
     }
+
+    @Test func archiveIsEnteredLikeAFolder() async throws {
+        let f = try Fixture()
+        let zip = f.root.appendingPathComponent("pack.zip")
+        try await ArchiveWriter.create(zip, format: .zip, adding: [
+            .init(file: f.root.appendingPathComponent("docs"), path: "docs"),
+            .init(file: f.root.appendingPathComponent("a.txt"), path: "A.txt"),
+            .init(file: f.root.appendingPathComponent("b.txt"), path: "a.txt"),
+        ], progress: { _ in })
+        let m = PanelModel(location: f.root)
+        await m.refresh()
+        m.moveCursor(to: try #require(m.items.firstIndex { $0.name == "pack.zip" }))
+        #expect(try await m.enterCursor() == nil)
+        #expect(m.archive?.archive.lastPathComponent == "pack.zip")
+        #expect(m.archive?.inner == "")
+        // Case-sensitive inside: two members differing only in case are two rows.
+        #expect(names(m) == ["..", "docs", "a.txt", "A.txt"] || names(m) == ["..", "docs", "A.txt", "a.txt"])
+        m.moveCursor(to: 1)
+        _ = try await m.enterCursor()
+        #expect(m.archive?.inner == "docs")
+        #expect(names(m) == ["..", "sub", "inner.txt"])
+        await m.calculateSize(of: m.items[1])
+        #expect(m.directorySizes[m.rules.key("sub")] == 100)
+
+        try await m.goParent()
+        #expect(m.archive?.inner == "")
+        #expect(m.cursorItem?.name == "docs")
+        try await m.goParent()
+        #expect(m.archive == nil)
+        #expect(m.cursorItem?.name == "pack.zip")
+        // The pseudo path is restorable like any folder.
+        try await m.go(to: zip.appendingPathComponent("docs/sub"))
+        #expect(names(m) == ["..", "deep.bin"])
+    }
 }
 
 @Suite struct DirectoryWatcherTests {

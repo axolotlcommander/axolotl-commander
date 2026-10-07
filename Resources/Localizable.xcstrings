@@ -145,6 +145,16 @@
         }
       }
     },
+    "%lld items already exist in “%@”.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld položek už v „%@“ je."
+          }
+        }
+      }
+    },
     "%lld not readable…": {
       "localizations": {
         "cs": {
@@ -263,6 +273,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vzhled"
+          }
+        }
+      }
+    },
+    "Archive error: %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chyba archivu: %@"
+          }
+        }
+      }
+    },
+    "Archive:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archiv:"
           }
         }
       }
@@ -700,6 +730,16 @@
         }
       }
     },
+    "Creating folder…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vytváří se složka…"
+          }
+        }
+      }
+    },
     "Cyan": {
       "localizations": {
         "cs": {
@@ -736,6 +776,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Smazat"
+          }
+        }
+      }
+    },
+    "Delete %@ from “%@”?": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Smazat %@ z „%@“?"
           }
         }
       }
@@ -1215,6 +1265,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Velikost písma: %lld b."
+          }
+        }
+      }
+    },
+    "Format:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Formát:"
           }
         }
       }
@@ -2179,6 +2239,16 @@
         }
       }
     },
+    "Not Now": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teď ne"
+          }
+        }
+      }
+    },
     "Not found.": {
       "localizations": {
         "cs": {
@@ -2330,6 +2400,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vlastník"
+          }
+        }
+      }
+    },
+    "Pack %@ to:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zabalit %@ do:"
+          }
+        }
+      }
+    },
+    "Packing into “%@”…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Balí se do „%@“…"
           }
         }
       }
@@ -2572,6 +2662,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Přejmenovat"
+          }
+        }
+      }
+    },
+    "Renaming…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přejmenovává se…"
           }
         }
       }
@@ -3151,6 +3251,26 @@
         }
       }
     },
+    "The archive format is not supported.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tento formát archivu není podporován."
+          }
+        }
+      }
+    },
+    "The archive was not updated.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archiv nebyl aktualizován."
+          }
+        }
+      }
+    },
     "The file could not be read.": {
       "localizations": {
         "cs": {
@@ -3201,6 +3321,16 @@
         }
       }
     },
+    "The operation was cancelled.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Operace byla zrušena."
+          }
+        }
+      }
+    },
     "The path is not a folder.": {
       "localizations": {
         "cs": {
@@ -3227,6 +3357,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Text nelze zapsat v kódování %@."
+          }
+        }
+      }
+    },
+    "This archive cannot be modified.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tento archiv nelze měnit."
           }
         }
       }
@@ -3273,6 +3413,36 @@
         }
       }
     },
+    "Unpack %@ to:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rozbalit %@ do:"
+          }
+        }
+      }
+    },
+    "Unpacking “%@”…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rozbaluje se „%@“…"
+          }
+        }
+      }
+    },
+    "Unpacking…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rozbaluje se…"
+          }
+        }
+      }
+    },
     "Unpack…": {
       "extractionState": "manual",
       "localizations": {
@@ -3280,6 +3450,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Rozbalit…"
+          }
+        }
+      }
+    },
+    "Update": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktualizovat"
+          }
+        }
+      }
+    },
+    "Update it in the archive “%@”?": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktualizovat ho v archivu „%@“?"
           }
         }
       }
@@ -3667,6 +3857,16 @@
         }
       }
     },
+    "“%@” already exists in “%@”.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ už v „%@“ je."
+          }
+        }
+      }
+    },
     "“%@” already exists.": {
       "localizations": {
         "cs": {
@@ -3687,6 +3887,16 @@
         }
       }
     },
+    "“%@” is encrypted.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ je zašifrovaný."
+          }
+        }
+      }
+    },
     "“%@” is not a valid name.": {
       "localizations": {
         "cs": {
@@ -3697,12 +3907,32 @@
         }
       }
     },
+    "“%@” was changed.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ byl změněn."
+          }
+        }
+      }
+    },
     "“%@” was kept because it contains a link to a folder.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "„%@“ byl ponechán, protože obsahuje odkaz na složku."
+          }
+        }
+      }
+    },
+    "“%@” was not found in the archive.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ v archivu není."
           }
         }
       }

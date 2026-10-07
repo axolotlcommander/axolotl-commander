@@ -332,7 +332,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         case .run(let command):
             commandLine.commit(line)
             Task {
-                do { try await Launcher.run(command, in: directory) } catch { operations.report(error) }
+                do { try await Launcher.run(command, in: panel.diskFolder) } catch { operations.report(error) }
             }
         case .invalid(let error):
             NSSound.beep()

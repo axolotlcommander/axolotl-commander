@@ -253,11 +253,12 @@ final class PanelViewController: NSViewController {
         tabsChanged()
     }
 
+    /// Inside an archive the folder holding the archive is watched: rewriting it replaces the file.
     private func watchLocation() {
-        guard watchedURL != model.location else { return }
+        guard watchedURL != diskFolder else { return }
         watcher?.cancel()
-        watchedURL = model.location
-        watcher = DirectoryWatcher(url: model.location) { [weak self] in
+        watchedURL = diskFolder
+        watcher = DirectoryWatcher(url: diskFolder) { [weak self] in
             Task { @MainActor in await self?.model.refresh() }
         }
     }
@@ -395,7 +396,7 @@ final class PanelViewController: NSViewController {
         .copy, .move, .delete, .deletePermanently, .makeDirectory, .rename, .copyFiles, .pasteFiles,
         .view, .quickLook, .edit, .newFile, .properties, .openTerminal, .revealInFinder,
         .newTab, .closeTab, .nextTab, .previousTab, .hotPaths, .viewModeDetailed, .viewModeBrief,
-        .find,
+        .find, .pack, .unpack,
     ]
 
     private static let needTargets: Set<Command> = [
@@ -406,6 +407,7 @@ final class PanelViewController: NSViewController {
         if command.hotPathSlot != nil { return true }
         guard Self.handled.contains(command) else { return false }
         if Self.needTargets.contains(command), targets().isEmpty { return false }
+        if let archive = model.archive, let allowed = canPerform(command, inArchive: archive) { return allowed }
         switch command {
         case .goBack: return model.canGoBack
         case .goForward: return model.canGoForward
@@ -417,8 +419,30 @@ final class PanelViewController: NSViewController {
         case .edit: return model.cursorItem.map { !$0.isParent && (!$0.isDirectory || $0.isPackage) } ?? false
         case .selectSameExtension, .deselectSameExtension:
             return model.cursorItem.map { !$0.isDirectory && !$0.fileExtension.isEmpty } ?? false
+        case .pack: return !targets().isEmpty
+        case .unpack: return !archiveTargets().isEmpty
         default: return true
         }
+    }
+
+    /// Inside an archive: members are not files on disk, so whatever needs one is off,
+    /// and changes need a writable format. nil leaves the decision to the general rules.
+    private func canPerform(_ command: Command, inArchive archive: ArchivePath) -> Bool? {
+        let writable = archive.format.isWritable
+        switch command {
+        case .newFile, .pasteFiles, .copyFiles, .quickLook, .properties, .pack, .unpack: return false
+        case .makeDirectory: return writable
+        case .rename: return writable && viewMode == .detailed && !targets().isEmpty
+        case .move, .delete, .deletePermanently: return writable && !targets().isEmpty
+        case .edit, .view: return model.cursorItem.map { !$0.isParent && !$0.isDirectory } ?? false
+        default: return nil
+        }
+    }
+
+    /// Selected archives (or the one under the cursor) on disk.
+    private func archiveTargets() -> [URL] {
+        guard model.archive == nil else { return [] }
+        return targets().filter { !$0.isDirectory && ArchiveFormat.detect(fileName: $0.name) != nil }.map(\.url)
     }
 
     func perform(_ command: Command) {
@@ -474,18 +498,27 @@ final class PanelViewController: NSViewController {
         case .pasteFiles: pasteFromPasteboard()
         case .view: openViewer()
         case .find: if let router { FindWindowController.show(from: router) }
+        case .pack: router?.operations.pack(targets(), from: self)
+        case .unpack: router?.operations.unpack(archiveTargets(), from: self)
         case .quickLook: toggleQuickLook()
         case .edit:
-            if let item = model.cursorItem { edit(item.url) }
+            if let item = model.cursorItem {
+                if let archive = model.archive { editMember(item.name, in: archive) } else { edit(item.url) }
+            }
         case .newFile: router?.operations.makeFile(in: self) { [weak self] in self?.edit($0) }
         case .properties:
             let urls = targets().map(\.url)
             PropertiesSheet.show(urls.isEmpty ? [model.location] : urls, in: view.window)
         case .openTerminal:
             Task {
-                do { try await Launcher.openTerminal(at: model.location) } catch { router?.operations.report(error) }
+                do { try await Launcher.openTerminal(at: diskFolder) } catch { router?.operations.report(error) }
             }
-        case .revealInFinder: Launcher.revealInFinder(targets().map(\.url), directory: model.location)
+        case .revealInFinder:
+            if let archive = model.archive {
+                Launcher.revealInFinder([archive.archive], directory: diskFolder)
+            } else {
+                Launcher.revealInFinder(targets().map(\.url), directory: model.location)
+            }
         case .calculateSizes:
             // Every folder in the panel, regardless of the selection; Esc stops it.
             startSizing(model.items.filter { $0.isDirectory && !$0.isParent && !$0.isSymlink })
@@ -496,9 +529,28 @@ final class PanelViewController: NSViewController {
         }
     }
 
+    /// The folder on disk: the location, or the folder holding the archive the panel is in.
+    var diskFolder: URL {
+        model.archive?.archive.deletingLastPathComponent() ?? model.location
+    }
+
     /// F3: the internal viewer for the file under the cursor; folders and media go to Quick Look.
     private func openViewer() {
         guard let item = model.cursorItem, !item.isParent else { return }
+        if let archive = model.archive {
+            // Members are viewed from a temporary copy.
+            Task {
+                do {
+                    let copy = try await ArchiveScratch.extract(item.name, from: archive)
+                    if let sequence = FileSequence(entries: [.init(url: copy, isSelected: false)], current: copy) {
+                        ViewerWindowController.show(sequence)
+                    }
+                } catch {
+                    router?.operations.report(error)
+                }
+            }
+            return
+        }
         if item.isDirectory || ViewerDefaults.prefersQuickLook(item.url) {
             toggleQuickLook()
             return
@@ -507,6 +559,12 @@ final class PanelViewController: NSViewController {
             .map { FileSequence.Entry(url: $0.url, isSelected: model.isSelected($0)) }
         guard let sequence = FileSequence(entries: entries, current: item.url) else { return }
         ViewerWindowController.show(sequence)
+    }
+
+    private func editMember(_ name: String, in archive: ArchivePath) {
+        Task {
+            do { try await ArchiveEdits.shared.edit(name, in: archive) } catch { router?.operations.report(error) }
+        }
     }
 
     private func edit(_ url: URL) {
@@ -565,7 +623,12 @@ final class PanelViewController: NSViewController {
             return
         }
         do {
-            if let file = try await model.enterCursor() { NSWorkspace.shared.open(file.url) }
+            guard let file = try await model.enterCursor() else { return }
+            if let archive = model.archive {
+                NSWorkspace.shared.open(try await ArchiveScratch.extract(file.name, from: archive))
+            } else {
+                NSWorkspace.shared.open(file.url)
+            }
         } catch {
             NSSound.beep()
             statusField.stringValue = Format.error(error)
@@ -838,7 +901,8 @@ extension PanelViewController: NSTableViewDataSource, NSTableViewDelegate {
     // otherwise move within a volume and copy across volumes (Finder convention).
 
     func tableView(_ tableView: NSTableView, pasteboardWriterForRow row: Int) -> (any NSPasteboardWriting)? {
-        guard row < model.items.count, !model.items[row].isParent else { return nil }
+        // Members are not files the system could take.
+        guard row < model.items.count, !model.items[row].isParent, model.archive == nil else { return nil }
         let item = model.items[row]
         // Dragging a marked row drags the whole selection.
         if model.isSelected(item) { return nil }
@@ -882,7 +946,8 @@ extension PanelViewController: NSTableViewDataSource, NSTableViewDelegate {
 
     private func dragOperation(_ info: any NSDraggingInfo, sources: [URL], target: URL) -> NSDragOperation {
         let mask = info.draggingSourceOperationMask
-        if mask == .copy { return .copy }                 // Option held
+        // Into an archive only copies: a move would put the originals in the Trash.
+        if mask == .copy || ArchivePath.split(target) != nil { return .copy } // Option held
         if mask == .generic || mask == .move { return .move } // Command held
         let sameVolume = sources.allSatisfy { Volumes.root(of: $0) == Volumes.root(of: target) }
         return sameVolume ? .move : .copy
