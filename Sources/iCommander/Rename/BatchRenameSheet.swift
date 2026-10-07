@@ -27,7 +27,6 @@ enum BatchRenameSheet {
             RenameRunner.run(plan, title: String(localized: "Renaming…"), in: panel)
         }
         let host = NSWindow(contentViewController: NSHostingController(rootView: view))
-        host.setContentSize(NSSize(width: 820, height: 600))
         sheet = host
         window.beginSheet(host, completionHandler: nil)
     }
@@ -141,6 +140,8 @@ private struct BatchRenameView: View {
                 HStack(spacing: 16) {
                     Toggle("Regular expression", isOn: $model.options.useRegex)
                     Toggle("Match case", isOn: $model.options.caseSensitive)
+                }
+                HStack(spacing: 16) {
                     Toggle("First match only", isOn: $model.options.onlyFirst)
                     Toggle("Leave extension alone", isOn: $model.options.excludeExtension)
                 }
@@ -174,7 +175,7 @@ private struct BatchRenameView: View {
             }
         }
         .padding(20)
-        .frame(minWidth: 760, minHeight: 540)
+        .frame(width: 780, height: 580)
     }
 
     @ViewBuilder private var caseStyles: some View {

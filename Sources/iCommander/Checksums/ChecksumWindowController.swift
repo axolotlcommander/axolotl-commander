@@ -152,9 +152,9 @@ final class ChecksumWindowController: NSWindowController, NSWindowDelegate, NSTa
     private func build() {
         let isCalculate: Bool
         if case .calculate = mode { isCalculate = true } else { isCalculate = false }
-        for (id, title, width) in [("path", String(localized: "File"), 360.0),
-                                   ("digest", String(localized: "Checksum"), 260.0),
-                                   ("status", String(localized: "Result"), 110.0)] {
+        for (id, title, width) in [("path", String(localized: "File"), 280.0),
+                                   ("digest", String(localized: "Checksum"), 300.0),
+                                   ("status", String(localized: "Result"), 130.0)] {
             if id == "status", isCalculate { continue }
             let column = NSTableColumn(identifier: NSUserInterfaceItemIdentifier(id))
             column.title = title
@@ -166,7 +166,7 @@ final class ChecksumWindowController: NSWindowController, NSWindowDelegate, NSTa
         table.usesAlternatingRowBackgroundColors = true
         table.allowsMultipleSelection = true
         table.style = .fullWidth
-        table.columnAutoresizingStyle = .firstColumnOnlyAutoresizingStyle
+        table.columnAutoresizingStyle = .uniformColumnAutoresizingStyle
         let scroll = NSScrollView()
         scroll.documentView = table
         scroll.hasVerticalScroller = true
@@ -404,7 +404,7 @@ final class ChecksumWindowController: NSWindowController, NSWindowDelegate, NSTa
             let cell = NSTableCellView()
             cell.identifier = id
             let field = NSTextField(labelWithString: "")
-            field.lineBreakMode = id.rawValue == "path" ? .byTruncatingMiddle : .byTruncatingTail
+            field.lineBreakMode = id.rawValue == "status" ? .byTruncatingTail : .byTruncatingMiddle
             field.translatesAutoresizingMaskIntoConstraints = false
             cell.addSubview(field)
             cell.textField = field

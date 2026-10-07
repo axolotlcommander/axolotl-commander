@@ -96,7 +96,12 @@ final class DiskMapWindowController: NSWindowController, NSWindowDelegate {
         stack.orientation = .vertical
         stack.spacing = 0
         for view in stack.arrangedSubviews { view.widthAnchor.constraint(equalTo: stack.widthAnchor).isActive = true }
+        NSLayoutConstraint.activate([
+            map.widthAnchor.constraint(greaterThanOrEqualToConstant: 440),
+            map.heightAnchor.constraint(greaterThanOrEqualToConstant: 220),
+        ])
         window?.contentView = stack
+        window?.setContentSize(NSSize(width: 900, height: 620))
         window?.initialFirstResponder = map
         updateButtons()
     }

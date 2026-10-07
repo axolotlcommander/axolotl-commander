@@ -73,7 +73,7 @@ struct PropertiesView: View {
     private func single(_ item: FileProperties) -> some View {
         row("Size", sizeText)
         if let allocated = item.allocatedSize, !item.isDirectory {
-            row("On disk", "\(Format.bytes(allocated)) (\(Format.grouped(allocated)) bytes)")
+            row("On disk", String(localized: "\(Format.bytes(allocated)) (\(Format.grouped(allocated)) bytes)"))
         }
         row("Where", item.url.deletingLastPathComponent().path(percentEncoded: false))
         if let link = item.linkDestination { row("Link to", link) }
@@ -104,7 +104,7 @@ struct PropertiesView: View {
 
     private var sizeText: String {
         guard let total else { return String(localized: "Calculating…") }
-        return "\(Format.bytes(total)) (\(Format.grouped(total)) bytes)"
+        return String(localized: "\(Format.bytes(total)) (\(Format.grouped(total)) bytes)")
     }
 
     private func row(_ label: LocalizedStringKey, _ value: String) -> some View {

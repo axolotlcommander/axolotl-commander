@@ -51,6 +51,16 @@
         }
       }
     },
+    "%@ (%@ bytes)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ (%2$@ bajtů)"
+          }
+        }
+      }
+    },
     "%@ B selected": {
       "localizations": {
         "cs": {
@@ -390,7 +400,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bude přejmenováno %lld z %lld položek."
+            "value": "Přejmenuje se %lld z %lld položek."
           }
         }
       }
