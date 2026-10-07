@@ -209,6 +209,9 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         let lists = NSView()
         for scroll in [textScroll, hexScroll, markdownPreview, imagePreview] as [NSView] {
             (scroll as? NSScrollView)?.borderType = .noBorder
+            // Shown by `show(at:)` once the window has its final layout: a scroll view visible from the
+            // start keeps a title bar pocket (macOS 26) laid out a title bar too low, over the content.
+            scroll.isHidden = true
             scroll.translatesAutoresizingMaskIntoConstraints = false
             lists.addSubview(scroll)
             NSLayoutConstraint.activate([

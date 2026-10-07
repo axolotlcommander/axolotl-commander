@@ -33,7 +33,7 @@ final class HexView: NSView {
     private var lineHeight: CGFloat = 15
     private var offsetDigits = 8
     private var lineCount: Int { max(1, (data.count + HexFormat.bytesPerLine - 1) / HexFormat.bytesPerLine) }
-    /// Content y at the top of the visible area (unscaled: the same as the view's).
+    /// Content y at the top of the unobscured area (below the title bar; unscaled: the view's y there).
     private var contentTop: Double = 0
     private let canvas = HexCanvas()
     private static let maxHeight: Double = 1_000_000
@@ -55,7 +55,8 @@ final class HexView: NSView {
     required init?(coder: NSCoder) { fatalError() }
 
     private func relayout() {
-        charWidth = ceil(("0" as NSString).size(withAttributes: [.font: font]).width)
+        // Exact advance: rounding up would drift the selection away from the text across a line.
+        charWidth = ("0" as NSString).size(withAttributes: [.font: font]).width
         lineHeight = ceil(font.ascender - font.descender + font.leading) + 2
         offsetDigits = HexFormat.offsetText(0, fileSize: Int64(data.count)).count
         resize()
@@ -65,7 +66,7 @@ final class HexView: NSView {
 
     private func resize() {
         let width = charsX + CGFloat(HexFormat.bytesPerLine) * charWidth + inset
-        setFrameSize(NSSize(width: width, height: max(min(naturalHeight, Self.maxHeight), clipHeight)))
+        setFrameSize(NSSize(width: width, height: max(min(naturalHeight, Self.maxHeight), viewHeight)))
     }
 
     override func viewWillMove(toSuperview newSuperview: NSView?) {
@@ -94,18 +95,24 @@ final class HexView: NSView {
 
     /// A scroll by the scroller (or anything else that is not ours) moves the content to match.
     @objc private func clipBoundsChanged(_ note: Notification) {
-        let y = Double(visibleRect.minY)
-        if !isScaled || abs(y - scrollY(for: contentTop)) > 1 { contentTop = content(forScrollY: y) }
+        let y = Double(visibleRect.minY) + topInset
+        if !isScaled || abs(y - scrollY(for: contentTop)) > 1 { contentTop = min(max(content(forScrollY: y), 0), maxContentTop) }
         placeCanvas()
     }
 
     // MARK: Content position
 
-    private var clipHeight: Double { Double(superview?.bounds.height ?? 0) }
+    /// The clip's insets: a full-size content view scrolls under the title bar and toolbar.
+    private var topInset: Double { Double((superview as? NSClipView)?.contentInsets.top ?? 0) }
+    /// The unobscured height of the clip.
+    private var viewHeight: Double {
+        guard let clip = superview as? NSClipView else { return 0 }
+        return max(0, Double(clip.bounds.height - clip.contentInsets.top - clip.contentInsets.bottom))
+    }
     private var naturalHeight: Double { Double(lineCount) * lineHeight + 2 * inset }
     private var isScaled: Bool { naturalHeight > Self.maxHeight }
-    private var maxContentTop: Double { max(0, naturalHeight - clipHeight) }
-    private var maxScrollY: Double { max(0, Double(bounds.height) - clipHeight) }
+    private var maxContentTop: Double { max(0, naturalHeight - viewHeight) }
+    private var maxScrollY: Double { max(0, Double(bounds.height) - viewHeight) }
 
     private func content(forScrollY y: Double) -> Double {
         guard isScaled else { return y }
@@ -120,7 +127,7 @@ final class HexView: NSView {
     private func setContentTop(_ top: Double) {
         contentTop = min(max(top, 0), maxContentTop)
         if let clip = superview as? NSClipView {
-            let target = NSPoint(x: clip.bounds.minX, y: scrollY(for: contentTop))
+            let target = NSPoint(x: clip.bounds.minX, y: scrollY(for: contentTop) - topInset)
             if abs(clip.bounds.minY - target.y) > 0.01 {
                 clip.scroll(to: target)
                 enclosingScrollView?.reflectScrolledClipView(clip)
@@ -146,12 +153,16 @@ final class HexView: NSView {
 
     // MARK: Drawing
 
-    /// Draws the lines visible in the canvas (`rect` in canvas coordinates; its top is `contentTop`).
+    /// Content y at the top of the canvas, which also covers the area under the title bar.
+    private var canvasTop: Double { contentTop + Double(canvas.frame.minY) - scrollY(for: contentTop) }
+
+    /// Draws the lines visible in the canvas (`rect` in canvas coordinates; its top is `canvasTop`).
     fileprivate func drawLines(_ rect: NSRect) {
         NSColor.textBackgroundColor.setFill()
         rect.fill()
-        let first = max(0, Int((contentTop + rect.minY - inset) / lineHeight))
-        let last = min(lineCount - 1, Int((contentTop + rect.maxY - inset) / lineHeight))
+        let top = canvasTop
+        let first = max(0, Int((top + rect.minY - inset) / lineHeight))
+        let last = min(lineCount - 1, Int((top + rect.maxY - inset) / lineHeight))
         guard first <= last else { return }
         let dim: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: NSColor.secondaryLabelColor]
         let plain: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: NSColor.textColor]
@@ -159,7 +170,7 @@ final class HexView: NSView {
         let selected = selection
         let base = data.startIndex
         for line in first...last {
-            let y = inset + Double(line) * lineHeight - contentTop
+            let y = inset + Double(line) * lineHeight - top
             let start = line * HexFormat.bytesPerLine
             let end = min(start + HexFormat.bytesPerLine, data.count)
             drawSelection(line: start..<end, selected: selected, y: y, focused: focused)
@@ -217,8 +228,8 @@ final class HexView: NSView {
         let top = inset + Double(offset / HexFormat.bytesPerLine) * lineHeight
         if top - lineHeight < contentTop {
             setContentTop(top - lineHeight)
-        } else if top + 2 * lineHeight > contentTop + clipHeight {
-            setContentTop(top + 2 * lineHeight - clipHeight)
+        } else if top + 2 * lineHeight > contentTop + viewHeight {
+            setContentTop(top + 2 * lineHeight - viewHeight)
         }
     }
 
@@ -227,17 +238,17 @@ final class HexView: NSView {
         onSelectionChange?()
     }
 
-    /// First byte of the top visible line.
+    /// First byte of the top visible line (the inset above the first line counts as part of it, so
+    /// the first line keeps the view at its very top).
     var topOffset: Int {
-        let y = max(0, contentTop - inset)
-        return min(Int(y / lineHeight) * HexFormat.bytesPerLine, max(0, data.count - 1))
+        min(Int(contentTop / lineHeight) * HexFormat.bytesPerLine, max(0, data.count - 1))
     }
 
     func scrollToTop(offset: Int) {
-        setContentTop(inset + Double(offset / HexFormat.bytesPerLine) * lineHeight)
+        setContentTop(Double(offset / HexFormat.bytesPerLine) * lineHeight)
     }
 
-    private var pageLines: Int { max(1, Int(clipHeight / lineHeight) - 1) }
+    private var pageLines: Int { max(1, Int(viewHeight / lineHeight) - 1) }
 
     override func keyDown(with event: NSEvent) {
         if onKey?(event) == true { return }
@@ -261,7 +272,7 @@ final class HexView: NSView {
     }
 
     private func offset(at point: NSPoint) -> Int {
-        let line = max(0, Int((contentTop + point.y - visibleRect.minY - inset) / lineHeight))
+        let line = max(0, Int((contentTop + point.y - scrollY(for: contentTop) - inset) / lineHeight))
         let index: Int
         if point.x >= charsX - charWidth {
             index = Int((point.x - charsX) / charWidth)
@@ -280,7 +291,7 @@ final class HexView: NSView {
         let start = anchor ?? caret
         while let next = window?.nextEvent(matching: [.leftMouseDragged, .leftMouseUp]), next.type == .leftMouseDragged {
             let point = convert(next.locationInWindow, from: nil)
-            if point.y < visibleRect.minY { setContentTop(contentTop - lineHeight) }
+            if point.y < visibleRect.minY + topInset { setContentTop(contentTop - lineHeight) }
             if point.y > visibleRect.maxY { setContentTop(contentTop + lineHeight) }
             let target = offset(at: point)
             anchor = target == start ? nil : start
