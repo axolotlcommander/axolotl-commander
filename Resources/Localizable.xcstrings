@@ -61,6 +61,16 @@
         }
       }
     },
+    "%@ (default)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ (výchozí)"
+          }
+        }
+      }
+    },
     "%@ B selected": {
       "localizations": {
         "cs": {
@@ -81,12 +91,42 @@
         }
       }
     },
+    "%@ is also the shortcut of the command “%@”.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ je také zkratkou příkazu „%2$@“."
+          }
+        }
+      }
+    },
+    "%@ is also used by %@ in the user menu; the first one in the menu runs.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ používá v uživatelském menu také %2$@; spustí se první položka v menu."
+          }
+        }
+      }
+    },
     "%@ is used by %@.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "%@ už používá %@."
+          }
+        }
+      }
+    },
+    "%@ types into quick search. Use a shortcut with ⌘, ⌃ or ⌥, or a function key.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ píše do rychlého hledání. Použijte zkratku s ⌘, ⌃ nebo ⌥, nebo funkční klávesu."
           }
         }
       }
@@ -773,6 +813,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Argumenty:"
+          }
+        }
+      }
+    },
+    "Arrow keys select, Return or double click enters a folder, ⌫ goes up.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Šipky vybírají, Return nebo dvojklik vstoupí do složky, ⌫ jde o úroveň výš."
           }
         }
       }
@@ -3005,6 +3055,16 @@
         }
       }
     },
+    "Include items in subfolders": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Včetně položek v podsložkách"
+          }
+        }
+      }
+    },
     "Include subfolders": {
       "localizations": {
         "cs": {
@@ -3156,6 +3216,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Položka pod kurzorem v pravém panelu"
+          }
+        }
+      }
+    },
+    "Items in subfolders:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Položky v podsložkách:"
           }
         }
       }
@@ -3585,6 +3655,17 @@
         }
       }
     },
+    "Move Files Here": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přesunout soubory sem"
+          }
+        }
+      }
+    },
     "Move Up": {
       "localizations": {
         "cs": {
@@ -3973,6 +4054,16 @@
         }
       }
     },
+    "None": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Žádná"
+          }
+        }
+      }
+    },
     "Not Now": {
       "localizations": {
         "cs": {
@@ -4126,6 +4217,16 @@
         }
       }
     },
+    "Open With": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otevřít v aplikaci"
+          }
+        }
+      }
+    },
     "Open in Left Panel": {
       "extractionState": "manual",
       "localizations": {
@@ -4194,6 +4295,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ostatní"
+          }
+        }
+      }
+    },
+    "Other…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jiná…"
           }
         }
       }
@@ -4390,6 +4501,16 @@
         }
       }
     },
+    "Port 990 uses implicit TLS; other ports start TLS with AUTH TLS.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Port 990 používá implicitní TLS; na ostatních portech se TLS zapne příkazem AUTH TLS."
+          }
+        }
+      }
+    },
     "Port:": {
       "localizations": {
         "cs": {
@@ -4567,6 +4688,16 @@
         }
       }
     },
+    "Reading folders…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Načítají se složky…"
+          }
+        }
+      }
+    },
     "Recent": {
       "localizations": {
         "cs": {
@@ -4577,12 +4708,32 @@
         }
       }
     },
+    "Record Shortcut": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nahrát zkratku"
+          }
+        }
+      }
+    },
     "Red": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Červená"
+          }
+        }
+      }
+    },
+    "Redo": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Znovu"
           }
         }
       }
@@ -4831,6 +4982,17 @@
         }
       }
     },
+    "Same Folder as Other Panel": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stejná složka jako v druhém panelu"
+          }
+        }
+      }
+    },
     "Same Name": {
       "localizations": {
         "cs": {
@@ -5075,6 +5237,16 @@
         }
       }
     },
+    "Services": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Služby"
+          }
+        }
+      }
+    },
     "Set Current Folder As": {
       "localizations": {
         "cs": {
@@ -5257,6 +5429,16 @@
         }
       }
     },
+    "Shortcut:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zkratka:"
+          }
+        }
+      }
+    },
     "Shortcuts with ⌘, ⌃, ⌥ or function keys also appear in the menus. Some ⌃ and F-key shortcuts may be taken by macOS (System Settings → Keyboard → Keyboard Shortcuts).": {
       "localizations": {
         "cs": {
@@ -5273,6 +5455,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zobrazit vše"
+          }
+        }
+      }
+    },
+    "Show Context Menu": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zobrazit kontextové menu"
           }
         }
       }
@@ -5452,6 +5645,16 @@
         }
       }
     },
+    "Sort By": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Řadit podle"
+          }
+        }
+      }
+    },
     "Sort by Date": {
       "extractionState": "manual",
       "localizations": {
@@ -5562,6 +5765,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Podmenu"
+          }
+        }
+      }
+    },
+    "Swap Panels": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prohodit panely"
           }
         }
       }
@@ -5879,6 +6093,16 @@
         }
       }
     },
+    "The password for “%@” is wrong.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heslo k „%@“ není správné."
+          }
+        }
+      }
+    },
     "The path is not a folder.": {
       "localizations": {
         "cs": {
@@ -6029,6 +6253,16 @@
         }
       }
     },
+    "This page refers to %lld file(s) on the internet. They have not been loaded.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stránka odkazuje na soubory na internetu (%lld). Nebyly načteny."
+          }
+        }
+      }
+    },
     "Title:": {
       "localizations": {
         "cs": {
@@ -6077,6 +6311,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "VELKÁ PÍSMENA"
+          }
+        }
+      }
+    },
+    "Undo": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zpět"
           }
         }
       }
@@ -6903,6 +7147,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "„%@“ selhal."
+          }
+        }
+      }
+    },
+    "“%@” is encrypted and needs a password.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ je zašifrovaný a potřebuje heslo."
+          }
+        }
+      }
+    },
+    "“%@” is encrypted with a method that is not supported.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ je zašifrovaný nepodporovanou metodou."
           }
         }
       }
