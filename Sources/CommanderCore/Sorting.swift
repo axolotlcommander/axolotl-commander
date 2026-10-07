@@ -24,7 +24,8 @@ public struct SortSpec: Sendable, Hashable, Codable {
     }
 }
 
-/// Parent row first, then directories, then files. Directories follow the
+/// Parent row first, then directories, then files; packages (apps, bundles) count as files, as in
+/// Finder, with their size when it was calculated. Directories follow the
 /// sort field when it applies to them (date; size when computed), otherwise
 /// they are ordered by name. Ties always fall back to ascending name.
 /// `directorySizes` is keyed by `rules.key(name)`.
@@ -39,7 +40,7 @@ public func sortItems(
     var files: [FileItem] = []
     for item in items {
         if item.isParent { parents.append(item) }
-        else if item.isDirectory { dirs.append(item) }
+        else if item.isDirectory && !item.isPackage { dirs.append(item) }
         else { files.append(item) }
     }
 
@@ -79,7 +80,10 @@ public func sortItems(
     case .date:
         sortedFiles = sorted(files) { compare($0.modificationDate ?? .distantPast, $1.modificationDate ?? .distantPast) }
     case .size:
-        sortedFiles = sorted(files) { compare($0.size ?? 0, $1.size ?? 0) }
+        func size(_ item: FileItem) -> Int64 {
+            item.isPackage ? directorySizes[rules.key(item.name)] ?? -1 : item.size ?? 0
+        }
+        sortedFiles = sorted(files) { compare(size($0), size($1)) }
     }
     return parents + sortedDirs + sortedFiles
 }

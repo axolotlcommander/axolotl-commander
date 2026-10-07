@@ -34,6 +34,20 @@ import Foundation
         #expect(Array(names(SortSpec(field: .size), sizes: sizes).prefix(3)) == ["..", "zeta", "Alpha"])
     }
 
+    @Test func packagesSortWithFiles() {
+        let app = FileItem(url: base.appendingPathComponent("Mail.app"), isDirectory: true, isPackage: true)
+        #expect(app.baseName == "Mail" && app.fileExtension == "app")
+        #expect(dir("x.y").fileExtension.isEmpty && dir("x.y").baseName == "x.y")
+        let items = sample + [app]
+        let byName = sortItems(items, by: .default, rules: .apfsDefault).map(\.name)
+        #expect(byName == ["..", "Alpha", "zeta", "a2.md", "a10.zip", "b.txt", "Mail.app"])
+        let byExt = sortItems(items, by: SortSpec(field: .ext), rules: .apfsDefault).map(\.name)
+        #expect(byExt == ["..", "Alpha", "zeta", "Mail.app", "a2.md", "b.txt", "a10.zip"])
+        let bySize = sortItems(items, by: SortSpec(field: .size), rules: .apfsDefault,
+                               directorySizes: ["mail.app": 7]).map(\.name)
+        #expect(bySize.suffix(4) == ["a10.zip", "b.txt", "Mail.app", "a2.md"])
+    }
+
     @Test func toggling() {
         let s = SortSpec.default.toggled(.name)
         #expect(s.field == .name && !s.ascending)

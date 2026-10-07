@@ -789,7 +789,8 @@ final class PanelViewController: NSViewController {
         if field.currentEditor() == nil { view.window?.makeFirstResponder(field) }
         log.debug("rename begin editor=\(field.currentEditor() != nil)")
         // Finder selects the base name only, so typing keeps the extension.
-        let base = item.isDirectory ? name : model.results == nil ? item.baseName : (name as NSString).deletingPathExtension
+        let base = item.isDirectory && !item.isPackage ? name
+            : model.results == nil ? item.baseName : (name as NSString).deletingPathExtension
         field.currentEditor()?.selectedRange = NSRange(location: 0, length: (base as NSString).length)
     }
 
@@ -1002,7 +1003,8 @@ extension PanelViewController: NSTableViewDataSource, NSTableViewDelegate {
         case .size:
             if item.isParent { return "" }
             if item.isDirectory {
-                return model.directorySizes[model.rules.key(item.name)].map(Format.grouped) ?? "<DIR>"
+                // A package is a file to the user: no <DIR>, its size once calculated (Space).
+                return model.directorySizes[model.rules.key(item.name)].map(Format.grouped) ?? (item.isPackage ? "—" : "<DIR>")
             }
             return Format.grouped(item.size ?? 0)
         case .date: return item.isParent ? "" : item.modificationDate.map(Format.date) ?? ""

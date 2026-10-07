@@ -53,13 +53,13 @@ public struct FileItem: Identifiable, Hashable, Sendable {
     /// Text after the last dot (files only, and only when the dot is not the
     /// first character). Empty for directories and the parent row.
     public var fileExtension: String {
-        guard !isDirectory, !isParent, let dot = name.lastIndex(of: "."), dot != name.startIndex else { return "" }
+        guard !isDirectory || isPackage, !isParent, let dot = name.lastIndex(of: "."), dot != name.startIndex else { return "" }
         return String(name[name.index(after: dot)...])
     }
 
-    /// Name without ".ext" for files; the full name for directories.
+    /// Name without ".ext" for files and packages (“Mail” of “Mail.app”); the full name for folders.
     public var baseName: String {
-        guard !isDirectory, !isParent, let dot = name.lastIndex(of: "."), dot != name.startIndex else { return name }
+        guard !isDirectory || isPackage, !isParent, let dot = name.lastIndex(of: "."), dot != name.startIndex else { return name }
         return String(name[..<dot])
     }
 }

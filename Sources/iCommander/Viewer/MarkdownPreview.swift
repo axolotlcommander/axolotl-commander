@@ -134,7 +134,9 @@ final class MarkdownPreview: NSView, WKNavigationDelegate {
         handler.page = (url, Data(page.html.utf8))
         webView.load(URLRequest(url: url))
         bar.isHidden = allowRemote || remoteCount == 0
-        barLabel.stringValue = String(localized: "This document refers to \(remoteCount) image(s) on the internet. They have not been loaded.")
+        barLabel.stringValue = isHTML
+            ? String(localized: "This page refers to \(remoteCount) file(s) on the internet. They have not been loaded.")
+            : String(localized: "This document refers to \(remoteCount) image(s) on the internet. They have not been loaded.")
     }
 
     func clear() {
