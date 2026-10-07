@@ -111,6 +111,16 @@
         }
       }
     },
+    "%lld item(s) were not removed, because they contain a link to a folder, were skipped or did not arrive completely.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Položek, které nebyly odstraněny, protože obsahují odkaz na složku, byly přeskočeny nebo nedorazily celé: %lld."
+          }
+        }
+      }
+    },
     "%lld items": {
       "localizations": {
         "cs": {
@@ -237,6 +247,16 @@
         }
       }
     },
+    "Address:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adresa:"
+          }
+        }
+      }
+    },
     "All %lld hot paths are in use.": {
       "localizations": {
         "cs": {
@@ -253,6 +273,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Všechny soubory (masky *.txt;*.md|tmp*)"
+          }
+        }
+      }
+    },
+    "Anonymous": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anonymně"
           }
         }
       }
@@ -293,6 +323,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Archiv:"
+          }
+        }
+      }
+    },
+    "Ask or use Keychain": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeptat se nebo použít Klíčenku"
           }
         }
       }
@@ -624,6 +664,47 @@
         }
       }
     },
+    "Connect": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Připojit"
+          }
+        }
+      }
+    },
+    "Connect to Server": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Připojit k serveru"
+          }
+        }
+      }
+    },
+    "Connect to Server…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Připojit k serveru…"
+          }
+        }
+      }
+    },
+    "Connecting to %@…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Připojuji k %@…"
+          }
+        }
+      }
+    },
     "Containing:": {
       "localizations": {
         "cs": {
@@ -699,6 +780,16 @@
         }
       }
     },
+    "Copying between an archive and a server is not supported. Copy to a folder on disk first.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopírování mezi archivem a serverem není podporováno. Zkopírujte to nejdřív do složky na disku."
+          }
+        }
+      }
+    },
     "Copying…": {
       "localizations": {
         "cs": {
@@ -716,6 +807,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kopírovat…"
+          }
+        }
+      }
+    },
+    "Could not connect: %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nelze se připojit: %@"
           }
         }
       }
@@ -796,6 +897,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Okamžitě smazat %@?"
+          }
+        }
+      }
+    },
+    "Delete %@ on %@?": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Smazat %@ na %@?"
+          }
+        }
+      }
+    },
+    "Delete Connection": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Smazat spojení"
           }
         }
       }
@@ -882,6 +1003,27 @@
           "stringUnit": {
             "state": "translated",
             "value": "Rozpoznat automaticky"
+          }
+        }
+      }
+    },
+    "Disconnect": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odpojit"
+          }
+        }
+      }
+    },
+    "Disconnect…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odpojit…"
           }
         }
       }
@@ -1004,6 +1146,16 @@
         }
       }
     },
+    "Enter it again.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zadejte ho znovu."
+          }
+        }
+      }
+    },
     "Enter the folder to search in.": {
       "localizations": {
         "cs": {
@@ -1044,6 +1196,16 @@
         }
       }
     },
+    "FTP with TLS": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FTP s TLS"
+          }
+        }
+      }
+    },
     "File": {
       "localizations": {
         "cs": {
@@ -1070,6 +1232,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Soubory a složky"
+          }
+        }
+      }
+    },
+    "Files deleted on a server can’t be put back.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soubory smazané na serveru nejde vrátit."
           }
         }
       }
@@ -1239,6 +1411,16 @@
         }
       }
     },
+    "Folder:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Složka:"
+          }
+        }
+      }
+    },
     "Folders": {
       "localizations": {
         "cs": {
@@ -1286,6 +1468,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vpřed"
+          }
+        }
+      }
+    },
+    "From SSH settings": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Podle nastavení SSH"
           }
         }
       }
@@ -1789,6 +1981,16 @@
         }
       }
     },
+    "Key passphrase for %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heslo ke klíči pro %@"
+          }
+        }
+      }
+    },
     "Keyboard Shortcuts…": {
       "extractionState": "manual",
       "localizations": {
@@ -1877,6 +2079,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zamčeno"
+          }
+        }
+      }
+    },
+    "Login folder": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přihlašovací složka"
           }
         }
       }
@@ -2103,6 +2315,16 @@
         }
       }
     },
+    "New Connection": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nové spojení"
+          }
+        }
+      }
+    },
     "New File…": {
       "extractionState": "manual",
       "localizations": {
@@ -2225,6 +2447,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nebyla nalezena žádná aplikace editoru."
+          }
+        }
+      }
+    },
+    "No servers are connected.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Není připojen žádný server."
           }
         }
       }
@@ -2354,6 +2586,16 @@
         }
       }
     },
+    "Optional": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nepovinné"
+          }
+        }
+      }
+    },
     "Options": {
       "localizations": {
         "cs": {
@@ -2445,6 +2687,36 @@
         }
       }
     },
+    "Passive mode": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pasivní režim"
+          }
+        }
+      }
+    },
+    "Password for %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heslo pro %@"
+          }
+        }
+      }
+    },
+    "Password:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heslo:"
+          }
+        }
+      }
+    },
     "Paste Files": {
       "extractionState": "manual",
       "localizations": {
@@ -2496,6 +2768,16 @@
         }
       }
     },
+    "Port:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Port:"
+          }
+        }
+      }
+    },
     "Previous Encoding": {
       "extractionState": "manual",
       "localizations": {
@@ -2536,6 +2818,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Předchozí záložka"
+          }
+        }
+      }
+    },
+    "Protocol:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Protokol:"
           }
         }
       }
@@ -2630,6 +2922,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Znovu načíst"
+          }
+        }
+      }
+    },
+    "Remember in Keychain": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uložit do Klíčenky"
+          }
+        }
+      }
+    },
+    "Remember password in Keychain": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uložit heslo do Klíčenky"
           }
         }
       }
@@ -2736,6 +3048,16 @@
         }
       }
     },
+    "Save": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uložit"
+          }
+        }
+      }
+    },
     "Select": {
       "localizations": {
         "cs": {
@@ -2825,6 +3147,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vybrat…"
+          }
+        }
+      }
+    },
+    "Server:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server:"
           }
         }
       }
@@ -3271,12 +3603,32 @@
         }
       }
     },
+    "The connection to the server was lost.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spojení se serverem bylo přerušeno."
+          }
+        }
+      }
+    },
     "The file could not be read.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Soubor nelze přečíst."
+          }
+        }
+      }
+    },
+    "The file on the server was not updated.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soubor na serveru nebyl aktualizován."
           }
         }
       }
@@ -3297,6 +3649,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Složky se shodují"
+          }
+        }
+      }
+    },
+    "The identity of %@ can’t be verified.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Identitu serveru %@ nelze ověřit."
           }
         }
       }
@@ -3331,6 +3693,16 @@
         }
       }
     },
+    "The password for %@ was not accepted.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heslo pro %@ nebylo přijato."
+          }
+        }
+      }
+    },
     "The path is not a folder.": {
       "localizations": {
         "cs": {
@@ -3347,6 +3719,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Cesta je příliš dlouhá; nic nebylo změněno."
+          }
+        }
+      }
+    },
+    "The server refused the user name or password.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server odmítl uživatelské jméno nebo heslo."
+          }
+        }
+      }
+    },
+    "The server reported an error: %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server ohlásil chybu: %@"
+          }
+        }
+      }
+    },
+    "The server’s identity was not accepted. %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Identita serveru nebyla přijata. %@"
           }
         }
       }
@@ -3474,6 +3876,16 @@
         }
       }
     },
+    "Upload it to %@?": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nahrát ho na %@?"
+          }
+        }
+      }
+    },
     "Use Selection for Find": {
       "extractionState": "manual",
       "localizations": {
@@ -3502,6 +3914,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Uživatelské menu…"
+          }
+        }
+      }
+    },
+    "User:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uživatel:"
           }
         }
       }
@@ -3662,6 +4084,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Můžete je vrátit z koše."
+          }
+        }
+      }
+    },
+    "You don’t have permission to access “%@” on the server.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "K „%@“ na serveru nemáte přístup."
           }
         }
       }
@@ -3877,6 +4309,16 @@
         }
       }
     },
+    "“%@” already exists on the server.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ už na serveru existuje."
+          }
+        }
+      }
+    },
     "“%@” already exists.": {
       "localizations": {
         "cs": {
@@ -3893,6 +4335,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "„%@“ nelze zkopírovat ani přesunout do sebe sama."
+          }
+        }
+      }
+    },
+    "“%@” can’t be used on the server.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ nelze na serveru použít."
           }
         }
       }
@@ -3943,6 +4395,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "„%@“ v archivu není."
+          }
+        }
+      }
+    },
+    "“%@” was not found on the server.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ se na serveru nenašlo."
           }
         }
       }
