@@ -113,6 +113,120 @@ import UniformTypeIdentifiers
     }
 }
 
+// MARK: HTML
+
+@Suite struct HTMLPreparerTests {
+    private let csp = #"<meta http-equiv="Content-Security-Policy""#
+
+    private func prepared(_ html: String, allowRemote: Bool = false) -> String {
+        HTMLPreparer.prepare(html, allowRemote: allowRemote).html
+    }
+
+    @Test func policyGoesFirstInHead() {
+        let html = prepared("<!DOCTYPE html>\n<HTML lang=cs>\n<!-- c -->\n<HEAD><Meta Charset=windows-1250><title>T</title></HEAD><body>x</body></HTML>")
+        #expect(html.hasPrefix("<!DOCTYPE html>\n<HTML lang=cs>\n<!-- c -->\n<HEAD>" + csp))
+        #expect(html.contains("<Meta Charset=windows-1250><title>T</title></HEAD>"))
+        #expect(HTMLPreparer.prepare("<html><head><title> Název </title></head></html>").title == "Název")
+    }
+
+    @Test func createsHeadWhenMissing() {
+        #expect(prepared("<html><body>x</body></html>").hasPrefix("<html><head>" + csp))
+        #expect(prepared("<!doctype html><p>x").hasPrefix("<!doctype html><head>" + csp))
+        let xhtml = #"<?xml version="1.0"?>"# + "\n<!DOCTYPE html>\n" + #"<html xmlns="http://www.w3.org/1999/xhtml">"#
+        #expect(prepared("\u{FEFF}" + xhtml + "<body/></html>").hasPrefix(xhtml + "<head>" + csp))
+        #expect(prepared("just text").hasPrefix("<head>" + csp))
+        #expect(prepared("").hasPrefix("<head>" + csp))
+        // A <head> in a comment or a <header> is not the head.
+        #expect(prepared("<!-- <head> --><header>h</header>").hasPrefix("<!-- <head> --><head>" + csp))
+    }
+
+    @Test func ownPolicyComesBeforeTheDocuments() {
+        let html = prepared(#"<html><head><meta http-equiv="Content-Security-Policy" content="default-src *"></head></html>"#)
+        let first = html.range(of: "Content-Security-Policy")!
+        #expect(html[first.upperBound...].hasPrefix(#"" content="default-src 'none';"#))
+        #expect(html.contains(#"content="default-src *""#))
+    }
+
+    @Test func policy() {
+        let strict = HTMLPreparer.policy(allowRemote: false)
+        #expect(strict.hasPrefix("default-src 'none';"))
+        #expect(!strict.contains("http"))
+        #expect(!strict.contains("script-src"))
+        #expect(strict.contains("form-action 'none'"))
+        #expect(strict.contains("base-uri icmd-doc:"))
+        let open = HTMLPreparer.policy(allowRemote: true)
+        #expect(open.hasPrefix("default-src 'none';"))
+        #expect(open.contains("img-src icmd-doc: data: https: http:;"))
+        #expect(open.contains("style-src 'unsafe-inline' icmd-doc: data: https: http:;"))
+        #expect(prepared("<p>x", allowRemote: true).contains(open))
+        #expect(prepared("<p>x").contains(strict))
+    }
+
+    @Test func countsRemoteResources() {
+        let page = HTMLPreparer.prepare("""
+            <html><head>
+            <link rel="stylesheet" href="https://a.example/s.css"><link rel=canonical href="https://a.example/page">
+            <LINK REL="alternate stylesheet" HREF='//b.example/t.css'>
+            <style>@import "https://c.example/i.css"; body { background: url( 'https://d.example/bg.png' ) }</style>
+            <script src="https://e.example/x.js"></script>
+            </head><body background="http://f.example/b.gif">
+            <img src="https://g.example/1.png" srcset="local.png 1x, https://g.example/2.png 2x,//h.example/3.png 3x">
+            <img src="https://g.example/1.png"> <img src="pic/local.png"> <img src="data:image/png;base64,AAAA">
+            <video poster="https://i.example/p.jpg"><source src="https://i.example/v.mp4"></video>
+            <div style="background-image:url(https://j.example/k.png)">text</div>
+            <a href="https://k.example/">a link is not a load</a>
+            <iframe src="https://l.example/frame"></iframe>
+            </body></html>
+            """)
+        #expect(page.remoteResources == [
+            "https://a.example/s.css", "//b.example/t.css", "https://c.example/i.css", "https://d.example/bg.png",
+            "http://f.example/b.gif", "https://g.example/1.png", "https://g.example/2.png", "//h.example/3.png",
+            "https://i.example/p.jpg", "https://i.example/v.mp4", "https://j.example/k.png",
+        ])
+        // Protocol-relative addresses would resolve against the viewer's scheme.
+        #expect(page.html.contains("HREF='https://b.example/t.css'"))
+        #expect(page.html.contains(",https://h.example/3.png 3x"))
+        #expect(page.html.contains(#"<script src="https://e.example/x.js"></script>"#))
+    }
+
+    @Test func removesRefreshBaseAndHints() {
+        let html = prepared("""
+            <head><META HTTP-EQUIV=Refresh CONTENT="0; url=https://evil.example/">\
+            <meta content="5;url=x>y" http-equiv='refresh'>\
+            <base href="https://evil.example/"><base href=" //evil.example/"><BASE HREF="file:///etc/">\
+            <base href="sub/" target=_self><link rel="preconnect dns-prefetch" href="https://cdn.example">\
+            <meta name="viewport" content="width=device-width"></head><body><p>x</p></body>
+            """)
+        #expect(!html.lowercased().contains("refresh"))
+        #expect(!html.contains("evil"))
+        #expect(!html.contains("file:"))
+        #expect(!html.contains("cdn.example"))
+        #expect(html.contains(#"<base href="sub/" target=_self>"#))
+        #expect(html.contains(#"<meta name="viewport" content="width=device-width"></head><body><p>x</p></body>"#))
+        #expect(html.hasPrefix("<head>" + csp))
+    }
+
+    @Test func relativeReferences() {
+        #expect(HTMLPreparer.isRelative("sub/dir/"))
+        #expect(HTMLPreparer.isRelative("/root/"))
+        #expect(HTMLPreparer.isRelative("a.html?x=http://y"))
+        #expect(!HTMLPreparer.isRelative("https://x/"))
+        #expect(!HTMLPreparer.isRelative("ht\ttps://x/"))
+        #expect(!HTMLPreparer.isRelative("//x/"))
+        #expect(!HTMLPreparer.isRelative(#"\\x\"#))
+        #expect(!HTMLPreparer.isRelative("javascript:alert(1)"))
+    }
+
+    @Test func scriptsAndCommentsAreNotParsedAsTags() {
+        let page = HTMLPreparer.prepare("""
+            <html><head><script>var s = '<img src="https://a.example/x.png"> <base href="https://b.example/">';</script>
+            <!-- <img src="https://c.example/y.png"> --></head></html>
+            """)
+        #expect(page.remoteResources.isEmpty)
+        #expect(page.html.contains(#"<base href="https://b.example/">"#))
+    }
+}
+
 // MARK: Safe writes, image export
 
 /// A fresh folder under the temporary directory, removed by `remove()`.

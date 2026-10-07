@@ -56,7 +56,7 @@ final class PreviewWebView: WKWebView {
     }
 }
 
-/// Rendered Markdown with a bar offering to load images from the internet.
+/// Rendered Markdown, or an HTML file, with a bar offering to load images from the internet.
 final class MarkdownPreview: NSView, WKNavigationDelegate {
     private static let blockRuleID = "icommander.block-remote"
     private static var blockRules: WKContentRuleList?
@@ -120,9 +120,11 @@ final class MarkdownPreview: NSView, WKNavigationDelegate {
     required init?(coder: NSCoder) { fatalError() }
 
     /// Shows `text` (the decoded file) as a page; `allowRemote` lets it load internet images.
-    func show(_ text: String, of file: URL, allowRemote: Bool) async {
+    /// `isHTML`: the text is an HTML page of its own, not Markdown.
+    func show(_ text: String, of file: URL, isHTML: Bool = false, allowRemote: Bool) async {
         let page = await Task.detached(priority: .userInitiated) {
-            MarkdownRenderer.render(text, allowRemote: allowRemote)
+            isHTML ? HTMLPreparer.prepare(text, allowRemote: allowRemote)
+                   : MarkdownRenderer.render(text, allowRemote: allowRemote)
         }.value
         await setBlocking(!allowRemote)
         document = file
