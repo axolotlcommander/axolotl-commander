@@ -18,8 +18,7 @@ struct KeyboardSettings: View {
     @State private var search = ""
     @State private var selection: Command?
     @State private var bindings = KeyMaps.bindings
-    @State private var recording = false
-    @State private var monitor: Any?
+    @State private var recorder = ChordRecorder()
     @State private var conflict: (chord: KeyChord, others: [Command])?
 
     var body: some View {
@@ -91,17 +90,10 @@ struct KeyboardSettings: View {
             if let command = selection {
                 let chords = map.chords(for: command)
                 ForEach(chords, id: \.self) { chord in
-                    HStack(spacing: 2) {
-                        Text(chord.description).monospaced()
-                        Button { removeChord(chord, from: command) } label: { Image(systemName: "xmark.circle.fill") }
-                            .buttonStyle(.plain).foregroundStyle(.secondary)
-                            .help("Remove this shortcut")
-                    }
-                    .padding(.horizontal, 6).padding(.vertical, 2)
-                    .background(Capsule().fill(Color.secondary.opacity(0.15)))
+                    ChordChip(chord: chord) { removeChord(chord, from: command) }
                 }
-                Button(recording ? String(localized: "Press keys…") : String(localized: "Add Shortcut")) {
-                    recording ? stopRecording() : startRecording(for: command)
+                Button(recorder.isRecording ? String(localized: "Press keys…") : String(localized: "Add Shortcut")) {
+                    recorder.isRecording ? stopRecording() : startRecording(for: command)
                 }
                 Button("Reset") { update { $0.reset(command) } }.disabled(!bindings.isCustomized(command))
             } else {
@@ -167,25 +159,9 @@ struct KeyboardSettings: View {
     // MARK: Recording
 
     private func startRecording(for command: Command) {
-        stopRecording()
-        recording = true
         conflict = nil
-        monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
-            // Esc alone cancels; any other chord is taken.
-            if event.keyCode == 53, event.modifierFlags.intersection([.command, .option, .control, .shift]).isEmpty {
-                stopRecording()
-                return nil
-            }
-            guard let chord = KeyChord(event: event) else { return event }
-            stopRecording()
-            assign(chord, to: command, force: false)
-            return nil
-        }
+        recorder.start { assign($0, to: command, force: false) }
     }
 
-    private func stopRecording() {
-        if let monitor { NSEvent.removeMonitor(monitor) }
-        monitor = nil
-        recording = false
-    }
+    private func stopRecording() { recorder.stop() }
 }

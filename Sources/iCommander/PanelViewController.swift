@@ -313,6 +313,10 @@ final class PanelViewController: NSViewController {
         }
         if handleQuickSearch(chord, event: event) { return true }
         if handleMovement(chord) { return true }
+        if let item = UserMenuDefaults.command(for: chord) {
+            UserMenuPresenter.run(item, from: self)
+            return true
+        }
         if let command = KeyMaps.panel.command(for: chord) {
             router?.perform(command)
             return true

@@ -10,8 +10,19 @@ enum UserMenuDefaults {
         get { UserDefaults.standard.data(forKey: key).flatMap { try? UserMenuStore.decode($0) } ?? [] }
         set {
             UserDefaults.standard.set(try? UserMenuStore.encode(newValue), forKey: key)
+            shortcutItems = nil
             NotificationCenter.default.post(name: didChange, object: nil)
         }
+    }
+
+    /// Command items with a shortcut, decoded once per change (every panel key-down asks).
+    private static var shortcutItems: [UserMenuItem]?
+
+    /// The command item that `chord` runs, if any.
+    static func command(for chord: KeyChord) -> UserMenuItem? {
+        let list = shortcutItems ?? UserMenuStore.commands(in: items).filter { $0.shortcut != nil }
+        shortcutItems = list
+        return UserMenuStore.command(for: chord, in: list)
     }
 }
 
@@ -81,6 +92,11 @@ enum UserMenuPresenter {
                 entry.representedObject = UserMenuItemBox(item)
                 entry.toolTip = ([item.program] + (item.arguments.isEmpty ? [] : [item.arguments])).joined(separator: " ")
                 if item.runInTerminal { entry.image = NSImage(systemSymbolName: "terminal", accessibilityDescription: nil) }
+                // Only menu-safe chords: a plain Enter or arrow would hijack the open pop-up.
+                if let chord = item.shortcut, chord.isMenuSafe, let (key, mask) = chord.menuKeyEquivalent {
+                    entry.keyEquivalent = key
+                    entry.keyEquivalentModifierMask = mask
+                }
                 menu.addItem(entry)
             }
         }
