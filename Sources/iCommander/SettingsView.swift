@@ -1,7 +1,7 @@
 import CommanderCore
 import SwiftUI
 
-enum SettingsTab: String { case general, appearance, hotPaths }
+enum SettingsTab: String { case general, viewer, appearance, hotPaths }
 
 struct SettingsView: View {
     @AppStorage(Launcher.terminalDefaultsKey) private var terminal = "com.apple.Terminal"
@@ -20,6 +20,10 @@ struct SettingsView: View {
             .tabItem { Label("General", systemImage: "gearshape") }
             .tag(SettingsTab.general.rawValue)
 
+            ViewerSettings()
+                .tabItem { Label("Viewer & Editor", systemImage: "doc.text.magnifyingglass") }
+                .tag(SettingsTab.viewer.rawValue)
+
             AppearanceSettings()
                 .tabItem { Label("Appearance", systemImage: "paintpalette") }
                 .tag(SettingsTab.appearance.rawValue)
@@ -30,6 +34,38 @@ struct SettingsView: View {
         }
         .frame(width: 620, height: 420)
         .onExitCommand { NSApp.keyWindow?.close() }
+    }
+}
+
+/// F3 viewer defaults and the F4 editor.
+private struct ViewerSettings: View {
+    @AppStorage(Launcher.editorDefaultsKey) private var editor = "com.apple.TextEdit"
+    @AppStorage(ViewerDefaults.encodingKey) private var encoding = ViewerDefaults.fallbackEncoding.rawValue
+    @AppStorage(ViewerDefaults.wrapKey) private var wrap = true
+    @AppStorage(ViewerDefaults.fontSizeKey) private var fontSize = ViewerDefaults.defaultFontSize
+
+    var body: some View {
+        Form {
+            Section("Viewer (F3)") {
+                Picker("Text encoding when not detected:", selection: $encoding) {
+                    ForEach(TextEncoding.allCases, id: \.self) { Text($0.title).tag($0.rawValue) }
+                }
+                Text("A byte order mark or valid UTF-8 always wins; this encoding is used for other text.")
+                    .font(.caption).foregroundStyle(.secondary)
+                Toggle("Wrap lines", isOn: $wrap)
+                Stepper(value: $fontSize, in: ViewerDefaults.fontSizes) {
+                    Text("Font size: \(Int(fontSize)) pt")
+                }
+            }
+            Section("Editor (F4)") {
+                Picker("Editor:", selection: $editor) {
+                    ForEach(Launcher.installedEditors) { Text($0.name).tag($0.bundleID) }
+                    Divider()
+                    Text("Default App for the File Type").tag(Launcher.systemDefaultEditor)
+                }
+            }
+        }
+        .formStyle(.grouped)
     }
 }
 

@@ -115,6 +115,36 @@ public actor FileOperations {
         return URL(fileURLWithPath: path, isDirectory: true)
     }
 
+    /// Creates an empty file for "edit new file". An existing file of that name
+    /// (volume name rules) is returned untouched, with `created == false`.
+    public func makeFile(named name: String, in directory: URL) throws -> (url: URL, created: Bool) {
+        try NameCheck.validate(name)
+        let parent = directory.path
+        let path = FSPath.join(parent, name)
+        try NameCheck.validate(path: path)
+        let rules = NameRules.forVolume(containing: directory)
+        if try DirectoryLookup(rules: rules).existing(in: parent, named: name) != nil {
+            // The spelling on disk, so the panel cursor lands on the real entry.
+            let actual = (try? FileManager.default.contentsOfDirectory(atPath: parent))?
+                .first { rules.same($0, name) } ?? name
+            let existing = FSPath.join(parent, actual)
+            var info = stat()
+            if stat(existing, &info) == 0, info.st_mode & S_IFMT == S_IFDIR {
+                throw OperationError.alreadyExists(FSPath.url(existing))
+            }
+            return (FSPath.url(existing), false)
+        }
+        let fd = open(path, O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC, 0o666)
+        if fd < 0 {
+            let err = errno
+            if err == EEXIST { throw OperationError.alreadyExists(FSPath.url(path)) }
+            if err == ENOENT { throw OperationError.path(.notFound) }
+            throw OperationError.io(FSPath.errorText(err, "Cannot create file", path))
+        }
+        close(fd)
+        return (URL(fileURLWithPath: path, isDirectory: false), true)
+    }
+
     /// Renames in place. A change of case or Unicode normalization only (same
     /// identity on a case-insensitive volume) is allowed.
     public func rename(_ url: URL, to newName: String) throws -> URL {

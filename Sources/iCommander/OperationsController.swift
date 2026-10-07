@@ -197,6 +197,24 @@ final class OperationsController {
         }
     }
 
+    /// ⇧F4: asks for a name, creates an empty file (an existing one is just opened) and hands it to `open`.
+    func makeFile(in panel: PanelViewController, open: @escaping (URL) -> Void) {
+        Task {
+            let initial = panel.model.cursorItem.flatMap { $0.isParent || $0.isDirectory ? nil : $0.name } ?? ""
+            guard let name = await TextPrompt.ask(title: String(localized: "Edit New File"), message: String(localized: "Name:"),
+                                                  initial: initial, in: window),
+                  !name.isEmpty else { return }
+            do {
+                let made = try await operations.makeFile(named: name, in: panel.model.location)
+                if made.created { await panel.model.refresh() }
+                panel.focus(name: made.url.lastPathComponent)
+                open(made.url)
+            } catch {
+                report(error)
+            }
+        }
+    }
+
     func rename(_ url: URL, to newName: String, in panel: PanelViewController) {
         guard newName != url.lastPathComponent, !newName.isEmpty else { return }
         Task {

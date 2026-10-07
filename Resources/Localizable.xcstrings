@@ -11,6 +11,16 @@
         }
       }
     },
+    "%@ B selected": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "vybráno %@ B"
+          }
+        }
+      }
+    },
     "%@ — %@ free": {
       "localizations": {
         "cs": {
@@ -95,6 +105,16 @@
         }
       }
     },
+    "A byte order mark or valid UTF-8 always wins; this encoding is used for other text.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Značka pořadí bajtů (BOM) nebo platné UTF-8 mají vždy přednost; toto kódování se použije pro ostatní text."
+          }
+        }
+      }
+    },
     "About iCommander": {
       "extractionState": "manual",
       "localizations": {
@@ -112,6 +132,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Poslední přístup"
+          }
+        }
+      }
+    },
+    "Actual Size": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skutečná velikost"
           }
         }
       }
@@ -183,6 +214,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zpět"
+          }
+        }
+      }
+    },
+    "Bigger": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Větší"
           }
         }
       }
@@ -329,6 +371,17 @@
         }
       }
     },
+    "Close Viewer": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zavřít prohlížeč"
+          }
+        }
+      }
+    },
     "Close Window": {
       "localizations": {
         "cs": {
@@ -400,6 +453,17 @@
         }
       }
     },
+    "Copy": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopírovat"
+          }
+        }
+      }
+    },
     "Copy %@ to:": {
       "localizations": {
         "cs": {
@@ -439,6 +503,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kopírovat cestu jako text"
+          }
+        }
+      }
+    },
+    "Copy to File…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopírovat do souboru…"
           }
         }
       }
@@ -490,6 +565,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Datum"
+          }
+        }
+      }
+    },
+    "Default App for the File Type": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Výchozí aplikace pro typ souboru"
           }
         }
       }
@@ -589,6 +674,17 @@
         }
       }
     },
+    "Detect Automatically": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rozpoznat automaticky"
+          }
+        }
+      }
+    },
     "Document": {
       "localizations": {
         "cs": {
@@ -646,6 +742,36 @@
         }
       }
     },
+    "Edit New File": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upravit nový soubor"
+          }
+        }
+      }
+    },
+    "Editor (F4)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Editor (F4)"
+          }
+        }
+      }
+    },
+    "Editor:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Editor:"
+          }
+        }
+      }
+    },
     "Enclosing Folder": {
       "extractionState": "manual",
       "localizations": {
@@ -663,6 +789,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zadejte cestu."
+          }
+        }
+      }
+    },
+    "Enter hex bytes, for example 4A 6F.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zadejte bajty šestnáctkově, například 4A 6F."
           }
         }
       }
@@ -728,6 +864,16 @@
         }
       }
     },
+    "Find": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hledat"
+          }
+        }
+      }
+    },
     "Find Files…": {
       "extractionState": "manual",
       "localizations": {
@@ -735,6 +881,48 @@
           "stringUnit": {
             "state": "translated",
             "value": "Hledat soubory…"
+          }
+        }
+      }
+    },
+    "Find Next": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Najít další"
+          }
+        }
+      }
+    },
+    "Find Previous": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Najít předchozí"
+          }
+        }
+      }
+    },
+    "Find…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Najít…"
+          }
+        }
+      }
+    },
+    "First File": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "První soubor"
           }
         }
       }
@@ -755,6 +943,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Složky"
+          }
+        }
+      }
+    },
+    "Font size: %lld pt": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Velikost písma: %lld b."
           }
         }
       }
@@ -932,6 +1130,57 @@
         }
       }
     },
+    "Go to Line": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přejít na řádek"
+          }
+        }
+      }
+    },
+    "Go to Line or Offset…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přejít na řádek nebo pozici…"
+          }
+        }
+      }
+    },
+    "Go to Line…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přejít na řádek…"
+          }
+        }
+      }
+    },
+    "Go to Offset": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přejít na pozici"
+          }
+        }
+      }
+    },
+    "Go to Offset…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přejít na pozici…"
+          }
+        }
+      }
+    },
     "Gray": {
       "localizations": {
         "cs": {
@@ -958,6 +1207,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nápověda"
+          }
+        }
+      }
+    },
+    "Hex": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hex"
           }
         }
       }
@@ -1049,6 +1308,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Oblíbená cesta %lld: %@"
+          }
+        }
+      }
+    },
+    "Ignore Case": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ignorovat velikost písmen"
           }
         }
       }
@@ -1169,12 +1438,33 @@
         }
       }
     },
+    "Last File": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Poslední soubor"
+          }
+        }
+      }
+    },
     "Left": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Levý"
+          }
+        }
+      }
+    },
+    "Line number:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Číslo řádku:"
           }
         }
       }
@@ -1195,6 +1485,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Odkazy"
+          }
+        }
+      }
+    },
+    "Loading…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Načítání…"
           }
         }
       }
@@ -1443,6 +1743,39 @@
         }
       }
     },
+    "Next Encoding": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Další kódování"
+          }
+        }
+      }
+    },
+    "Next File": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Další soubor"
+          }
+        }
+      }
+    },
+    "Next Selected File": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Další vybraný soubor"
+          }
+        }
+      }
+    },
     "Next Tab": {
       "extractionState": "manual",
       "localizations": {
@@ -1474,12 +1807,32 @@
         }
       }
     },
+    "No editor application was found.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nebyla nalezena žádná aplikace editoru."
+          }
+        }
+      }
+    },
     "No terminal application was found.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Nebyla nalezena žádná aplikace terminálu."
+          }
+        }
+      }
+    },
+    "Not found.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nenalezeno."
           }
         }
       }
@@ -1501,6 +1854,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Obsazené místo"
+          }
+        }
+      }
+    },
+    "Offset (decimal, or hex as 0x1F, $1F or 1Fh):": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pozice (desítkově, nebo šestnáctkově jako 0x1F, $1F či 1Fh):"
           }
         }
       }
@@ -1691,6 +2054,39 @@
         }
       }
     },
+    "Previous Encoding": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Předchozí kódování"
+          }
+        }
+      }
+    },
+    "Previous File": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Předchozí soubor"
+          }
+        }
+      }
+    },
+    "Previous Selected File": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Předchozí vybraný soubor"
+          }
+        }
+      }
+    },
     "Previous Tab": {
       "extractionState": "manual",
       "localizations": {
@@ -1761,6 +2157,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Obnovit"
+          }
+        }
+      }
+    },
+    "Reload": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Znovu načíst"
           }
         }
       }
@@ -2029,6 +2436,17 @@
         }
       }
     },
+    "Set as Default": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nastavit jako výchozí"
+          }
+        }
+      }
+    },
     "Settings": {
       "localizations": {
         "cs": {
@@ -2121,6 +2539,17 @@
         }
       }
     },
+    "Smaller": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menší"
+          }
+        }
+      }
+    },
     "Some sources were kept": {
       "localizations": {
         "cs": {
@@ -2206,6 +2635,47 @@
         }
       }
     },
+    "Text": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text"
+          }
+        }
+      }
+    },
+    "Text Encoding": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kódování textu"
+          }
+        }
+      }
+    },
+    "Text encoding when not detected:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kódování textu, když se nerozpozná:"
+          }
+        }
+      }
+    },
+    "The file could not be read.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soubor nelze přečíst."
+          }
+        }
+      }
+    },
     "The folder does not exist.": {
       "localizations": {
         "cs": {
@@ -2266,6 +2736,16 @@
         }
       }
     },
+    "The text cannot be written in %@.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text nelze zapsat v kódování %@."
+          }
+        }
+      }
+    },
     "This can’t be undone.": {
       "localizations": {
         "cs": {
@@ -2319,6 +2799,17 @@
         }
       }
     },
+    "Use Selection for Find": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Použít výběr k hledání"
+          }
+        }
+      }
+    },
     "Used by Open Terminal Here (⌃/) and by commands typed in the command line.": {
       "localizations": {
         "cs": {
@@ -2363,6 +2854,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "View"
+          }
+        }
+      }
+    },
+    "Viewer & Editor": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prohlížeč a editor"
+          }
+        }
+      }
+    },
+    "Viewer (F3)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prohlížeč (F3)"
           }
         }
       }
@@ -2420,6 +2931,26 @@
         }
       }
     },
+    "Wrap Lines": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zalamovat řádky"
+          }
+        }
+      }
+    },
+    "Wrap lines": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zalamovat řádky"
+          }
+        }
+      }
+    },
     "Yellow": {
       "localizations": {
         "cs": {
@@ -2460,6 +2991,26 @@
         }
       }
     },
+    "byte order mark": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "značka BOM"
+          }
+        }
+      }
+    },
+    "default encoding": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "výchozí kódování"
+          }
+        }
+      }
+    },
     "e.g. .DS_Store;*.tmp": {
       "localizations": {
         "cs": {
@@ -2476,6 +3027,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "např. .git;node_modules"
+          }
+        }
+      }
+    },
+    "encoding chosen manually": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "kódování zvolené ručně"
+          }
+        }
+      }
+    },
+    "encoding detected": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "kódování rozpoznáno"
           }
         }
       }
@@ -2507,6 +3078,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nápověda iCommander"
+          }
+        }
+      }
+    },
+    "offset %@ (%@)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "pozice %@ (%@)"
+          }
+        }
+      }
+    },
+    "text shows the first %@, Hex shows all": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "text ukazuje prvních %@, Hex ukazuje vše"
+          }
+        }
+      }
+    },
+    "valid UTF-8": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "platné UTF-8"
           }
         }
       }

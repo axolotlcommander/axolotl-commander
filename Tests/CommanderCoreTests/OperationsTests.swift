@@ -390,6 +390,23 @@ private func move(_ sources: [URL], to dest: URL, ops: FileOperations = FileOper
         }
     }
 
+    @Test func makeFileCreatesOrReturnsExisting() async throws {
+        try await withSandbox { root in
+            let ops = FileOperations()
+            let made = try await ops.makeFile(named: "a.txt", in: root)
+            #expect(made.created && names(root) == ["a.txt"])
+            try write(made.url, "keep")
+            let again = try await ops.makeFile(named: "A.TXT", in: root)
+            #expect(!again.created && again.url.lastPathComponent == "a.txt")
+            #expect(read(made.url) == "keep")
+            try mkdirs(root.sub("dir"))
+            let dir = await caught { try await ops.makeFile(named: "dir", in: root) }
+            #expect(dir != nil)
+            let bad = await caught { try await ops.makeFile(named: "a/b", in: root) }
+            #expect(bad != nil)
+        }
+    }
+
     @Test func makeDirectoryAndDelete() async throws {
         try await withSandbox { root in
             let ops = FileOperations()

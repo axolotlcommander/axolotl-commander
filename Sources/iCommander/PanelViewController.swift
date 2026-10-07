@@ -393,7 +393,7 @@ final class PanelViewController: NSViewController {
         .selectAll, .deselectAll, .selectSameExtension, .deselectSameExtension,
         .copyFullPath, .copyName, .calculateSizes,
         .copy, .move, .delete, .deletePermanently, .makeDirectory, .rename, .copyFiles, .pasteFiles,
-        .view, .quickLook, .properties, .openTerminal, .revealInFinder,
+        .view, .quickLook, .edit, .newFile, .properties, .openTerminal, .revealInFinder,
         .newTab, .closeTab, .nextTab, .previousTab, .hotPaths, .viewModeDetailed, .viewModeBrief,
     ]
 
@@ -411,6 +411,7 @@ final class PanelViewController: NSViewController {
         case .goForward: return model.canGoForward
         case .closeTab, .nextTab, .previousTab: return tabs.tabs.count > 1
         case .rename: return viewMode == .detailed && !targets().isEmpty
+        case .edit: return model.cursorItem.map { !$0.isParent && (!$0.isDirectory || $0.isPackage) } ?? false
         case .selectSameExtension, .deselectSameExtension:
             return model.cursorItem.map { !$0.isDirectory && !$0.fileExtension.isEmpty } ?? false
         default: return true
@@ -468,7 +469,11 @@ final class PanelViewController: NSViewController {
         case .rename: beginRename()
         case .copyFiles: copyFilesToPasteboard()
         case .pasteFiles: pasteFromPasteboard()
-        case .view, .quickLook: toggleQuickLook()
+        case .view: openViewer()
+        case .quickLook: toggleQuickLook()
+        case .edit:
+            if let item = model.cursorItem { edit(item.url) }
+        case .newFile: router?.operations.makeFile(in: self) { [weak self] in self?.edit($0) }
         case .properties:
             let urls = targets().map(\.url)
             PropertiesSheet.show(urls.isEmpty ? [model.location] : urls, in: view.window)
@@ -484,6 +489,25 @@ final class PanelViewController: NSViewController {
             if let slot = command.hotPathSlot {
                 if Command.goHotPaths.contains(command) { goToHotPath(slot) } else { setHotPath(slot) }
             }
+        }
+    }
+
+    /// F3: the internal viewer for the file under the cursor; folders and media go to Quick Look.
+    private func openViewer() {
+        guard let item = model.cursorItem, !item.isParent else { return }
+        if item.isDirectory || ViewerDefaults.prefersQuickLook(item.url) {
+            toggleQuickLook()
+            return
+        }
+        let entries = model.items.filter { !$0.isParent && !$0.isDirectory }
+            .map { FileSequence.Entry(url: $0.url, isSelected: model.isSelected($0)) }
+        guard let sequence = FileSequence(entries: entries, current: item.url) else { return }
+        ViewerWindowController.show(sequence)
+    }
+
+    private func edit(_ url: URL) {
+        Task {
+            do { try await Launcher.edit(url) } catch { router?.operations.report(error) }
         }
     }
 

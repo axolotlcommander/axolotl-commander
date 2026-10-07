@@ -3,7 +3,8 @@ import CommanderCore
 
 /// Hands work to other apps: the terminal for the command line and ⌃/, Finder for ⇧F3.
 enum Launcher {
-    struct Terminal: Identifiable, Hashable {
+    /// An app the user can pick in Settings (terminal or editor).
+    struct AppChoice: Identifiable, Hashable {
         let bundleID: String
         let name: String
         var id: String { bundleID }
@@ -12,17 +13,17 @@ enum Launcher {
     static let terminalDefaultsKey = "terminal.bundleID"
 
     private static let knownTerminals = [
-        Terminal(bundleID: "com.apple.Terminal", name: "Terminal"),
-        Terminal(bundleID: "com.googlecode.iterm2", name: "iTerm2"),
-        Terminal(bundleID: "com.mitchellh.ghostty", name: "Ghostty"),
-        Terminal(bundleID: "com.github.wez.wezterm", name: "WezTerm"),
-        Terminal(bundleID: "net.kovidgoyal.kitty", name: "kitty"),
-        Terminal(bundleID: "org.alacritty", name: "Alacritty"),
-        Terminal(bundleID: "dev.warp.Warp-Stable", name: "Warp"),
+        AppChoice(bundleID: "com.apple.Terminal", name: "Terminal"),
+        AppChoice(bundleID: "com.googlecode.iterm2", name: "iTerm2"),
+        AppChoice(bundleID: "com.mitchellh.ghostty", name: "Ghostty"),
+        AppChoice(bundleID: "com.github.wez.wezterm", name: "WezTerm"),
+        AppChoice(bundleID: "net.kovidgoyal.kitty", name: "kitty"),
+        AppChoice(bundleID: "org.alacritty", name: "Alacritty"),
+        AppChoice(bundleID: "dev.warp.Warp-Stable", name: "Warp"),
     ]
 
     /// Terminals that are installed, Terminal.app first.
-    static var installedTerminals: [Terminal] {
+    static var installedTerminals: [AppChoice] {
         knownTerminals.filter { NSWorkspace.shared.urlForApplication(withBundleIdentifier: $0.bundleID) != nil }
     }
 
@@ -33,8 +34,13 @@ enum Launcher {
     }
 
     enum Failure: LocalizedError {
-        case noTerminal
-        var errorDescription: String? { String(localized: "No terminal application was found.") }
+        case noTerminal, noEditor
+        var errorDescription: String? {
+            switch self {
+            case .noTerminal: String(localized: "No terminal application was found.")
+            case .noEditor: String(localized: "No editor application was found.")
+            }
+        }
     }
 
     /// New terminal window in `directory`.
@@ -63,5 +69,43 @@ enum Launcher {
         } else {
             NSWorkspace.shared.activateFileViewerSelecting(urls)
         }
+    }
+
+    // MARK: Editor (F4)
+
+    static let editorDefaultsKey = "editor.bundleID"
+    /// Editor setting meaning "the app the system opens this file type with".
+    static let systemDefaultEditor = "system"
+
+    private static let knownEditors = [
+        AppChoice(bundleID: "com.apple.TextEdit", name: "TextEdit"),
+        AppChoice(bundleID: "com.coteditor.CotEditor", name: "CotEditor"),
+        AppChoice(bundleID: "com.barebones.bbedit", name: "BBEdit"),
+        AppChoice(bundleID: "com.sublimetext.4", name: "Sublime Text"),
+        AppChoice(bundleID: "com.microsoft.VSCode", name: "Visual Studio Code"),
+        AppChoice(bundleID: "dev.zed.Zed", name: "Zed"),
+        AppChoice(bundleID: "com.panic.Nova", name: "Nova"),
+        AppChoice(bundleID: "com.macromates.TextMate", name: "TextMate"),
+        AppChoice(bundleID: "com.apple.dt.Xcode", name: "Xcode"),
+    ]
+
+    /// Editors that are installed, TextEdit first.
+    static var installedEditors: [AppChoice] {
+        knownEditors.filter { NSWorkspace.shared.urlForApplication(withBundleIdentifier: $0.bundleID) != nil }
+    }
+
+    /// Opens `url` in the editor chosen in Settings (TextEdit by default).
+    static func edit(_ url: URL) async throws {
+        let chosen = UserDefaults.standard.string(forKey: editorDefaultsKey) ?? "com.apple.TextEdit"
+        let configuration = NSWorkspace.OpenConfiguration()
+        if chosen == systemDefaultEditor {
+            _ = try await NSWorkspace.shared.open(url, configuration: configuration)
+            return
+        }
+        guard let app = NSWorkspace.shared.urlForApplication(withBundleIdentifier: chosen)
+                ?? NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.apple.TextEdit") else {
+            throw Failure.noEditor
+        }
+        _ = try await NSWorkspace.shared.open([url], withApplicationAt: app, configuration: configuration)
     }
 }

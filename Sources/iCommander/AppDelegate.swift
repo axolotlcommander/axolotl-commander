@@ -8,6 +8,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.mainMenu = MainMenuBuilder.build()
+        MainMenuBuilder.trackKeyWindow()
         let controller = MainWindowController()
         controller.showWindow(nil)
         mainWindow = controller

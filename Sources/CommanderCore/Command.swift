@@ -44,6 +44,15 @@ public enum Command: String, CaseIterable, Hashable, Sendable {
     case setHotPath1, setHotPath2, setHotPath3, setHotPath4, setHotPath5
     case setHotPath6, setHotPath7, setHotPath8, setHotPath9, setHotPath10
 
+    // Viewer window (F3)
+    case viewerNextFile, viewerPreviousFile, viewerNextSelected, viewerPreviousSelected
+    case viewerFirstFile, viewerLastFile, viewerSaveAs, viewerClose
+    case viewerCopy, viewerSelectAll, viewerFind, viewerFindNext, viewerFindPrevious
+    case viewerUseSelectionForFind, viewerGoTo
+    case viewerText, viewerHex, viewerWrap, viewerEncoding, viewerAutoEncoding
+    case viewerNextEncoding, viewerPreviousEncoding, viewerSetDefaultEncoding
+    case viewerZoomIn, viewerZoomOut, viewerActualSize, viewerReload
+
     public static let goHotPaths: [Command] = [
         .goHotPath1, .goHotPath2, .goHotPath3, .goHotPath4, .goHotPath5,
         .goHotPath6, .goHotPath7, .goHotPath8, .goHotPath9, .goHotPath10,
@@ -63,10 +72,25 @@ public enum MenuID: String, CaseIterable, Sendable {
     case app, file, edit, view, go, left, right, commands, options, window, help
 }
 
-/// Whether a command needs keyboard focus in a panel. Panel commands are
+/// Where a command lives. Panel commands need keyboard focus in a panel and are
 /// disabled while a text field edits, so their keys fall through to the field.
+/// Viewer commands exist only while a viewer window is key; the menu bar swaps
+/// panel and viewer items, so the two scopes may reuse chords.
 public enum CommandScope: Sendable {
-    case app, panel
+    case app, panel, viewer
+}
+
+/// Which window kind the menu bar and key map currently serve.
+public enum CommandContext: Sendable {
+    case panel, viewer
+
+    public func includes(_ scope: CommandScope) -> Bool {
+        switch scope {
+        case .app: true
+        case .panel: self == .panel
+        case .viewer: self == .viewer
+        }
+    }
 }
 
 public struct CommandSpec: Sendable {
@@ -83,8 +107,8 @@ public struct CommandSpec: Sendable {
 public enum CommandRegistry {
     public static func spec(_ command: Command) -> CommandSpec { byCommand[command]! }
 
-    public static func items(in menu: MenuID) -> [CommandSpec] {
-        all.filter { $0.menu == menu }
+    public static func items(in menu: MenuID, context: CommandContext = .panel) -> [CommandSpec] {
+        all.filter { $0.menu == menu && context.includes($0.scope) }
     }
 
     public static let all: [CommandSpec] = {
@@ -105,7 +129,7 @@ public enum CommandRegistry {
         add(.quit, "Quit iCommander", .app, [ch("q", m)], scope: .app, sep: true)
 
         add(.view, "View", .file, [f(3)])
-        add(.quickLook, "Quick Look", .file, [ch("y", m)])
+        add(.quickLook, "Quick Look", .file, [ch("y", m), f(3, o)])
         add(.edit, "Edit", .file, [f(4)])
         add(.newFile, "New File…", .file, [f(4, s)])
         add(.copy, "Copy…", .file, [f(5)], sep: true)
@@ -186,6 +210,37 @@ public enum CommandRegistry {
             add(go, "Go to Hot Path \(slot + 1)", nil, [ch(digit, c)])
             add(set, "Set Hot Path \(slot + 1)", nil, [ch(digit, [c, s])])
         }
+
+        func viewer(_ cmd: Command, _ title: String, _ menu: MenuID?, _ chords: [K] = [], sep: Bool = false) {
+            add(cmd, title, menu, chords, scope: .viewer, sep: sep)
+        }
+        viewer(.viewerNextFile, "Next File", .file, [K(.space)])
+        viewer(.viewerPreviousFile, "Previous File", .file, [K(.backspace)])
+        viewer(.viewerNextSelected, "Next Selected File", .file, [K(.space, c)])
+        viewer(.viewerPreviousSelected, "Previous Selected File", .file, [K(.backspace, c)])
+        viewer(.viewerFirstFile, "First File", .file, [K(.backspace, s)])
+        viewer(.viewerLastFile, "Last File", .file, [K(.space, s)])
+        viewer(.viewerSaveAs, "Copy to File…", .file, [ch("s", m)], sep: true)
+        viewer(.viewerClose, "Close Viewer", nil, [K(.escape)])
+        viewer(.viewerCopy, "Copy", .edit, [ch("c", m)])
+        viewer(.viewerSelectAll, "Select All", .edit, [ch("a", m)])
+        viewer(.viewerFind, "Find…", .edit, [ch("f", m)], sep: true)
+        viewer(.viewerFindNext, "Find Next", .edit, [ch("g", m)])
+        viewer(.viewerFindPrevious, "Find Previous", .edit, [ch("g", [m, s])])
+        viewer(.viewerUseSelectionForFind, "Use Selection for Find", .edit, [ch("e", m)])
+        viewer(.viewerGoTo, "Go to Line or Offset…", .edit, [ch("l", m)], sep: true)
+        viewer(.viewerText, "Text", .view, [ch("1", m), f(5)])
+        viewer(.viewerHex, "Hex", .view, [ch("2", m), f(4)])
+        viewer(.viewerWrap, "Wrap Lines", .view, [ch("w", c)], sep: true)
+        viewer(.viewerEncoding, "Text Encoding", .view, sep: true)
+        viewer(.viewerNextEncoding, "Next Encoding", .view, [f(8)])
+        viewer(.viewerPreviousEncoding, "Previous Encoding", .view, [f(8, s)])
+        viewer(.viewerAutoEncoding, "Detect Automatically", nil)
+        viewer(.viewerSetDefaultEncoding, "Set as Default", nil)
+        viewer(.viewerZoomIn, "Bigger", .view, [ch("+", m), ch("=", m)], sep: true)
+        viewer(.viewerZoomOut, "Smaller", .view, [ch("-", m)])
+        viewer(.viewerActualSize, "Actual Size", .view, [ch("0", m)])
+        viewer(.viewerReload, "Reload", .view, [ch("r", m)], sep: true)
         return list
     }()
 
@@ -197,9 +252,9 @@ public enum CommandRegistry {
 public struct KeyMap: Sendable {
     public private(set) var bindings: [KeyChord: Command]
 
-    public init(overrides: [KeyChord: Command] = [:]) {
+    public init(context: CommandContext = .panel, overrides: [KeyChord: Command] = [:]) {
         var map: [KeyChord: Command] = [:]
-        for spec in CommandRegistry.all {
+        for spec in CommandRegistry.all where context.includes(spec.scope) {
             for chord in spec.chords where map[chord] == nil { map[chord] = spec.command }
         }
         map.merge(overrides) { _, new in new }
@@ -209,4 +264,5 @@ public struct KeyMap: Sendable {
     public func command(for chord: KeyChord) -> Command? { bindings[chord] }
 
     public static let standard = KeyMap()
+    public static let viewer = KeyMap(context: .viewer)
 }

@@ -150,6 +150,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         switch CommandRegistry.spec(command).scope {
         case .app: (NSApp.delegate as? AppDelegate)?.canPerform(command) ?? false
         case .panel: canPerformHere(command) || activePanel.canPerform(command)
+        case .viewer: false
         }
     }
 
