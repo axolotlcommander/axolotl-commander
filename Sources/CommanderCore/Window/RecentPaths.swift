@@ -1,4 +1,4 @@
-public import Foundation
+import Foundation
 
 /// History of the "Go to folder" dialog, newest first.
 public struct RecentPaths: Codable, Hashable, Sendable {
