@@ -15,7 +15,8 @@ let package = Package(
         .executable(name: "iCommander", targets: ["iCommander"]),
     ],
     targets: [
-        .target(name: "CommanderCore", swiftSettings: strict),
+        .systemLibrary(name: "CArchive", path: "Sources/CArchive"),
+        .target(name: "CommanderCore", dependencies: ["CArchive"], swiftSettings: strict),
         .executableTarget(
             name: "iCommander",
             dependencies: ["CommanderCore"],
