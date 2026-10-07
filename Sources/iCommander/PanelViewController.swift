@@ -449,7 +449,7 @@ final class PanelViewController: NSViewController {
         .selectAll, .deselectAll, .selectSameExtension, .deselectSameExtension,
         .copyFullPath, .copyName, .calculateSizes,
         .copy, .move, .delete, .deletePermanently, .makeDirectory, .rename, .copyFiles, .pasteFiles,
-        .view, .quickLook, .edit, .newFile, .properties, .openTerminal, .revealInFinder,
+        .view, .quickLook, .edit, .viewWith, .editWith, .newFile, .properties, .openTerminal, .revealInFinder,
         .newTab, .closeTab, .nextTab, .previousTab, .hotPaths, .viewModeDetailed, .viewModeBrief,
         .find, .pack, .unpack, .connectToServer, .disconnect, .compareFiles,
         .changeCase, .batchRename, .calculateChecksums, .verifyChecksums, .occupiedSpace, .userMenu,
@@ -457,13 +457,14 @@ final class PanelViewController: NSViewController {
     ]
 
     private static let needTargets: Set<Command> = [
-        .copy, .move, .delete, .deletePermanently, .rename, .copyFiles, .view, .quickLook,
+        .copy, .move, .delete, .deletePermanently, .rename, .copyFiles, .view, .quickLook, .viewWith, .editWith,
         .changeCase, .batchRename, .calculateChecksums,
     ]
 
     /// Work on files on disk only: not inside archives, not on servers.
     private static let diskOnly: Set<Command> = [
         .changeCase, .batchRename, .calculateChecksums, .verifyChecksums, .occupiedSpace, .moveFilesHere, .volumeInfo,
+        .viewWith, .editWith,
     ]
 
     func canPerform(_ command: Command) -> Bool {
@@ -485,6 +486,7 @@ final class PanelViewController: NSViewController {
         case .saveSelection: return !model.selectedItems.isEmpty
         case .loadSelection: return !Self.rememberedSelection.isEmpty
         case .edit: return model.cursorItem.map { !$0.isParent && (!$0.isDirectory || $0.isPackage) } ?? false
+        case .viewWith, .editWith: return targets().allSatisfy { !$0.isDirectory || $0.isPackage }
         case .selectSameExtension, .deselectSameExtension:
             return model.cursorItem.map { !$0.isDirectory && !$0.fileExtension.isEmpty } ?? false
         case .pack: return !targets().isEmpty
@@ -603,6 +605,8 @@ final class PanelViewController: NSViewController {
         case .pack: router?.operations.pack(targets(), from: self)
         case .unpack: router?.operations.unpack(archiveTargets(), from: self)
         case .quickLook: toggleQuickLook()
+        case .viewWith: showOpenWithMenu(viewing: true)
+        case .editWith: showOpenWithMenu(viewing: false)
         case .edit:
             if let item = model.cursorItem {
                 if let archive = model.archive {

@@ -1971,6 +1971,17 @@
         }
       }
     },
+    "Edit With…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upravit pomocí…"
+          }
+        }
+      }
+    },
     "Editor (F4)": {
       "localizations": {
         "cs": {
@@ -6656,6 +6667,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "View"
+          }
+        }
+      }
+    },
+    "View With…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zobrazit pomocí…"
           }
         }
       }

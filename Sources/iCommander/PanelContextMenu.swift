@@ -35,6 +35,23 @@ extension PanelViewController {
     func showContextMenu() {
         let index = model.cursorItem?.isParent == false ? model.cursor : nil
         guard let menu = contextMenu(at: index) else { return }
+        popUpAtCursor(menu)
+    }
+
+    /// ⌃⇧F3 / ⌃⇧F4 (Salamander's View With / Edit With): the apps that open the target files, as a
+    /// menu at the cursor row; viewing also offers the built-in viewer and Quick Look, editing the
+    /// configured editor.
+    func showOpenWithMenu(viewing: Bool) {
+        let urls = targets().map(\.url)
+        guard !urls.isEmpty else { return }
+        let menu = NSMenu()
+        for command: Command in viewing ? [.view, .quickLook] : [.edit] { menu.addItem(MainMenuBuilder.commandItem(command)) }
+        menu.addItem(.separator())
+        for entry in openWithEntries(urls) { menu.addItem(entry) }
+        popUpAtCursor(plain(menu))
+    }
+
+    private func popUpAtCursor(_ menu: NSMenu) {
         let rect: NSRect = switch viewMode {
         case .detailed: tableView.rect(ofRow: model.cursor)
         case .brief: briefView.frameForItem(at: model.cursor)
@@ -100,6 +117,13 @@ extension PanelViewController {
     private func openWithItem(_ urls: [URL]) -> NSMenuItem {
         let item = NSMenuItem(title: String(localized: "Open With"), action: nil, keyEquivalent: "")
         let menu = NSMenu()
+        for entry in openWithEntries(urls) { menu.addItem(entry) }
+        item.submenu = menu
+        return item
+    }
+
+    private func openWithEntries(_ urls: [URL]) -> [NSMenuItem] {
+        var menu: [NSMenuItem] = []
         let workspace = NSWorkspace.shared
         let preferred = urls.first.flatMap { workspace.urlForApplication(toOpen: $0) }
         var apps = urls.first.map { workspace.urlsForApplications(toOpen: $0) } ?? []
@@ -115,11 +139,11 @@ extension PanelViewController {
             let entry = actionItem(title) { Self.open(urls, with: app) }
             entry.image = workspace.icon(forFile: app.path(percentEncoded: false))
             entry.image?.size = NSSize(width: 16, height: 16)
-            menu.addItem(entry)
-            if app == preferred, apps.count > 1 { menu.addItem(.separator()) }
+            menu.append(entry)
+            if app == preferred, apps.count > 1 { menu.append(.separator()) }
         }
-        if !menu.items.isEmpty { menu.addItem(.separator()) }
-        menu.addItem(actionItem(String(localized: "Other…")) {
+        if !menu.isEmpty { menu.append(.separator()) }
+        menu.append(actionItem(String(localized: "Other…")) {
             let panel = NSOpenPanel()
             panel.directoryURL = URL(filePath: "/Applications", directoryHint: .isDirectory)
             panel.allowedContentTypes = [.application]
@@ -127,8 +151,7 @@ extension PanelViewController {
             guard panel.runModal() == .OK, let app = panel.url else { return }
             Self.open(urls, with: app)
         })
-        item.submenu = menu
-        return item
+        return menu
     }
 
     private static func open(_ urls: [URL], with app: URL) {

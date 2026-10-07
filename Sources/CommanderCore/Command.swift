@@ -5,7 +5,7 @@ public enum Command: String, CaseIterable, Hashable, Sendable {
     case about, settings, quit, help
 
     // File
-    case view, quickLook, edit, newFile, copy, move, makeDirectory
+    case view, quickLook, edit, viewWith, editWith, newFile, copy, move, makeDirectory
     case delete, deletePermanently, rename, properties, pack, unpack
     case changeCase, batchRename
 
@@ -150,6 +150,8 @@ public enum CommandRegistry {
         add(.view, "View", .file, [f(3)])
         add(.quickLook, "Quick Look", .file, [ch("y", m), f(3, o)])
         add(.edit, "Edit", .file, [f(4)])
+        add(.viewWith, "View With…", .file, [f(3, [c, s])])
+        add(.editWith, "Edit With…", .file, [f(4, [c, s])])
         add(.newFile, "New File…", .file, [f(4, s)])
         add(.copy, "Copy…", .file, [f(5)], sep: true)
         add(.move, "Move…", .file, [f(6)])
