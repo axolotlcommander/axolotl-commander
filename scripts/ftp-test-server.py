@@ -2,7 +2,7 @@
 """Minimal FTP server for iCommander tests and manual GUI testing (stdlib only).
 
     /usr/bin/python3 -I scripts/ftp-test-server.py --root DIR --user U --password P \
-        [--port 0] [--no-mlsd] [--anonymous] \
+        [--port 0] [--no-mlsd] [--anonymous] [--wire-encoding cp1250] \
         [--tls-cert FILE --tls-key FILE [--implicit-tls]]
 
 --password-hex HEX gives the password as hex of its UTF-8 bytes instead (exact bytes;
@@ -10,7 +10,10 @@ Foundation's Process may NFD-normalize non-ASCII arguments).
 
 Listens on 127.0.0.1 only and prints the chosen port as the first line of stdout.
 The login directory is ROOT, shown as "/". Every path must resolve (symlinks included)
-inside ROOT, otherwise the command fails with 550. Names are UTF-8.
+inside ROOT, otherwise the command fails with 550. Names are UTF-8 on the wire, or with
+--wire-encoding (a Python codec such as cp1250, iso8859_2, cp852) the server plays a legacy
+server: names on disk stay UTF-8, but listings, replies and command arguments use that
+encoding (USER and PASS stay UTF-8, FEAT no longer offers UTF8).
 Plain FTP by default. With --tls-cert and --tls-key it also speaks FTPS: explicit (AUTH TLS,
 PBSZ 0, PROT P/PROT C; PROT P wraps PASV/EPSV/PORT data connections in TLS) and, with
 --implicit-tls, implicit (the control connection is TLS from the first byte and data
@@ -19,6 +22,7 @@ Serves threaded sessions until killed.
 """
 
 import argparse
+import codecs
 import os
 import posixpath
 import socket
@@ -28,6 +32,7 @@ import stat
 import sys
 import threading
 import time
+import unicodedata
 
 MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
@@ -40,6 +45,13 @@ class Config:
     anonymous = False
     tls = None  # ssl.SSLContext (server side) or None
     implicit_tls = False
+    wire = "utf-8"  # encoding of names on the control and listing connections
+
+
+def to_wire(text):
+    if Config.wire != "utf-8":
+        text = unicodedata.normalize("NFC", text)  # code pages have no combining accents
+    return text.encode(Config.wire, "surrogateescape")
 
 
 def mode_string(st):
@@ -93,7 +105,7 @@ class Session(socketserver.StreamRequestHandler):
     # --- I/O ---
 
     def reply(self, text):
-        self.wfile.write((text + "\r\n").encode("utf-8", "surrogateescape"))
+        self.wfile.write(to_wire(text + "\r\n"))
         self.wfile.flush()
 
     def handle(self):
@@ -105,9 +117,9 @@ class Session(socketserver.StreamRequestHandler):
                 break
             if not raw:
                 break
-            line = raw.rstrip(b"\r\n").decode("utf-8", "surrogateescape")
-            cmd, _, arg = line.partition(" ")
-            cmd = cmd.upper()
+            cmd, _, arg = raw.rstrip(b"\r\n").partition(b" ")
+            cmd = cmd.decode("ascii", "replace").upper()
+            arg = arg.decode("utf-8" if cmd in ("USER", "PASS") else Config.wire, "surrogateescape")
             try:
                 if not self.dispatch(cmd, arg):
                     break
@@ -290,7 +302,7 @@ class Session(socketserver.StreamRequestHandler):
         self.reply("215 UNIX Type: L8")
 
     def cmd_FEAT(self, arg):
-        feats = ["UTF8", "EPSV", "SIZE", "MDTM"]
+        feats = ["UTF8", "EPSV", "SIZE", "MDTM"] if Config.wire == "utf-8" else ["EPSV", "SIZE", "MDTM"]
         if Config.tls is not None:
             feats = ["AUTH TLS", "PBSZ", "PROT"] + feats
         if Config.mlsd:
@@ -394,7 +406,7 @@ class Session(socketserver.StreamRequestHandler):
             if stat.S_ISLNK(st.st_mode):
                 text += " -> " + os.readlink(full)
             lines.append(text)
-        self.send_data([("".join(l + "\r\n" for l in lines)).encode("utf-8", "surrogateescape")])
+        self.send_data([to_wire("".join(l + "\r\n" for l in lines))])
 
     def cmd_NLST(self, arg):
         v, r = self.resolve(self.list_target(arg))
@@ -402,7 +414,7 @@ class Session(socketserver.StreamRequestHandler):
             self.reply("550 No such directory")
             return
         names = sorted(os.listdir(r))
-        self.send_data([("".join(n + "\r\n" for n in names)).encode("utf-8", "surrogateescape")])
+        self.send_data([to_wire("".join(n + "\r\n" for n in names))])
 
     def facts(self, name, st):
         m = st.st_mode
@@ -424,7 +436,7 @@ class Session(socketserver.StreamRequestHandler):
             self.reply("550 No such directory")
             return
         lines = [self.facts(n, st) for n, st, _ in self.entries(r, follow=True)]
-        self.send_data([("".join(l + "\r\n" for l in lines)).encode("utf-8", "surrogateescape")])
+        self.send_data([to_wire("".join(l + "\r\n" for l in lines))])
 
     def cmd_MLST(self, arg):
         v, r = self.resolve(arg)
@@ -576,6 +588,8 @@ def main():
     ap.add_argument("--anonymous", action="store_true")
     ap.add_argument("--tls-cert", help="PEM certificate (chain) enabling FTPS; needs --tls-key")
     ap.add_argument("--tls-key", help="PEM private key for --tls-cert")
+    ap.add_argument("--wire-encoding", default="utf-8",
+                    help="names on the wire in this Python codec (e.g. cp1250); on disk they stay UTF-8")
     ap.add_argument("--implicit-tls", action="store_true",
                     help="implicit FTPS: TLS on the control connection from the first byte")
     a = ap.parse_args()
@@ -594,6 +608,7 @@ def main():
         Config.password = os.fsencode(a.password).decode("utf-8", "surrogateescape")
     Config.mlsd = not a.no_mlsd
     Config.anonymous = a.anonymous
+    Config.wire = codecs.lookup(a.wire_encoding).name
     if a.tls_cert:
         ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
         ctx.load_cert_chain(a.tls_cert, a.tls_key)

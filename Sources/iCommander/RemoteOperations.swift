@@ -37,6 +37,7 @@ enum RemoteSetup {
         case .ftp, .ftps:
             var ftp = FTPOptions()
             ftp.passive = options.passiveMode
+            ftp.encoding = options.encoding
             return try await FTPClient.connect(endpoint: endpoint, password: nil, prompter: prompter, options: ftp)
         }
     }

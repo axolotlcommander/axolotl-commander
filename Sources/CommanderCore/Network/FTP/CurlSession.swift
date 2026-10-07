@@ -19,6 +19,8 @@ struct CurlSettings: Sendable {
     var passive: Bool
     var connectTimeout: TimeInterval
     var responseTimeout: TimeInterval
+    /// Decodes server replies.
+    var encoding: ServerEncoding = .auto
 }
 
 /// One transfer.
@@ -28,8 +30,9 @@ struct CurlRequest: Sendable {
     var url: String
     var customRequest: String?
     var noBody = false
-    /// Raw FTP commands sent after login (CURLOPT_QUOTE); a "*" prefix ignores failure.
-    var quote: [String] = []
+    /// Raw FTP commands sent after login (CURLOPT_QUOTE), as bytes (names in the server's
+    /// encoding); a "*" prefix ignores failure.
+    var quote: [[UInt8]] = []
     var output: Output = .discard
     /// Uploaded with STOR to `url`.
     var upload: URL?
@@ -46,7 +49,8 @@ struct CurlResult: Sendable {
     var fileTime: Int64?
     /// Server reply lines seen during the transfer.
     var replies: [String] = []
-    var entryPath: String?
+    /// The login directory as the server sent it (PWD).
+    var entryPath: [UInt8]?
     /// Bytes written (download) or read (upload).
     var transferred: Int64 = 0
     var cancelled = false
@@ -79,6 +83,7 @@ private final class TransferState: @unchecked Sendable {
     var toMemory = false
     var replies: [String] = []
     var transferred: Int64 = 0
+    var encoding = ServerEncoding.auto
 
     init(progress: (@Sendable (Int64) -> Void)?) { self.progress = progress }
 
@@ -156,7 +161,12 @@ final class CurlSession: @unchecked Sendable {
         defer { errorBuffer.deallocate() }
 
         var quote: UnsafeMutablePointer<curl_slist>?
-        for cmd in r.quote { quote = curl_slist_append(quote, cmd) }
+        for cmd in r.quote {
+            quote = (cmd + [0]).withUnsafeBufferPointer { buf in
+                buf.withMemoryRebound(to: CChar.self) { curl_slist_append(quote, $0.baseAddress) }
+            }
+        }
+        st.encoding = s.encoding
         defer { curl_slist_free_all(quote) }
 
         return withExtendedLifetime(st) {
@@ -188,7 +198,7 @@ final class CurlSession: @unchecked Sendable {
                 let count = size * n
                 if let ptr, count > 0 {
                     let bytes = UnsafeRawBufferPointer(start: ptr, count: count)
-                    let line = FTPListParser.decode(bytes).trimmingCharacters(in: .newlines)
+                    let line = st.encoding.decode(bytes).trimmingCharacters(in: .newlines)
                     if !line.isEmpty { st.replies.append(line) }
                 }
                 return count
@@ -253,7 +263,7 @@ final class CurlSession: @unchecked Sendable {
             result.responseCode = response
             var entry: UnsafePointer<CChar>?
             if icmd_curl_getinfo_string(h, CURLINFO_FTP_ENTRY_PATH, &entry) == CURLE_OK, let entry {
-                result.entryPath = String(cString: entry)
+                result.entryPath = Array(UnsafeRawBufferPointer(start: entry, count: strlen(entry)))
             }
             if r.wantFileTime {
                 var t: curl_off_t = -1

@@ -160,9 +160,9 @@ private func exerciseFTPS(port: Int, srv: URL, local: URL) async throws {
     await c.close()
 }
 
-private func login(_ port: Int) async throws -> FTPClient {
+private func login(_ port: Int, encoding: ServerEncoding = .auto) async throws -> FTPClient {
     try await FTPClient.connect(endpoint: endpoint(port), password: password, prompter: noPrompt,
-                                options: FTPOptions(connectTimeout: 5, responseTimeout: 10))
+                                options: FTPOptions(connectTimeout: 5, responseTimeout: 10, encoding: encoding))
 }
 
 private final class Recorder<T: Sendable>: Sendable {
@@ -586,6 +586,73 @@ private func noise(_ count: Int) -> Data {
         try await withServer(tls: .implicit, port: 990) { port, srv, local in
             #expect(port == 990)
             try await exerciseFTPS(port: port, srv: srv, local: local)
+        }
+    }
+
+    // The server keeps UTF-8 names on disk but speaks Windows-1250 on the wire.
+
+    @Test(arguments: [[String](), ["--no-mlsd"]])
+    func windows1250Names(_ extra: [String]) async throws {
+        try await withServer(["--wire-encoding", "cp1250"] + extra) { port, srv, local in
+            try Data("obsah".utf8).write(to: srv.appendingPathComponent("žluťoučký.txt"))
+            try FileManager.default.createDirectory(at: srv.appendingPathComponent("složka"),
+                                                    withIntermediateDirectories: false)
+            try Data("kůň".utf8).write(to: srv.appendingPathComponent("složka/kůň.txt"))
+
+            let c = try await login(port, encoding: .windows1250)
+            #expect(try await c.list("/").map(\.name).sorted() == ["složka", "žluťoučký.txt"])
+            #expect(try await c.list("/složka").map(\.name) == ["kůň.txt"])
+            #expect(try await c.info("/žluťoučký.txt")?.size == 5)
+
+            let down = local.appendingPathComponent("down.txt")
+            try await c.download("/složka/kůň.txt", to: down) { _ in }
+            #expect(FileManager.default.contents(atPath: down.path) == Data("kůň".utf8))
+
+            let up = local.appendingPathComponent("up.txt")
+            try Data("nový".utf8).write(to: up)
+            try await c.upload(up, to: "/složka/nový ěščř.txt") { _ in }
+            #expect(FileManager.default.contents(atPath: srv.appendingPathComponent("složka/nový ěščř.txt").path)
+                    == Data("nový".utf8))
+            try await c.rename("/složka/nový ěščř.txt", to: "/složka/přejmenovaný.txt")
+            #expect(try await c.list("/složka").map(\.name).sorted() == ["kůň.txt", "přejmenovaný.txt"])
+            try await c.makeDirectory("/další složka")
+            #expect(try await c.info("/další složka")?.kind == .directory)
+            try await c.removeDirectory("/další složka")
+            try await c.removeFile("/složka/přejmenovaný.txt")
+            try await c.removeFile("/žluťoučký.txt")
+            #expect(try await c.list("/").map(\.name) == ["složka"])
+            #expect(try await c.list("/složka").map(\.name) == ["kůň.txt"])
+            // Not in the code page.
+            await expectRemote(.invalidName("/✓.txt")) { try await c.upload(up, to: "/✓.txt") { _ in } }
+            await expectRemote(.invalidName("/✓")) { try await c.makeDirectory("/✓") }
+            await c.close()
+        }
+    }
+
+    @Test func autoKeepsLatin1NamesWorking() async throws {
+        try await withServer(["--wire-encoding", "cp1250"]) { port, srv, local in
+            try FileManager.default.createDirectory(at: srv.appendingPathComponent("složka"),
+                                                    withIntermediateDirectories: false)
+            try Data("kůň".utf8).write(to: srv.appendingPathComponent("složka/kůň.txt"))
+            try Data("ascii".utf8).write(to: srv.appendingPathComponent("plain.txt"))
+            func mojibake(_ name: String) -> String { ServerEncoding.latin1(ServerEncoding.windows1250.encode(name)!) }
+
+            let c = try await login(port)
+            let folder = "/" + mojibake("složka")
+            #expect(try await c.list("/").map(\.name).sorted() == ["plain.txt", mojibake("složka")])
+            let file = folder + "/" + mojibake("kůň.txt")
+            #expect(try await c.list(folder).map(\.name) == [mojibake("kůň.txt")])
+            #expect(try await c.info(file)?.size == 5)
+
+            let down = local.appendingPathComponent("down.txt")
+            try await c.download(file, to: down) { _ in }
+            #expect(FileManager.default.contents(atPath: down.path) == Data("kůň".utf8))
+            try await c.rename(file, to: folder + "/renamed.txt")
+            #expect(FileManager.default.fileExists(atPath: srv.appendingPathComponent("složka/renamed.txt").path))
+            try await c.removeFile(folder + "/renamed.txt")
+            try await c.removeDirectory(folder)
+            #expect(try await c.list("/").map(\.name) == ["plain.txt"])
+            await c.close()
         }
     }
 }

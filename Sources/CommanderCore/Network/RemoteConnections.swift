@@ -19,9 +19,12 @@ public typealias UserPrompter = @Sendable (AuthPrompt) async -> PromptReply?
 public struct ConnectOptions: Sendable, Equatable {
     /// FTP: passive data connections.
     public var passiveMode: Bool
+    /// FTP: how the server encodes names.
+    public var encoding: ServerEncoding
 
-    public init(passiveMode: Bool = true) {
+    public init(passiveMode: Bool = true, encoding: ServerEncoding = .auto) {
         self.passiveMode = passiveMode
+        self.encoding = encoding
     }
 }
 
