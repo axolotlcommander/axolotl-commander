@@ -1,4 +1,4 @@
-public import Foundation
+import Foundation
 
 /// A favorite directory with a display name.
 public struct HotPath: Codable, Hashable, Sendable {

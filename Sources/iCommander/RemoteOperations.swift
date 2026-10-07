@@ -35,8 +35,9 @@ enum RemoteSetup {
             if let extra = UserDefaults.standard.stringArray(forKey: "ssh.extraArguments") { ssh.extraArguments = extra }
             return try await SFTPClient.connect(endpoint: endpoint, transport: .ssh(ssh), prompter: prompter)
         case .ftp, .ftps:
-            // FTPMERGE
-            throw RemoteError.connectionFailed("FTP")
+            var ftp = FTPOptions()
+            ftp.passive = options.passiveMode
+            return try await FTPClient.connect(endpoint: endpoint, password: nil, prompter: prompter, options: ftp)
         }
     }
 }
