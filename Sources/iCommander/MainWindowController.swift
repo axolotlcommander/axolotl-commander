@@ -115,7 +115,8 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
 
     func panelLocationChanged(_ panel: PanelViewController) {
         guard panel === activePanel else { return }
-        window?.title = panel.model.location.displayPath
+        window?.title = panel.model.results.map { "\($0.title) — \(panel.model.location.displayPath)" }
+            ?? panel.model.location.displayPath
         commandLine.setDirectory(panel.model.location)
     }
 

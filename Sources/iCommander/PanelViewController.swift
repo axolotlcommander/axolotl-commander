@@ -244,7 +244,7 @@ final class PanelViewController: NSViewController {
             }
             syncingSelection = false
         }
-        if pathField.currentEditor() == nil { pathField.stringValue = model.location.displayPath }
+        if pathField.currentEditor() == nil { pathField.stringValue = locationText }
         volumeBar.show(location: model.location)
         router?.panelLocationChanged(self)
         updateQuickLook()
@@ -407,11 +407,13 @@ final class PanelViewController: NSViewController {
         guard Self.handled.contains(command) else { return false }
         if Self.needTargets.contains(command), targets().isEmpty { return false }
         switch command {
-        case .pasteFiles: return Self.pasteboardHasFilesOrPath
         case .goBack: return model.canGoBack
         case .goForward: return model.canGoForward
         case .closeTab, .nextTab, .previousTab: return tabs.tabs.count > 1
-        case .rename: return viewMode == .detailed && !targets().isEmpty
+        // Find results have no folder of their own to create or paste into.
+        case .makeDirectory, .newFile: return model.results == nil
+        case .pasteFiles: return model.results == nil && Self.pasteboardHasFilesOrPath
+        case .rename: return viewMode == .detailed && !targets().isEmpty && model.results == nil
         case .edit: return model.cursorItem.map { !$0.isParent && (!$0.isDirectory || $0.isPackage) } ?? false
         case .selectSameExtension, .deselectSameExtension:
             return model.cursorItem.map { !$0.isDirectory && !$0.fileExtension.isEmpty } ?? false
@@ -529,6 +531,16 @@ final class PanelViewController: NSViewController {
 
     func go(to url: URL, focusing name: String? = nil) {
         Task { await navigate { try await model.go(to: url, focusing: name) } }
+    }
+
+    func showResults(_ listing: ResultsListing, focusing name: String? = nil) {
+        Task { await navigate { try await model.showResults(listing, focusing: name) } }
+    }
+
+    /// Path field text: the folder, or the results title and their root folder.
+    private var locationText: String {
+        guard let results = model.results else { return model.location.displayPath }
+        return "\(results.title) — \(model.location.displayPath)"
     }
 
     private func resort(_ field: SortField) {
@@ -709,6 +721,10 @@ final class PanelViewController: NSViewController {
 
     @objc private func pathFieldCommitted() {
         let input = pathField.stringValue
+        if model.results != nil, input == locationText {
+            view.window?.makeFirstResponder(tableView)
+            return
+        }
         do {
             let url = try PathRules.resolve(input, relativeTo: model.location)
             Task {
@@ -745,7 +761,7 @@ extension PanelViewController: NSTextFieldDelegate {
             return false
         }
         if selector == #selector(NSResponder.cancelOperation(_:)) {
-            pathField.stringValue = model.location.displayPath
+            pathField.stringValue = locationText
             view.window?.makeFirstResponder(tableView)
             return true
         }
@@ -858,10 +874,10 @@ extension PanelViewController: NSTableViewDataSource, NSTableViewDelegate {
     private func dropTarget(row: Int, operation: NSTableView.DropOperation) -> URL? {
         if operation == .on, row >= 0, row < model.items.count {
             let item = model.items[row]
-            if item.isParent { return model.location.deletingLastPathComponent() }
+            if item.isParent { return model.results == nil ? model.location.deletingLastPathComponent() : nil }
             if item.isDirectory && !item.isPackage { return item.url }
         }
-        return model.location
+        return model.results == nil ? model.location : nil
     }
 
     private func dragOperation(_ info: any NSDraggingInfo, sources: [URL], target: URL) -> NSDragOperation {

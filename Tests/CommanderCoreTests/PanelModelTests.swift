@@ -282,6 +282,73 @@ import Foundation
         await m.refresh()
         #expect(names(m) == ["x"])  // no parent row at "/"
     }
+
+    // MARK: Find results in the panel
+
+    @Test func resultsListRelativeNamesAndGoBack() async throws {
+        let f = try Fixture()
+        let m = PanelModel(location: f.root)
+        await m.refresh()
+        let listing = ResultsListing(title: "Found", urls: [
+            f.root.appendingPathComponent("docs/sub/deep.bin"),
+            f.root.appendingPathComponent("docs/inner.txt"),
+        ])
+        #expect(listing.root.standardizedFileURL.path == f.root.appendingPathComponent("docs").standardizedFileURL.path)
+        try await m.showResults(listing, focusing: "inner.txt")
+        #expect(m.results == listing)
+        #expect(names(m) == ["..", "inner.txt", "sub/deep.bin"])
+        #expect(m.cursorItem?.name == "inner.txt")
+        #expect(m.items[2].url.lastPathComponent == "deep.bin" && m.items[2].size == 100)
+        #expect(m.snapshot().title == "Found")
+
+        // ".." leaves for the root folder; Back returns to the results.
+        try await m.goParent()
+        #expect(m.results == nil)
+        #expect(names(m) == ["..", "sub", "inner.txt"])
+        try await m.goBack()
+        #expect(m.results == listing)
+        #expect(m.cursorItem?.name == "inner.txt")
+        try await m.goBack()
+        #expect(m.results == nil)
+        #expect(m.location.standardizedFileURL.path == f.root.standardizedFileURL.path)
+        try await m.goForward()
+        #expect(m.results == listing)
+    }
+
+    @Test func resultsRefreshDropsVanishedItems() async throws {
+        let f = try Fixture()
+        let m = PanelModel(location: f.root)
+        try await m.showResults(ResultsListing(title: "R", urls: [
+            f.root.appendingPathComponent("a.txt"), f.root.appendingPathComponent("docs/inner.txt"),
+        ]))
+        #expect(names(m) == ["..", "a.txt", "docs/inner.txt"])
+        m.selectAll()
+        #expect(m.summary.files == 2)
+        try FileManager.default.removeItem(at: f.root.appendingPathComponent("a.txt"))
+        await m.refresh()
+        #expect(names(m) == ["..", "docs/inner.txt"])
+        #expect(m.summary.files == 1)
+    }
+
+    @Test func resultsAreNotPersisted() throws {
+        let listing = ResultsListing(title: "R", urls: [URL(filePath: "/tmp/a")])
+        let state = PanelState(location: URL(filePath: "/tmp"), back: [.init(url: URL(filePath: "/"), results: listing)],
+                               results: listing)
+        let decoded = try JSONDecoder().decode(PanelState.self, from: JSONEncoder().encode(state))
+        #expect(decoded.results == nil && decoded.back.first?.results == nil)
+        #expect(decoded.back.first?.url.path == "/")
+    }
+
+    @Test(arguments: [
+        (["/a/b/c.txt", "/a/b/d/e.txt"], "/a/b"),
+        (["/a/b/c.txt", "/a/x/e.txt"], "/a"),
+        (["/a/c.txt", "/b/e.txt"], "/"),
+        (["/a/b/c.txt"], "/a/b"),
+        ([String](), "/"),
+    ])
+    func commonFolder(paths: [String], expected: String) {
+        #expect(ResultsListing.commonFolder(of: paths.map { URL(filePath: $0) }).path == expected)
+    }
 }
 
 @Suite struct DirectoryWatcherTests {

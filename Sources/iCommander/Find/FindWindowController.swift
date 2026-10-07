@@ -500,7 +500,7 @@ final class FindWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         case .findStart: return !isSearching
         case .findStop: return isSearching
         case .findClose: return true
-        case .findToPanel: return false
+        case .findToPanel: return !items.isEmpty && main != nil
         case .findOpen, .findShowInPanel, .findView, .findEdit, .findQuickLook, .findProperties,
              .findCopyFiles, .findCopyPaths, .findCopyNames, .findRemove:
             return !targets.isEmpty
@@ -534,6 +534,7 @@ final class FindWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         case .findCopyPaths: copyText(targets.map(\.url.displayPath))
         case .findCopyNames: copyText(targets.map(\.name))
         case .findSelectAll: table.selectAll(nil)
+        case .findToPanel: showResultsInPanel()
         default:
             if CommandRegistry.spec(command).scope == .app { (NSApp.delegate as? AppDelegate)?.perform(command) }
         }
@@ -563,6 +564,16 @@ final class FindWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
     }
 
     /// The active panel goes to the item's folder with the cursor on it.
+    /// The active panel lists every result like a folder; Back returns.
+    private func showResultsInPanel() {
+        guard let main else { return }
+        let query = [form.name, form.containing].filter { !$0.isEmpty }.joined(separator: " · ")
+        let title = query.isEmpty ? String(localized: "Find Results") : String(localized: "Find Results: \(query)")
+        let listing = ResultsListing(title: title, urls: items.map(\.url))
+        main.activePanel.showResults(listing, focusing: cursorItem.map { listing.relativeName(of: $0.url) })
+        main.window?.makeKeyAndOrderFront(nil)
+    }
+
     private func showInPanel(_ item: FileItem) {
         guard let main else { return }
         main.activePanel.go(to: item.url.deletingLastPathComponent(), focusing: item.name)

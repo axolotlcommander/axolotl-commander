@@ -7,11 +7,16 @@ public struct PanelState: Codable, Hashable, Sendable {
     public struct Place: Codable, Hashable, Sendable {
         public var url: URL
         public var cursorName: String?
+        /// Find results shown at that moment. Not persisted: after a restart the root folder is shown.
+        public var results: ResultsListing?
 
-        public init(url: URL, cursorName: String? = nil) {
+        public init(url: URL, cursorName: String? = nil, results: ResultsListing? = nil) {
             self.url = url
             self.cursorName = cursorName
+            self.results = results
         }
+
+        private enum CodingKeys: String, CodingKey { case url, cursorName }
     }
 
     public var location: URL
@@ -24,6 +29,12 @@ public struct PanelState: Codable, Hashable, Sendable {
     /// Oldest first, like in `PanelModel`.
     public var back: [Place]
     public var forward: [Place]
+    /// Find results shown in the panel (in memory only, like `Place.results`).
+    public var results: ResultsListing?
+
+    private enum CodingKeys: String, CodingKey {
+        case location, cursorName, sort, showHidden, filterPattern, back, forward
+    }
 
     public init(
         location: URL,
@@ -32,7 +43,8 @@ public struct PanelState: Codable, Hashable, Sendable {
         showHidden: Bool = false,
         filterPattern: String? = nil,
         back: [Place] = [],
-        forward: [Place] = []
+        forward: [Place] = [],
+        results: ResultsListing? = nil
     ) {
         self.location = location
         self.cursorName = cursorName
@@ -41,6 +53,7 @@ public struct PanelState: Codable, Hashable, Sendable {
         self.filterPattern = filterPattern
         self.back = back
         self.forward = forward
+        self.results = results
     }
 
     /// Missing keys fall back to defaults; only `location` is required.
@@ -57,6 +70,7 @@ public struct PanelState: Codable, Hashable, Sendable {
 
     /// Short tab title: the last path component, "/" for the root.
     public var title: String {
+        if let results { return results.title }
         let name = location.lastPathComponent
         return name.isEmpty ? "/" : name
     }

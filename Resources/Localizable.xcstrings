@@ -1127,6 +1127,26 @@
         }
       }
     },
+    "Find Results": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Výsledky hledání"
+          }
+        }
+      }
+    },
+    "Find Results: %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Výsledky hledání: %@"
+          }
+        }
+      }
+    },
     "Find “%@” in %@": {
       "localizations": {
         "cs": {

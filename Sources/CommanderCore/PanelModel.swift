@@ -32,6 +32,8 @@ public final class PanelModel {
     public private(set) var isLoading = false
     public private(set) var lastError: (any Error)?
     public private(set) var directorySizes: [String: Int64] = [:]
+    /// Set while the panel shows find results instead of a directory; `location` is then its root.
+    public private(set) var results: ResultsListing?
 
     public var sort: SortSpec = .default {
         didSet { if !isRestoring, sort != oldValue { rebuild() } }
@@ -69,7 +71,7 @@ public final class PanelModel {
 
     // MARK: Loading
 
-    private func load(_ url: URL, includeHidden: Bool? = nil) async throws -> (raw: [FileItem], rules: NameRules) {
+    private func load(_ url: URL, results: ResultsListing? = nil, includeHidden: Bool? = nil) async throws -> (raw: [FileItem], rules: NameRules) {
         inFlight += 1
         isLoading = true
         defer {
@@ -77,7 +79,11 @@ public final class PanelModel {
             isLoading = inFlight > 0
         }
         do {
-            let raw = try await source.list(url, includeHidden: includeHidden ?? showHidden).filter { !$0.isParent }
+            let raw = if let results {
+                try await results.load()
+            } else {
+                try await source.list(url, includeHidden: includeHidden ?? showHidden).filter { !$0.isParent }
+            }
             return (raw, NameRules.forVolume(containing: url))
         } catch {
             lastError = error
@@ -91,7 +97,12 @@ public final class PanelModel {
             visible = visible.filter { $0.isDirectory || filter.matches($0.name, rules: rules) }
         }
         var result = sortItems(visible, by: sort, rules: rules, directorySizes: directorySizes)
-        if location.path != "/" { result.insert(.parent(of: location), at: 0) }
+        if results != nil {
+            // ".." leaves the results for their root folder.
+            result.insert(FileItem(url: location, name: "..", isParent: true, isDirectory: true), at: 0)
+        } else if location.path != "/" {
+            result.insert(.parent(of: location), at: 0)
+        }
         return result
     }
 
@@ -119,16 +130,21 @@ public final class PanelModel {
         try await navigate(to: url, focusing: name, mode: .record)
     }
 
-    private func navigate(to url: URL, focusing name: String?, mode: NavMode) async throws {
+    /// Shows `listing` like a directory; Back returns to where the panel was.
+    public func showResults(_ listing: ResultsListing, focusing name: String? = nil) async throws {
+        try await navigate(to: listing.root, focusing: name, mode: .record, results: listing)
+    }
+
+    private func navigate(to url: URL, focusing name: String?, mode: NavMode, results: ResultsListing? = nil) async throws {
         navToken += 1
         let token = navToken
-        let loaded = try await load(url)
+        let loaded = try await load(url, results: results)
         guard token == navToken else { throw CancellationError() }
 
-        let leaving = PanelState.Place(url: location, cursorName: cursorItem?.name)
+        let leaving = PanelState.Place(url: location, cursorName: cursorItem?.name, results: self.results)
         switch mode {
         case .record:
-            if leaving.url.standardizedFileURL.path != url.standardizedFileURL.path {
+            if leaving.url.standardizedFileURL.path != url.standardizedFileURL.path || leaving.results != results {
                 back.append(leaving)
                 if back.count > Self.historyLimit { back.removeFirst(back.count - Self.historyLimit) }
                 forward.removeAll()
@@ -144,6 +160,7 @@ public final class PanelModel {
         }
 
         location = url
+        self.results = results
         rules = loaded.rules
         rawItems = loaded.raw
         selection = []
@@ -162,7 +179,8 @@ public final class PanelModel {
             showHidden: showHidden,
             filterPattern: filter?.pattern,
             back: back,
-            forward: forward
+            forward: forward,
+            results: results
         )
     }
 
@@ -172,7 +190,7 @@ public final class PanelModel {
     public func restore(_ state: PanelState) async throws {
         navToken += 1
         let token = navToken
-        let loaded = try await load(state.location, includeHidden: state.showHidden)
+        let loaded = try await load(state.location, results: state.results, includeHidden: state.showHidden)
         guard token == navToken else { throw CancellationError() }
 
         isRestoring = true
@@ -184,6 +202,7 @@ public final class PanelModel {
         back = Array(state.back.suffix(Self.historyLimit))
         forward = Array(state.forward.suffix(Self.historyLimit))
         location = state.location
+        results = state.results
         rules = loaded.rules
         rawItems = loaded.raw
         selection = []
@@ -197,7 +216,7 @@ public final class PanelModel {
     public func refresh() async {
         let token = navToken
         let url = location
-        guard let loaded = try? await load(url), token == navToken else { return }
+        guard let loaded = try? await load(url, results: results), token == navToken else { return }
         let name = cursorItem?.name
         let old = cursor
         rules = loaded.rules
@@ -229,6 +248,7 @@ public final class PanelModel {
     }
 
     public func goParent() async throws {
+        if results != nil { return try await go(to: location) }
         guard location.path != "/" else { return }
         try await go(to: location.deletingLastPathComponent(), focusing: location.lastPathComponent)
     }
@@ -239,12 +259,12 @@ public final class PanelModel {
 
     public func goBack() async throws {
         guard let entry = back.last else { return }
-        try await navigate(to: entry.url, focusing: entry.cursorName, mode: .back)
+        try await navigate(to: entry.url, focusing: entry.cursorName, mode: .back, results: entry.results)
     }
 
     public func goForward() async throws {
         guard let entry = forward.last else { return }
-        try await navigate(to: entry.url, focusing: entry.cursorName, mode: .forward)
+        try await navigate(to: entry.url, focusing: entry.cursorName, mode: .forward, results: entry.results)
     }
 
     // MARK: Cursor
