@@ -7,6 +7,8 @@ import Synchronization
 // Parser tests are pure. Integration tests run scripts/ftp-test-server.py on 127.0.0.1
 // (ephemeral port), rooted in a UUID-named directory under temporaryDirectory that the
 // test creates and removes. They return early when /usr/bin/python3 is not runnable.
+// FTPS tests also need /usr/bin/openssl (self-signed certificate made in the sandbox) and
+// return early without it; the implicit-TLS test also returns early when port 990 is busy.
 
 // MARK: - Helpers
 
@@ -64,9 +66,29 @@ private func startServer(root: URL, args: [String]) async throws -> (Process, In
     return (p, port)
 }
 
-/// Sandbox with `srv/` (the server root) and `local/`; nil when python3 is unavailable.
+private enum TLSMode { case none, explicit, implicit }
+
+/// Self-signed certificate for 127.0.0.1 (valid one day); false when openssl is unavailable.
+private func makeCertificate(cert: URL, key: URL) -> Bool {
+    guard FileManager.default.isExecutableFile(atPath: "/usr/bin/openssl") else { return false }
+    let p = Process()
+    p.executableURL = URL(filePath: "/usr/bin/openssl")
+    p.arguments = ["req", "-x509", "-newkey", "rsa:2048", "-nodes", "-subj", "/CN=127.0.0.1",
+                   "-days", "1", "-keyout", key.path, "-out", cert.path]
+    p.standardOutput = FileHandle.nullDevice
+    p.standardError = FileHandle.nullDevice
+    do { try p.run() } catch { return false }
+    p.waitUntilExit()
+    return p.terminationStatus == 0 && FileManager.default.fileExists(atPath: cert.path)
+        && FileManager.default.fileExists(atPath: key.path)
+}
+
+/// Sandbox with `srv/` (the server root) and `local/`; skipped (returns early) when python3 is
+/// unavailable, when `tls` is requested without openssl, or when a fixed `port` cannot be bound.
 private func withServer(
     _ args: [String] = [],
+    tls: TLSMode = .none,
+    port fixedPort: Int? = nil,
     _ body: (_ port: Int, _ srv: URL, _ local: URL) async throws -> Void
 ) async throws {
     guard pythonRunnable else { return }  // no python3: integration tests skipped
@@ -76,7 +98,20 @@ private func withServer(
     try FileManager.default.createDirectory(at: srv, withIntermediateDirectories: true)
     try FileManager.default.createDirectory(at: local, withIntermediateDirectories: true)
     defer { try? FileManager.default.removeItem(at: sandbox) }
-    let (process, port) = try await startServer(root: srv, args: args)
+    var args = args
+    if tls != .none {
+        let cert = sandbox.appendingPathComponent("cert.pem"), key = sandbox.appendingPathComponent("key.pem")
+        guard makeCertificate(cert: cert, key: key) else { return }
+        args += ["--tls-cert", cert.path, "--tls-key", key.path]
+        if tls == .implicit { args.append("--implicit-tls") }
+    }
+    if let fixedPort { args += ["--port", String(fixedPort)] }  // the last --port wins
+    let process: Process, port: Int
+    do {
+        (process, port) = try await startServer(root: srv, args: args)
+    } catch is ServerFailed where fixedPort != nil {
+        return  // fixed port busy: skipped
+    }
     defer {
         process.terminate()
         process.waitUntilExit()
@@ -89,6 +124,41 @@ private func endpoint(_ port: Int, user: String? = user, proto: RemoteProtocol =
 }
 
 private let noPrompt: AuthPrompter = { _ in nil }
+
+/// FTPS login to the self-signed test server (certificate verification off).
+private func loginFTPS(_ port: Int) async throws -> FTPClient {
+    try await FTPClient.connect(endpoint: endpoint(port, proto: .ftps), password: password, prompter: noPrompt,
+                                options: FTPOptions(connectTimeout: 5, responseTimeout: 10, verifyTLS: false))
+}
+
+/// Login, listing and upload/download roundtrip (small and multi-chunk) over an FTPS server.
+private func exerciseFTPS(port: Int, srv: URL, local: URL) async throws {
+    try Data("hello".utf8).write(to: srv.appendingPathComponent("žluť.txt"))
+    try FileManager.default.createDirectory(at: srv.appendingPathComponent("sub dir"),
+                                            withIntermediateDirectories: true)
+    let c = try await loginFTPS(port)
+    #expect(await c.isConnected)
+    #expect(try await c.homeDirectory() == "/")
+    let root = try await c.list("/").sorted { $0.name < $1.name }
+    #expect(root.map(\.name) == ["sub dir", "žluť.txt"])
+    #expect(root.map(\.kind) == [.directory, .file])
+    #expect(root[1].size == 5)
+    #expect(try await c.info("/žluť.txt")?.size == 5)
+
+    for (i, size) in [0, 1000, 3_000_000].enumerated() {
+        let data = noise(size)
+        let src = local.appendingPathComponent("src\(i)")
+        try data.write(to: src)
+        let remote = "/sub dir/up ž \(i).bin"
+        try await c.upload(src, to: remote) { _ in }
+        #expect(FileManager.default.contents(atPath: srv.appendingPathComponent("sub dir/up ž \(i).bin").path) == data)
+        let dst = local.appendingPathComponent("dst\(i)")
+        try await c.download(remote, to: dst) { _ in }
+        #expect(FileManager.default.contents(atPath: dst.path) == data)
+    }
+    #expect(try await c.list("/sub dir").count == 3)
+    await c.close()
+}
 
 private func login(_ port: Int) async throws -> FTPClient {
     try await FTPClient.connect(endpoint: endpoint(port), password: password, prompter: noPrompt,
@@ -458,6 +528,64 @@ private func noise(_ count: Int) -> Data {
             await expectRemote(.disconnected) { _ = try await c.list("/") }
             await expectRemote(.disconnected) { _ = try await c.homeDirectory() }
             await c.close()
+        }
+    }
+
+    // MARK: FTPS
+
+    /// Explicit FTPS: AUTH TLS, PBSZ 0, PROT P on a random port.
+    @Test func explicitFTPS() async throws {
+        try await withServer(tls: .explicit) { port, srv, local in
+            try await exerciseFTPS(port: port, srv: srv, local: local)
+        }
+    }
+
+    /// A self-signed certificate is refused while verification is on.
+    @Test func selfSignedCertificateRejected() async throws {
+        try await withServer(tls: .explicit) { port, _, _ in
+            do {
+                _ = try await FTPClient.connect(
+                    endpoint: endpoint(port, proto: .ftps), password: password, prompter: noPrompt,
+                    options: FTPOptions(connectTimeout: 5, responseTimeout: 10))
+                Issue.record("connected despite an untrusted certificate")
+            } catch let RemoteError.connectionFailed(message) {
+                #expect(!message.isEmpty)
+            }
+        }
+    }
+
+    /// Implicit-TLS mode of the test server, checked with the system curl on a random port
+    /// (the client only uses implicit FTPS on 990, which an unprivileged process cannot bind
+    /// on 127.0.0.1 on macOS).
+    @Test func implicitServerWithCurl() async throws {
+        guard FileManager.default.isExecutableFile(atPath: "/usr/bin/curl") else { return }
+        try await withServer(["--anonymous"], tls: .implicit) { port, srv, _ in
+            try Data("hello".utf8).write(to: srv.appendingPathComponent("a.txt"))
+            func curl(_ path: String) throws -> (Int32, String) {
+                let p = Process()
+                p.executableURL = URL(filePath: "/usr/bin/curl")
+                p.arguments = ["-sS", "-k", "--ssl-reqd", "-m", "10", "-u", "anonymous:x",
+                               "ftps://127.0.0.1:\(port)/\(path)"]
+                let out = Pipe()
+                p.standardOutput = out
+                p.standardError = FileHandle.nullDevice
+                try p.run()
+                let data = out.fileHandleForReading.readDataToEndOfFile()
+                p.waitUntilExit()
+                return (p.terminationStatus, String(decoding: data, as: UTF8.self))
+            }
+            let (rc, text) = try curl("a.txt")
+            #expect(rc == 0 && text == "hello")
+            let (rc2, listing) = try curl("")
+            #expect(rc2 == 0 && listing.contains("a.txt"))
+        }
+    }
+
+    /// Implicit FTPS on the conventional port 990 (skipped when it cannot be bound).
+    @Test func implicitFTPS() async throws {
+        try await withServer(tls: .implicit, port: 990) { port, srv, local in
+            #expect(port == 990)
+            try await exerciseFTPS(port: port, srv: srv, local: local)
         }
     }
 }

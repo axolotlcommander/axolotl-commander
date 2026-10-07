@@ -2,14 +2,19 @@
 """Minimal FTP server for iCommander tests and manual GUI testing (stdlib only).
 
     /usr/bin/python3 -I scripts/ftp-test-server.py --root DIR --user U --password P \
-        [--port 0] [--no-mlsd] [--anonymous]
+        [--port 0] [--no-mlsd] [--anonymous] \
+        [--tls-cert FILE --tls-key FILE [--implicit-tls]]
 
 --password-hex HEX gives the password as hex of its UTF-8 bytes instead (exact bytes;
 Foundation's Process may NFD-normalize non-ASCII arguments).
 
 Listens on 127.0.0.1 only and prints the chosen port as the first line of stdout.
 The login directory is ROOT, shown as "/". Every path must resolve (symlinks included)
-inside ROOT, otherwise the command fails with 550. Names are UTF-8. Plain FTP only (no TLS).
+inside ROOT, otherwise the command fails with 550. Names are UTF-8.
+Plain FTP by default. With --tls-cert and --tls-key it also speaks FTPS: explicit (AUTH TLS,
+PBSZ 0, PROT P/PROT C; PROT P wraps PASV/EPSV/PORT data connections in TLS) and, with
+--implicit-tls, implicit (the control connection is TLS from the first byte and data
+connections default to protection P; use --port 990 for the conventional port).
 Serves threaded sessions until killed.
 """
 
@@ -18,6 +23,7 @@ import os
 import posixpath
 import socket
 import socketserver
+import ssl
 import stat
 import sys
 import threading
@@ -32,6 +38,8 @@ class Config:
     password = ""
     mlsd = True
     anonymous = False
+    tls = None  # ssl.SSLContext (server side) or None
+    implicit_tls = False
 
 
 def mode_string(st):
@@ -66,6 +74,11 @@ def mlsd_time(mtime):
 
 class Session(socketserver.StreamRequestHandler):
     def setup(self):
+        if Config.tls is not None and Config.implicit_tls:
+            # TLS from the first byte: handshake before the streams are made.
+            self.request.settimeout(30)
+            self.request = Config.tls.wrap_socket(self.request, server_side=True)
+            self.request.settimeout(None)
         super().setup()
         self.cwd = "/"
         self.user = None
@@ -73,6 +86,9 @@ class Session(socketserver.StreamRequestHandler):
         self.pasv = None
         self.active = None
         self.rename_from = None
+        self.tls_active = Config.tls is not None and Config.implicit_tls
+        self.prot_p = self.tls_active  # implicit FTPS: data connections protected by default
+        self.pbsz = False
 
     # --- I/O ---
 
@@ -85,7 +101,7 @@ class Session(socketserver.StreamRequestHandler):
         while True:
             try:
                 raw = self.rfile.readline()
-            except (ConnectionError, OSError):
+            except OSError:  # includes ConnectionError and ssl.SSLError
                 break
             if not raw:
                 break
@@ -95,7 +111,7 @@ class Session(socketserver.StreamRequestHandler):
             try:
                 if not self.dispatch(cmd, arg):
                     break
-            except (ConnectionError, BrokenPipeError):
+            except OSError:
                 break
             except Exception as e:  # keep serving
                 try:
@@ -149,6 +165,28 @@ class Session(socketserver.StreamRequestHandler):
             return socket.create_connection(addr, timeout=30)
         return None
 
+    def protect(self, conn):
+        """TLS-wrap a data connection (server role, also for active mode) under PROT P."""
+        if not self.prot_p:
+            return conn
+        conn.settimeout(30)
+        try:
+            return Config.tls.wrap_socket(conn, server_side=True)
+        except OSError:
+            conn.close()
+            raise
+
+    @staticmethod
+    def finish_data(conn):
+        """Close a data connection; under TLS send close_notify first (best effort)."""
+        if isinstance(conn, ssl.SSLSocket):
+            try:
+                conn.settimeout(5)
+                conn.unwrap()
+            except (OSError, ValueError):
+                pass
+        conn.close()
+
     def send_data(self, payload_iter):
         try:
             conn = self.open_data()
@@ -161,9 +199,13 @@ class Session(socketserver.StreamRequestHandler):
             return
         self.reply("150 Opening BINARY mode data connection")
         try:
-            with conn:
+            conn = self.protect(conn)  # TLS handshake after the 150: clients may wait for it
+            try:
                 for chunk in payload_iter:
                     conn.sendall(chunk)
+                self.finish_data(conn)
+            finally:
+                conn.close()
         except OSError:
             self.reply("426 Connection closed; transfer aborted")
             return
@@ -185,7 +227,7 @@ class Session(socketserver.StreamRequestHandler):
         if handler is None or (cmd in ("MLSD", "MLST") and not Config.mlsd):
             self.reply("500 Unknown command")
             return True
-        if cmd not in ("USER", "PASS", "SYST", "FEAT", "OPTS", "NOOP", "AUTH") and self.need_login():
+        if cmd not in ("USER", "PASS", "SYST", "FEAT", "OPTS", "NOOP", "AUTH", "PBSZ", "PROT") and self.need_login():
             return True
         handler(arg)
         return True
@@ -208,13 +250,49 @@ class Session(socketserver.StreamRequestHandler):
             self.reply("530 Login incorrect")
 
     def cmd_AUTH(self, arg):
-        self.reply("502 TLS not supported")
+        if Config.tls is None or arg.upper() not in ("TLS", "TLS-C"):
+            self.reply("502 TLS not supported" if Config.tls is None else "504 Unknown security mechanism")
+        elif self.tls_active:
+            self.reply("503 TLS already active")
+        else:
+            self.reply("234 Proceed with negotiation")
+            self.connection.settimeout(30)
+            self.connection = Config.tls.wrap_socket(self.connection, server_side=True)
+            self.connection.settimeout(None)
+            self.rfile = self.connection.makefile("rb", self.rbufsize)
+            self.wfile = socketserver._SocketWriter(self.connection) if self.wbufsize == 0 \
+                else self.connection.makefile("wb", self.wbufsize)
+            self.tls_active = True
+            # A fresh TLS session resets the security state (RFC 4217).
+            self.prot_p = False
+            self.pbsz = False
+
+    def cmd_PBSZ(self, arg):
+        if not self.tls_active:
+            self.reply("503 AUTH TLS first")
+        else:
+            self.pbsz = True
+            self.reply("200 PBSZ=0")
+
+    def cmd_PROT(self, arg):
+        level = arg.upper()
+        if not self.tls_active:
+            self.reply("503 AUTH TLS first")
+        elif not self.pbsz:
+            self.reply("503 PBSZ first")
+        elif level in ("P", "C"):
+            self.prot_p = level == "P"
+            self.reply("200 Protection level set to %s" % level)
+        else:
+            self.reply("504 Only protection levels C and P")
 
     def cmd_SYST(self, arg):
         self.reply("215 UNIX Type: L8")
 
     def cmd_FEAT(self, arg):
         feats = ["UTF8", "EPSV", "SIZE", "MDTM"]
+        if Config.tls is not None:
+            feats = ["AUTH TLS", "PBSZ", "PROT"] + feats
         if Config.mlsd:
             feats = ["MLST type*;size*;modify*;unix.mode*;perm*;", "MLSD"] + feats
         self.reply("211-Features:")
@@ -407,6 +485,7 @@ class Session(socketserver.StreamRequestHandler):
             return
         self.reply("150 Ready to receive")
         try:
+            conn = self.protect(conn)
             with conn, open(r, "wb") as f:
                 while True:
                     b = conn.recv(65536)
@@ -495,7 +574,15 @@ def main():
     ap.add_argument("--port", type=int, default=0)
     ap.add_argument("--no-mlsd", action="store_true")
     ap.add_argument("--anonymous", action="store_true")
+    ap.add_argument("--tls-cert", help="PEM certificate (chain) enabling FTPS; needs --tls-key")
+    ap.add_argument("--tls-key", help="PEM private key for --tls-cert")
+    ap.add_argument("--implicit-tls", action="store_true",
+                    help="implicit FTPS: TLS on the control connection from the first byte")
     a = ap.parse_args()
+    if bool(a.tls_cert) != bool(a.tls_key):
+        sys.exit("--tls-cert and --tls-key go together")
+    if a.implicit_tls and not a.tls_cert:
+        sys.exit("--implicit-tls needs --tls-cert and --tls-key")
     Config.root = os.path.realpath(a.root)
     if not os.path.isdir(Config.root):
         sys.exit("root is not a directory: %s" % a.root)
@@ -507,6 +594,11 @@ def main():
         Config.password = os.fsencode(a.password).decode("utf-8", "surrogateescape")
     Config.mlsd = not a.no_mlsd
     Config.anonymous = a.anonymous
+    if a.tls_cert:
+        ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        ctx.load_cert_chain(a.tls_cert, a.tls_key)
+        Config.tls = ctx
+        Config.implicit_tls = a.implicit_tls
     server = Server(("127.0.0.1", a.port), Session)
     print(server.server_address[1], flush=True)
     try:
