@@ -313,7 +313,7 @@ final class PanelViewController: NSViewController {
         }
         if handleQuickSearch(chord, event: event) { return true }
         if handleMovement(chord) { return true }
-        if let command = KeyMap.standard.command(for: chord) {
+        if let command = KeyMaps.panel.command(for: chord) {
             router?.perform(command)
             return true
         }
@@ -404,16 +404,24 @@ final class PanelViewController: NSViewController {
         .view, .quickLook, .edit, .newFile, .properties, .openTerminal, .revealInFinder,
         .newTab, .closeTab, .nextTab, .previousTab, .hotPaths, .viewModeDetailed, .viewModeBrief,
         .find, .pack, .unpack, .connectToServer, .disconnect, .compareFiles,
+        .changeCase, .batchRename, .calculateChecksums, .verifyChecksums, .occupiedSpace, .userMenu,
     ]
 
     private static let needTargets: Set<Command> = [
         .copy, .move, .delete, .deletePermanently, .rename, .copyFiles, .view, .quickLook,
+        .changeCase, .batchRename, .calculateChecksums,
+    ]
+
+    /// Work on files on disk only: not inside archives, not on servers.
+    private static let diskOnly: Set<Command> = [
+        .changeCase, .batchRename, .calculateChecksums, .verifyChecksums, .occupiedSpace,
     ]
 
     func canPerform(_ command: Command) -> Bool {
         if command.hotPathSlot != nil { return true }
         guard Self.handled.contains(command) else { return false }
         if Self.needTargets.contains(command), targets().isEmpty { return false }
+        if Self.diskOnly.contains(command), model.archive != nil || model.remote != nil { return false }
         if let archive = model.archive, let allowed = canPerform(command, inArchive: archive) { return allowed }
         if model.remote != nil, let allowed = canPerformOnServer(command) { return allowed }
         switch command {
@@ -519,6 +527,18 @@ final class PanelViewController: NSViewController {
         case .view: openViewer()
         case .find: if let router { FindWindowController.show(from: router) }
         case .compareFiles: Task { await CompareFiles.ask(from: self) }
+        case .changeCase: ChangeCaseSheet.show(for: self)
+        case .batchRename: BatchRenameSheet.show(for: self)
+        case .calculateChecksums: ChecksumWindowController.calculate(targets().map(\.url), base: model.location)
+        case .verifyChecksums:
+            if let item = model.cursorItem, !item.isDirectory, ChecksumAlgorithm.forListFile(named: item.name) != nil {
+                ChecksumWindowController.verify(item.url)
+            } else {
+                ChecksumWindowController.chooseAndVerify(in: model.location, window: view.window)
+            }
+        case .occupiedSpace:
+            if let router { DiskMapWindowController.show(model.location, from: router) }
+        case .userMenu: UserMenuPresenter.show(for: self)
         case .connectToServer: ConnectSheet.show(for: self)
         case .disconnect: DisconnectSheet.show(for: self)
         case .pack: router?.operations.pack(targets(), from: self)
@@ -539,7 +559,9 @@ final class PanelViewController: NSViewController {
         case .newFile: router?.operations.makeFile(in: self) { [weak self] in self?.edit($0) }
         case .properties:
             let urls = targets().map(\.url)
-            PropertiesSheet.show(urls.isEmpty ? [model.location] : urls, in: view.window)
+            PropertiesSheet.show(urls.isEmpty ? [model.location] : urls, in: view.window) { [weak self] in
+                Task { await self?.model.refresh() }
+            }
         case .openTerminal:
             Task {
                 do { try await Launcher.openTerminal(at: diskFolder) } catch { router?.operations.report(error) }

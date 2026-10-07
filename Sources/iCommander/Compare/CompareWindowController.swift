@@ -406,7 +406,7 @@ final class CompareWindowController: NSWindowController, NSWindowDelegate, NSMen
 
     private func handleKey(_ event: NSEvent) -> Bool {
         guard let chord = KeyChord(event: event), !chord.isMenuSafe,
-              let command = KeyMap.compare.command(for: chord), CommandRegistry.spec(command).scope == .compare else { return false }
+              let command = KeyMaps.compare.command(for: chord), CommandRegistry.spec(command).scope == .compare else { return false }
         perform(command)
         return true
     }

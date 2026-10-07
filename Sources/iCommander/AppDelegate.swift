@@ -49,7 +49,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
 
     func canPerform(_ command: Command) -> Bool {
         switch command {
-        case .about, .settings, .quit: true
+        case .about, .settings, .quit, .configureKeys: true
         default: false
         }
     }
@@ -58,6 +58,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         switch command {
         case .about: NSApp.orderFrontStandardAboutPanel(nil)
         case .settings: showSettings()
+        case .configureKeys: showSettings(tab: .keyboard)
         case .quit: NSApp.terminate(nil)
         default: break
         }

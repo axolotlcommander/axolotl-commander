@@ -7,6 +7,7 @@ public enum Command: String, CaseIterable, Hashable, Sendable {
     // File
     case view, quickLook, edit, newFile, copy, move, makeDirectory
     case delete, deletePermanently, rename, properties, pack, unpack
+    case changeCase, batchRename
 
     // Edit
     case copyFiles, pasteFiles, copyFullPath, copyName
@@ -29,6 +30,7 @@ public enum Command: String, CaseIterable, Hashable, Sendable {
     // Commands
     case find, occupiedSpace, openTerminal, revealInFinder, userMenu
     case connectToServer, disconnect, compareFiles
+    case calculateChecksums, verifyChecksums
 
     // Options
     case configureKeys
@@ -155,6 +157,8 @@ public enum CommandRegistry {
         add(.deletePermanently, "Delete Immediately…", .file,
             [f(8, s), K(.forwardDelete, s), K(.backspace, [m, o])])
         add(.properties, "Get Info", .file, [ch("i", m)], sep: true)
+        add(.changeCase, "Change Case…", .file, [f(7, c)])
+        add(.batchRename, "Batch Rename…", .file, [ch("m", c)])
         add(.pack, "Pack…", .file, [f(5, [c, o])], sep: true)
         add(.unpack, "Unpack…", .file, [f(6, [c, o])])
 
@@ -200,8 +204,10 @@ public enum CommandRegistry {
         add(.rightVolumeMenu, "Volume…", .right, [f(2, [c, o])])
 
         add(.find, "Find Files…", .commands, [f(7, [c, o])])
-        add(.occupiedSpace, "Occupied Space", .commands, [f(10, [c, o])])
+        add(.occupiedSpace, "Disk Map…", .commands, [f(10, [c, o]), ch("d", [c, s])])
         add(.compareFiles, "Compare Files…", .commands)
+        add(.calculateChecksums, "Calculate Checksums…", .commands, sep: true)
+        add(.verifyChecksums, "Verify Checksums…", .commands, [ch("v", [c, s])])
         add(.openTerminal, "Open Terminal Here", .commands, [ch("/", c), K(.numSlash)], sep: true)
         add(.revealInFinder, "Show in Finder", .commands, [f(3, s)])
         add(.userMenu, "User Menu…", .commands, [f(9)], sep: true)

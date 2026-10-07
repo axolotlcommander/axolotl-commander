@@ -489,7 +489,7 @@ final class FindWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
 
     private func handleKey(_ event: NSEvent) -> Bool {
         guard let chord = KeyChord(event: event), !chord.isMenuSafe,
-              let command = KeyMap.find.command(for: chord), CommandRegistry.spec(command).scope == .find,
+              let command = KeyMaps.find.command(for: chord), CommandRegistry.spec(command).scope == .find,
               canPerform(command) else { return false }
         perform(command)
         return true
@@ -692,7 +692,7 @@ private final class FindPreview: NSObject, @preconcurrency QLPreviewPanelDataSou
     func previewPanel(_ panel: QLPreviewPanel!, handle event: NSEvent!) -> Bool {
         guard event.type == .keyDown else { return false }
         if let chord = KeyChord(event: event) {
-            let command = KeyMap.find.command(for: chord)
+            let command = KeyMaps.find.command(for: chord)
             if chord.key == .escape || command == .findView || command == .findQuickLook {
                 panel.orderOut(nil)
                 return true

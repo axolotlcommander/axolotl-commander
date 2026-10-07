@@ -58,7 +58,7 @@ extension MainWindowController: NSToolbarDelegate, NSToolbarItemValidation {
         let title = spec.localizedTitle.replacingOccurrences(of: "…", with: "")
         item.label = title
         item.paletteLabel = title
-        let shortcut = spec.chords.first.map { " (\($0.description))" } ?? ""
+        let shortcut = KeyMaps.panel.chords(for: command).first.map { " (\($0.description))" } ?? ""
         item.toolTip = title + shortcut
         item.image = NSImage(systemSymbolName: MainToolbar.symbols[command] ?? "questionmark",
                              accessibilityDescription: title)

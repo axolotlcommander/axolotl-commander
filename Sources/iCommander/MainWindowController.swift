@@ -278,7 +278,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
     private func interceptKey(_ event: NSEvent) -> Bool {
         if commandLine.isEditing { return handleCommandLineKey(event) }
         guard panelHasFocus, let chord = KeyChord(event: event),
-              KeyMap.standard.command(for: chord) == .focusCommandLine else { return false }
+              KeyMaps.panel.command(for: chord) == .focusCommandLine else { return false }
         commandLine.focus()
         return true
     }
@@ -296,7 +296,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         case (.down, .control): commandLine.showNewer(); return true
         default: break
         }
-        guard let command = KeyMap.standard.command(for: chord) else { return false }
+        guard let command = KeyMaps.panel.command(for: chord) else { return false }
         switch command {
         case .focusCommandLine, .insertNameToCommandLine, .insertPathToCommandLine,
              .insertLeftPathToCommandLine, .insertRightPathToCommandLine:

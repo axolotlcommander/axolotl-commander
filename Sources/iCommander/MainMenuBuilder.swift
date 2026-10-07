@@ -122,10 +122,28 @@ enum MainMenuBuilder {
         let action = standardSelectors[spec.command] ?? #selector(AppDelegate.performCommand(_:))
         let item = NSMenuItem(title: spec.localizedTitle, action: action, keyEquivalent: "")
         item.representedObject = spec.command.rawValue
-        if let chord = spec.chords.first(where: \.isMenuSafe), let (key, mask) = chord.menuKeyEquivalent {
+        setKeyEquivalent(of: item, spec.command)
+        return item
+    }
+
+    private static func setKeyEquivalent(of item: NSMenuItem, _ command: Command) {
+        if let chord = KeyMaps.menuChord(for: command, in: context), let (key, mask) = chord.menuKeyEquivalent {
             item.keyEquivalent = key
             item.keyEquivalentModifierMask = mask
+        } else {
+            item.keyEquivalent = ""
+            item.keyEquivalentModifierMask = []
         }
-        return item
+    }
+
+    /// After the user changed shortcuts: every command item shows (and answers to) its new chord.
+    static func refreshKeyEquivalents() {
+        func walk(_ menu: NSMenu) {
+            for item in menu.items {
+                if let command = item.command { setKeyEquivalent(of: item, command) }
+                if let submenu = item.submenu { walk(submenu) }
+            }
+        }
+        if let bar = NSApp.mainMenu { walk(bar) }
     }
 }

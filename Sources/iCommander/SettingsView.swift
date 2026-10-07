@@ -1,7 +1,7 @@
 import CommanderCore
 import SwiftUI
 
-enum SettingsTab: String { case general, viewer, appearance, hotPaths }
+enum SettingsTab: String { case general, viewer, appearance, hotPaths, userMenu, keyboard }
 
 struct SettingsView: View {
     @AppStorage(Launcher.terminalDefaultsKey) private var terminal = "com.apple.Terminal"
@@ -31,8 +31,16 @@ struct SettingsView: View {
             HotPathSettings()
                 .tabItem { Label("Hot Paths", systemImage: "star") }
                 .tag(SettingsTab.hotPaths.rawValue)
+
+            UserMenuSettings()
+                .tabItem { Label("User Menu", systemImage: "filemenu.and.selection") }
+                .tag(SettingsTab.userMenu.rawValue)
+
+            KeyboardSettings()
+                .tabItem { Label("Keyboard", systemImage: "keyboard") }
+                .tag(SettingsTab.keyboard.rawValue)
         }
-        .frame(width: 620, height: 420)
+        .frame(width: 720, height: 500)
         .onExitCommand { NSApp.keyWindow?.close() }
     }
 }

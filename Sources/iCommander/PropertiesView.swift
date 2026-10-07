@@ -3,10 +3,14 @@ import CommanderCore
 import OSLog
 import SwiftUI
 
-/// ⌘I sheet: size, dates, permissions, kind and link target of one item, or totals of several.
+/// ⌘I sheet: size, dates, permissions, kind and link target of one item, or totals of several;
+/// permissions, flags, tags and dates can be changed (Apply).
 struct PropertiesView: View {
     let items: [FileProperties]
-    let onClose: () -> Void
+    /// nil when the attributes could not be read (then the sheet only shows information).
+    let edit: AttributeEdit?
+    /// Applies a change; nil = closed without changes.
+    let onClose: (AttributeChange?) -> Void
     /// Recursive total including folders; nil while calculating.
     @State private var total: Int64?
 
@@ -18,18 +22,28 @@ struct PropertiesView: View {
                 if items.count == 1 { single(items[0]) } else { multiple }
             }
             .textSelection(.enabled)
+            if let edit {
+                GroupBox("Permissions and Attributes") {
+                    AttributesEditView(edit: edit).padding(6)
+                }
+            }
             HStack {
                 Button("Show in Finder") {
                     Launcher.revealInFinder(items.map(\.url), directory: items[0].url.deletingLastPathComponent())
                 }
                 Spacer()
-                Button("Done", action: onClose).keyboardShortcut(.defaultAction)
-                // Esc closes too.
-                Button("", action: onClose).keyboardShortcut(.cancelAction).frame(width: 0, height: 0).opacity(0)
+                if let edit, edit.hasChanges {
+                    Button("Cancel", role: .cancel) { onClose(nil) }.keyboardShortcut(.cancelAction)
+                    Button("Apply") { onClose(edit.change) }.keyboardShortcut(.defaultAction)
+                } else {
+                    Button("Done") { onClose(nil) }.keyboardShortcut(.defaultAction)
+                    // Esc closes too.
+                    Button("") { onClose(nil) }.keyboardShortcut(.cancelAction).frame(width: 0, height: 0).opacity(0)
+                }
             }
         }
         .padding(20)
-        .frame(width: 460)
+        .frame(width: 540)
         .task { total = await Self.totalSize(items) }
     }
 
@@ -68,10 +82,15 @@ struct PropertiesView: View {
         if let date = item.modified { row("Modified", Self.long(date)) }
         if let date = item.accessed { row("Accessed", Self.long(date)) }
         GridRow { Divider().gridCellColumns(2) }
+        if edit == nil { permissions(item) }
+        row("Owner", [item.owner, item.group].compactMap(\.self).joined(separator: " : "))
+    }
+
+    @ViewBuilder
+    private func permissions(_ item: FileProperties) -> some View {
         row("Permissions", FileProperties.permissionsString(mode: item.mode, isDirectory: item.isDirectory,
                                                             isSymlink: item.isSymlink)
             + "  " + FileProperties.octal(item.mode))
-        row("Owner", [item.owner, item.group].compactMap(\.self).joined(separator: " : "))
         let flags = [item.isHidden ? String(localized: "Hidden") : nil, item.isLocked ? String(localized: "Locked") : nil].compactMap(\.self)
         if !flags.isEmpty { row("Attributes", flags.joined(separator: ", ")) }
     }
@@ -115,7 +134,8 @@ struct PropertiesView: View {
 }
 
 enum PropertiesSheet {
-    static func show(_ urls: [URL], in window: NSWindow?) {
+    /// `onChange` runs after attributes were changed (e.g. to refresh the panel).
+    static func show(_ urls: [URL], in window: NSWindow?, onChange: (() -> Void)? = nil) {
         guard let window else { return }
         let items: [FileProperties]
         do {
@@ -126,10 +146,34 @@ enum PropertiesSheet {
             return
         }
         guard !items.isEmpty else { return }
+        let edit = (try? AttributeSummary.read(urls)).map(AttributeEdit.init)
         var sheet: NSWindow?
-        let view = PropertiesView(items: items) { if let sheet { window.endSheet(sheet) } }
+        let view = PropertiesView(items: items, edit: edit) { change in
+            if let sheet { window.endSheet(sheet) }
+            guard let change else { return }
+            Task { await apply(change, to: urls, in: window, onChange: onChange) }
+        }
         let host = NSWindow(contentViewController: NSHostingController(rootView: view))
         sheet = host
         window.beginSheet(host, completionHandler: nil)
+    }
+
+    private static func apply(_ change: AttributeChange, to urls: [URL], in window: NSWindow, onChange: (() -> Void)?) async {
+        let report: AttributeReport
+        do {
+            report = try await Task.detached(priority: .userInitiated) {
+                try await AttributeEditor.apply(change, to: urls)
+            }.value
+        } catch {
+            return
+        }
+        onChange?()
+        guard !report.failures.isEmpty else { return }
+        let alert = NSAlert()
+        alert.messageText = String(localized: "Some attributes could not be changed.")
+        let lines = report.failures.prefix(20).map { "\($0.url.lastPathComponent): \($0.message)" }
+        alert.informativeText = lines.joined(separator: "\n")
+            + (report.failures.count > 20 ? "\n" + String(localized: "…and \(report.failures.count - 20) more") : "")
+        await alert.beginSheetModal(for: window)
     }
 }

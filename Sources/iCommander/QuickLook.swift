@@ -62,7 +62,7 @@ extension PanelViewController: @preconcurrency QLPreviewPanelDataSource, @precon
     func previewPanel(_ panel: QLPreviewPanel!, handle event: NSEvent!) -> Bool {
         guard event.type == .keyDown else { return false }
         if let chord = KeyChord(event: event) {
-            let command = KeyMap.standard.command(for: chord)
+            let command = KeyMaps.panel.command(for: chord)
             if chord.key == .escape || command == .view || command == .quickLook {
                 panel.orderOut(nil)
                 return true
