@@ -46,7 +46,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         return canPerform(command)
     }
 
-    private func showSettings() {
+    func showSettings(tab: SettingsTab? = nil) {
+        if let tab { UserDefaults.standard.set(tab.rawValue, forKey: "settings.tab") }
         if settingsWindow == nil {
             let window = NSWindow(contentViewController: NSHostingController(rootView: SettingsView()))
             window.title = "Settings"

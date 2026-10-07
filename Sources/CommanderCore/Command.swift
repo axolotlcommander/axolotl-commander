@@ -37,6 +37,26 @@ public enum Command: String, CaseIterable, Hashable, Sendable {
     case openInLeftPanel, openInRightPanel
     case focusCommandLine, insertNameToCommandLine, insertPathToCommandLine
     case insertLeftPathToCommandLine, insertRightPathToCommandLine
+
+    // Hot paths 1…10 (⌃1…⌃0 go, ⌃⇧1…⌃⇧0 set to the current folder)
+    case goHotPath1, goHotPath2, goHotPath3, goHotPath4, goHotPath5
+    case goHotPath6, goHotPath7, goHotPath8, goHotPath9, goHotPath10
+    case setHotPath1, setHotPath2, setHotPath3, setHotPath4, setHotPath5
+    case setHotPath6, setHotPath7, setHotPath8, setHotPath9, setHotPath10
+
+    public static let goHotPaths: [Command] = [
+        .goHotPath1, .goHotPath2, .goHotPath3, .goHotPath4, .goHotPath5,
+        .goHotPath6, .goHotPath7, .goHotPath8, .goHotPath9, .goHotPath10,
+    ]
+    public static let setHotPaths: [Command] = [
+        .setHotPath1, .setHotPath2, .setHotPath3, .setHotPath4, .setHotPath5,
+        .setHotPath6, .setHotPath7, .setHotPath8, .setHotPath9, .setHotPath10,
+    ]
+
+    /// Hot path slot (0…9) of a go/set hot path command.
+    public var hotPathSlot: Int? {
+        Self.goHotPaths.firstIndex(of: self) ?? Self.setHotPaths.firstIndex(of: self)
+    }
 }
 
 public enum MenuID: String, CaseIterable, Sendable {
@@ -105,7 +125,7 @@ public enum CommandRegistry {
         add(.copyName, "Copy Name as Text", .edit, [K(.insert, [c, o, s])])
         add(.selectByMask, "Select…", .edit, [K(.numPlus), ch("=", c)], sep: true)
         add(.deselectByMask, "Deselect…", .edit, [K(.numMinus), ch("-", c)])
-        add(.invertByMask, "Invert Selection…", .edit, [K(.numStar), ch("8", c)])
+        add(.invertByMask, "Invert Selection…", .edit, [K(.numStar), ch("8", [c, o])])
         add(.selectAll, "Select All", .edit, [ch("a", m), K(.numPlus, c)])
         add(.deselectAll, "Deselect All", .edit, [ch("a", [m, s]), K(.numMinus, c)])
         add(.selectSameExtension, "Select Same Extension", .edit, [K(.numPlus, s)])
@@ -161,6 +181,11 @@ public enum CommandRegistry {
         add(.insertPathToCommandLine, "Insert Path", nil, [K(.space, c), K(.space, [c, s])])
         add(.insertLeftPathToCommandLine, "Insert Left Path", nil, [ch("[", c)])
         add(.insertRightPathToCommandLine, "Insert Right Path", nil, [ch("]", c)])
+        for (slot, (go, set)) in zip(Command.goHotPaths, Command.setHotPaths).enumerated() {
+            let digit = Character(String((slot + 1) % 10))
+            add(go, "Go to Hot Path \(slot + 1)", nil, [ch(digit, c)])
+            add(set, "Set Hot Path \(slot + 1)", nil, [ch(digit, [c, s])])
+        }
         return list
     }()
 

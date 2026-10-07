@@ -84,3 +84,11 @@ enum TextPrompt {
         return response == .alertFirstButtonReturn ? field.stringValue : nil
     }
 }
+
+extension URL {
+    /// File path for display and storage, without the trailing "/" a directory URL carries.
+    var displayPath: String {
+        let path = path(percentEncoded: false)
+        return path.count > 1 && path.hasSuffix("/") ? String(path.dropLast()) : path
+    }
+}

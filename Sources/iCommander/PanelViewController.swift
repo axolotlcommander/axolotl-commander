@@ -29,8 +29,12 @@ final class PanelViewController: NSViewController {
     weak var router: MainWindowController?
     let model: PanelModel
     let tableView = PanelTableView()
-    private let pathField = NSTextField()
-    private let statusField = NSTextField(labelWithString: "")
+    let pathField = NSTextField()
+    let statusField = NSTextField(labelWithString: "")
+    private let volumeBar = VolumeBar()
+    let tabStrip = TabStrip()
+    /// Saved states of this panel's tabs; the active one mirrors the model (see PanelTabs.swift).
+    var tabs: TabList
 
     private var watcher: DirectoryWatcher?
     private var watchedURL: URL?
@@ -43,22 +47,18 @@ final class PanelViewController: NSViewController {
     private var shiftMarkState: Bool?
     /// Items shown by Quick Look (see QuickLook.swift).
     var previewURLs: [URL] = []
+    /// True while a tab's saved state is being loaded; the model then does not mirror into `tabs`.
+    var isRestoringTab = false
 
     var showsHidden: Bool { model.showHidden }
     var isActive = false { didSet { updateActiveAppearance() } }
 
     private var defaultsKey: String { "panel.\(side == .left ? "left" : "right")" }
 
-    init(side: PanelSide) {
+    init(side: PanelSide, tabs: TabList) {
         self.side = side
-        let saved = UserDefaults.standard.string(forKey: "panel.\(side == .left ? "left" : "right").path")
-        let start = saved.map { URL(filePath: $0, directoryHint: .isDirectory) }
-            ?? FileManager.default.homeDirectoryForCurrentUser
-        model = PanelModel(location: start)
-        if let raw = UserDefaults.standard.data(forKey: "panel.\(side == .left ? "left" : "right").sort"),
-           let sort = try? JSONDecoder().decode(SortSpec.self, from: raw) {
-            model.sort = sort
-        }
+        self.tabs = tabs
+        model = PanelModel(location: tabs.current.location)
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -121,7 +121,15 @@ final class PanelViewController: NSViewController {
         statusField.textColor = .secondaryLabelColor
         statusField.lineBreakMode = .byTruncatingMiddle
 
-        let stack = NSStackView(views: [pathField, scroll, statusField])
+        volumeBar.onChoose = { [weak self] url in
+            guard let self else { return }
+            router?.activate(side)
+            go(to: url)
+        }
+
+        configureTabStrip()
+
+        let stack = NSStackView(views: [volumeBar, tabStrip, pathField, scroll, statusField])
         stack.orientation = .vertical
         stack.alignment = .leading
         stack.spacing = 2
@@ -133,6 +141,8 @@ final class PanelViewController: NSViewController {
             stack.trailingAnchor.constraint(equalTo: root.trailingAnchor),
             stack.topAnchor.constraint(equalTo: root.topAnchor),
             stack.bottomAnchor.constraint(equalTo: root.bottomAnchor),
+            volumeBar.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -8),
+            tabStrip.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -8),
             pathField.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -8),
             scroll.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -8),
             statusField.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -8),
@@ -141,7 +151,8 @@ final class PanelViewController: NSViewController {
         updateActiveAppearance()
         updateSortIndicator()
         observeModel()
-        Task { await self.navigate { try await self.model.go(to: self.model.location) } }
+        observeAppearance()
+        Task { await restoreTab(tabs.current) }
     }
 
     private func updateActiveAppearance() {
@@ -179,12 +190,13 @@ final class PanelViewController: NSViewController {
             tableView.scrollRowToVisible(model.cursor)
         }
         syncingSelection = false
-        if pathField.currentEditor() == nil { pathField.stringValue = model.location.path(percentEncoded: false) }
+        if pathField.currentEditor() == nil { pathField.stringValue = model.location.displayPath }
+        volumeBar.show(location: model.location)
         router?.panelLocationChanged(self)
         updateQuickLook()
         updateStatus()
         watchLocation()
-        UserDefaults.standard.set(model.location.path(percentEncoded: false), forKey: "\(defaultsKey).path")
+        tabsChanged()
     }
 
     private func watchLocation() {
@@ -197,6 +209,10 @@ final class PanelViewController: NSViewController {
     }
 
     private func updateStatus() {
+        if let sizingProgress {
+            statusField.stringValue = sizingProgress
+            return
+        }
         if let quickSearch {
             statusField.stringValue = "Quick search: \(quickSearch)"
             return
@@ -214,7 +230,7 @@ final class PanelViewController: NSViewController {
     }
 
     /// Runs a navigation, reporting failure without moving the panel.
-    private func navigate(_ action: () async throws -> Void) async {
+    func navigate(_ action: () async throws -> Void) async {
         do { try await action() } catch {
             NSSound.beep()
             statusField.stringValue = Format.error(error)
@@ -229,6 +245,10 @@ final class PanelViewController: NSViewController {
             return false
         }
         log.debug("key \(chord.description, privacy: .public)")
+        if chord.key == .escape, chord.modifiers.isEmpty, quickSearch == nil, isSizing {
+            sizeTask?.cancel()
+            return true
+        }
         if handleQuickSearch(chord, event: event) { return true }
         if handleMovement(chord) { return true }
         if let command = KeyMap.standard.command(for: chord) {
@@ -316,6 +336,7 @@ final class PanelViewController: NSViewController {
         .copyFullPath, .copyName, .calculateSizes,
         .copy, .move, .delete, .deletePermanently, .makeDirectory, .rename, .copyFiles, .pasteFiles,
         .view, .quickLook, .properties, .openTerminal, .revealInFinder,
+        .newTab, .closeTab, .nextTab, .previousTab, .hotPaths,
     ]
 
     private static let needTargets: Set<Command> = [
@@ -323,12 +344,14 @@ final class PanelViewController: NSViewController {
     ]
 
     func canPerform(_ command: Command) -> Bool {
+        if command.hotPathSlot != nil { return true }
         guard Self.handled.contains(command) else { return false }
         if Self.needTargets.contains(command), targets().isEmpty { return false }
         switch command {
         case .pasteFiles: return Self.pasteboardHasFilesOrPath
         case .goBack: return model.canGoBack
         case .goForward: return model.canGoForward
+        case .closeTab, .nextTab, .previousTab: return tabs.tabs.count > 1
         case .selectSameExtension, .deselectSameExtension:
             return model.cursorItem.map { !$0.isDirectory && !$0.fileExtension.isEmpty } ?? false
         default: return true
@@ -344,7 +367,12 @@ final class PanelViewController: NSViewController {
         case .goHome: go(to: FileManager.default.homeDirectoryForCurrentUser)
         case .goBack: Task { await navigate { try await model.goBack() } }
         case .goForward: Task { await navigate { try await model.goForward() } }
-        case .changeDirectory: beginPathEditing()
+        case .changeDirectory: Task { await askGoToFolder() }
+        case .newTab: newTab()
+        case .closeTab: closeTab(at: tabs.active)
+        case .nextTab: switchTab { $0.next() }
+        case .previousTab: switchTab { $0.previous() }
+        case .hotPaths: showHotPathsMenu()
         case .refresh: Task { await model.refresh() }
         case .sortByName: resort(.name)
         case .sortByExtension: resort(.ext)
@@ -389,9 +417,12 @@ final class PanelViewController: NSViewController {
             }
         case .revealInFinder: Launcher.revealInFinder(targets().map(\.url), directory: model.location)
         case .calculateSizes:
-            let dirs = model.selectedItems.filter(\.isDirectory)
-            startSizing(dirs.isEmpty ? model.items.filter { $0.isDirectory && !$0.isParent } : dirs)
-        default: break
+            // Every folder in the panel, regardless of the selection; Esc stops it.
+            startSizing(model.items.filter { $0.isDirectory && !$0.isParent && !$0.isSymlink })
+        default:
+            if let slot = command.hotPathSlot {
+                if Command.goHotPaths.contains(command) { goToHotPath(slot) } else { setHotPath(slot) }
+            }
         }
     }
 
@@ -415,13 +446,10 @@ final class PanelViewController: NSViewController {
 
     private func resort(_ field: SortField) {
         model.sort = model.sort.toggled(field)
-        if let data = try? JSONEncoder().encode(model.sort) {
-            UserDefaults.standard.set(data, forKey: "\(defaultsKey).sort")
-        }
         updateSortIndicator()
     }
 
-    private func updateSortIndicator() {
+    func updateSortIndicator() {
         for column in Column.allCases {
             guard let tc = tableView.tableColumn(withIdentifier: column.identifier) else { continue }
             let image = column.sortField == model.sort.field
@@ -451,11 +479,20 @@ final class PanelViewController: NSViewController {
         Task { await openCursor() }
     }
 
+    private var isSizing: Bool { sizingProgress != nil }
+    /// Status text while ⌃⇧F10 calculates folder sizes.
+    private var sizingProgress: String?
+
     private func startSizing(_ items: [FileItem]) {
         sizeTask?.cancel()
         sizeTask = Task {
-            for item in items {
+            defer { sizingProgress = nil; updateStatus() }
+            for (index, item) in items.enumerated() {
                 if Task.isCancelled { break }
+                if items.count > 1 {
+                    sizingProgress = "Calculating folder sizes: \(index + 1) of \(items.count) — Esc stops"
+                    updateStatus()
+                }
                 await model.calculateSize(of: item)
             }
         }
@@ -582,11 +619,6 @@ final class PanelViewController: NSViewController {
 
     // MARK: Path field
 
-    private func beginPathEditing() {
-        view.window?.makeFirstResponder(pathField)
-        pathField.currentEditor()?.selectAll(nil)
-    }
-
     @objc private func pathFieldCommitted() {
         let input = pathField.stringValue
         do {
@@ -594,6 +626,7 @@ final class PanelViewController: NSViewController {
             Task {
                 do {
                     try await model.go(to: url)
+                    AppSettings.shared.recentPaths.add(url.displayPath)
                     view.window?.makeFirstResponder(tableView)
                 } catch {
                     NSSound.beep()
@@ -624,7 +657,7 @@ extension PanelViewController: NSTextFieldDelegate {
             return false
         }
         if selector == #selector(NSResponder.cancelOperation(_:)) {
-            pathField.stringValue = model.location.path(percentEncoded: false)
+            pathField.stringValue = model.location.displayPath
             view.window?.makeFirstResponder(tableView)
             return true
         }
@@ -677,7 +710,7 @@ extension PanelViewController: NSTableViewDataSource, NSTableViewDelegate {
         let marked = model.isSelected(item)
         cell.textField?.alignment = column.isNumeric ? .right : .left
         cell.textField?.stringValue = text(for: column, item: item)
-        cell.textField?.textColor = marked ? .systemRed : (item.isHidden ? .secondaryLabelColor : .labelColor)
+        cell.textField?.textColor = textColor(for: item, marked: marked)
         cell.textField?.font = marked ? .boldSystemFont(ofSize: NSFont.systemFontSize) : .systemFont(ofSize: NSFont.systemFontSize)
         if column == .name { cell.imageView?.image = IconCache.icon(for: item) }
         return cell

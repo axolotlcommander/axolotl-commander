@@ -95,7 +95,7 @@ final class OperationsController {
         }
         let sheet = TransferSheet(
             title: "\(verb) \(names) to:",
-            destination: other.model.location.path(percentEncoded: false),
+            destination: other.model.location.displayPath,
             mask: "*.*",
             onDone: { [weak self] path, mask in
                 close()

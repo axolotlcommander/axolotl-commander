@@ -16,11 +16,6 @@ public struct SelectionSummary: Sendable, Equatable {
 /// State and behavior of one file panel: listing, cursor, selection, history.
 @MainActor @Observable
 public final class PanelModel {
-    private struct HistoryEntry {
-        var url: URL
-        var cursorName: String?
-    }
-
     private enum NavMode { case record, back, forward }
 
     public static let historyLimit = 64
@@ -39,25 +34,27 @@ public final class PanelModel {
     public private(set) var directorySizes: [String: Int64] = [:]
 
     public var sort: SortSpec = .default {
-        didSet { if sort != oldValue { rebuild() } }
+        didSet { if !isRestoring, sort != oldValue { rebuild() } }
     }
     public var showHidden = false {
         didSet {
-            if showHidden != oldValue { Task { await refresh() } }
+            if !isRestoring, showHidden != oldValue { Task { await refresh() } }
         }
     }
     /// Never hides directories or the parent row; selection is untouched.
     public var filter: WildcardMask? {
-        didSet { if filter != oldValue { rebuild() } }
+        didSet { if !isRestoring, filter != oldValue { rebuild() } }
     }
 
-    private var back: [HistoryEntry] = []
-    private var forward: [HistoryEntry] = []
+    private var back: [PanelState.Place] = []
+    private var forward: [PanelState.Place] = []
 
     @ObservationIgnored private let source: any FileSource
     @ObservationIgnored private var rawItems: [FileItem] = []
     @ObservationIgnored private var navToken = 0
     @ObservationIgnored private var inFlight = 0
+    /// True while `restore` assigns sort/showHidden/filter, so their observers stay quiet.
+    @ObservationIgnored private var isRestoring = false
 
     public init(location: URL, source: any FileSource = LocalFileSource()) {
         self.location = location
@@ -72,7 +69,7 @@ public final class PanelModel {
 
     // MARK: Loading
 
-    private func load(_ url: URL) async throws -> (raw: [FileItem], rules: NameRules) {
+    private func load(_ url: URL, includeHidden: Bool? = nil) async throws -> (raw: [FileItem], rules: NameRules) {
         inFlight += 1
         isLoading = true
         defer {
@@ -80,7 +77,7 @@ public final class PanelModel {
             isLoading = inFlight > 0
         }
         do {
-            let raw = try await source.list(url, includeHidden: showHidden).filter { !$0.isParent }
+            let raw = try await source.list(url, includeHidden: includeHidden ?? showHidden).filter { !$0.isParent }
             return (raw, NameRules.forVolume(containing: url))
         } catch {
             lastError = error
@@ -128,7 +125,7 @@ public final class PanelModel {
         let loaded = try await load(url)
         guard token == navToken else { throw CancellationError() }
 
-        let leaving = HistoryEntry(url: location, cursorName: cursorItem?.name)
+        let leaving = PanelState.Place(url: location, cursorName: cursorItem?.name)
         switch mode {
         case .record:
             if leaving.url.standardizedFileURL.path != url.standardizedFileURL.path {
@@ -153,6 +150,46 @@ public final class PanelModel {
         directorySizes = [:]
         items = buildItems()
         cursor = name.flatMap { index(ofName: $0) } ?? 0
+        lastError = nil
+    }
+
+    /// Current state as a value, for tabs and persistence. The cursor name is nil on "..".
+    public func snapshot() -> PanelState {
+        PanelState(
+            location: location,
+            cursorName: cursorItem.flatMap { $0.isParent ? nil : $0.name },
+            sort: sort,
+            showHidden: showHidden,
+            filterPattern: filter?.pattern,
+            back: back,
+            forward: forward
+        )
+    }
+
+    /// Brings the panel to `state`: loads its location with the cursor on `cursorName`, applies
+    /// sort, hidden flag and filter, then installs its history as-is (the directory being left is
+    /// not recorded). Selection is cleared. If loading fails the error is thrown and nothing changes.
+    public func restore(_ state: PanelState) async throws {
+        navToken += 1
+        let token = navToken
+        let loaded = try await load(state.location, includeHidden: state.showHidden)
+        guard token == navToken else { throw CancellationError() }
+
+        isRestoring = true
+        sort = state.sort
+        showHidden = state.showHidden
+        if let pattern = state.filterPattern, !pattern.isEmpty { filter = WildcardMask(pattern) } else { filter = nil }
+        isRestoring = false
+
+        back = Array(state.back.suffix(Self.historyLimit))
+        forward = Array(state.forward.suffix(Self.historyLimit))
+        location = state.location
+        rules = loaded.rules
+        rawItems = loaded.raw
+        selection = []
+        directorySizes = [:]
+        items = buildItems()
+        cursor = state.cursorName.flatMap { index(ofName: $0) } ?? 0
         lastError = nil
     }
 
@@ -290,6 +327,14 @@ public final class PanelModel {
 
     public func selectAll() {
         for item in items { set(item, true) }
+    }
+
+    /// Replaces the selection with the items named in `names` (matched through `rules`);
+    /// unknown names and ".." are ignored.
+    public func setSelection(names: some Sequence<String>) {
+        let rules = self.rules
+        let wanted = Set(names.map { rules.key($0) })
+        selection = Set(items.filter { !$0.isParent }.map { rules.key($0.name) }.filter { wanted.contains($0) })
     }
 
     public func deselectAll() {
