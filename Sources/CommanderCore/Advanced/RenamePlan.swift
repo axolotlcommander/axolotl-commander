@@ -126,6 +126,11 @@ public struct RenamedItem: Sendable, Equatable {
     public var from: URL
     /// The new location at the time of the rename (a parent folder renamed later is not reflected).
     public var to: URL
+
+    public init(from: URL, to: URL) {
+        self.from = from
+        self.to = to
+    }
 }
 
 public struct RenameFailure: Sendable, Equatable {
@@ -241,6 +246,50 @@ public enum RenameExecutor {
                 done += 1
                 progress(done, total)
             }
+        }
+        return outcome
+    }
+
+    /// The plan that puts back the names of a finished run (`renamed` in execution order, as `run` reports
+    /// it). Each item is located where it is now, i.e. with the folders renamed after it in the same run
+    /// applied. Swaps and chains are undone through temporary names like any batch; an original name that
+    /// something else holds now makes the entry `.skipped(.existsOnVolume)`, so nothing is overwritten.
+    public static func undoPlan(
+        _ renamed: [RenamedItem],
+        rules: (URL) -> NameRules = NameRules.forVolume(containing:),
+        listing: (URL) throws -> [String] = RenamePlanner.defaultListing
+    ) -> [RenamePlanEntry] {
+        let items = renamed.indices.map { i -> RenameItem in
+            var components = renamed[i].to.standardizedFileURL.pathComponents
+            // Later renames of an enclosing folder move this item along with it.
+            for later in renamed[(i + 1)...] {
+                let from = later.from.standardizedFileURL.pathComponents
+                if from.count < components.count, Array(components[..<from.count]) == from {
+                    components = later.to.standardizedFileURL.pathComponents + components[from.count...]
+                }
+            }
+            let current = URL(fileURLWithPath: NSString.path(withComponents: components))
+            return RenameItem(url: current, isDirectory: isRealDirectory(current),
+                              newName: renamed[i].from.lastPathComponent)
+        }
+        return RenamePlanner.plan(items, rules: rules, listing: listing)
+    }
+
+    /// Puts back the names of a finished run (see `undoPlan`). Entries that cannot be planned, e.g. because
+    /// the original name is taken now, are reported as failures. Undoing the returned outcome redoes it.
+    public static func undo(
+        _ renamed: [RenamedItem],
+        progress: @Sendable (Int, Int) -> Void = { _, _ in }
+    ) async throws -> RenameOutcome {
+        let plan = undoPlan(renamed)
+        var outcome = try await run(plan, progress: progress)
+        for entry in plan {
+            guard case .skipped(let reason) = entry.status else { continue }
+            let text = switch reason {
+            case .existsOnVolume(let name), .duplicateInBatch(let name): "Already exists: \(name)"
+            case .invalidName, .wildcardIntroduced: "Cannot rename to \(entry.item.newName)"
+            }
+            outcome.failures.append(RenameFailure(url: entry.item.url, message: text))
         }
         return outcome
     }

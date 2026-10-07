@@ -529,3 +529,251 @@ private final class ProgressLog: @unchecked Sendable {
         #expect(names == ["a_01.txt", "b_02.txt"])
     }
 }
+
+// MARK: - Batch rename in subfolders (temp dir only)
+
+@Suite struct BatchRenameSubfolderTests {
+    private func makeDir() throws -> URL {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("icmd-rn-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+        return url
+    }
+
+    private func names(_ url: URL) -> [String] {
+        ((try? FileManager.default.contentsOfDirectory(atPath: url.path)) ?? []).sorted()
+    }
+
+    @Test func oldSavedOptionsStillDecode() throws {
+        // Saved before the subfolder options existed.
+        let old = #"{"mask":"[N]_[C]","counterStart":5,"counterStep":1,"counterWidth":2,"search":"a","replace":"b","#
+            + #""useRegex":true,"caseSensitive":false,"onlyFirst":false,"excludeExtension":true,"#
+            + #""caseChange":{"name":"keep","ext":"keep"}}"#
+        let options = try JSONDecoder().decode(BatchRenameOptions.self, from: Data(old.utf8))
+        #expect(options.mask == "[N]_[C]")
+        #expect(options.counterStart == 5)
+        #expect(options.counterWidth == 2)
+        #expect(options.useRegex)
+        #expect(!options.includeSubfolders)
+        #expect(options.subfolderItems == .filesAndFolders)
+        // Missing or unknown values fall back to the defaults.
+        let partial = try JSONDecoder().decode(BatchRenameOptions.self,
+                                               from: Data(#"{"mask":"x","subfolderItems":"bogus"}"#.utf8))
+        #expect(partial.mask == "x")
+        #expect(partial.counterStep == 1)
+        #expect(partial.subfolderItems == .filesAndFolders)
+
+        var current = BatchRenameOptions()
+        current.includeSubfolders = true
+        current.subfolderItems = .folders
+        let data = try JSONEncoder().encode(current)
+        #expect(try JSONDecoder().decode(BatchRenameOptions.self, from: data) == current)
+    }
+
+    @Test func expandFiltersKindsAndKeepsParentsFirst() throws {
+        let dir = try makeDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let top = dir.appendingPathComponent("top", isDirectory: true)
+        let sub = top.appendingPathComponent("sub", isDirectory: true)
+        try FileManager.default.createDirectory(at: sub, withIntermediateDirectories: true)
+        for url in [top.appendingPathComponent("f10.txt"), top.appendingPathComponent("f2.txt"),
+                    top.appendingPathComponent(".hidden"), sub.appendingPathComponent("inner.txt")] {
+            try "x".write(to: url, atomically: false, encoding: .utf8)
+        }
+        let outside = dir.appendingPathComponent("outside", isDirectory: true)
+        try FileManager.default.createDirectory(at: outside, withIntermediateDirectories: true)
+        try "y".write(to: outside.appendingPathComponent("o.txt"), atomically: false, encoding: .utf8)
+        try FileManager.default.createSymbolicLink(at: top.appendingPathComponent("link"), withDestinationURL: outside)
+        let loose = dir.appendingPathComponent("loose.txt")
+        try "z".write(to: loose, atomically: false, encoding: .utf8)
+        let selected = [RenameSource(url: top, isDirectory: true), RenameSource(url: loose, isDirectory: false)]
+
+        func expanded(_ kinds: SubfolderItems, hidden: Bool = false) -> [String] {
+            BatchRename.expand(selected, kinds: kinds, includeHidden: hidden).sources.map(\.url.lastPathComponent)
+        }
+        // Finder order (f2 before f10), parents before children, symlinks not followed.
+        #expect(expanded(.filesAndFolders) == ["top", "f2.txt", "f10.txt", "link", "sub", "inner.txt", "loose.txt"])
+        #expect(expanded(.files) == ["top", "f2.txt", "f10.txt", "link", "inner.txt", "loose.txt"])
+        #expect(expanded(.folders) == ["top", "sub", "loose.txt"])
+        #expect(expanded(.files, hidden: true).contains(".hidden"))
+
+        let result = BatchRename.expand(selected, kinds: .filesAndFolders, includeHidden: false)
+        let f2 = try #require(result.sources.first { $0.url.lastPathComponent == "f2.txt" })
+        #expect(f2.size == 1)
+        #expect(f2.modified != nil)
+        #expect(result.sources.first { $0.url.lastPathComponent == "sub" }?.isDirectory == true)
+        #expect(result.sources.first { $0.url.lastPathComponent == "link" }?.isDirectory == false)
+        #expect(result.listings[top.path]?.sorted() == [".hidden", "f10.txt", "f2.txt", "link", "sub"])
+        #expect(result.listings[sub.path] == ["inner.txt"])
+        #expect(result.listings[outside.path] == nil)
+    }
+
+    @Test func folderAndItsChildrenRenamedTogether() async throws {
+        let dir = try makeDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let photos = dir.appendingPathComponent("photos", isDirectory: true)
+        let trip = photos.appendingPathComponent("trip", isDirectory: true)
+        try FileManager.default.createDirectory(at: trip, withIntermediateDirectories: true)
+        try "a".write(to: photos.appendingPathComponent("a.jpg"), atomically: false, encoding: .utf8)
+        try "b".write(to: trip.appendingPathComponent("b.jpg"), atomically: false, encoding: .utf8)
+
+        let expansion = BatchRename.expand([RenameSource(url: photos, isDirectory: true)],
+                                           kinds: .filesAndFolders, includeHidden: false)
+        var options = BatchRenameOptions()
+        options.mask = "[N]_[C].*"
+        let plan = try BatchRename.preview(expansion.sources, options: options, listing: {
+            try expansion.listings[$0.path] ?? RenamePlanner.defaultListing($0)
+        })
+        // The counter follows the expanded order.
+        #expect(plan.map(\.item.newName) == ["photos_1", "a_2.jpg", "trip_3", "b_4.jpg"])
+        #expect(plan.allSatisfy { $0.status == .rename })
+        let outcome = try await RenameExecutor.run(plan)
+        #expect(outcome.failures.isEmpty)
+        #expect(outcome.renamed.count == 4)
+        #expect(names(dir) == ["photos_1"])
+        let top = dir.appendingPathComponent("photos_1")
+        #expect(names(top) == ["a_2.jpg", "trip_3"])
+        #expect(names(top.appendingPathComponent("trip_3")) == ["b_4.jpg"])
+    }
+}
+
+// MARK: - Undo (temp dir only)
+
+@Suite struct RenameUndoTests {
+    private func makeDir() throws -> URL {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("icmd-rn-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+        return url
+    }
+
+    private func write(_ text: String, _ url: URL) throws {
+        try text.write(to: url, atomically: false, encoding: .utf8)
+    }
+
+    private func read(_ url: URL) -> String? {
+        try? String(contentsOf: url, encoding: .utf8)
+    }
+
+    private func names(_ url: URL) -> [String] {
+        ((try? FileManager.default.contentsOfDirectory(atPath: url.path)) ?? []).sorted()
+    }
+
+    private func rename(_ items: [RenameItem]) async throws -> RenameOutcome {
+        let outcome = try await RenameExecutor.run(RenamePlanner.plan(items))
+        #expect(outcome.failures.isEmpty)
+        return outcome
+    }
+
+    @Test func simpleUndo() async throws {
+        let dir = try makeDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let a = dir.appendingPathComponent("a.txt")
+        try write("A", a)
+        let done = try await rename([RenameItem(url: a, isDirectory: false, newName: "b.txt")])
+        #expect(names(dir) == ["b.txt"])
+        let undone = try await RenameExecutor.undo(done.renamed)
+        #expect(undone.failures.isEmpty)
+        #expect(undone.renamed.count == 1)
+        #expect(names(dir) == ["a.txt"])
+        #expect(read(a) == "A")
+    }
+
+    @Test func folderAndChildUndo() async throws {
+        let dir = try makeDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let folder = dir.appendingPathComponent("folder", isDirectory: true)
+        let inner = folder.appendingPathComponent("inner", isDirectory: true)
+        try FileManager.default.createDirectory(at: inner, withIntermediateDirectories: true)
+        try write("1", inner.appendingPathComponent("one.txt"))
+        let items = RenameExecutor.expand([folder], recursive: true).map {
+            RenameItem(url: $0.url, isDirectory: $0.isDirectory, newName: "x-" + $0.url.lastPathComponent)
+        }
+        let done = try await rename(items)
+        #expect(done.renamed.count == 3)
+        #expect(names(dir) == ["x-folder"])
+        #expect(names(dir.appendingPathComponent("x-folder/x-inner")) == ["x-one.txt"])
+
+        let plan = RenameExecutor.undoPlan(done.renamed)
+        #expect(plan.allSatisfy { $0.status == .rename })
+        let undone = try await RenameExecutor.undo(done.renamed)
+        #expect(undone.failures.isEmpty)
+        #expect(undone.renamed.count == 3)
+        #expect(names(dir) == ["folder"])
+        #expect(names(folder) == ["inner"])
+        #expect(read(inner.appendingPathComponent("one.txt")) == "1")
+    }
+
+    @Test func swapAndChainUndo() async throws {
+        let dir = try makeDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let a = dir.appendingPathComponent("a.txt")
+        let b = dir.appendingPathComponent("b.txt")
+        let c = dir.appendingPathComponent("c.txt")
+        try write("A", a)
+        try write("B", b)
+        try write("C", c)
+        // A swap (a ↔ b) plus a chain (c → d → e: d.txt is taken by c's new name only).
+        let done = try await rename([
+            RenameItem(url: a, isDirectory: false, newName: "b.txt"),
+            RenameItem(url: b, isDirectory: false, newName: "a.txt"),
+            RenameItem(url: c, isDirectory: false, newName: "d.txt"),
+        ])
+        #expect(read(a) == "B")
+        let undone = try await RenameExecutor.undo(done.renamed)
+        #expect(undone.failures.isEmpty)
+        #expect(names(dir) == ["a.txt", "b.txt", "c.txt"])
+        #expect(read(a) == "A")
+        #expect(read(b) == "B")
+        #expect(read(c) == "C")
+    }
+
+    @Test func blockedUndoNeverOverwrites() async throws {
+        let dir = try makeDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let a = dir.appendingPathComponent("a.txt")
+        let x = dir.appendingPathComponent("x.txt")
+        try write("A", a)
+        try write("X", x)
+        let done = try await rename([
+            RenameItem(url: a, isDirectory: false, newName: "b.txt"),
+            RenameItem(url: x, isDirectory: false, newName: "y.txt"),
+        ])
+        // Something new now holds the original name of a.txt.
+        try write("NEW", a)
+        let plan = RenameExecutor.undoPlan(done.renamed)
+        let blocked = try #require(plan.first { $0.item.url.lastPathComponent == "b.txt" })
+        #expect(blocked.status == .skipped(.existsOnVolume("a.txt")))
+        let undone = try await RenameExecutor.undo(done.renamed)
+        #expect(undone.renamed.map(\.to.lastPathComponent) == ["x.txt"])
+        #expect(undone.failures.count == 1)
+        #expect(undone.failures.first?.url.lastPathComponent == "b.txt")
+        #expect(read(a) == "NEW")
+        #expect(read(dir.appendingPathComponent("b.txt")) == "A")
+        #expect(read(x) == "X")
+    }
+
+    @Test func undoOfUndoIsRedo() async throws {
+        let dir = try makeDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let folder = dir.appendingPathComponent("folder", isDirectory: true)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        try write("1", folder.appendingPathComponent("one.txt"))
+        try write("2", folder.appendingPathComponent("two.txt"))
+        let items = RenameExecutor.expand([folder], recursive: true).map {
+            RenameItem(url: $0.url, isDirectory: $0.isDirectory, newName: "new-" + $0.url.lastPathComponent)
+        }
+        let done = try await rename(items)
+        let after = names(dir.appendingPathComponent("new-folder"))
+        #expect(after == ["new-one.txt", "new-two.txt"])
+        let undone = try await RenameExecutor.undo(done.renamed)
+        #expect(undone.failures.isEmpty)
+        #expect(names(dir) == ["folder"])
+        let redone = try await RenameExecutor.undo(undone.renamed)
+        #expect(redone.failures.isEmpty)
+        #expect(redone.renamed.count == 3)
+        #expect(names(dir) == ["new-folder"])
+        #expect(names(dir.appendingPathComponent("new-folder")) == after)
+        let again = try await RenameExecutor.undo(redone.renamed)
+        #expect(again.failures.isEmpty)
+        #expect(names(folder) == ["one.txt", "two.txt"])
+    }
+}

@@ -16,11 +16,15 @@ enum BatchRenameSheet {
             .flatMap { try? JSONDecoder().decode(BatchRenameOptions.self, from: $0) } ?? BatchRenameOptions()
         // The counter restarts with every run; the mask and the rest are remembered.
         if options.mask.isEmpty { options.mask = "*.*" }
-        let model = BatchRenameModel(sources: targets.map {
-            RenameSource(url: $0.url, isDirectory: $0.isDirectory, modified: $0.modificationDate, size: $0.size)
-        }, options: options)
+        let model = BatchRenameModel(
+            selected: targets.map {
+                RenameSource(url: $0.url, isDirectory: $0.isDirectory, modified: $0.modificationDate, size: $0.size)
+            },
+            hasFolders: targets.contains { $0.isDirectory && !$0.isSymlink },
+            includeHidden: panel.showsHidden, options: options)
         var sheet: NSWindow?
         let view = BatchRenameView(model: model) { plan in
+            model.stop()
             if let sheet { window.endSheet(sheet) }
             UserDefaults.standard.set(try? JSONEncoder().encode(model.options), forKey: defaultsKey)
             guard let plan else { return }
@@ -41,18 +45,70 @@ enum BatchRenameSheet {
         var status: RenameStatus
     }
 
-    let sources: [RenameSource]
-    var options: BatchRenameOptions { didSet { if options != oldValue { schedule() } } }
+    /// The selected items; `sources` adds the items inside selected folders when that is on.
+    let selected: [RenameSource]
+    /// The selection contains real folders, so "Include items in subfolders" applies.
+    let hasFolders: Bool
+    private let includeHidden: Bool
+    private(set) var sources: [RenameSource]
+    var options: BatchRenameOptions {
+        didSet {
+            guard options != oldValue else { return }
+            if expansionKey(options) != expansionKey(oldValue) { expand() } else { schedule() }
+        }
+    }
     private(set) var rows: [Row] = []
     private(set) var plan: [RenamePlanEntry] = []
     private(set) var error: String?
-    private var listings: [URL: [String]] = [:]
+    /// Folders are being read for "Include items in subfolders".
+    private(set) var isReading = false
+    private var listings: [String: [String]] = [:]
     private var pending: Task<Void, Never>?
+    private var expansion: Task<Void, Never>?
 
-    init(sources: [RenameSource], options: BatchRenameOptions) {
-        self.sources = sources
+    init(selected: [RenameSource], hasFolders: Bool, includeHidden: Bool, options: BatchRenameOptions) {
+        self.selected = selected
+        self.hasFolders = hasFolders
+        self.includeHidden = includeHidden
+        self.sources = selected
         self.options = options
-        update()
+        if expansionKey(options) == nil { update() } else { expand() }
+    }
+
+    /// What the expanded sources depend on; nil when only the selected items take part.
+    private func expansionKey(_ options: BatchRenameOptions) -> SubfolderItems? {
+        hasFolders && options.includeSubfolders ? options.subfolderItems : nil
+    }
+
+    /// Reads the selected folders off the main thread, then recomputes the preview.
+    private func expand() {
+        expansion?.cancel()
+        pending?.cancel()
+        guard let kinds = expansionKey(options) else {
+            isReading = false
+            sources = selected
+            update()
+            return
+        }
+        isReading = true
+        let selected = selected, includeHidden = includeHidden
+        expansion = Task {
+            let work = Task.detached(priority: .userInitiated) {
+                BatchRename.expand(selected, kinds: kinds, includeHidden: includeHidden)
+            }
+            let result = await withTaskCancellationHandler { await work.value } onCancel: { work.cancel() }
+            guard !Task.isCancelled else { return }
+            sources = result.sources
+            listings.merge(result.listings) { _, new in new }
+            isReading = false
+            update()
+        }
+    }
+
+    /// The sheet closed: stops reading folders and recomputing.
+    func stop() {
+        expansion?.cancel()
+        pending?.cancel()
     }
 
     var renameCount: Int { plan.filter { $0.status == .rename }.count }
@@ -63,7 +119,7 @@ enum BatchRenameSheet {
         pending?.cancel()
         pending = Task {
             try? await Task.sleep(for: .milliseconds(120))
-            guard !Task.isCancelled else { return }
+            guard !Task.isCancelled, !isReading else { return }
             update()
         }
     }
@@ -71,9 +127,9 @@ enum BatchRenameSheet {
     func update() {
         do {
             plan = try BatchRename.preview(sources, options: options, listing: { [self] folder in
-                if let names = listings[folder] { return names }
+                if let names = listings[folder.path] { return names }
                 let names = try RenamePlanner.defaultListing(folder)
-                listings[folder] = names
+                listings[folder.path] = names
                 return names
             })
             error = nil
@@ -88,13 +144,13 @@ enum BatchRenameSheet {
             plan = []
             self.error = Format.error(error)
         }
-        let base = sources.first?.url.deletingLastPathComponent()
+        let base = selected.first?.url.deletingLastPathComponent().path
         rows = sources.indices.map { index in
             let source = sources[index]
             let entry = index < plan.count ? plan[index] : nil
             let folder = source.url.deletingLastPathComponent()
             return Row(id: index, original: source.url.lastPathComponent,
-                       folder: folder == base ? "" : folder.path(percentEncoded: false),
+                       folder: folder.path == base ? "" : folder.path(percentEncoded: false),
                        newName: entry?.item.newName ?? "", status: entry?.status ?? .unchanged)
         }
     }
@@ -149,6 +205,18 @@ private struct BatchRenameView: View {
                     Picker("Name case:", selection: $model.options.caseChange.name) { caseStyles }
                     Picker("Extension case:", selection: $model.options.caseChange.ext) { caseStyles }
                 }
+                if model.hasFolders {
+                    HStack(spacing: 16) {
+                        Toggle("Include items in subfolders", isOn: $model.options.includeSubfolders)
+                        Picker("Items in subfolders:", selection: $model.options.subfolderItems) {
+                            Text("Files and folders").tag(SubfolderItems.filesAndFolders)
+                            Text("Files only").tag(SubfolderItems.files)
+                            Text("Folders only").tag(SubfolderItems.folders)
+                        }
+                        .fixedSize()
+                        .disabled(!model.options.includeSubfolders)
+                    }
+                }
             }
             Table(model.rows) {
                 TableColumn("Original Name") { row in
@@ -162,6 +230,11 @@ private struct BatchRenameView: View {
                 }
             }
             .frame(minHeight: 220)
+            .overlay {
+                if model.isReading {
+                    ProgressView("Reading folders…").padding().background(.regularMaterial, in: .rect(cornerRadius: 8))
+                }
+            }
             HStack {
                 if let error = model.error {
                     Label(error, systemImage: "exclamationmark.triangle").foregroundStyle(.red)
@@ -171,11 +244,11 @@ private struct BatchRenameView: View {
                 Spacer()
                 Button("Cancel", role: .cancel) { done(nil) }.keyboardShortcut(.cancelAction)
                 Button("Rename") { done(model.plan) }.keyboardShortcut(.defaultAction)
-                    .disabled(model.error != nil || model.renameCount == 0)
+                    .disabled(model.isReading || model.error != nil || model.renameCount == 0)
             }
         }
         .padding(20)
-        .frame(width: 780, height: 580)
+        .frame(width: 780, height: model.hasFolders ? 610 : 580)
     }
 
     @ViewBuilder private var caseStyles: some View {
