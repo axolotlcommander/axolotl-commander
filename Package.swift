@@ -1,0 +1,30 @@
+// swift-tools-version:6.2
+import PackageDescription
+
+let strict: [SwiftSetting] = [
+    .enableUpcomingFeature("ExistentialAny"),
+    .enableUpcomingFeature("InternalImportsByDefault"),
+    .enableUpcomingFeature("MemberImportVisibility"),
+]
+
+let package = Package(
+    name: "iCommander",
+    defaultLocalization: "en",
+    platforms: [.macOS(.v15)],
+    products: [
+        .executable(name: "iCommander", targets: ["iCommander"]),
+    ],
+    targets: [
+        .target(name: "CommanderCore", swiftSettings: strict),
+        .executableTarget(
+            name: "iCommander",
+            dependencies: ["CommanderCore"],
+            swiftSettings: strict + [.defaultIsolation(MainActor.self)]
+        ),
+        .testTarget(
+            name: "CommanderCoreTests",
+            dependencies: ["CommanderCore"],
+            swiftSettings: strict
+        ),
+    ]
+)
