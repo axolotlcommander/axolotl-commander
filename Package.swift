@@ -16,7 +16,8 @@ let package = Package(
     ],
     targets: [
         .systemLibrary(name: "CArchive", path: "Sources/CArchive"),
-        .target(name: "CommanderCore", dependencies: ["CArchive"], swiftSettings: strict),
+        .systemLibrary(name: "CCurl", path: "Sources/CCurl"),
+        .target(name: "CommanderCore", dependencies: ["CArchive", "CCurl"], swiftSettings: strict),
         .executableTarget(
             name: "iCommander",
             dependencies: ["CommanderCore"],
