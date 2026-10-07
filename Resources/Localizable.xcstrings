@@ -1,6 +1,46 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "#": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "#"
+          }
+        }
+      }
+    },
+    "$(FullName)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "$(FullName)"
+          }
+        }
+      }
+    },
+    "$(FullPath)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "$(FullPath)"
+          }
+        }
+      }
+    },
+    "%@   ": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@   "
+          }
+        }
+      }
+    },
     "%@  —  %@ free": {
       "localizations": {
         "cs": {
@@ -27,6 +67,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@ v %2$lld souborech a %3$lld složkách (%4$@ s)"
+          }
+        }
+      }
+    },
+    "%@ is used by %@.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ už používá %@."
+          }
+        }
+      }
+    },
+    "%@ — %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ – %@"
           }
         }
       }
@@ -61,6 +121,46 @@
         }
       }
     },
+    "%@: %@ on disk, %lld files": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: %@ na disku, souborů: %lld"
+          }
+        }
+      }
+    },
+    "%lld": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld"
+          }
+        }
+      }
+    },
+    "%lld OK": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld v pořádku"
+          }
+        }
+      }
+    },
+    "%lld checksums saved to “%@”.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontrolních součtů uloženo do „%@“: %lld."
+          }
+        }
+      }
+    },
     "%lld differences": {
       "localizations": {
         "cs": {
@@ -71,12 +171,52 @@
         }
       }
     },
+    "%lld do not match": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neshoduje se: %lld"
+          }
+        }
+      }
+    },
+    "%lld files": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld souborů"
+          }
+        }
+      }
+    },
+    "%lld files, %lld could not be read.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld souborů, %lld nelze přečíst."
+          }
+        }
+      }
+    },
     "%lld files, %lld folders — %@": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "%lld souborů, %lld složek – %@"
+          }
+        }
+      }
+    },
+    "%lld files. Save the list with ⌘S.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld souborů. Seznam uložíte pomocí ⌘S."
           }
         }
       }
@@ -185,12 +325,42 @@
         }
       }
     },
+    "%lld lines not understood": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nesrozumitelných řádků: %lld"
+          }
+        }
+      }
+    },
+    "%lld missing": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chybí: %lld"
+          }
+        }
+      }
+    },
     "%lld not readable…": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "nečitelné: %lld…"
+          }
+        }
+      }
+    },
+    "%lld of %lld files": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld z %lld souborů"
           }
         }
       }
@@ -205,12 +375,152 @@
         }
       }
     },
+    "%lld of %lld items renamed.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přejmenováno %lld z %lld položek."
+          }
+        }
+      }
+    },
+    "%lld of %lld items will be renamed.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bude přejmenováno %lld z %lld položek."
+          }
+        }
+      }
+    },
+    "%lld skipped.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přeskočeno: %lld."
+          }
+        }
+      }
+    },
+    "%lld unreadable": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nečitelných: %lld"
+          }
+        }
+      }
+    },
+    "(some folders could not be read)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(některé složky nelze přečíst)"
+          }
+        }
+      }
+    },
+    "*.*": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "*.*"
+          }
+        }
+      }
+    },
+    "*.md;*.txt": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "*.md;*.txt"
+          }
+        }
+      }
+    },
+    "/path/to/folder": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "/cesta/ke/složce"
+          }
+        }
+      }
+    },
+    "/usr/bin/open, git, ~/bin/tool": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "/usr/bin/open, git, ~/bin/tool"
+          }
+        }
+      }
+    },
+    "1 item": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 položka"
+          }
+        }
+      }
+    },
     "A byte order mark or valid UTF-8 always wins; this encoding is used for other text.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Značka pořadí bajtů (BOM) nebo platné UTF-8 mají vždy přednost; toto kódování se použije pro ostatní text."
+          }
+        }
+      }
+    },
+    "A command that uses a file variable runs once for every selected file.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Příkaz s proměnnou souboru se spustí jednou pro každý vybraný soubor."
+          }
+        }
+      }
+    },
+    "A line between items.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Čára mezi položkami."
+          }
+        }
+      }
+    },
+    "A literal dollar sign": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Doslovný znak dolaru"
+          }
+        }
+      }
+    },
+    "A variable is missing its closing ].": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Proměnné chybí uzavírací ]."
           }
         }
       }
@@ -232,6 +542,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Poslední přístup"
+          }
+        }
+      }
+    },
+    "Accessed:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Naposledy otevřeno:"
           }
         }
       }
@@ -267,12 +587,52 @@
         }
       }
     },
+    "Add Examples": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přidat příklady"
+          }
+        }
+      }
+    },
+    "Add Shortcut": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přidat zkratku"
+          }
+        }
+      }
+    },
+    "Add Tag": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přidat štítek"
+          }
+        }
+      }
+    },
     "Address:": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Adresa:"
+          }
+        }
+      }
+    },
+    "Algorithm:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Algoritmus:"
           }
         }
       }
@@ -293,6 +653,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Všechny soubory (masky *.txt;*.md|tmp*)"
+          }
+        }
+      }
+    },
+    "Also change items inside folders:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Změnit také položky uvnitř složek:"
           }
         }
       }
@@ -327,6 +697,26 @@
         }
       }
     },
+    "Applications": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aplikace"
+          }
+        }
+      }
+    },
+    "Apply": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Použít"
+          }
+        }
+      }
+    },
     "Archive error: %@": {
       "localizations": {
         "cs": {
@@ -343,6 +733,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Archiv:"
+          }
+        }
+      }
+    },
+    "Archives and disk images": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archivy a obrazy disků"
+          }
+        }
+      }
+    },
+    "Arguments are split like in a shell; quote special characters (; | & * ?). Variables are filled in after the split, so names with spaces need no quotes.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Argumenty se dělí stejně jako v shellu; speciální znaky (; | & * ?) uzavřete do uvozovek. Proměnné se dosazují až po rozdělení, takže názvy s mezerami uvozovky nepotřebují."
+          }
+        }
+      }
+    },
+    "Arguments:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Argumenty:"
           }
         }
       }
@@ -367,6 +787,16 @@
         }
       }
     },
+    "Audio": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zvuk"
+          }
+        }
+      }
+    },
     "Back": {
       "extractionState": "manual",
       "localizations": {
@@ -374,6 +804,27 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zpět"
+          }
+        }
+      }
+    },
+    "Batch Rename": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hromadné přejmenování"
+          }
+        }
+      }
+    },
+    "Batch Rename…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hromadné přejmenování…"
           }
         }
       }
@@ -436,6 +887,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Bajty, např. 4A 6F \"text\" 00"
+          }
+        }
+      }
+    },
+    "Calculate Checksums…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vypočítat kontrolní součty…"
           }
         }
       }
@@ -511,12 +973,83 @@
         }
       }
     },
+    "Change": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Změnit"
+          }
+        }
+      }
+    },
+    "Change Case": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Změnit velikost písmen"
+          }
+        }
+      }
+    },
+    "Change Case…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Změnit velikost písmen…"
+          }
+        }
+      }
+    },
+    "Changing case…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mění se velikost písmen…"
+          }
+        }
+      }
+    },
+    "Checksum": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontrolní součet"
+          }
+        }
+      }
+    },
+    "Checksums – %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontrolní součty – %@"
+          }
+        }
+      }
+    },
     "Choose": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Vybrat"
+          }
+        }
+      }
+    },
+    "Choose a checksum list (.sfv, .md5, .sha1, .sha256, .sha512).": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vyberte seznam kontrolních součtů (.sfv, .md5, .sha1, .sha256, .sha512)."
           }
         }
       }
@@ -547,6 +1080,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vymazat"
+          }
+        }
+      }
+    },
+    "Click to add or remove the tag.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kliknutím štítek přidáte nebo odeberete."
           }
         }
       }
@@ -872,6 +1415,36 @@
         }
       }
     },
+    "Counter": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Čítač"
+          }
+        }
+      }
+    },
+    "Counter (start, step, digits)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Čítač (začátek, krok, číslice)"
+          }
+        }
+      }
+    },
+    "Counter start: %lld": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Začátek čítače: %lld"
+          }
+        }
+      }
+    },
     "Created": {
       "localizations": {
         "cs": {
@@ -882,12 +1455,32 @@
         }
       }
     },
+    "Created:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vytvořeno:"
+          }
+        }
+      }
+    },
     "Creating folder…": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Vytváří se složka…"
+          }
+        }
+      }
+    },
+    "Custom": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vlastní"
           }
         }
       }
@@ -908,6 +1501,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Datum"
+          }
+        }
+      }
+    },
+    "Day": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Den"
           }
         }
       }
@@ -1078,6 +1681,56 @@
         }
       }
     },
+    "Digits: %lld": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Číslic: %lld"
+          }
+        }
+      }
+    },
+    "Directory of the active panel": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Složka aktivního panelu"
+          }
+        }
+      }
+    },
+    "Directory of the inactive panel": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Složka neaktivního panelu"
+          }
+        }
+      }
+    },
+    "Directory of the left panel": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Složka levého panelu"
+          }
+        }
+      }
+    },
+    "Directory of the right panel": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Složka pravého panelu"
+          }
+        }
+      }
+    },
     "Disconnect": {
       "localizations": {
         "cs": {
@@ -1099,6 +1752,27 @@
         }
       }
     },
+    "Disk Map – %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mapa disku – %@"
+          }
+        }
+      }
+    },
+    "Disk Map…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mapa disku…"
+          }
+        }
+      }
+    },
     "Document": {
       "localizations": {
         "cs": {
@@ -1109,12 +1783,42 @@
         }
       }
     },
+    "Documents": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dokumenty"
+          }
+        }
+      }
+    },
+    "Does not match": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neshoduje se"
+          }
+        }
+      }
+    },
     "Done": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Hotovo"
+          }
+        }
+      }
+    },
+    "Double click enters a folder, ⌫ goes up.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dvojklikem vstoupíte do složky, ⌫ přejdete o úroveň výš."
           }
         }
       }
@@ -1166,6 +1870,16 @@
         }
       }
     },
+    "Edit User Menu…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upravit uživatelské menu…"
+          }
+        }
+      }
+    },
     "Editor (F4)": {
       "localizations": {
         "cs": {
@@ -1193,6 +1907,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nadřazená složka"
+          }
+        }
+      }
+    },
+    "Enclosing folder name": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Název nadřazené složky"
           }
         }
       }
@@ -1247,6 +1971,46 @@
         }
       }
     },
+    "Environment variable": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Proměnná prostředí"
+          }
+        }
+      }
+    },
+    "Everyone": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Všichni"
+          }
+        }
+      }
+    },
+    "Example:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Příklad:"
+          }
+        }
+      }
+    },
+    "Execute": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spouštění"
+          }
+        }
+      }
+    },
     "Existing: %@, %@": {
       "localizations": {
         "cs": {
@@ -1263,6 +2027,56 @@
           "stringUnit": {
             "state": "translated",
             "value": "Přípona"
+          }
+        }
+      }
+    },
+    "Extension": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přípona"
+          }
+        }
+      }
+    },
+    "Extension case:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Velikost písmen přípony:"
+          }
+        }
+      }
+    },
+    "Extension without the dot": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přípona bez tečky"
+          }
+        }
+      }
+    },
+    "Extension:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přípona:"
+          }
+        }
+      }
+    },
+    "F9 shows these items. A command runs its program with the arguments; variables such as $(FullName) are filled with the files of the active panel.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tyto položky zobrazíte klávesou F9. Příkaz spustí svůj program s argumenty; proměnné jako $(FullName) se doplní soubory z aktivního panelu."
           }
         }
       }
@@ -1287,6 +2101,26 @@
         }
       }
     },
+    "File name with extension": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Název souboru s příponou"
+          }
+        }
+      }
+    },
+    "File name without extension": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Název souboru bez přípony"
+          }
+        }
+      }
+    },
     "Files": {
       "localizations": {
         "cs": {
@@ -1307,12 +2141,32 @@
         }
       }
     },
+    "Files and folders": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soubory a složky"
+          }
+        }
+      }
+    },
     "Files deleted on a server can’t be put back.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Soubory smazané na serveru nejde vrátit."
+          }
+        }
+      }
+    },
+    "Files only": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pouze soubory"
           }
         }
       }
@@ -1450,6 +2304,16 @@
         }
       }
     },
+    "Find:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hledat:"
+          }
+        }
+      }
+    },
     "Find…": {
       "extractionState": "manual",
       "localizations": {
@@ -1503,6 +2367,16 @@
         }
       }
     },
+    "First match only": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pouze první shoda"
+          }
+        }
+      }
+    },
     "Folder": {
       "localizations": {
         "cs": {
@@ -1529,6 +2403,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Složky"
+          }
+        }
+      }
+    },
+    "Folders are searched for files; links are skipped.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Složky se prohledávají kvůli souborům; odkazy se přeskakují."
+          }
+        }
+      }
+    },
+    "Folders have no extension; their whole name follows the Name setting.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Složky nemají příponu; celý jejich název se řídí nastavením Název."
+          }
+        }
+      }
+    },
+    "Folders only": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pouze složky"
           }
         }
       }
@@ -1580,6 +2484,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Podle nastavení SSH"
+          }
+        }
+      }
+    },
+    "Full path of the file": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Úplná cesta k souboru"
+          }
+        }
+      }
+    },
+    "Full paths of the selected items": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Úplné cesty vybraných položek"
           }
         }
       }
@@ -1817,6 +2741,16 @@
         }
       }
     },
+    "Group": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skupina"
+          }
+        }
+      }
+    },
     "Help": {
       "localizations": {
         "cs": {
@@ -1853,6 +2787,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Skryté soubory"
+          }
+        }
+      }
+    },
+    "Hidden in Finder (hidden flag).": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skryto ve Finderu (příznak hidden)."
           }
         }
       }
@@ -2041,12 +2985,52 @@
         }
       }
     },
+    "Images": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obrázky"
+          }
+        }
+      }
+    },
+    "Include subfolders": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Včetně podsložek"
+          }
+        }
+      }
+    },
     "Indigo": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Indigová"
+          }
+        }
+      }
+    },
+    "Initial folder:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Výchozí složka:"
+          }
+        }
+      }
+    },
+    "Insert": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vložit"
           }
         }
       }
@@ -2136,12 +3120,52 @@
         }
       }
     },
+    "It is not a regular file.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nejde o běžný soubor."
+          }
+        }
+      }
+    },
+    "Item under the cursor in the left panel": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Položka pod kurzorem v levém panelu"
+          }
+        }
+      }
+    },
+    "Item under the cursor in the right panel": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Položka pod kurzorem v pravém panelu"
+          }
+        }
+      }
+    },
     "Items that could not be read": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Položky, které nešlo přečíst"
+          }
+        }
+      }
+    },
+    "Keep": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ponechat"
           }
         }
       }
@@ -2166,6 +3190,16 @@
         }
       }
     },
+    "Keyboard": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klávesnice"
+          }
+        }
+      }
+    },
     "Keyboard Shortcuts…": {
       "extractionState": "manual",
       "localizations": {
@@ -2173,6 +3207,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Klávesové zkratky…"
+          }
+        }
+      }
+    },
+    "Keyboard only": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pouze klávesnice"
           }
         }
       }
@@ -2205,6 +3249,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Poslední soubor"
+          }
+        }
+      }
+    },
+    "Leave extension alone": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Příponu neměnit"
           }
         }
       }
@@ -2340,6 +3394,16 @@
         }
       }
     },
+    "Match case": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rozlišovat velikost písmen"
+          }
+        }
+      }
+    },
     "Maximize Panel": {
       "extractionState": "manual",
       "localizations": {
@@ -2347,6 +3411,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Maximalizovat panel"
+          }
+        }
+      }
+    },
+    "Menu": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menu"
           }
         }
       }
@@ -2371,6 +3445,66 @@
         }
       }
     },
+    "Missing": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chybí"
+          }
+        }
+      }
+    },
+    "Mixed Case": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "První písmena velká"
+          }
+        }
+      }
+    },
+    "Mixed Name And Extension": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "První písmena velká (název i přípona)"
+          }
+        }
+      }
+    },
+    "Mixed Name, lowercase extension": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "První písmena velká, přípona malými"
+          }
+        }
+      }
+    },
+    "Modification date (yyyy-MM-dd)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datum změny (yyyy-MM-dd)"
+          }
+        }
+      }
+    },
+    "Modification time (HHmmss)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Čas změny (HHmmss)"
+          }
+        }
+      }
+    },
     "Modified": {
       "localizations": {
         "cs": {
@@ -2387,6 +3521,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Změněno:"
+          }
+        }
+      }
+    },
+    "Month": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Měsíc"
           }
         }
       }
@@ -2492,12 +3636,32 @@
         }
       }
     },
+    "Name case:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Velikost písmen názvu:"
+          }
+        }
+      }
+    },
     "Name mask:": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Maska názvu:"
+          }
+        }
+      }
+    },
+    "Name without extension": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Název bez přípony"
           }
         }
       }
@@ -2522,12 +3686,42 @@
         }
       }
     },
+    "Names of the selected items": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Názvy vybraných položek"
+          }
+        }
+      }
+    },
+    "Names that the format cannot hold were left out: %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Názvy, které formát neumí uložit, byly vynechány: %@"
+          }
+        }
+      }
+    },
     "Network Volumes": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Síťové svazky"
+          }
+        }
+      }
+    },
+    "New Command": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nový příkaz"
           }
         }
       }
@@ -2574,12 +3768,52 @@
         }
       }
     },
+    "New Name": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nový název"
+          }
+        }
+      }
+    },
+    "New Submenu": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nové podmenu"
+          }
+        }
+      }
+    },
     "New Tab": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Nová záložka"
+          }
+        }
+      }
+    },
+    "New name:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nový název:"
+          }
+        }
+      }
+    },
+    "New tag": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nový štítek"
           }
         }
       }
@@ -2699,6 +3933,16 @@
         }
       }
     },
+    "No program is set.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Není nastaven žádný program."
+          }
+        }
+      }
+    },
     "No servers are connected.": {
       "localizations": {
         "cs": {
@@ -2739,6 +3983,36 @@
         }
       }
     },
+    "Not renamed:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nepřejmenováno:"
+          }
+        }
+      }
+    },
+    "Note": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Poznámka"
+          }
+        }
+      }
+    },
+    "Now": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nyní"
+          }
+        }
+      }
+    },
     "OK": {
       "localizations": {
         "cs": {
@@ -2756,6 +4030,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Obsazené místo"
+          }
+        }
+      }
+    },
+    "Octal": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Osmičkově"
           }
         }
       }
@@ -2786,6 +4070,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Na disku"
+          }
+        }
+      }
+    },
+    "One character of the original name": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jeden znak původního názvu"
+          }
+        }
+      }
+    },
+    "Only some items have this tag; click to give it to all.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tento štítek má jen některé položky; kliknutím ho přidělíte všem."
           }
         }
       }
@@ -2864,6 +4168,26 @@
         }
       }
     },
+    "Original Name": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Původní název"
+          }
+        }
+      }
+    },
+    "Other": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ostatní"
+          }
+        }
+      }
+    },
     "Overwrite": {
       "localizations": {
         "cs": {
@@ -2921,6 +4245,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zabalit…"
+          }
+        }
+      }
+    },
+    "Panels": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Panely"
           }
         }
       }
@@ -2996,6 +4330,16 @@
         }
       }
     },
+    "Paths in the list are relative to the folder it is saved in.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cesty v seznamu jsou relativní ke složce, do které je seznam uložen."
+          }
+        }
+      }
+    },
     "Paths may be on disk, in an archive or on a server.": {
       "localizations": {
         "cs": {
@@ -3016,6 +4360,16 @@
         }
       }
     },
+    "Permissions and Attributes": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oprávnění a atributy"
+          }
+        }
+      }
+    },
     "Pink": {
       "localizations": {
         "cs": {
@@ -3032,6 +4386,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Port:"
+          }
+        }
+      }
+    },
+    "Preset:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Předvolba:"
+          }
+        }
+      }
+    },
+    "Press keys…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stiskněte klávesy…"
           }
         }
       }
@@ -3101,6 +4475,16 @@
         }
       }
     },
+    "Program:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Program:"
+          }
+        }
+      }
+    },
     "Protocol:": {
       "localizations": {
         "cs": {
@@ -3163,6 +4547,16 @@
         }
       }
     },
+    "Read": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Čtení"
+          }
+        }
+      }
+    },
     "Recent": {
       "localizations": {
         "cs": {
@@ -3195,6 +4589,16 @@
       }
     },
     "Regular Expression": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Regulární výraz"
+          }
+        }
+      }
+    },
+    "Regular expression": {
       "localizations": {
         "cs": {
           "stringUnit": {
@@ -3256,6 +4660,16 @@
         }
       }
     },
+    "Remove this shortcut": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odebrat tuto zkratku"
+          }
+        }
+      }
+    },
     "Rename": {
       "extractionState": "manual",
       "localizations": {
@@ -3273,6 +4687,66 @@
           "stringUnit": {
             "state": "translated",
             "value": "Přejmenovává se…"
+          }
+        }
+      }
+    },
+    "Replace with:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nahradit:"
+          }
+        }
+      }
+    },
+    "Reset": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Výchozí"
+          }
+        }
+      }
+    },
+    "Reset All": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obnovit vše"
+          }
+        }
+      }
+    },
+    "Reset All…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obnovit vše…"
+          }
+        }
+      }
+    },
+    "Reset all shortcuts to the factory settings?": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obnovit všechny zkratky na tovární nastavení?"
+          }
+        }
+      }
+    },
+    "Rest of the original name part": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zbytek dané části původního názvu"
           }
         }
       }
@@ -3297,6 +4771,16 @@
         }
       }
     },
+    "Result": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Výsledek"
+          }
+        }
+      }
+    },
     "Right": {
       "localizations": {
         "cs": {
@@ -3313,6 +4797,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vpravo: %@ (%@ bajtů)"
+          }
+        }
+      }
+    },
+    "Run in Terminal": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spustit v Terminálu"
           }
         }
       }
@@ -3368,12 +4862,72 @@
         }
       }
     },
+    "Save…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uložit…"
+          }
+        }
+      }
+    },
     "Saving…": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Ukládám…"
+          }
+        }
+      }
+    },
+    "Scan Again": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prohledat znovu"
+          }
+        }
+      }
+    },
+    "Scanning…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prohledávání…"
+          }
+        }
+      }
+    },
+    "Scanning… %lld files, %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prohledávání… souborů: %lld, %@"
+          }
+        }
+      }
+    },
+    "Search": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hledat"
+          }
+        }
+      }
+    },
+    "Search commands or keys": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hledat příkazy nebo klávesy"
           }
         }
       }
@@ -3416,6 +4970,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vybrat se stejnou příponou"
+          }
+        }
+      }
+    },
+    "Select a command to change its shortcuts.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vyberte příkaz, jehož zkratky chcete změnit."
           }
         }
       }
@@ -3477,6 +5041,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vybrat…"
+          }
+        }
+      }
+    },
+    "Separator": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oddělovač"
           }
         }
       }
@@ -3622,6 +5196,26 @@
         }
       }
     },
+    "Set group ID": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nastavit ID skupiny"
+          }
+        }
+      }
+    },
+    "Set user ID": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nastavit ID uživatele"
+          }
+        }
+      }
+    },
     "Settings": {
       "localizations": {
         "cs": {
@@ -3639,6 +5233,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nastavení…"
+          }
+        }
+      }
+    },
+    "Shortcut": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zkratka"
+          }
+        }
+      }
+    },
+    "Shortcuts with ⌘, ⌃, ⌥ or function keys also appear in the menus. Some ⌃ and F-key shortcuts may be taken by macOS (System Settings → Keyboard → Keyboard Shortcuts).": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zkratky s ⌘, ⌃, ⌥ nebo funkčními klávesami se zobrazují i v menu. Některé zkratky s ⌃ a klávesami F může používat macOS (Nastavení systému → Klávesnice → Klávesové zkratky)."
           }
         }
       }
@@ -3717,6 +5331,16 @@
         }
       }
     },
+    "Show problems only": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zobrazit pouze problémy"
+          }
+        }
+      }
+    },
     "Size": {
       "localizations": {
         "cs": {
@@ -3777,6 +5401,16 @@
         }
       }
     },
+    "Skipped:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přeskočeno:"
+          }
+        }
+      }
+    },
     "Smaller": {
       "extractionState": "manual",
       "localizations": {
@@ -3784,6 +5418,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Menší"
+          }
+        }
+      }
+    },
+    "Some attributes could not be changed.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Některé atributy se nepodařilo změnit."
           }
         }
       }
@@ -3842,6 +5486,36 @@
         }
       }
     },
+    "Source code": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zdrojový kód"
+          }
+        }
+      }
+    },
+    "Step: %lld": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Krok: %lld"
+          }
+        }
+      }
+    },
+    "Sticky": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sticky bit"
+          }
+        }
+      }
+    },
     "Stop": {
       "localizations": {
         "cs": {
@@ -3852,12 +5526,32 @@
         }
       }
     },
+    "Stopped.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zastaveno."
+          }
+        }
+      }
+    },
     "Subfolders": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Podsložky"
+          }
+        }
+      }
+    },
+    "Submenu": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Podmenu"
           }
         }
       }
@@ -3880,6 +5574,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Přepnout panel"
+          }
+        }
+      }
+    },
+    "Tags:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Štítky:"
           }
         }
       }
@@ -3965,6 +5669,46 @@
         }
       }
     },
+    "The arguments have an unbalanced quote or an unquoted special character (; | & * ? …).": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Argumenty obsahují neukončenou uvozovku nebo speciální znak bez uvozovek (; | & * ? …)."
+          }
+        }
+      }
+    },
+    "The checksum list could not be saved.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seznam kontrolních součtů se nepodařilo uložit."
+          }
+        }
+      }
+    },
+    "The checksums could not be read.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontrolní součty se nepodařilo přečíst."
+          }
+        }
+      }
+    },
+    "The command needs a file: put the cursor on one or select some.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Příkaz potřebuje soubor: umístěte kurzor na soubor nebo nějaké vyberte."
+          }
+        }
+      }
+    },
     "The connection to the server was lost.": {
       "localizations": {
         "cs": {
@@ -3981,6 +5725,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Soubor nelze přečíst."
+          }
+        }
+      }
+    },
+    "The file is not a checksum list.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soubor není seznam kontrolních součtů."
           }
         }
       }
@@ -4051,6 +5805,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Identitu serveru %@ nelze ověřit."
+          }
+        }
+      }
+    },
+    "The item can’t be changed, renamed or deleted (uchg flag).": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Položku nelze změnit, přejmenovat ani smazat (příznak uchg)."
           }
         }
       }
@@ -4145,6 +5909,26 @@
         }
       }
     },
+    "The program “%@” was not found.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Program „%@“ nebyl nalezen."
+          }
+        }
+      }
+    },
+    "The regular expression is not valid: %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Regulární výraz není platný: %@"
+          }
+        }
+      }
+    },
     "The server refused the user name or password.": {
       "localizations": {
         "cs": {
@@ -4181,6 +5965,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Text nelze zapsat v kódování %@."
+          }
+        }
+      }
+    },
+    "There are no files to calculate checksums for.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nejsou žádné soubory, pro které by se daly spočítat kontrolní součty."
           }
         }
       }
@@ -4225,6 +6019,16 @@
         }
       }
     },
+    "Title:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Název:"
+          }
+        }
+      }
+    },
     "To:": {
       "localizations": {
         "cs": {
@@ -4253,6 +6057,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Přepnout výběr a velikost"
+          }
+        }
+      }
+    },
+    "UPPERCASE": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "VELKÁ PÍSMENA"
+          }
+        }
+      }
+    },
+    "Unknown variable %@.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neznámá proměnná %@."
+          }
+        }
+      }
+    },
+    "Unknown variable [%@].": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neznámá proměnná [%@]."
           }
         }
       }
@@ -4298,6 +6132,16 @@
         }
       }
     },
+    "Untitled": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bez názvu"
+          }
+        }
+      }
+    },
     "Update": {
       "localizations": {
         "cs": {
@@ -4328,6 +6172,16 @@
         }
       }
     },
+    "Use Anyway": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přesto použít"
+          }
+        }
+      }
+    },
     "Use Selection for Find": {
       "extractionState": "manual",
       "localizations": {
@@ -4349,6 +6203,16 @@
         }
       }
     },
+    "User Menu": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uživatelské menu"
+          }
+        }
+      }
+    },
     "User Menu…": {
       "extractionState": "manual",
       "localizations": {
@@ -4366,6 +6230,37 @@
           "stringUnit": {
             "state": "translated",
             "value": "Uživatel:"
+          }
+        }
+      }
+    },
+    "Verify Checksums…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ověřit kontrolní součty…"
+          }
+        }
+      }
+    },
+    "Verify – %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ověření – %@"
+          }
+        }
+      }
+    },
+    "Video": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Video"
           }
         }
       }
@@ -4393,6 +6288,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "View"
+          }
+        }
+      }
+    },
+    "Viewer": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prohlížeč"
           }
         }
       }
@@ -4459,6 +6364,16 @@
         }
       }
     },
+    "Whole name": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Celý název"
+          }
+        }
+      }
+    },
     "Window": {
       "localizations": {
         "cs": {
@@ -4496,6 +6411,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zalamovat řádky"
+          }
+        }
+      }
+    },
+    "Write": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zápis"
+          }
+        }
+      }
+    },
+    "Year": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rok"
           }
         }
       }
@@ -4540,6 +6475,16 @@
         }
       }
     },
+    "Your changes to every command are removed.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Všechny vaše změny příkazů budou odstraněny."
+          }
+        }
+      }
+    },
     "Zoom": {
       "localizations": {
         "cs": {
@@ -4557,6 +6502,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Přizpůsobit oknu"
+          }
+        }
+      }
+    },
+    "another item would also be named “%@”": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "další položka by se také jmenovala „%@“"
           }
         }
       }
@@ -4607,6 +6562,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "výchozí kódování"
+          }
+        }
+      }
+    },
+    "differs": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "liší se"
           }
         }
       }
@@ -4722,6 +6687,36 @@
         }
       }
     },
+    "lowercase": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "malá písmena"
+          }
+        }
+      }
+    },
+    "mixed": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "smíšeně"
+          }
+        }
+      }
+    },
+    "not a valid name": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "neplatný název"
+          }
+        }
+      }
+    },
     "offset %@ (%@)": {
       "localizations": {
         "cs": {
@@ -4742,12 +6737,32 @@
         }
       }
     },
+    "the new name would contain * or ?": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "nový název by obsahoval * nebo ?"
+          }
+        }
+      }
+    },
     "to": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "do"
+          }
+        }
+      }
+    },
+    "unchanged": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "beze změny"
           }
         }
       }
@@ -4762,12 +6777,32 @@
         }
       }
     },
+    "— separator —": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "— oddělovač —"
+          }
+        }
+      }
+    },
     "“%@”": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "„%@“"
+          }
+        }
+      }
+    },
+    "“%@” already exists": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ už existuje"
           }
         }
       }
@@ -4812,12 +6847,52 @@
         }
       }
     },
+    "“%@” can’t be used as the initial folder.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ nelze použít jako výchozí složku."
+          }
+        }
+      }
+    },
     "“%@” can’t be used on the server.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "„%@“ nelze na serveru použít."
+          }
+        }
+      }
+    },
+    "“%@” can’t run.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ nelze spustit."
+          }
+        }
+      }
+    },
+    "“%@” ended with status %d.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ skončil se stavem %d."
+          }
+        }
+      }
+    },
+    "“%@” failed.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ selhal."
           }
         }
       }
@@ -4888,6 +6963,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "„%@“ by byl zkopírován sám na sebe."
+          }
+        }
+      }
+    },
+    "…and %lld more": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "…a dalších %lld"
           }
         }
       }
