@@ -60,7 +60,8 @@ public actor FTPClient: RemoteFileSystem {
         let user = endpoint.user ?? "anonymous"
         var pass: String? = anonymous ? "anonymous@example.com" : password
         var attempt = pass == nil ? 0 : 1
-        var message = "Password for \(user)@\(endpoint.host):"
+        // The prompt names the server itself; a message only explains a refused login.
+        var message = ""
         let session = CurlSession()
         let probe = CurlRequest(url: baseURL(endpoint) + "/", noBody: true, quote: ["*OPTS UTF8 ON"])
 

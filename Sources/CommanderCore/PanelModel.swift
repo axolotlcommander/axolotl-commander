@@ -419,7 +419,11 @@ public final class PanelModel {
     private func summarize(_ list: [FileItem]) -> SelectionSummary {
         var s = SelectionSummary()
         for item in list {
-            if item.isDirectory {
+            if item.isPackage {
+                // Apps and bundles count as files (Finder), with their size once calculated.
+                s.files += 1
+                s.bytes += directorySizes[rules.key(item.name)] ?? 0
+            } else if item.isDirectory {
                 s.directories += 1
                 s.bytes += directorySizes[rules.key(item.name)] ?? 0
             } else {

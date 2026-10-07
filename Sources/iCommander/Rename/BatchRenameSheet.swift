@@ -144,13 +144,16 @@ enum BatchRenameSheet {
             plan = []
             self.error = Format.error(error)
         }
-        let base = selected.first?.url.deletingLastPathComponent().path
+        let base = selected.first.map { $0.url.deletingLastPathComponent().displayPath } ?? ""
         rows = sources.indices.map { index in
             let source = sources[index]
             let entry = index < plan.count ? plan[index] : nil
-            let folder = source.url.deletingLastPathComponent()
+            // Items in subfolders show their folder below the panel's folder (“2024/”), others nothing.
+            let folder = source.url.deletingLastPathComponent().displayPath
+            let relative = folder.hasPrefix(base + "/") ? String(folder.dropFirst(base.count + 1)) + "/"
+                : folder == base ? "" : folder
             return Row(id: index, original: source.url.lastPathComponent,
-                       folder: folder.path == base ? "" : folder.path(percentEncoded: false),
+                       folder: relative,
                        newName: entry?.item.newName ?? "", status: entry?.status ?? .unchanged)
         }
     }

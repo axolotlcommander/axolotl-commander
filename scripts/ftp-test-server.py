@@ -295,19 +295,22 @@ class Session(socketserver.StreamRequestHandler):
             parts.pop(0)
         return " ".join(parts)
 
-    def entries(self, r):
-        if os.path.isdir(r) and not os.path.islink(r):
+    def entries(self, r, follow=False):
+        # A link to a folder is listed as the link, except when the folder itself is listed (MLSD,
+        # or LIST of the current folder after CWD through the link), as real servers do.
+        if os.path.isdir(r) and (follow or not os.path.islink(r)):
             names = sorted(os.listdir(r))
             return [(n, os.lstat(os.path.join(r, n)), os.path.join(r, n)) for n in names]
         return [(os.path.basename(r), os.lstat(r), r)]
 
     def cmd_LIST(self, arg):
-        v, r = self.resolve(self.list_target(arg))
+        target = self.list_target(arg)
+        v, r = self.resolve(target)
         if r is None or not os.path.lexists(r):
             self.reply("550 No such file or directory")
             return
         lines = []
-        for name, st, full in self.entries(r):
+        for name, st, full in self.entries(r, follow=not target):
             text = "%s %3d %-8s %-8s %10d %s %s" % (
                 mode_string(st), st.st_nlink, "owner", "group", st.st_size, list_time(st.st_mtime), name)
             if stat.S_ISLNK(st.st_mode):
@@ -342,7 +345,7 @@ class Session(socketserver.StreamRequestHandler):
         if r is None or not os.path.isdir(r):
             self.reply("550 No such directory")
             return
-        lines = [self.facts(n, st) for n, st, _ in self.entries(r)]
+        lines = [self.facts(n, st) for n, st, _ in self.entries(r, follow=True)]
         self.send_data([("".join(l + "\r\n" for l in lines)).encode("utf-8", "surrogateescape")])
 
     def cmd_MLST(self, arg):

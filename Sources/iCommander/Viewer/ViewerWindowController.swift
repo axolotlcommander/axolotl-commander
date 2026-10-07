@@ -514,8 +514,9 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
     }
 
     private func handleKey(_ event: NSEvent) -> Bool {
-        guard let chord = KeyChord(event: event), !chord.isMenuSafe,
-              let command = KeyMaps.viewer.command(for: chord), CommandRegistry.spec(command).scope == .viewer else { return false }
+        guard let chord = KeyChord(event: event),
+              let command = KeyMaps.viewer.command(for: chord), CommandRegistry.spec(command).scope == .viewer,
+              !KeyMaps.menuHandles(chord, for: command, in: .viewer) else { return false }
         perform(command)
         return true
     }

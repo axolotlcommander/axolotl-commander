@@ -14,10 +14,16 @@ extension PanelViewController {
             if !model.isSelected(item), !model.selectedItems.isEmpty { model.deselectAll() }
             model.moveCursor(to: index)
             modelChanged()
-            return itemMenu()
+            return plain(itemMenu())
         }
         if let index, model.items.indices.contains(index) { model.moveCursor(to: index); modelChanged() }
-        return folderMenu()
+        return plain(folderMenu())
+    }
+
+    /// Menu bar symbols (Copy, Paste…) would indent only some sections of a context menu.
+    private func plain(_ menu: NSMenu) -> NSMenu {
+        for item in menu.items where item.command != nil { item.image = nil }
+        return menu
     }
 
     /// Local files for the Services menu (the marked items or the one under the cursor).

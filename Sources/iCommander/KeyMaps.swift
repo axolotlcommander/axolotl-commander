@@ -43,4 +43,10 @@ enum KeyMaps {
     static func menuChord(for command: Command, in context: CommandContext) -> KeyChord? {
         map(for: context).chords(for: command).first(where: \.isMenuSafe)
     }
+
+    /// The menu bar already answers `chord` for `command` (its item shows that chord), so a window's
+    /// own key handling must leave it alone. Further chords of the command (F2 next to ⌃W…) are not.
+    static func menuHandles(_ chord: KeyChord, for command: Command, in context: CommandContext) -> Bool {
+        CommandRegistry.spec(command).menu != nil && menuChord(for: command, in: context) == chord
+    }
 }

@@ -135,7 +135,7 @@ final class PanelViewController: NSViewController {
         tableView.delegate = self
         tableView.target = self
         tableView.doubleAction = #selector(doubleClicked)
-        tableView.registerForDraggedTypes([.fileURL])
+        tableView.registerForDraggedTypes([.fileURL, Self.itemsType])
         tableView.setDraggingSourceOperationMask([.copy, .move, .generic], forLocal: true)
         tableView.setDraggingSourceOperationMask([.copy, .move, .generic], forLocal: false)
         tableView.draggingDestinationFeedbackStyle = .regular
@@ -1078,64 +1078,34 @@ extension PanelViewController: NSTableViewDataSource, NSTableViewDelegate {
         }
     }
 
-    // MARK: Drag & drop — same rules as F5/F6: Option copies, Command moves,
-    // otherwise move within a volume and copy across volumes (Finder convention).
+    // MARK: Drag & drop (shared rules in PanelDragDrop.swift)
 
     func tableView(_ tableView: NSTableView, pasteboardWriterForRow row: Int) -> (any NSPasteboardWriting)? {
-        // Members are not files the system could take.
-        guard row < model.items.count, !model.items[row].isParent, model.archive == nil else { return nil }
-        let item = model.items[row]
-        // Dragging a marked row drags the whole selection.
-        if model.isSelected(item) { return nil }
-        return item.url as NSURL
+        guard row < model.items.count, !model.items[row].isParent else { return nil }
+        // Dragging a marked row drags the whole selection (written when the session begins).
+        if model.isSelected(model.items[row]) { return nil }
+        return dragItem(for: model.items[row])
     }
 
     func tableView(_ tableView: NSTableView, draggingSession session: NSDraggingSession,
                    willBeginAt screenPoint: NSPoint, forRowIndexes rowIndexes: IndexSet) {
         guard let row = rowIndexes.first, row < model.items.count, model.isSelected(model.items[row]) else { return }
         session.draggingPasteboard.clearContents()
-        session.draggingPasteboard.writeObjects(model.selectedItems.map { $0.url as NSURL })
+        session.draggingPasteboard.writeObjects(model.selectedItems.map(dragItem(for:)))
     }
 
     func tableView(_ tableView: NSTableView, validateDrop info: any NSDraggingInfo, proposedRow row: Int,
                    proposedDropOperation dropOperation: NSTableView.DropOperation) -> NSDragOperation {
-        guard let target = dropTarget(row: row, operation: dropOperation) else { return [] }
+        guard let target = dropTarget(row: dropOperation == .on ? row : nil) else { return [] }
         // Highlight the folder row, or the whole panel when dropping into the current folder.
         tableView.setDropRow(target == model.location ? -1 : row, dropOperation: .on)
-        guard let urls = Self.fileURLs(info), !urls.isEmpty else { return [] }
-        if urls.contains(where: { $0.deletingLastPathComponent().standardizedFileURL == target.standardizedFileURL }) { return [] }
-        return dragOperation(info, sources: urls, target: target)
+        return dragOperation(info, target: target)
     }
 
     func tableView(_ tableView: NSTableView, acceptDrop info: any NSDraggingInfo, row: Int,
                    dropOperation: NSTableView.DropOperation) -> Bool {
-        guard let urls = Self.fileURLs(info), !urls.isEmpty,
-              let target = dropTarget(row: row, operation: dropOperation) else { return false }
-        let op = dragOperation(info, sources: urls, target: target)
-        router?.operations.transfer(op == .move ? .move : .copy, sources: urls, from: self, to: target)
-        return true
-    }
-
-    private func dropTarget(row: Int, operation: NSTableView.DropOperation) -> URL? {
-        if operation == .on, row >= 0, row < model.items.count {
-            let item = model.items[row]
-            if item.isParent { return model.results == nil ? model.location.deletingLastPathComponent() : nil }
-            if item.isDirectory && !item.isPackage { return item.url }
-        }
-        return model.results == nil ? model.location : nil
-    }
-
-    private func dragOperation(_ info: any NSDraggingInfo, sources: [URL], target: URL) -> NSDragOperation {
-        let mask = info.draggingSourceOperationMask
-        // Into an archive only copies: a move would put the originals in the Trash.
-        if mask == .copy || ArchivePath.split(target) != nil { return .copy } // Option held
-        if mask == .generic || mask == .move { return .move } // Command held
-        let sameVolume = sources.allSatisfy { Volumes.root(of: $0) == Volumes.root(of: target) }
-        return sameVolume ? .move : .copy
-    }
-
-    private static func fileURLs(_ info: any NSDraggingInfo) -> [URL]? {
-        info.draggingPasteboard.readObjects(forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) as? [URL]
+        guard let target = dropTarget(row: dropOperation == .on ? row : nil) else { return false }
+        return performDrop(info, target: target)
     }
 
     func tableViewSelectionDidChange(_ notification: Notification) {

@@ -22,6 +22,13 @@ final class BriefGridView: NSCollectionView {
     }
 
     var onMenu: ((Int?) -> NSMenu?)?
+    /// Drag source: pasteboard items for a drag that starts on the item at the index.
+    var onDrag: ((Int) -> [NSPasteboardItem])?
+    /// Drop target: the operation for a drop over the item at the index (nil = empty space)…
+    var onValidateDrop: ((any NSDraggingInfo, Int?) -> NSDragOperation)?
+    /// …and performing it.
+    var onDrop: ((any NSDraggingInfo, Int?) -> Bool)?
+    private var dragStart: (point: NSPoint, index: Int)?
 
     override func menu(for event: NSEvent) -> NSMenu? {
         onMenu?(indexPathForItem(at: convert(event.locationInWindow, from: nil))?.item)
@@ -30,7 +37,61 @@ final class BriefGridView: NSCollectionView {
     override func mouseDown(with event: NSEvent) {
         window?.makeFirstResponder(self)
         let point = convert(event.locationInWindow, from: nil)
-        if let index = indexPathForItem(at: point)?.item { onClick?(index, event.clickCount) }
+        let index = indexPathForItem(at: point)?.item
+        dragStart = index.map { (point, $0) }
+        if let index { onClick?(index, event.clickCount) }
+    }
+
+    override func mouseDragged(with event: NSEvent) {
+        guard let start = dragStart else { return }
+        let point = convert(event.locationInWindow, from: nil)
+        guard hypot(point.x - start.point.x, point.y - start.point.y) > 4 else { return }
+        dragStart = nil
+        let entries = onDrag?(start.index) ?? []
+        guard !entries.isEmpty else { return }
+        let frame = frameForItem(at: start.index)
+        let image = item(at: start.index).flatMap { item -> NSImage? in
+            guard let rep = item.view.bitmapImageRepForCachingDisplay(in: item.view.bounds) else { return nil }
+            item.view.cacheDisplay(in: item.view.bounds, to: rep)
+            let image = NSImage(size: item.view.bounds.size)
+            image.addRepresentation(rep)
+            return image
+        }
+        let items = entries.enumerated().map { offset, entry in
+            let dragging = NSDraggingItem(pasteboardWriter: entry)
+            dragging.setDraggingFrame(frame.offsetBy(dx: CGFloat(offset) * 3, dy: CGFloat(offset) * 3), contents: image)
+            return dragging
+        }
+        beginDraggingSession(with: items, event: event, source: self)
+    }
+
+    override func mouseUp(with event: NSEvent) { dragStart = nil }
+
+    // MARK: Dropping
+
+    private func dropIndex(_ info: any NSDraggingInfo) -> Int? {
+        indexPathForItem(at: convert(info.draggingLocation, from: nil))?.item
+    }
+
+    override func draggingEntered(_ info: any NSDraggingInfo) -> NSDragOperation {
+        onValidateDrop?(info, dropIndex(info)) ?? []
+    }
+
+    override func draggingUpdated(_ info: any NSDraggingInfo) -> NSDragOperation {
+        onValidateDrop?(info, dropIndex(info)) ?? []
+    }
+
+    override func prepareForDragOperation(_ info: any NSDraggingInfo) -> Bool { true }
+
+    override func performDragOperation(_ info: any NSDraggingInfo) -> Bool {
+        onDrop?(info, dropIndex(info)) ?? false
+    }
+}
+
+extension BriefGridView {
+    // NSCollectionView is already a dragging source; offer copy and move like the detailed table.
+    override func draggingSession(_ session: NSDraggingSession, sourceOperationMaskFor context: NSDraggingContext) -> NSDragOperation {
+        [.copy, .move, .generic]
     }
 }
 
@@ -103,6 +164,19 @@ extension PanelViewController: NSCollectionViewDataSource {
             router?.panelDidBecomeFirstResponder(self)
         }
         briefView.onMenu = { [weak self] index in self?.contextMenu(at: index) }
+        briefView.onDrag = { [weak self] index in
+            guard let self else { return [] }
+            return draggedItems(from: index).map(dragItem(for:))
+        }
+        briefView.onValidateDrop = { [weak self] info, index in
+            guard let self, let target = dropTarget(row: index) else { return [] }
+            return dragOperation(info, target: target)
+        }
+        briefView.onDrop = { [weak self] info, index in
+            guard let self, let target = dropTarget(row: index) else { return false }
+            return performDrop(info, target: target)
+        }
+        briefView.registerForDraggedTypes([.fileURL, Self.itemsType])
         briefView.onClick = { [weak self] index, clicks in
             guard let self else { return }
             model.moveCursor(to: index)

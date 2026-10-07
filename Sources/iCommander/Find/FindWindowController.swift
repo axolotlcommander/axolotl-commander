@@ -488,8 +488,9 @@ final class FindWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
     }
 
     private func handleKey(_ event: NSEvent) -> Bool {
-        guard let chord = KeyChord(event: event), !chord.isMenuSafe,
+        guard let chord = KeyChord(event: event),
               let command = KeyMaps.find.command(for: chord), CommandRegistry.spec(command).scope == .find,
+              !KeyMaps.menuHandles(chord, for: command, in: .find),
               canPerform(command) else { return false }
         perform(command)
         return true
