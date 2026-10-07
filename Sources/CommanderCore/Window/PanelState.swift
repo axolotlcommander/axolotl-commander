@@ -31,6 +31,8 @@ public struct PanelState: Codable, Hashable, Sendable {
     public var forward: [Place]
     /// Find results shown in the panel (in memory only, like `Place.results`).
     public var results: ResultsListing?
+    /// Names of the selected items (in memory only: a tab keeps its selection while switching).
+    public var selectedNames: [String]
 
     private enum CodingKeys: String, CodingKey {
         case location, cursorName, sort, showHidden, filterPattern, back, forward
@@ -44,7 +46,8 @@ public struct PanelState: Codable, Hashable, Sendable {
         filterPattern: String? = nil,
         back: [Place] = [],
         forward: [Place] = [],
-        results: ResultsListing? = nil
+        results: ResultsListing? = nil,
+        selectedNames: [String] = []
     ) {
         self.location = location
         self.cursorName = cursorName
@@ -54,6 +57,7 @@ public struct PanelState: Codable, Hashable, Sendable {
         self.back = back
         self.forward = forward
         self.results = results
+        self.selectedNames = selectedNames
     }
 
     /// Missing keys fall back to defaults; only `location` is required.
@@ -66,6 +70,7 @@ public struct PanelState: Codable, Hashable, Sendable {
         filterPattern = try c.decodeIfPresent(String.self, forKey: .filterPattern)
         back = try c.decodeIfPresent([Place].self, forKey: .back) ?? []
         forward = try c.decodeIfPresent([Place].self, forKey: .forward) ?? []
+        selectedNames = []
     }
 
     /// Short tab title: the last path component, "/" for the root.

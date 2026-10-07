@@ -1,4 +1,4 @@
-public import Foundation
+import Foundation
 
 /// The tabs of one panel. Never empty; the last tab cannot be closed.
 public struct TabList: Codable, Hashable, Sendable {

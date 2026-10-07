@@ -107,6 +107,21 @@ private func dir(_ name: String) -> FileItem {
         #expect(m.location == f.root)
     }
 
+    @Test func restoreKeepsSelectionNotPersisted() async throws {
+        let f = try Fixture()
+        let m = PanelModel(location: f.root)
+        await m.refresh()
+        m.select(mask: WildcardMask("*.txt;*.md"), true)
+        var snap = m.snapshot()
+        #expect(Set(snap.selectedNames) == ["f1.txt", "g.md"])
+        snap.selectedNames.append("gone.txt")
+        try await m.go(to: f.root.appendingPathComponent("a"))
+        try await m.restore(snap)
+        #expect(Set(m.selectedItems.map(\.name)) == ["f1.txt", "g.md"])
+        let decoded = try JSONDecoder().decode(PanelState.self, from: JSONEncoder().encode(snap))
+        #expect(decoded.selectedNames.isEmpty)
+    }
+
     @Test func restoreFocusesCursorName() async throws {
         let f = try Fixture()
         let m = PanelModel(location: f.root)

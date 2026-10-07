@@ -189,13 +189,14 @@ public final class PanelModel {
             filterPattern: filter?.pattern,
             back: back,
             forward: forward,
-            results: results
+            results: results,
+            selectedNames: selectedItems.map(\.name)
         )
     }
 
     /// Brings the panel to `state`: loads its location with the cursor on `cursorName`, applies
     /// sort, hidden flag and filter, then installs its history as-is (the directory being left is
-    /// not recorded). Selection is cleared. If loading fails the error is thrown and nothing changes.
+    /// not recorded). The selection is the state's selected names that still exist. If loading fails the error is thrown and nothing changes.
     public func restore(_ state: PanelState) async throws {
         navToken += 1
         let token = navToken
@@ -215,7 +216,8 @@ public final class PanelModel {
         archive = loaded.archive
         rules = loaded.rules
         rawItems = loaded.raw
-        selection = []
+        let present = Set(rawItems.map { rules.key($0.name) })
+        selection = Set(state.selectedNames.map { rules.key($0) }).intersection(present)
         directorySizes = [:]
         items = buildItems()
         cursor = state.cursorName.flatMap { index(ofName: $0) } ?? 0
