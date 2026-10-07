@@ -35,7 +35,8 @@ struct UserMenuSettings: View {
             }
             Group {
                 if let path = selection.flatMap({ items.path(of: $0) }) {
-                    UserMenuItemEditor(item: Binding(get: { items[path: path] }, set: { items[path: path] = $0 }))
+                    UserMenuItemEditor(item: Binding(get: { items[path: path] }, set: { items[path: path] = $0 }),
+                                       allItems: items)
                 } else {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("F9 shows these items. A command runs its program with the arguments; variables such as $(FullName) are filled with the files of the active panel.")
@@ -90,6 +91,11 @@ struct UserMenuSettings: View {
 
 private struct UserMenuItemEditor: View {
     @Binding var item: UserMenuItem
+    /// The whole tree, to find other items with the same shortcut.
+    let allItems: [UserMenuItem]
+    @State private var recorder = ChordRecorder()
+    /// A recorded chord refused because it is plain typing (quick search).
+    @State private var rejected: KeyChord?
 
     var body: some View {
         Form {
@@ -114,10 +120,74 @@ private struct UserMenuItemEditor: View {
                     variableMenu { item.directory = $0 }
                 }
                 Toggle("Run in Terminal", isOn: $item.runInTerminal)
+                shortcutRow
                 Text("Arguments are split like in a shell; quote special characters (; | & * ?). Variables are filled in after the split, so names with spaces need no quotes.")
                     .font(.caption).foregroundStyle(.secondary)
             }
         }
+        .onChange(of: item.id) {
+            recorder.stop()
+            rejected = nil
+        }
+        .onDisappear { recorder.stop() }
+    }
+
+    // MARK: Shortcut
+
+    @ViewBuilder private var shortcutRow: some View {
+        LabeledContent("Shortcut:") {
+            HStack(spacing: 8) {
+                if let chord = item.shortcut {
+                    ChordChip(chord: chord)
+                } else {
+                    Text("None").foregroundStyle(.secondary)
+                }
+                Button(recorder.isRecording ? String(localized: "Press keys…") : String(localized: "Record Shortcut")) {
+                    recorder.isRecording ? recorder.stop() : record()
+                }
+                Button("Clear") {
+                    item.shortcut = nil
+                    rejected = nil
+                }
+                .disabled(item.shortcut == nil)
+            }
+        }
+        if let rejected {
+            Text("\(rejected.description) types into quick search. Use a shortcut with ⌘, ⌃ or ⌥, or a function key.")
+                .font(.caption).foregroundStyle(.red)
+        }
+        ForEach(shortcutWarnings, id: \.self) { warning in
+            Label(warning, systemImage: "exclamationmark.triangle")
+                .font(.caption).foregroundStyle(.orange)
+        }
+    }
+
+    private func record() {
+        rejected = nil
+        recorder.start { chord in
+            if UserMenuStore.isAssignable(chord) {
+                item.shortcut = chord
+            } else {
+                rejected = chord
+            }
+        }
+    }
+
+    /// Who else uses the shortcut: a panel command (a menu item with a ⌘/⌃/⌥ or F-key chord is
+    /// matched first) or another user menu item (the first one in the menu runs).
+    private var shortcutWarnings: [String] {
+        guard let chord = item.shortcut else { return [] }
+        var warnings: [String] = []
+        if let command = KeyMaps.panel.command(for: chord) {
+            let title = CommandRegistry.spec(command).localizedTitle.replacingOccurrences(of: "…", with: "")
+            warnings.append(String(localized: "\(chord.description) is also the shortcut of the command “\(title)”."))
+        }
+        let others = UserMenuStore.commands(in: allItems).filter { $0.id != item.id && $0.shortcut == chord }
+        if !others.isEmpty {
+            let titles = others.map { "“\($0.title.isEmpty ? $0.program : $0.title)”" }.joined(separator: ", ")
+            warnings.append(String(localized: "\(chord.description) is also used by \(titles) in the user menu; the first one in the menu runs."))
+        }
+        return warnings
     }
 
     private func variableMenu(_ insert: @escaping (String) -> Void) -> some View {

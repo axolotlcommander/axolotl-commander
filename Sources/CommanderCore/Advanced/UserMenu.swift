@@ -17,10 +17,12 @@ public struct UserMenuItem: Codable, Sendable, Hashable, Identifiable {
     public var runInTerminal: Bool
     /// Submenu items.
     public var children: [UserMenuItem]
+    /// Key chord that runs the command from a panel (commands only).
+    public var shortcut: KeyChord?
 
     public init(id: UUID = UUID(), kind: Kind = .command, title: String = "", program: String = "",
                 arguments: String = "", directory: String = "$(FullPath)", runInTerminal: Bool = false,
-                children: [UserMenuItem] = []) {
+                children: [UserMenuItem] = [], shortcut: KeyChord? = nil) {
         self.id = id
         self.kind = kind
         self.title = title
@@ -29,6 +31,7 @@ public struct UserMenuItem: Codable, Sendable, Hashable, Identifiable {
         self.directory = directory
         self.runInTerminal = runInTerminal
         self.children = children
+        self.shortcut = shortcut
     }
 
     // Missing keys fall back to defaults so hand-edited or older files still load.
@@ -42,7 +45,9 @@ public struct UserMenuItem: Codable, Sendable, Hashable, Identifiable {
             arguments: try c.decodeIfPresent(String.self, forKey: .arguments) ?? "",
             directory: try c.decodeIfPresent(String.self, forKey: .directory) ?? "$(FullPath)",
             runInTerminal: try c.decodeIfPresent(Bool.self, forKey: .runInTerminal) ?? false,
-            children: try c.decodeIfPresent([UserMenuItem].self, forKey: .children) ?? [])
+            children: try c.decodeIfPresent([UserMenuItem].self, forKey: .children) ?? [],
+            // A malformed chord drops only the shortcut, not the item.
+            shortcut: (try? c.decodeIfPresent(KeyChord.self, forKey: .shortcut)) ?? nil)
     }
 }
 
@@ -393,6 +398,31 @@ public enum UserMenuStore {
 
     public static func decode(_ data: Data) throws -> [UserMenuItem] {
         try JSONDecoder().decode([UserMenuItem].self, from: data)
+    }
+
+    /// Every command item of the tree, depth first in menu order (submenus included).
+    public static func commands(in items: [UserMenuItem]) -> [UserMenuItem] {
+        items.flatMap { item -> [UserMenuItem] in
+            switch item.kind {
+            case .command: [item]
+            case .submenu: commands(in: item.children)
+            case .separator: []
+            }
+        }
+    }
+
+    /// The command item whose shortcut is `chord`; the first one in menu order wins.
+    public static func command(for chord: KeyChord, in items: [UserMenuItem]) -> UserMenuItem? {
+        commands(in: items).first { $0.shortcut == chord }
+    }
+
+    /// Whether `chord` can be a user menu shortcut: a character key needs ⌘, ⌃ or ⌥, because
+    /// plain (and shifted) typing in a panel is quick search.
+    public static func isAssignable(_ chord: KeyChord) -> Bool {
+        if case .character = chord.key {
+            return !chord.modifiers.isDisjoint(with: [.command, .control, .option])
+        }
+        return true
     }
 
     /// Harmless starter items.

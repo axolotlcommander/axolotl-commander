@@ -230,4 +230,62 @@ import Testing
         let bare = UserMenuInvocation(program: "/Applications/Some App.app", arguments: [], directory: Self.url("/work"))
         #expect(UserMenuExpander.shellCommand(bare) == "cd /work && open '/Applications/Some App.app'")
     }
+
+    // MARK: Shortcuts
+
+    @Test func shortcutRoundTrip() throws {
+        let items = [
+            UserMenuItem(title: "a", program: "/bin/a", shortcut: KeyChord(.character("e"), [.control, .option])),
+            UserMenuItem(title: "b", program: "/bin/b", shortcut: KeyChord(.function(7), .shift)),
+            UserMenuItem(title: "c", program: "/bin/c"),
+        ]
+        let data = try UserMenuStore.encode(items)
+        #expect(String(decoding: data, as: UTF8.self).contains("ctrl+opt+char:e"))
+        #expect(try UserMenuStore.decode(data) == items)
+    }
+
+    @Test func oldJSONWithoutShortcutDecodes() throws {
+        let json = #"[{"kind":"command","title":"x","program":"/bin/x","arguments":"","directory":"$(FullPath)","runInTerminal":false,"children":[]}]"#
+        let items = try UserMenuStore.decode(Data(json.utf8))
+        #expect(items.count == 1)
+        #expect(items[0].shortcut == nil)
+        #expect(items[0].program == "/bin/x")
+    }
+
+    @Test func malformedShortcutKeepsItem() throws {
+        let json = #"[{"title":"x","program":"/bin/x","shortcut":"cmd+bogus"}]"#
+        let items = try UserMenuStore.decode(Data(json.utf8))
+        #expect(items.count == 1)
+        #expect(items[0].shortcut == nil)
+    }
+
+    @Test func commandForChordSearchesSubmenusFirstMatchWins() {
+        let chord = KeyChord(.character("g"), [.control, .option])
+        let other = KeyChord(.function(4), .control)
+        let nested = UserMenuItem(title: "nested", program: "/bin/n", shortcut: chord)
+        let later = UserMenuItem(title: "later", program: "/bin/l", shortcut: chord)
+        let items = [
+            UserMenuItem(title: "plain", program: "/bin/p"),
+            UserMenuItem(kind: .separator),
+            UserMenuItem(kind: .submenu, title: "Sub", children: [
+                UserMenuItem(title: "deep", program: "/bin/d", shortcut: other),
+                nested,
+            ]),
+            later,
+        ]
+        #expect(UserMenuStore.commands(in: items).map(\.title) == ["plain", "deep", "nested", "later"])
+        #expect(UserMenuStore.command(for: chord, in: items)?.id == nested.id)
+        #expect(UserMenuStore.command(for: other, in: items)?.title == "deep")
+        #expect(UserMenuStore.command(for: KeyChord(.function(9)), in: items) == nil)
+    }
+
+    @Test func plainCharactersAreNotAssignable() {
+        #expect(!UserMenuStore.isAssignable(KeyChord(.character("a"))))
+        #expect(!UserMenuStore.isAssignable(KeyChord(.character("5"), .shift)))
+        #expect(UserMenuStore.isAssignable(KeyChord(.character("a"), .command)))
+        #expect(UserMenuStore.isAssignable(KeyChord(.character("1"), .control)))
+        #expect(UserMenuStore.isAssignable(KeyChord(.character("x"), [.option, .shift])))
+        #expect(UserMenuStore.isAssignable(KeyChord(.function(3))))
+        #expect(UserMenuStore.isAssignable(KeyChord(.enter, .shift)))
+    }
 }
