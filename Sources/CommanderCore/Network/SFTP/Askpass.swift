@@ -115,10 +115,11 @@ final class AskpassServer: Sendable {
         if base.utf8.count + 24 > 100 { base = "/tmp/" }
         if !base.hasSuffix("/") { base += "/" }
         var template = Array((base + "icmd-ap-XXXXXX").utf8CString)
-        guard let made = mkdtemp(&template) else {
+        // mkdtemp fills in `template`; its return value points into a temporary copy.
+        guard mkdtemp(&template) != nil else {
             throw RemoteError.connectionFailed("askpass directory: \(String(cString: strerror(errno)))")
         }
-        let dir = String(cString: made)
+        let dir = String(decoding: template.prefix { $0 != 0 }.map { UInt8(bitPattern: $0) }, as: UTF8.self)
         chmod(dir, 0o700)
         return dir
     }

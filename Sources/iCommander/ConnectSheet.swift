@@ -89,7 +89,7 @@ struct ConnectSheet: View {
                 Form {
                     TextField("Address:", text: $address, prompt: Text(verbatim: "sftp://user@server/path"))
                         .focused($addressFocused)
-                        .onSubmit(applyAddress)
+                        .onSubmit { applyAddress(); connect() }
                         .onChange(of: address) { _, _ in applyAddress() }
                     Divider()
                     TextField("Name:", text: $draft.name, prompt: Text("Optional"))

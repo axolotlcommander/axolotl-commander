@@ -192,6 +192,8 @@ private func connectFailure(_ script: String) async -> (any Error)? {
     @Test func serverCleansUpItsDirectory() throws {
         let server = try AskpassServer { _ in "x" }
         let dir = (server.socketPath as NSString).deletingLastPathComponent
+        #expect((dir as NSString).lastPathComponent.hasPrefix("icmd-ap-"))
+        #expect(dir.hasPrefix(NSTemporaryDirectory()) || dir.hasPrefix("/tmp/"))
         #expect(FileManager.default.fileExists(atPath: server.socketPath))
         server.stop()
         // The cancel handler runs asynchronously on the server queue.
