@@ -7,6 +7,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
     private var settingsWindow: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // The commander has its own panel tabs; system window tabs would only confuse the Window menu.
+        NSWindow.allowsAutomaticWindowTabbing = false
         NSApp.mainMenu = MainMenuBuilder.build()
         MainMenuBuilder.trackKeyWindow()
         let controller = MainWindowController()
