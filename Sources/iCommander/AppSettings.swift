@@ -60,5 +60,21 @@ extension SystemColor {
         }
     }
 
-    var title: String { rawValue.prefix(1).uppercased() + rawValue.dropFirst() }
+    var title: String {
+        switch self {
+        case .red: String(localized: "Red")
+        case .orange: String(localized: "Orange")
+        case .yellow: String(localized: "Yellow")
+        case .green: String(localized: "Green")
+        case .mint: String(localized: "Mint")
+        case .teal: String(localized: "Teal")
+        case .cyan: String(localized: "Cyan")
+        case .blue: String(localized: "Blue")
+        case .indigo: String(localized: "Indigo")
+        case .purple: String(localized: "Purple")
+        case .pink: String(localized: "Pink")
+        case .brown: String(localized: "Brown")
+        case .gray: String(localized: "Gray")
+        }
+    }
 }

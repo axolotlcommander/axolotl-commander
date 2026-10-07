@@ -50,7 +50,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         if let tab { UserDefaults.standard.set(tab.rawValue, forKey: "settings.tab") }
         if settingsWindow == nil {
             let window = NSWindow(contentViewController: NSHostingController(rootView: SettingsView()))
-            window.title = "Settings"
+            window.title = String(localized: "Settings")
             window.styleMask = [.titled, .closable]
             window.isReleasedWhenClosed = false
             window.center()

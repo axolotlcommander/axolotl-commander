@@ -27,7 +27,7 @@ final class CommandLineBar: NSView, NSTextFieldDelegate {
         prompt.setContentHuggingPriority(.required, for: .horizontal)
 
         field.font = font
-        field.placeholderString = "Command"
+        field.placeholderString = String(localized: "Command")
         field.bezelStyle = .roundedBezel
         field.cell?.isScrollable = true
         field.cell?.wraps = false

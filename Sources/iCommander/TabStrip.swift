@@ -48,8 +48,8 @@ final class TabStrip: NSView {
 
     private func contextMenu(for index: Int) -> NSMenu {
         let menu = NSMenu()
-        for (title, action) in [("New Tab", #selector(newTab(_:))), ("Close Tab", #selector(closeTab(_:))),
-                                ("Close Other Tabs", #selector(closeOtherTabs(_:)))] {
+        for (title, action) in [(String(localized: "New Tab"), #selector(newTab(_:))), (String(localized: "Close Tab"), #selector(closeTab(_:))),
+                                (String(localized: "Close Other Tabs"), #selector(closeOtherTabs(_:)))] {
             if action == #selector(closeTab(_:)) { menu.addItem(.separator()) }
             let item = NSMenuItem(title: title, action: action, keyEquivalent: "")
             item.target = self
@@ -89,12 +89,12 @@ private final class TabButton: NSView {
             label.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -18),
         ]
         if isActive && canClose {
-            let close = NSButton(image: NSImage(systemSymbolName: "xmark", accessibilityDescription: "Close Tab")!,
+            let close = NSButton(image: NSImage(systemSymbolName: "xmark", accessibilityDescription: String(localized: "Close Tab"))!,
                                  target: self, action: #selector(closeClicked))
             close.isBordered = false
             close.imageScaling = .scaleProportionallyDown
             close.refusesFirstResponder = true
-            close.toolTip = "Close Tab (⌃⇧W)"
+            close.toolTip = String(localized: "Close Tab (⌃⇧W)")
             close.translatesAutoresizingMaskIntoConstraints = false
             addSubview(close)
             constraints += [

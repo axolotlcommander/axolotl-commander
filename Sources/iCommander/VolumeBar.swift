@@ -62,7 +62,7 @@ final class VolumeBar: NSView {
             button.image = icon
             button.imagePosition = .imageLeading
             button.refusesFirstResponder = true
-            button.toolTip = volume.availableCapacity.map { "\(volume.url.path) — \(Format.bytes($0)) free" } ?? volume.url.path
+            button.toolTip = volume.availableCapacity.map { String(localized: "\(volume.url.path) — \(Format.bytes($0)) free") } ?? volume.url.path
             button.lineBreakMode = .byTruncatingTail
             button.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
             stack.addArrangedSubview(button)

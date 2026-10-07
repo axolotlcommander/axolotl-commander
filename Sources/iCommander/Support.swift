@@ -24,11 +24,11 @@ enum Format {
 
     static func error(_ error: any Error) -> String {
         switch error as? PathError {
-        case .empty?: "Enter a path."
-        case .tooLong?: "The path is too long; nothing was changed."
-        case .nameTooLong(let name)?: "The name “\(name.prefix(40))…” is too long."
-        case .notFound?: "The folder does not exist."
-        case .notADirectory?: "The path is not a folder."
+        case .empty?: String(localized: "Enter a path.")
+        case .tooLong?: String(localized: "The path is too long; nothing was changed.")
+        case .nameTooLong(let name)?: String(localized: "The name “\(name.prefix(40))…” is too long.")
+        case .notFound?: String(localized: "The folder does not exist.")
+        case .notADirectory?: String(localized: "The path is not a folder.")
         case nil: error.localizedDescription
         }
     }
@@ -43,7 +43,7 @@ enum IconCache {
         let make: () -> NSImage
         if item.isParent {
             key = "#parent"
-            make = { NSImage(systemSymbolName: "arrow.turn.left.up", accessibilityDescription: "Parent folder")! }
+            make = { NSImage(systemSymbolName: "arrow.turn.left.up", accessibilityDescription: String(localized: "Parent folder"))! }
         } else if item.isPackage {
             key = item.url.path
             make = { NSWorkspace.shared.icon(forFile: item.url.path) }
@@ -69,8 +69,8 @@ enum TextPrompt {
         let alert = NSAlert()
         alert.messageText = title
         alert.informativeText = message
-        alert.addButton(withTitle: "OK")
-        alert.addButton(withTitle: "Cancel")
+        alert.addButton(withTitle: String(localized: "OK"))
+        alert.addButton(withTitle: String(localized: "Cancel"))
         let field = NSTextField(string: initial)
         field.frame = NSRect(x: 0, y: 0, width: 300, height: 24)
         alert.accessoryView = field

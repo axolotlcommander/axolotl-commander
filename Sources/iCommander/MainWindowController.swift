@@ -259,8 +259,8 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         right.model.setSelection(names: result.right)
         if result.isIdentical {
             let alert = NSAlert()
-            alert.messageText = "The folders match"
-            alert.informativeText = "Both panels contain the same files."
+            alert.messageText = String(localized: "The folders match")
+            alert.informativeText = String(localized: "Both panels contain the same files.")
             if let window { alert.beginSheetModal(for: window) }
         }
     }
@@ -354,7 +354,8 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         if command == .toggleHidden { menuItem.state = activePanel.showsHidden ? .on : .off }
         if command == .viewModeDetailed { menuItem.state = activePanel.viewMode == .detailed ? .on : .off }
         if command == .viewModeBrief { menuItem.state = activePanel.viewMode == .brief ? .on : .off }
-        if command == .maximizePanel { menuItem.title = maximizedSide == nil ? "Maximize Panel" : "Restore Panels" }
+        if command == .maximizePanel { menuItem.title = maximizedSide == nil ? CommandRegistry.spec(.maximizePanel).localizedTitle
+                                                  : String(localized: "Restore Panels") }
         return canPerform(command)
     }
 }

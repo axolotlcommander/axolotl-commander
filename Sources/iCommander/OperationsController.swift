@@ -82,8 +82,7 @@ final class OperationsController {
 
     func transfer(_ kind: TransferKind, sources: [URL], from panel: PanelViewController, to destination: URL? = nil) {
         guard !isBusy, !sources.isEmpty else { return }
-        let names = sources.count == 1 ? "“\(sources[0].lastPathComponent)”" : "\(sources.count) items"
-        let verb = kind == .copy ? "Copy" : "Move"
+        let names = Self.describe(sources)
         if let destination {
             run(kind, sources: sources, destination: destination, mask: "*.*", panel: panel)
             return
@@ -94,7 +93,7 @@ final class OperationsController {
             if let sheetWindow { self?.window?.endSheet(sheetWindow) }
         }
         let sheet = TransferSheet(
-            title: "\(verb) \(names) to:",
+            title: kind == .copy ? String(localized: "Copy \(names) to:") : String(localized: "Move \(names) to:"),
             destination: other.model.location.displayPath,
             mask: "*.*",
             onDone: { [weak self] path, mask in
@@ -114,7 +113,7 @@ final class OperationsController {
     }
 
     private func run(_ kind: TransferKind, sources: [URL], destination: URL, mask: String, panel: PanelViewController) {
-        let state = OperationState(title: kind == .copy ? "Copying…" : "Moving…")
+        let state = OperationState(title: kind == .copy ? String(localized: "Copying…") : String(localized: "Moving…"))
         let request = TransferRequest(kind: kind, sources: sources, destinationDirectory: destination, nameMask: mask)
         perform(state) { [operations] in
             let report = try await operations.transfer(
@@ -122,8 +121,8 @@ final class OperationsController {
                 progress: { p in Task { @MainActor in state.progress = p } },
                 conflict: { conflict in await self.askConflict(conflict) })
             if !report.keptSources.isEmpty {
-                await self.inform("Some sources were kept",
-                                  "\(report.keptSources.count) item(s) were copied but not removed, because they contain a link to a folder or could not be checked completely.")
+                await self.inform(String(localized: "Some sources were kept"),
+                                  String(localized: "\(report.keptSources.count) item(s) were copied but not removed, because they contain a link to a folder or could not be checked completely."))
             }
             panel.model.deselectAll()
         }
@@ -132,12 +131,13 @@ final class OperationsController {
     @MainActor
     private func askConflict(_ conflict: Conflict) async -> ConflictResolution {
         let alert = NSAlert()
-        alert.messageText = "“\(conflict.destination.name)” already exists."
-        alert.informativeText = """
-            Existing: \(Format.bytes(conflict.destination.size ?? 0)), \(conflict.destination.modificationDate.map(Format.date) ?? "")
-            New: \(Format.bytes(conflict.source.size ?? 0)), \(conflict.source.modificationDate.map(Format.date) ?? "")
-            """
-        for title in ["Overwrite", "Overwrite All", "Skip", "Skip All", "Cancel"] { alert.addButton(withTitle: title) }
+        alert.messageText = String(localized: "“\(conflict.destination.name)” already exists.")
+        let existing = String(localized: "Existing: \(Format.bytes(conflict.destination.size ?? 0)), \(conflict.destination.modificationDate.map(Format.date) ?? "")")
+        let new = String(localized: "New: \(Format.bytes(conflict.source.size ?? 0)), \(conflict.source.modificationDate.map(Format.date) ?? "")")
+        alert.informativeText = existing + "\n" + new
+        let buttons = [String(localized: "Overwrite"), String(localized: "Overwrite All"), String(localized: "Skip"),
+                       String(localized: "Skip All"), String(localized: "Cancel")]
+        for title in buttons { alert.addButton(withTitle: title) }
         alert.buttons.last?.keyEquivalent = "\u{1b}"
         guard let window else { return .cancel }
         let response = await alert.beginSheetModal(for: window)
@@ -155,21 +155,21 @@ final class OperationsController {
     func delete(_ urls: [URL], permanently: Bool) {
         guard !isBusy, !urls.isEmpty else { return }
         Task {
-            let names = urls.count == 1 ? "“\(urls[0].lastPathComponent)”" : "\(urls.count) items"
+            let names = Self.describe(urls)
             let alert = NSAlert()
             alert.alertStyle = permanently ? .critical : .warning
-            alert.messageText = permanently ? "Delete \(names) immediately?" : "Move \(names) to the Trash?"
-            alert.informativeText = permanently ? "This can’t be undone." : "You can put them back from the Trash."
-            let confirm = alert.addButton(withTitle: permanently ? "Delete" : "Move to Trash")
+            alert.messageText = permanently ? String(localized: "Delete \(names) immediately?") : String(localized: "Move \(names) to the Trash?")
+            alert.informativeText = permanently ? String(localized: "This can’t be undone.") : String(localized: "You can put them back from the Trash.")
+            let confirm = alert.addButton(withTitle: permanently ? String(localized: "Delete") : String(localized: "Move to Trash"))
             confirm.hasDestructiveAction = permanently
-            alert.addButton(withTitle: "Cancel")
+            alert.addButton(withTitle: String(localized: "Cancel"))
             if permanently {
                 // Return must not delete by accident: Cancel is the default.
                 confirm.keyEquivalent = ""
                 alert.buttons[1].keyEquivalent = "\r"
             }
             guard let window, await alert.beginSheetModal(for: window) == .alertFirstButtonReturn else { return }
-            let state = OperationState(title: permanently ? "Deleting…" : "Moving to Trash…")
+            let state = OperationState(title: permanently ? String(localized: "Deleting…") : String(localized: "Moving to Trash…"))
             perform(state) { [operations] in
                 if permanently {
                     try await operations.deletePermanently(urls, progress: { p in Task { @MainActor in state.progress = p } })
@@ -184,7 +184,8 @@ final class OperationsController {
 
     func makeDirectory(in panel: PanelViewController) {
         Task {
-            guard let name = await TextPrompt.ask(title: "New Folder", message: "Name:", initial: "", in: window),
+            guard let name = await TextPrompt.ask(title: String(localized: "New Folder"), message: String(localized: "Name:"),
+                                           initial: "", in: window),
                   !name.isEmpty else { return }
             do {
                 let url = try await operations.makeDirectory(named: name, in: panel.model.location)
@@ -244,20 +245,25 @@ final class OperationsController {
     }
 
     func report(_ error: any Error) {
-        Task { await inform("The operation could not be completed.", OperationsController.describe(error)) }
+        Task { await inform(String(localized: "The operation could not be completed."), OperationsController.describe(error)) }
+    }
+
+    /// Quoted name of a single item, or the item count.
+    private static func describe(_ urls: [URL]) -> String {
+        urls.count == 1 ? "“\(urls[0].lastPathComponent)”" : String(localized: "\(urls.count) items")
     }
 
     static func describe(_ error: any Error) -> String {
         switch error as? OperationError {
-        case .sameFile(let url)?: "“\(url.lastPathComponent)” would be copied onto itself."
-        case .intoItself(let url)?: "“\(url.lastPathComponent)” can’t be copied or moved into itself."
-        case .identityUnknown(let url)?: "Can’t verify that “\(url.lastPathComponent)” is a different file; nothing was removed."
-        case .sourceKeptBecauseOfLink(let url)?: "“\(url.lastPathComponent)” was kept because it contains a link to a folder."
-        case .alreadyExists(let url)?: "“\(url.lastPathComponent)” already exists."
-        case .invalidName(let name)?: "“\(name)” is not a valid name."
+        case .sameFile(let url)?: String(localized: "“\(url.lastPathComponent)” would be copied onto itself.")
+        case .intoItself(let url)?: String(localized: "“\(url.lastPathComponent)” can’t be copied or moved into itself.")
+        case .identityUnknown(let url)?: String(localized: "Can’t verify that “\(url.lastPathComponent)” is a different file; nothing was removed.")
+        case .sourceKeptBecauseOfLink(let url)?: String(localized: "“\(url.lastPathComponent)” was kept because it contains a link to a folder.")
+        case .alreadyExists(let url)?: String(localized: "“\(url.lastPathComponent)” already exists.")
+        case .invalidName(let name)?: String(localized: "“\(name)” is not a valid name.")
         case .path(let e)?: Format.error(e)
         case .io(let message)?: message
-        case .cancelled?: "Cancelled."
+        case .cancelled?: String(localized: "Cancelled.")
         case nil: Format.error(error)
         }
     }

@@ -6,10 +6,10 @@ enum GoToFolder {
     /// Returns the entered text, or nil on Cancel / Esc.
     static func ask(initial: String, in window: NSWindow?) async -> String? {
         let alert = NSAlert()
-        alert.messageText = "Go to Folder"
-        alert.informativeText = "Path (absolute, relative to this folder, or starting with ~):"
-        alert.addButton(withTitle: "Go")
-        alert.addButton(withTitle: "Cancel")
+        alert.messageText = String(localized: "Go to Folder")
+        alert.informativeText = String(localized: "Path (absolute, relative to this folder, or starting with ~):")
+        alert.addButton(withTitle: String(localized: "Go"))
+        alert.addButton(withTitle: String(localized: "Cancel"))
         let combo = NSComboBox(frame: NSRect(x: 0, y: 0, width: 380, height: 26))
         combo.stringValue = initial
         combo.addItems(withObjectValues: AppSettings.shared.recentPaths.paths)

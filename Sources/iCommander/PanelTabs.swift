@@ -101,12 +101,12 @@ extension PanelViewController {
             menu.addItem(item)
         }
         if hotPaths.defined.isEmpty {
-            let empty = NSMenuItem(title: "No Hot Paths", action: nil, keyEquivalent: "")
+            let empty = NSMenuItem(title: String(localized: "No Hot Paths"), action: nil, keyEquivalent: "")
             empty.isEnabled = false
             menu.addItem(empty)
         }
         menu.addItem(.separator())
-        let add = NSMenuItem(title: "Add Current Folder", action: #selector(addCurrentHotPath), keyEquivalent: "")
+        let add = NSMenuItem(title: String(localized: "Add Current Folder"), action: #selector(addCurrentHotPath), keyEquivalent: "")
         add.target = self
         menu.addItem(add)
         let setMenu = NSMenu()
@@ -119,10 +119,10 @@ extension PanelViewController {
             item.tag = slot
             setMenu.addItem(item)
         }
-        let set = NSMenuItem(title: "Set Current Folder As", action: nil, keyEquivalent: "")
+        let set = NSMenuItem(title: String(localized: "Set Current Folder As"), action: nil, keyEquivalent: "")
         set.submenu = setMenu
         menu.addItem(set)
-        let edit = NSMenuItem(title: "Edit Hot Paths…", action: #selector(editHotPaths), keyEquivalent: "")
+        let edit = NSMenuItem(title: String(localized: "Edit Hot Paths…"), action: #selector(editHotPaths), keyEquivalent: "")
         edit.target = self
         menu.addItem(edit)
         menu.popUp(positioning: nil, at: NSPoint(x: 0, y: pathField.bounds.height + 2), in: pathField)
@@ -135,17 +135,17 @@ extension PanelViewController {
     @objc private func addCurrentHotPath() {
         let path = model.location.displayPath
         if let slot = AppSettings.shared.hotPaths.add(HotPath(path: path)) {
-            statusField.stringValue = "Hot path \(slot + 1): \(path)"
+            statusField.stringValue = String(localized: "Hot path \(slot + 1): \(path)")
         } else {
             NSSound.beep()
-            statusField.stringValue = "All \(HotPaths.capacity) hot paths are in use."
+            statusField.stringValue = String(localized: "All \(HotPaths.capacity) hot paths are in use.")
         }
     }
 
     func goToHotPath(_ slot: Int) {
         guard let hotPath = AppSettings.shared.hotPaths[slot] else {
             NSSound.beep()
-            statusField.stringValue = "Hot path \(slot + 1) is not set — ⌃⇧\(HotPaths.digit(forSlot: slot) ?? 0) saves this folder."
+            statusField.stringValue = String(localized: "Hot path \(slot + 1) is not set — ⌃⇧\(HotPaths.digit(forSlot: slot) ?? 0) saves this folder.")
             return
         }
         do {
@@ -160,7 +160,7 @@ extension PanelViewController {
     func setHotPath(_ slot: Int) {
         let path = model.location.displayPath
         AppSettings.shared.hotPaths.set(slot, HotPath(path: path))
-        statusField.stringValue = "Hot path \(slot + 1) (⌃\(HotPaths.digit(forSlot: slot) ?? 0)): \(path)"
+        statusField.stringValue = String(localized: "Hot path \(slot + 1) (⌃\(HotPaths.digit(forSlot: slot) ?? 0)): \(path)")
     }
 
     // MARK: Go to Folder

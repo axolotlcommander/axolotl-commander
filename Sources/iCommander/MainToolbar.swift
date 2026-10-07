@@ -55,7 +55,7 @@ extension MainWindowController: NSToolbarDelegate, NSToolbarItemValidation {
         guard let command = MainToolbar.command(itemIdentifier) else { return nil }
         let spec = CommandRegistry.spec(command)
         let item = NSToolbarItem(itemIdentifier: itemIdentifier)
-        let title = spec.title.replacingOccurrences(of: "…", with: "")
+        let title = spec.localizedTitle.replacingOccurrences(of: "…", with: "")
         item.label = title
         item.paletteLabel = title
         let shortcut = spec.chords.first.map { " (\($0.description))" } ?? ""

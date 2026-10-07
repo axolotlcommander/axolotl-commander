@@ -268,18 +268,18 @@ final class PanelViewController: NSViewController {
             return
         }
         if let quickSearch {
-            statusField.stringValue = "Quick search: \(quickSearch)"
+            statusField.stringValue = String(localized: "Quick search: \(quickSearch)")
             return
         }
         let s = model.summary
         if s.files + s.directories > 0 {
-            statusField.stringValue = "Selected \(s.files) files, \(s.directories) folders — \(Format.bytes(s.bytes))"
+            statusField.stringValue = String(localized: "Selected \(s.files) files, \(s.directories) folders — \(Format.bytes(s.bytes))")
         } else if let item = model.cursorItem, !item.isParent {
-            let size = item.isDirectory ? (model.directorySizes[model.rules.key(item.name)].map(Format.bytes) ?? "folder") : Format.bytes(item.size ?? 0)
+            let size = item.isDirectory ? (model.directorySizes[model.rules.key(item.name)].map(Format.bytes) ?? String(localized: "folder")) : Format.bytes(item.size ?? 0)
             statusField.stringValue = "\(item.name)   \(size)   \(item.modificationDate.map(Format.date) ?? "")"
         } else {
             let t = model.totals
-            statusField.stringValue = "\(t.files) files, \(t.directories) folders — \(Format.bytes(t.bytes))"
+            statusField.stringValue = String(localized: "\(t.files) files, \(t.directories) folders — \(Format.bytes(t.bytes))")
         }
     }
 
@@ -451,9 +451,9 @@ final class PanelViewController: NSViewController {
             }
             model.toggleSelection(at: model.cursor)
             model.moveCursor(by: 1)
-        case .selectByMask: Task { await askMask(title: "Select", action: { self.model.select(mask: $0, true) }) }
-        case .deselectByMask: Task { await askMask(title: "Deselect", action: { self.model.select(mask: $0, false) }) }
-        case .invertByMask: Task { await askMask(title: "Invert Selection", action: { self.model.invertSelection(mask: $0) }) }
+        case .selectByMask: Task { await askMask(title: String(localized: "Select"), action: { self.model.select(mask: $0, true) }) }
+        case .deselectByMask: Task { await askMask(title: String(localized: "Deselect"), action: { self.model.select(mask: $0, false) }) }
+        case .invertByMask: Task { await askMask(title: String(localized: "Invert Selection"), action: { self.model.invertSelection(mask: $0) }) }
         case .selectAll: model.selectAll()
         case .deselectAll: model.deselectAll()
         case .selectSameExtension: model.selectSameExtension(true)
@@ -551,7 +551,7 @@ final class PanelViewController: NSViewController {
             for (index, item) in items.enumerated() {
                 if Task.isCancelled { break }
                 if items.count > 1 {
-                    sizingProgress = "Calculating folder sizes: \(index + 1) of \(items.count) — Esc stops"
+                    sizingProgress = String(localized: "Calculating folder sizes: \(index + 1) of \(items.count) — Esc stops")
                     updateStatus()
                 }
                 await model.calculateSize(of: item)
@@ -624,13 +624,14 @@ final class PanelViewController: NSViewController {
     // MARK: Prompts
 
     private func askMask(title: String, action: @escaping (WildcardMask) -> Void) async {
-        guard let text = await TextPrompt.ask(title: title, message: "Mask (e.g. *.txt;*.md):",
+        guard let text = await TextPrompt.ask(title: title, message: String(localized: "Mask (e.g. *.txt;*.md):"),
                                               initial: "*.*", in: view.window) else { return }
         action(WildcardMask(text))
     }
 
     private func askFilter() async {
-        guard let text = await TextPrompt.ask(title: "Filter", message: "Show only names matching (empty shows all):",
+        guard let text = await TextPrompt.ask(title: String(localized: "Filter"),
+                                              message: String(localized: "Show only names matching (empty shows all):"),
                                               initial: model.filter?.pattern ?? "*.*", in: view.window) else { return }
         let trimmed = text.trimmingCharacters(in: .whitespaces)
         model.filter = trimmed.isEmpty || trimmed == "*.*" || trimmed == "*" ? nil : WildcardMask(trimmed)
@@ -641,13 +642,13 @@ final class PanelViewController: NSViewController {
     private func showVolumeMenu() {
         let menu = NSMenu()
         for volume in Volumes.mounted() {
-            let title = volume.availableCapacity.map { "\(volume.name)  —  \(Format.bytes($0)) free" } ?? volume.name
+            let title = volume.availableCapacity.map { String(localized: "\(volume.name)  —  \(Format.bytes($0)) free") } ?? volume.name
             menu.addItem(placeItem(title, volume.url, icon: NSWorkspace.shared.icon(forFile: volume.url.path)))
         }
         menu.addItem(.separator())
         let fm = FileManager.default
         let home = fm.homeDirectoryForCurrentUser
-        menu.addItem(placeItem("Home", home, icon: NSImage(systemSymbolName: "house", accessibilityDescription: nil)))
+        menu.addItem(placeItem(String(localized: "Home"), home, icon: NSImage(systemSymbolName: "house", accessibilityDescription: nil)))
         for (dir, symbol) in [(FileManager.SearchPathDirectory.desktopDirectory, "menubar.dock.rectangle"),
                               (.documentDirectory, "doc"), (.downloadsDirectory, "arrow.down.circle"),
                               (.applicationDirectory, "square.grid.2x2")] {
@@ -657,9 +658,9 @@ final class PanelViewController: NSViewController {
         }
         let iCloud = home.appending(path: "Library/Mobile Documents/com~apple~CloudDocs", directoryHint: .isDirectory)
         if fm.fileExists(atPath: iCloud.path) {
-            menu.addItem(placeItem("iCloud Drive", iCloud, icon: NSImage(systemSymbolName: "icloud", accessibilityDescription: nil)))
+            menu.addItem(placeItem(String(localized: "iCloud Drive"), iCloud, icon: NSImage(systemSymbolName: "icloud", accessibilityDescription: nil)))
         }
-        menu.addItem(placeItem("Network Volumes", URL(filePath: "/Volumes", directoryHint: .isDirectory),
+        menu.addItem(placeItem(String(localized: "Network Volumes"), URL(filePath: "/Volumes", directoryHint: .isDirectory),
                                icon: NSImage(systemSymbolName: "network", accessibilityDescription: nil)))
         menu.popUp(positioning: nil, at: NSPoint(x: 0, y: pathField.bounds.height + 2), in: pathField)
     }
@@ -734,10 +735,10 @@ private enum Column: String, CaseIterable {
     var identifier: NSUserInterfaceItemIdentifier { .init(rawValue) }
     var title: String {
         switch self {
-        case .name: "Name"
-        case .ext: "Ext"
-        case .size: "Size"
-        case .date: "Date"
+        case .name: String(localized: "Name")
+        case .ext: String(localized: "Ext")
+        case .size: String(localized: "Size")
+        case .date: String(localized: "Date")
         }
     }
     var width: CGFloat {

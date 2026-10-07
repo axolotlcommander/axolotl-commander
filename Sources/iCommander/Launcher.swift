@@ -34,7 +34,7 @@ enum Launcher {
 
     enum Failure: LocalizedError {
         case noTerminal
-        var errorDescription: String? { "No terminal application was found." }
+        var errorDescription: String? { String(localized: "No terminal application was found.") }
     }
 
     /// New terminal window in `directory`.

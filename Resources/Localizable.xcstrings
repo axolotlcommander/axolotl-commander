@@ -1,0 +1,2576 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "%@  —  %@ free": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@  –  %@ volných"
+          }
+        }
+      }
+    },
+    "%@ — %@ free": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ – %@ volných"
+          }
+        }
+      }
+    },
+    "%lld files, %lld folders — %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld souborů, %lld složek – %@"
+          }
+        }
+      }
+    },
+    "%lld folders, %lld files": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld složek, %lld souborů"
+          }
+        }
+      }
+    },
+    "%lld item(s) were copied but not removed, because they contain a link to a folder or could not be checked completely.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Položky (%lld) byly zkopírovány, ale nebyly odstraněny, protože obsahují odkaz na složku nebo je nebylo možné zcela zkontrolovat."
+          }
+        }
+      }
+    },
+    "%lld items": {
+      "localizations": {
+        "cs": {
+          "variations": {
+            "plural": {
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld položky"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld položky"
+                }
+              },
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld položku"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld položek"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld of %lld items": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld z %lld položek"
+          }
+        }
+      }
+    },
+    "About iCommander": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O aplikaci iCommander"
+          }
+        }
+      }
+    },
+    "Accessed": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Poslední přístup"
+          }
+        }
+      }
+    },
+    "Add": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přidat"
+          }
+        }
+      }
+    },
+    "Add Current Folder": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přidat aktuální složku"
+          }
+        }
+      }
+    },
+    "All %lld hot paths are in use.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Všech %lld oblíbených cest je obsazeno."
+          }
+        }
+      }
+    },
+    "Any": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Libovolné"
+          }
+        }
+      }
+    },
+    "Appearance": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vzhled"
+          }
+        }
+      }
+    },
+    "Attributes": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atributy"
+          }
+        }
+      }
+    },
+    "Back": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zpět"
+          }
+        }
+      }
+    },
+    "Blue": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modrá"
+          }
+        }
+      }
+    },
+    "Both panels contain the same files.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oba panely obsahují stejné soubory."
+          }
+        }
+      }
+    },
+    "Brief": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stručný"
+          }
+        }
+      }
+    },
+    "Brown": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hnědá"
+          }
+        }
+      }
+    },
+    "Calculate Folder Sizes": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spočítat velikosti složek"
+          }
+        }
+      }
+    },
+    "Calculating folder sizes: %lld of %lld — Esc stops": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Počítám velikosti složek: %lld z %lld – Esc zastaví"
+          }
+        }
+      }
+    },
+    "Calculating…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Počítám…"
+          }
+        }
+      }
+    },
+    "Cancel": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zrušit"
+          }
+        }
+      }
+    },
+    "Cancelled.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zrušeno."
+          }
+        }
+      }
+    },
+    "Can’t verify that “%@” is a different file; nothing was removed.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nelze ověřit, že „%@“ je jiný soubor; nic nebylo odstraněno."
+          }
+        }
+      }
+    },
+    "Clear": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vymazat"
+          }
+        }
+      }
+    },
+    "Close Other Tabs": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zavřít ostatní záložky"
+          }
+        }
+      }
+    },
+    "Close Tab": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zavřít záložku"
+          }
+        }
+      }
+    },
+    "Close Tab (⌃⇧W)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zavřít záložku (⌃⇧W)"
+          }
+        }
+      }
+    },
+    "Close Window": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zavřít okno"
+          }
+        }
+      }
+    },
+    "Color": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Barva"
+          }
+        }
+      }
+    },
+    "Command": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Příkaz"
+          }
+        }
+      }
+    },
+    "Command Line": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Příkazový řádek"
+          }
+        }
+      }
+    },
+    "Commands": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Příkazy"
+          }
+        }
+      }
+    },
+    "Compare": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Porovnat"
+          }
+        }
+      }
+    },
+    "Compare Panels": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Porovnat panely"
+          }
+        }
+      }
+    },
+    "Copy %@ to:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopírovat %@ do:"
+          }
+        }
+      }
+    },
+    "Copy Files": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopírovat soubory"
+          }
+        }
+      }
+    },
+    "Copy Name as Text": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopírovat název jako text"
+          }
+        }
+      }
+    },
+    "Copy Path as Text": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopírovat cestu jako text"
+          }
+        }
+      }
+    },
+    "Copying…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopíruji…"
+          }
+        }
+      }
+    },
+    "Copy…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopírovat…"
+          }
+        }
+      }
+    },
+    "Created": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vytvořeno"
+          }
+        }
+      }
+    },
+    "Cyan": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Azurová"
+          }
+        }
+      }
+    },
+    "Date": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datum"
+          }
+        }
+      }
+    },
+    "Delete": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Smazat"
+          }
+        }
+      }
+    },
+    "Delete %@ immediately?": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Okamžitě smazat %@?"
+          }
+        }
+      }
+    },
+    "Delete Immediately…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Okamžitě smazat…"
+          }
+        }
+      }
+    },
+    "Deleting…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mažu…"
+          }
+        }
+      }
+    },
+    "Deselect": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zrušit výběr"
+          }
+        }
+      }
+    },
+    "Deselect All": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zrušit celý výběr"
+          }
+        }
+      }
+    },
+    "Deselect Same Extension": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zrušit výběr se stejnou příponou"
+          }
+        }
+      }
+    },
+    "Deselect…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zrušit výběr…"
+          }
+        }
+      }
+    },
+    "Detailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Podrobný"
+          }
+        }
+      }
+    },
+    "Document": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dokument"
+          }
+        }
+      }
+    },
+    "Done": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hotovo"
+          }
+        }
+      }
+    },
+    "Edit": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upravit"
+          }
+        }
+      }
+    },
+    "Edit Hot Paths…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upravit oblíbené cesty…"
+          }
+        }
+      }
+    },
+    "Edit Menu": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Úpravy"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit"
+          }
+        }
+      }
+    },
+    "Enclosing Folder": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nadřazená složka"
+          }
+        }
+      }
+    },
+    "Enter a path.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zadejte cestu."
+          }
+        }
+      }
+    },
+    "Existing: %@, %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stávající: %@, %@"
+          }
+        }
+      }
+    },
+    "Ext": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přípona"
+          }
+        }
+      }
+    },
+    "File": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soubor"
+          }
+        }
+      }
+    },
+    "Files only in one panel are always selected. For files in both:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soubory, které jsou jen v jednom panelu, se vždy vyberou. U souborů v obou panelech:"
+          }
+        }
+      }
+    },
+    "Filter": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filtr"
+          }
+        }
+      }
+    },
+    "Filter…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filtr…"
+          }
+        }
+      }
+    },
+    "Find Files…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hledat soubory…"
+          }
+        }
+      }
+    },
+    "Folder": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Složka"
+          }
+        }
+      }
+    },
+    "Folders": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Složky"
+          }
+        }
+      }
+    },
+    "Forward": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vpřed"
+          }
+        }
+      }
+    },
+    "General": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obecné"
+          }
+        }
+      }
+    },
+    "Get Info": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Informace"
+          }
+        }
+      }
+    },
+    "Go": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přejít"
+          }
+        }
+      }
+    },
+    "Go to Folder": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přejít na složku"
+          }
+        }
+      }
+    },
+    "Go to Folder…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přejít na složku…"
+          }
+        }
+      }
+    },
+    "Go to Hot Path 1": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přejít na oblíbenou cestu 1"
+          }
+        }
+      }
+    },
+    "Go to Hot Path 10": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přejít na oblíbenou cestu 10"
+          }
+        }
+      }
+    },
+    "Go to Hot Path 2": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přejít na oblíbenou cestu 2"
+          }
+        }
+      }
+    },
+    "Go to Hot Path 3": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přejít na oblíbenou cestu 3"
+          }
+        }
+      }
+    },
+    "Go to Hot Path 4": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přejít na oblíbenou cestu 4"
+          }
+        }
+      }
+    },
+    "Go to Hot Path 5": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přejít na oblíbenou cestu 5"
+          }
+        }
+      }
+    },
+    "Go to Hot Path 6": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přejít na oblíbenou cestu 6"
+          }
+        }
+      }
+    },
+    "Go to Hot Path 7": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přejít na oblíbenou cestu 7"
+          }
+        }
+      }
+    },
+    "Go to Hot Path 8": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přejít na oblíbenou cestu 8"
+          }
+        }
+      }
+    },
+    "Go to Hot Path 9": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přejít na oblíbenou cestu 9"
+          }
+        }
+      }
+    },
+    "Gray": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Šedá"
+          }
+        }
+      }
+    },
+    "Green": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zelená"
+          }
+        }
+      }
+    },
+    "Help": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nápověda"
+          }
+        }
+      }
+    },
+    "Hidden": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skrytý"
+          }
+        }
+      }
+    },
+    "Hide iCommander": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skrýt iCommander"
+          }
+        }
+      }
+    },
+    "Highlighting — the first matching rule from the top wins:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zvýrazňování – platí první odpovídající pravidlo shora:"
+          }
+        }
+      }
+    },
+    "Home": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Domů"
+          }
+        }
+      }
+    },
+    "Hot Paths": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oblíbené cesty"
+          }
+        }
+      }
+    },
+    "Hot Paths…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oblíbené cesty…"
+          }
+        }
+      }
+    },
+    "Hot path %lld (⌃%lld): %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oblíbená cesta %lld (⌃%lld): %@"
+          }
+        }
+      }
+    },
+    "Hot path %lld is not set — ⌃⇧%lld saves this folder.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oblíbená cesta %lld není nastavena – ⌃⇧%lld uloží tuto složku."
+          }
+        }
+      }
+    },
+    "Hot path %lld: %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oblíbená cesta %lld: %@"
+          }
+        }
+      }
+    },
+    "Ignore files:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ignorovat soubory:"
+          }
+        }
+      }
+    },
+    "Ignore folders:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ignorovat složky:"
+          }
+        }
+      }
+    },
+    "Indigo": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Indigová"
+          }
+        }
+      }
+    },
+    "Insert Left Path": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vložit cestu levého panelu"
+          }
+        }
+      }
+    },
+    "Insert Name": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vložit název"
+          }
+        }
+      }
+    },
+    "Insert Path": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vložit cestu"
+          }
+        }
+      }
+    },
+    "Insert Right Path": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vložit cestu pravého panelu"
+          }
+        }
+      }
+    },
+    "Invert Selection": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invertovat výběr"
+          }
+        }
+      }
+    },
+    "Invert Selection…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invertovat výběr…"
+          }
+        }
+      }
+    },
+    "Key": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klávesa"
+          }
+        }
+      }
+    },
+    "Keyboard Shortcuts…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klávesové zkratky…"
+          }
+        }
+      }
+    },
+    "Left": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Levý"
+          }
+        }
+      }
+    },
+    "Link to": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odkazuje na"
+          }
+        }
+      }
+    },
+    "Links": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odkazy"
+          }
+        }
+      }
+    },
+    "Locked": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zamčeno"
+          }
+        }
+      }
+    },
+    "Mask (e.g. *.txt;*.md):": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maska (např. *.txt;*.md):"
+          }
+        }
+      }
+    },
+    "Masks": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Masky"
+          }
+        }
+      }
+    },
+    "Maximize Panel": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maximalizovat panel"
+          }
+        }
+      }
+    },
+    "Minimize": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minimalizovat"
+          }
+        }
+      }
+    },
+    "Mint": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mátová"
+          }
+        }
+      }
+    },
+    "Modified": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Změněno"
+          }
+        }
+      }
+    },
+    "Move %@ to the Trash?": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přesunout %@ do koše?"
+          }
+        }
+      }
+    },
+    "Move %@ to:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přesunout %@ do:"
+          }
+        }
+      }
+    },
+    "Move Down": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Posunout dolů"
+          }
+        }
+      }
+    },
+    "Move Up": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Posunout nahoru"
+          }
+        }
+      }
+    },
+    "Move to Trash": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přesunout do koše"
+          }
+        }
+      }
+    },
+    "Move…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přesunout…"
+          }
+        }
+      }
+    },
+    "Moving to Trash…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přesouvám do koše…"
+          }
+        }
+      }
+    },
+    "Moving…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přesouvám…"
+          }
+        }
+      }
+    },
+    "Name": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Název"
+          }
+        }
+      }
+    },
+    "Name mask:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maska názvu:"
+          }
+        }
+      }
+    },
+    "Name:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Název:"
+          }
+        }
+      }
+    },
+    "Network Volumes": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Síťové svazky"
+          }
+        }
+      }
+    },
+    "New File…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nový soubor…"
+          }
+        }
+      }
+    },
+    "New Folder": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nová složka"
+          }
+        }
+      }
+    },
+    "New Folder…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nová složka…"
+          }
+        }
+      }
+    },
+    "New Tab": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nová záložka"
+          }
+        }
+      }
+    },
+    "New: %@, %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nový: %@, %@"
+          }
+        }
+      }
+    },
+    "Next Tab": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Další záložka"
+          }
+        }
+      }
+    },
+    "No": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ne"
+          }
+        }
+      }
+    },
+    "No Hot Paths": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Žádné oblíbené cesty"
+          }
+        }
+      }
+    },
+    "No terminal application was found.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nebyla nalezena žádná aplikace terminálu."
+          }
+        }
+      }
+    },
+    "OK": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK"
+          }
+        }
+      }
+    },
+    "Occupied Space": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obsazené místo"
+          }
+        }
+      }
+    },
+    "On": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zap."
+          }
+        }
+      }
+    },
+    "On disk": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Na disku"
+          }
+        }
+      }
+    },
+    "Open": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otevřít"
+          }
+        }
+      }
+    },
+    "Open Terminal Here": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otevřít Terminál zde"
+          }
+        }
+      }
+    },
+    "Open in Left Panel": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otevřít v levém panelu"
+          }
+        }
+      }
+    },
+    "Open in Right Panel": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otevřít v pravém panelu"
+          }
+        }
+      }
+    },
+    "Options": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volby"
+          }
+        }
+      }
+    },
+    "Orange": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oranžová"
+          }
+        }
+      }
+    },
+    "Overwrite": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přepsat"
+          }
+        }
+      }
+    },
+    "Overwrite All": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přepsat vše"
+          }
+        }
+      }
+    },
+    "Owner": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vlastník"
+          }
+        }
+      }
+    },
+    "Pack…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zabalit…"
+          }
+        }
+      }
+    },
+    "Parent folder": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nadřazená složka"
+          }
+        }
+      }
+    },
+    "Paste Files": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vložit soubory"
+          }
+        }
+      }
+    },
+    "Path": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cesta"
+          }
+        }
+      }
+    },
+    "Path (absolute, relative to this folder, or starting with ~):": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cesta (absolutní, relativní k této složce nebo začínající ~):"
+          }
+        }
+      }
+    },
+    "Permissions": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oprávnění"
+          }
+        }
+      }
+    },
+    "Pink": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Růžová"
+          }
+        }
+      }
+    },
+    "Previous Tab": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Předchozí záložka"
+          }
+        }
+      }
+    },
+    "Purple": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fialová"
+          }
+        }
+      }
+    },
+    "Quick Look": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rychlý náhled"
+          }
+        }
+      }
+    },
+    "Quick search: %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rychlé hledání: %@"
+          }
+        }
+      }
+    },
+    "Quit iCommander": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ukončit iCommander"
+          }
+        }
+      }
+    },
+    "Red": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Červená"
+          }
+        }
+      }
+    },
+    "Refresh": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obnovit"
+          }
+        }
+      }
+    },
+    "Remove": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odebrat"
+          }
+        }
+      }
+    },
+    "Rename": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přejmenovat"
+          }
+        }
+      }
+    },
+    "Restore Defaults": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obnovit výchozí"
+          }
+        }
+      }
+    },
+    "Restore Panels": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obnovit panely"
+          }
+        }
+      }
+    },
+    "Right": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pravý"
+          }
+        }
+      }
+    },
+    "Select": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vybrat"
+          }
+        }
+      }
+    },
+    "Select All": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vybrat vše"
+          }
+        }
+      }
+    },
+    "Select Same Extension": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vybrat se stejnou příponou"
+          }
+        }
+      }
+    },
+    "Select folders found in one panel only": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vybrat složky nalezené jen v jednom panelu"
+          }
+        }
+      }
+    },
+    "Select the larger file": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vybrat větší soubor"
+          }
+        }
+      }
+    },
+    "Select the newer file (date and time)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vybrat novější soubor (datum a čas)"
+          }
+        }
+      }
+    },
+    "Selected %lld files, %lld folders — %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vybráno %lld souborů, %lld složek – %@"
+          }
+        }
+      }
+    },
+    "Selected items:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vybrané položky:"
+          }
+        }
+      }
+    },
+    "Select…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vybrat…"
+          }
+        }
+      }
+    },
+    "Set Current Folder As": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nastavit aktuální složku jako"
+          }
+        }
+      }
+    },
+    "Set Hot Path 1": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nastavit oblíbenou cestu 1"
+          }
+        }
+      }
+    },
+    "Set Hot Path 10": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nastavit oblíbenou cestu 10"
+          }
+        }
+      }
+    },
+    "Set Hot Path 2": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nastavit oblíbenou cestu 2"
+          }
+        }
+      }
+    },
+    "Set Hot Path 3": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nastavit oblíbenou cestu 3"
+          }
+        }
+      }
+    },
+    "Set Hot Path 4": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nastavit oblíbenou cestu 4"
+          }
+        }
+      }
+    },
+    "Set Hot Path 5": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nastavit oblíbenou cestu 5"
+          }
+        }
+      }
+    },
+    "Set Hot Path 6": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nastavit oblíbenou cestu 6"
+          }
+        }
+      }
+    },
+    "Set Hot Path 7": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nastavit oblíbenou cestu 7"
+          }
+        }
+      }
+    },
+    "Set Hot Path 8": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nastavit oblíbenou cestu 8"
+          }
+        }
+      }
+    },
+    "Set Hot Path 9": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nastavit oblíbenou cestu 9"
+          }
+        }
+      }
+    },
+    "Settings": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nastavení"
+          }
+        }
+      }
+    },
+    "Settings…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nastavení…"
+          }
+        }
+      }
+    },
+    "Show All": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zobrazit vše"
+          }
+        }
+      }
+    },
+    "Show Hidden Files": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zobrazit skryté soubory"
+          }
+        }
+      }
+    },
+    "Show in Finder": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zobrazit ve Finderu"
+          }
+        }
+      }
+    },
+    "Show only names matching (empty shows all):": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zobrazit jen názvy odpovídající masce (prázdné zobrazí vše):"
+          }
+        }
+      }
+    },
+    "Size": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Velikost"
+          }
+        }
+      }
+    },
+    "Skip": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přeskočit"
+          }
+        }
+      }
+    },
+    "Skip All": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přeskočit vše"
+          }
+        }
+      }
+    },
+    "Some sources were kept": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Některé zdroje byly ponechány"
+          }
+        }
+      }
+    },
+    "Sort by Date": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seřadit podle data"
+          }
+        }
+      }
+    },
+    "Sort by Extension": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seřadit podle přípony"
+          }
+        }
+      }
+    },
+    "Sort by Name": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seřadit podle názvu"
+          }
+        }
+      }
+    },
+    "Sort by Size": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seřadit podle velikosti"
+          }
+        }
+      }
+    },
+    "Switch Panel": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přepnout panel"
+          }
+        }
+      }
+    },
+    "Teal": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modrozelená"
+          }
+        }
+      }
+    },
+    "Terminal:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terminál:"
+          }
+        }
+      }
+    },
+    "The folder does not exist.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Složka neexistuje."
+          }
+        }
+      }
+    },
+    "The folders match": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Složky se shodují"
+          }
+        }
+      }
+    },
+    "The name “%@…” is too long.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Název „%@…“ je příliš dlouhý."
+          }
+        }
+      }
+    },
+    "The operation could not be completed.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Operaci nelze dokončit."
+          }
+        }
+      }
+    },
+    "The path is not a folder.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cesta není složka."
+          }
+        }
+      }
+    },
+    "The path is too long; nothing was changed.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cesta je příliš dlouhá; nic nebylo změněno."
+          }
+        }
+      }
+    },
+    "This can’t be undone.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tuto akci nelze vrátit zpět."
+          }
+        }
+      }
+    },
+    "To:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Do:"
+          }
+        }
+      }
+    },
+    "Toggle Selection": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přepnout výběr"
+          }
+        }
+      }
+    },
+    "Toggle Selection and Size": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přepnout výběr a velikost"
+          }
+        }
+      }
+    },
+    "Unpack…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rozbalit…"
+          }
+        }
+      }
+    },
+    "Used by Open Terminal Here (⌃/) and by commands typed in the command line.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Používá příkaz Otevřít Terminál zde (⌃/) a příkazy zadané do příkazového řádku."
+          }
+        }
+      }
+    },
+    "User Menu…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uživatelské menu…"
+          }
+        }
+      }
+    },
+    "View": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zobrazit"
+          }
+        }
+      }
+    },
+    "View Menu": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zobrazení"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View"
+          }
+        }
+      }
+    },
+    "Volume Root": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kořen svazku"
+          }
+        }
+      }
+    },
+    "Volume…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Svazek…"
+          }
+        }
+      }
+    },
+    "Where": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Umístění"
+          }
+        }
+      }
+    },
+    "Window": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Okno"
+          }
+        }
+      }
+    },
+    "Working Directories…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pracovní složky…"
+          }
+        }
+      }
+    },
+    "Yellow": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Žlutá"
+          }
+        }
+      }
+    },
+    "Yes": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ano"
+          }
+        }
+      }
+    },
+    "You can put them back from the Trash.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Můžete je vrátit z koše."
+          }
+        }
+      }
+    },
+    "Zoom": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zvětšit/zmenšit"
+          }
+        }
+      }
+    },
+    "e.g. .DS_Store;*.tmp": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "např. .DS_Store;*.tmp"
+          }
+        }
+      }
+    },
+    "e.g. .git;node_modules": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "např. .git;node_modules"
+          }
+        }
+      }
+    },
+    "folder": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "složka"
+          }
+        }
+      }
+    },
+    "iCloud Drive": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iCloud Drive"
+          }
+        }
+      }
+    },
+    "iCommander Help": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nápověda iCommander"
+          }
+        }
+      }
+    },
+    "“%@” already exists.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ již existuje."
+          }
+        }
+      }
+    },
+    "“%@” can’t be copied or moved into itself.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ nelze zkopírovat ani přesunout do sebe sama."
+          }
+        }
+      }
+    },
+    "“%@” is not a valid name.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ není platný název."
+          }
+        }
+      }
+    },
+    "“%@” was kept because it contains a link to a folder.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ byl ponechán, protože obsahuje odkaz na složku."
+          }
+        }
+      }
+    },
+    "“%@” would be copied onto itself.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ by byl zkopírován sám na sebe."
+          }
+        }
+      }
+    },
+    "⇧F9 lists hot paths and saves the current folder.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⇧F9 zobrazí oblíbené cesty a uloží aktuální složku."
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

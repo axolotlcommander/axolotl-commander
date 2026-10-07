@@ -37,7 +37,7 @@ struct PropertiesView: View {
         HStack(spacing: 12) {
             Image(nsImage: icon).resizable().frame(width: 48, height: 48)
             VStack(alignment: .leading, spacing: 2) {
-                Text(items.count == 1 ? items[0].name : "\(items.count) items")
+                Text(items.count == 1 ? items[0].name : String(localized: "\(items.count) items"))
                     .font(.headline).lineLimit(2).textSelection(.enabled)
                 Text(subtitle).foregroundStyle(.secondary)
             }
@@ -50,9 +50,9 @@ struct PropertiesView: View {
     }
 
     private var subtitle: String {
-        if items.count == 1 { return items[0].kind ?? (items[0].isDirectory ? "Folder" : "Document") }
+        if items.count == 1 { return items[0].kind ?? (items[0].isDirectory ? String(localized: "Folder") : String(localized: "Document")) }
         let folders = items.filter { $0.isDirectory && !$0.isPackage }.count
-        return "\(folders) folders, \(items.count - folders) files"
+        return String(localized: "\(folders) folders, \(items.count - folders) files")
     }
 
     @ViewBuilder
@@ -72,7 +72,7 @@ struct PropertiesView: View {
                                                             isSymlink: item.isSymlink)
             + "  " + FileProperties.octal(item.mode))
         row("Owner", [item.owner, item.group].compactMap(\.self).joined(separator: " : "))
-        let flags = [item.isHidden ? "Hidden" : nil, item.isLocked ? "Locked" : nil].compactMap(\.self)
+        let flags = [item.isHidden ? String(localized: "Hidden") : nil, item.isLocked ? String(localized: "Locked") : nil].compactMap(\.self)
         if !flags.isEmpty { row("Attributes", flags.joined(separator: ", ")) }
     }
 
@@ -84,11 +84,11 @@ struct PropertiesView: View {
     }
 
     private var sizeText: String {
-        guard let total else { return "Calculating…" }
+        guard let total else { return String(localized: "Calculating…") }
         return "\(Format.bytes(total)) (\(Format.grouped(total)) bytes)"
     }
 
-    private func row(_ label: String, _ value: String) -> some View {
+    private func row(_ label: LocalizedStringKey, _ value: String) -> some View {
         GridRow {
             Text(label).foregroundStyle(.secondary).gridColumnAlignment(.trailing)
             Text(value).lineLimit(3).truncationMode(.middle)
