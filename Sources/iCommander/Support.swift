@@ -94,3 +94,16 @@ extension URL {
         return path.count > 1 && path.hasSuffix("/") ? String(path.dropLast()) : path
     }
 }
+
+enum PathInput {
+    /// Typed location: a server address (`sftp://…`, any password ignored), a path on the
+    /// server `base` is on, or a local path.
+    static func resolve(_ text: String, relativeTo base: URL) throws -> URL {
+        if let typed = RemoteURL.parse(typed: text) { return typed.location.url }
+        if let remote = RemoteURL.parse(base), !text.hasPrefix("~") {
+            let path = text.hasPrefix("/") ? text : RemotePath.join(remote.path, text)
+            return RemoteURL.make(remote.endpoint, path: RemotePath.normalize(path))
+        }
+        return try PathRules.resolve(text, relativeTo: base)
+    }
+}

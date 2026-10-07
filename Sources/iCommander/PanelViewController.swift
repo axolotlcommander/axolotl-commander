@@ -786,7 +786,7 @@ final class PanelViewController: NSViewController {
         if let urls = pb.readObjects(forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) as? [URL], !urls.isEmpty {
             router?.operations.transfer(.copy, sources: urls, from: self, to: model.location)
         } else if let text = pb.string(forType: .string)?.trimmingCharacters(in: .whitespacesAndNewlines),
-                  let url = try? PathRules.resolve(text, relativeTo: model.location) {
+                  let url = try? PathInput.resolve(text, relativeTo: model.location) {
             go(to: url)
         }
     }
@@ -865,15 +865,8 @@ final class PanelViewController: NSViewController {
             }
             return
         }
-        if let remote = model.remote, !input.hasPrefix("/"), !input.hasPrefix("~") {
-            go(to: RemoteURL.make(remote.endpoint, path: RemotePath.normalize(RemotePath.join(remote.path, input))))
-            return
-        } else if let remote = model.remote, input.hasPrefix("/") {
-            go(to: RemoteURL.make(remote.endpoint, path: RemotePath.normalize(input)))
-            return
-        }
         do {
-            let url = try PathRules.resolve(input, relativeTo: model.location)
+            let url = try PathInput.resolve(input, relativeTo: model.location)
             Task {
                 do {
                     try await model.go(to: url)

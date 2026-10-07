@@ -100,7 +100,7 @@ final class OperationsController {
                 close()
                 guard let self else { return }
                 do {
-                    let url = try PathRules.resolve(path, relativeTo: panel.model.location)
+                    let url = try PathInput.resolve(path, relativeTo: panel.model.location)
                     run(kind, sources: sources, destination: url, mask: mask.isEmpty ? "*.*" : mask, panel: panel)
                 } catch {
                     report(error)

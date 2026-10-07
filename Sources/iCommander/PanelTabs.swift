@@ -151,7 +151,7 @@ extension PanelViewController {
             return
         }
         do {
-            let url = try PathRules.resolve(hotPath.path, relativeTo: model.location)
+            let url = try PathInput.resolve(hotPath.path, relativeTo: model.location)
             Task { await navigate { try await model.go(to: url) } }
         } catch {
             NSSound.beep()
@@ -171,7 +171,7 @@ extension PanelViewController {
     func askGoToFolder() async {
         guard let text = await GoToFolder.ask(initial: "", in: view.window) else { return }
         do {
-            let url = try PathRules.resolve(text, relativeTo: model.location)
+            let url = try PathInput.resolve(text, relativeTo: model.location)
             try await model.go(to: url)
             AppSettings.shared.recentPaths.add(url.displayPath)
         } catch is CancellationError {
