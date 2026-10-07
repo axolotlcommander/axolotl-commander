@@ -5,9 +5,30 @@ import OSLog
 import UniformTypeIdentifiers
 
 /// Table that sends every key through the panel before default handling.
-final class PanelTableView: NSTableView {
+final class PanelTableView: NSTableView, NSServicesMenuRequestor {
     var onKey: ((NSEvent) -> Bool)?
     var onFocus: (() -> Void)?
+    /// Right click: the menu for the row (nil = empty space).
+    var onMenu: ((Int?) -> NSMenu?)?
+    /// Files the Services menu works on.
+    var serviceURLs: (() -> [URL])?
+
+    override func menu(for event: NSEvent) -> NSMenu? {
+        let row = row(at: convert(event.locationInWindow, from: nil))
+        return onMenu?(row >= 0 ? row : nil)
+    }
+
+    override func validRequestor(forSendType sendType: NSPasteboard.PasteboardType?,
+                                 returnType: NSPasteboard.PasteboardType?) -> Any? {
+        if sendType == .fileURL, returnType == nil, serviceURLs?().isEmpty == false { return self }
+        return super.validRequestor(forSendType: sendType, returnType: returnType)
+    }
+
+    func writeSelection(to pboard: NSPasteboard, types: [NSPasteboard.PasteboardType]) -> Bool {
+        guard let urls = serviceURLs?(), !urls.isEmpty else { return false }
+        pboard.clearContents()
+        return pboard.writeObjects(urls.map { $0 as NSURL })
+    }
 
     override func keyDown(with event: NSEvent) {
         if onKey?(event) == true { return }
@@ -119,6 +140,8 @@ final class PanelViewController: NSViewController {
         tableView.setDraggingSourceOperationMask([.copy, .move, .generic], forLocal: false)
         tableView.draggingDestinationFeedbackStyle = .regular
         tableView.onKey = { [weak self] event in self?.handleKey(event) ?? false }
+        tableView.onMenu = { [weak self] row in self?.contextMenu(at: row) }
+        tableView.serviceURLs = { [weak self] in self?.serviceURLs() ?? [] }
         tableView.onFocus = { [weak self] in
             guard let self else { return }
             router?.panelDidBecomeFirstResponder(self)
@@ -410,6 +433,7 @@ final class PanelViewController: NSViewController {
         .newTab, .closeTab, .nextTab, .previousTab, .hotPaths, .viewModeDetailed, .viewModeBrief,
         .find, .pack, .unpack, .connectToServer, .disconnect, .compareFiles,
         .changeCase, .batchRename, .calculateChecksums, .verifyChecksums, .occupiedSpace, .userMenu,
+        .contextMenu, .moveFilesHere,
     ]
 
     private static let needTargets: Set<Command> = [
@@ -419,7 +443,7 @@ final class PanelViewController: NSViewController {
 
     /// Work on files on disk only: not inside archives, not on servers.
     private static let diskOnly: Set<Command> = [
-        .changeCase, .batchRename, .calculateChecksums, .verifyChecksums, .occupiedSpace,
+        .changeCase, .batchRename, .calculateChecksums, .verifyChecksums, .occupiedSpace, .moveFilesHere,
     ]
 
     func canPerform(_ command: Command) -> Bool {
@@ -436,7 +460,7 @@ final class PanelViewController: NSViewController {
         // Find results have no folder of their own to create or paste into.
         case .makeDirectory, .newFile: return model.results == nil
         case .pasteFiles: return model.results == nil && Self.pasteboardHasFilesOrPath
-        case .rename: return viewMode == .detailed && !targets().isEmpty
+        case .moveFilesHere: return model.results == nil && Self.pasteboardHasFiles
         case .edit: return model.cursorItem.map { !$0.isParent && (!$0.isDirectory || $0.isPackage) } ?? false
         case .selectSameExtension, .deselectSameExtension:
             return model.cursorItem.map { !$0.isDirectory && !$0.fileExtension.isEmpty } ?? false
@@ -453,7 +477,7 @@ final class PanelViewController: NSViewController {
         switch command {
         case .newFile, .pasteFiles, .copyFiles, .quickLook, .properties, .pack, .unpack: return false
         case .makeDirectory: return writable
-        case .rename: return writable && viewMode == .detailed && !targets().isEmpty
+        case .rename: return writable && !targets().isEmpty
         case .move, .delete, .deletePermanently: return writable && !targets().isEmpty
         case .edit, .view: return model.cursorItem.map { !$0.isParent && !$0.isDirectory } ?? false
         default: return nil
@@ -526,9 +550,11 @@ final class PanelViewController: NSViewController {
         case .delete, .deletePermanently:
             router?.operations.delete(targets().map(\.url), permanently: command == .deletePermanently)
         case .makeDirectory: router?.operations.makeDirectory(in: self)
-        case .rename: beginRename()
+        case .rename: if viewMode == .detailed { beginRename() } else { Task { await askRename() } }
         case .copyFiles: copyFilesToPasteboard()
         case .pasteFiles: pasteFromPasteboard()
+        case .moveFilesHere: pasteFromPasteboard(move: true)
+        case .contextMenu: showContextMenu()
         case .view: openViewer()
         case .find: if let router { FindWindowController.show(from: router) }
         case .compareFiles: Task { await CompareFiles.ask(from: self) }
@@ -774,6 +800,15 @@ final class PanelViewController: NSViewController {
 
     private var renaming: (row: Int, item: FileItem)?
 
+    /// Brief view has no editable cells: F2 asks for the name in a sheet.
+    private func askRename() async {
+        guard let item = model.cursorItem, !item.isParent else { return }
+        let name = model.results == nil ? item.name : item.url.lastPathComponent
+        guard let newName = await TextPrompt.ask(title: String(localized: "Rename"), message: String(localized: "New name:"),
+                                                 initial: name, in: view.window) else { return }
+        router?.operations.rename(item.url, to: newName, in: self)
+    }
+
     private func beginRename() {
         guard let item = model.cursorItem, !item.isParent,
               let column = tableView.tableColumn(withIdentifier: Column.name.identifier) else { return }
@@ -806,10 +841,12 @@ final class PanelViewController: NSViewController {
 
     // MARK: Pasteboard
 
+    private static var pasteboardHasFiles: Bool {
+        NSPasteboard.general.canReadObject(forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true])
+    }
+
     private static var pasteboardHasFilesOrPath: Bool {
-        let pb = NSPasteboard.general
-        if pb.canReadObject(forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) { return true }
-        return pb.string(forType: .string)?.hasPrefix("/") == true
+        pasteboardHasFiles || NSPasteboard.general.string(forType: .string)?.hasPrefix("/") == true
     }
 
     private func copyFilesToPasteboard() {
@@ -818,11 +855,11 @@ final class PanelViewController: NSViewController {
         pb.writeObjects(targets().map { $0.url as NSURL })
     }
 
-    /// Files on the pasteboard are copied here; a path as text navigates there.
-    private func pasteFromPasteboard() {
+    /// Files on the pasteboard are copied here (moved with ⌘⌥V, as in Finder); a path as text navigates there.
+    private func pasteFromPasteboard(move: Bool = false) {
         let pb = NSPasteboard.general
         if let urls = pb.readObjects(forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) as? [URL], !urls.isEmpty {
-            router?.operations.transfer(.copy, sources: urls, from: self, to: model.location)
+            router?.operations.transfer(move ? .move : .copy, sources: urls, from: self, to: model.location)
         } else if let text = pb.string(forType: .string)?.trimmingCharacters(in: .whitespacesAndNewlines),
                   let url = try? PathInput.resolve(text, relativeTo: model.location, absoluteIsLocal: true) {
             go(to: url)

@@ -21,6 +21,12 @@ final class BriefGridView: NSCollectionView {
         return ok
     }
 
+    var onMenu: ((Int?) -> NSMenu?)?
+
+    override func menu(for event: NSEvent) -> NSMenu? {
+        onMenu?(indexPathForItem(at: convert(event.locationInWindow, from: nil))?.item)
+    }
+
     override func mouseDown(with event: NSEvent) {
         window?.makeFirstResponder(self)
         let point = convert(event.locationInWindow, from: nil)
@@ -96,6 +102,7 @@ extension PanelViewController: NSCollectionViewDataSource {
             guard let self else { return }
             router?.panelDidBecomeFirstResponder(self)
         }
+        briefView.onMenu = { [weak self] index in self?.contextMenu(at: index) }
         briefView.onClick = { [weak self] index, clicks in
             guard let self else { return }
             model.moveCursor(to: index)

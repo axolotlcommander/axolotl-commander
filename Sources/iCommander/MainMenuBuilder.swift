@@ -105,6 +105,11 @@ enum MainMenuBuilder {
             switch id {
             case .app:
                 menu.insertItem(.separator(), at: 2)
+                let services = NSMenuItem(title: String(localized: "Services"), action: nil, keyEquivalent: "")
+                services.submenu = NSMenu()
+                NSApp.servicesMenu = services.submenu
+                menu.insertItem(services, at: 2)
+                menu.insertItem(.separator(), at: 2)
                 menu.insertItem(withTitle: String(localized: "Hide iCommander"), action: #selector(NSApplication.hide(_:)),
                                 keyEquivalent: "h", at: 3)
                 menu.insertItem(withTitle: String(localized: "Show All"), action: #selector(NSApplication.unhideAllApplications(_:)),
@@ -125,6 +130,9 @@ enum MainMenuBuilder {
         }
         return bar
     }
+
+    /// A nil-targeted item for `command`, like in the menu bar (for context menus).
+    static func commandItem(_ command: Command) -> NSMenuItem { item(for: CommandRegistry.spec(command)) }
 
     private static func item(for spec: CommandSpec) -> NSMenuItem {
         let action = standardSelectors[spec.command] ?? #selector(AppDelegate.performCommand(_:))

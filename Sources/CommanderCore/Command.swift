@@ -10,13 +10,14 @@ public enum Command: String, CaseIterable, Hashable, Sendable {
     case changeCase, batchRename
 
     // Edit
-    case copyFiles, pasteFiles, copyFullPath, copyName
+    case copyFiles, pasteFiles, moveFilesHere, copyFullPath, copyName
     case selectByMask, deselectByMask, invertByMask
     case selectAll, deselectAll, selectSameExtension, deselectSameExtension
 
     // View
     case sortByName, sortByExtension, sortByDate, sortBySize
     case filter, refresh, toggleHidden, maximizePanel, comparePanels, calculateSizes
+    case swapPanels, sameFolderAsOther
     case viewModeDetailed, viewModeBrief
 
     // Go (active panel)
@@ -36,7 +37,7 @@ public enum Command: String, CaseIterable, Hashable, Sendable {
     case configureKeys
 
     // Panel-only (no menu item)
-    case open, switchPanel, toggleSelection, toggleSelectionAndSize
+    case open, switchPanel, toggleSelection, toggleSelectionAndSize, contextMenu
     case openInLeftPanel, openInRightPanel
     case focusCommandLine, insertNameToCommandLine, insertPathToCommandLine
     case insertLeftPathToCommandLine, insertRightPathToCommandLine
@@ -162,8 +163,9 @@ public enum CommandRegistry {
         add(.pack, "Pack…", .file, [f(5, o), f(5, [c, o])], sep: true)
         add(.unpack, "Unpack…", .file, [f(6, o), f(6, [c, o])])
 
-        add(.copyFiles, "Copy Files", .edit, [ch("c", m)])
-        add(.pasteFiles, "Paste Files", .edit, [ch("v", m)])
+        add(.copyFiles, "Copy Files", .edit, [ch("c", m), K(.insert, c)])
+        add(.pasteFiles, "Paste Files", .edit, [ch("v", m), K(.insert, s)])
+        add(.moveFilesHere, "Move Files Here", .edit, [ch("v", [m, o])])
         add(.copyFullPath, "Copy Path as Text", .edit, [ch("c", [m, o]), K(.insert, [c, o])])
         add(.copyName, "Copy Name as Text", .edit, [K(.insert, [c, o, s])])
         add(.selectByMask, "Select…", .edit, [K(.numPlus), ch("=", c)], sep: true)
@@ -186,11 +188,13 @@ public enum CommandRegistry {
         add(.maximizePanel, "Maximize Panel", .view, [f(11, c)], sep: true)
         add(.comparePanels, "Compare Panels", .view, [f(10, c)])
         add(.calculateSizes, "Calculate Folder Sizes", .view, [f(10, [c, s])])
+        add(.swapPanels, "Swap Panels", .view, [ch("u", c)])
+        add(.sameFolderAsOther, "Same Folder as Other Panel", .go, [ch(".", c)])
 
         add(.goBack, "Back", .go, [K(.left, [c, o]), ch("[", m)])
         add(.goForward, "Forward", .go, [K(.right, [c, o]), ch("]", m)])
-        add(.goParent, "Enclosing Folder", .go, [K(.backspace), K(.up, m)])
-        add(.goRoot, "Volume Root", .go, [ch("\\", c)])
+        add(.goParent, "Enclosing Folder", .go, [K(.backspace), K(.up, m), K(.pageUp, c)])
+        add(.goRoot, "Volume Root", .go, [ch("\\", c), K(.backspace, c)])
         add(.goHome, "Home", .go, [ch("h", [m, s])])
         add(.changeDirectory, "Go to Folder…", .go, [f(7, s), ch("g", [m, s])], sep: true)
         add(.hotPaths, "Hot Paths…", .go, [f(9, s)])
@@ -203,7 +207,7 @@ public enum CommandRegistry {
         add(.leftVolumeMenu, "Volume…", .left, [f(1, o), f(1, [c, o])])
         add(.rightVolumeMenu, "Volume…", .right, [f(2, o), f(2, [c, o])])
 
-        add(.find, "Find Files…", .commands, [f(7, o), f(7, [c, o])])
+        add(.find, "Find Files…", .commands, [f(7, o), f(7, [c, o]), ch("f", m)])
         add(.occupiedSpace, "Disk Map…", .commands, [f(10, o), f(10, [c, o]), ch("d", [c, s])])
         add(.compareFiles, "Compare Files…", .commands)
         add(.calculateChecksums, "Calculate Checksums…", .commands, sep: true)
@@ -218,7 +222,8 @@ public enum CommandRegistry {
 
         add(.help, "iCommander Help", .help, [f(1)], scope: .app)
 
-        add(.open, "Open", nil, [K(.enter), K(.numEnter), K(.down, m)])
+        add(.open, "Open", nil, [K(.enter), K(.numEnter), K(.down, m), K(.pageDown, c)])
+        add(.contextMenu, "Show Context Menu", nil, [f(10, s)])
         add(.switchPanel, "Switch Panel", nil, [K(.tab), K(.tab, s)])
         add(.toggleSelection, "Toggle Selection", nil, [K(.insert)])
         add(.toggleSelectionAndSize, "Toggle Selection and Size", nil, [K(.space)])
@@ -249,16 +254,16 @@ public enum CommandRegistry {
         viewer(.viewerClose, "Close Viewer", nil, [K(.escape)])
         viewer(.viewerCopy, "Copy", .edit, [ch("c", m)])
         viewer(.viewerSelectAll, "Select All", .edit, [ch("a", m)])
-        viewer(.viewerFind, "Find…", .edit, [ch("f", m)], sep: true)
-        viewer(.viewerFindNext, "Find Next", .edit, [ch("g", m)])
-        viewer(.viewerFindPrevious, "Find Previous", .edit, [ch("g", [m, s])])
+        viewer(.viewerFind, "Find…", .edit, [ch("f", m), f(7)], sep: true)
+        viewer(.viewerFindNext, "Find Next", .edit, [ch("g", m), f(3)])
+        viewer(.viewerFindPrevious, "Find Previous", .edit, [ch("g", [m, s]), f(3, s)])
         viewer(.viewerUseSelectionForFind, "Use Selection for Find", .edit, [ch("e", m)])
         viewer(.viewerGoTo, "Go to Line or Offset…", .edit, [ch("l", m)], sep: true)
         viewer(.viewerText, "Text", .view, [ch("1", m), f(5)])
         viewer(.viewerHex, "Hex", .view, [ch("2", m), f(4)])
         viewer(.viewerPreview, "Preview", .view, [ch("3", m), f(6)])
         viewer(.viewerLoadRemote, "Load Images from the Internet", .view)
-        viewer(.viewerWrap, "Wrap Lines", .view, [ch("w", c)], sep: true)
+        viewer(.viewerWrap, "Wrap Lines", .view, [ch("w", c), f(2)], sep: true)
         viewer(.viewerHighlight, "Highlight Syntax", .view, [ch("h", c)])
         viewer(.viewerEncoding, "Text Encoding", .view, sep: true)
         viewer(.viewerNextEncoding, "Next Encoding", .view, [f(8)])

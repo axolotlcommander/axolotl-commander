@@ -172,6 +172,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
     private func canPerformHere(_ command: Command) -> Bool {
         switch command {
         case .switchPanel, .leftVolumeMenu, .rightVolumeMenu, .focusCommandLine, .maximizePanel, .comparePanels,
+             .swapPanels, .sameFolderAsOther,
              .insertNameToCommandLine, .insertPathToCommandLine,
              .insertLeftPathToCommandLine, .insertRightPathToCommandLine: true
         default: false
@@ -183,6 +184,20 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         case .switchPanel: activate(activeSide == .left ? .right : .left)
         case .maximizePanel: setMaximized(maximizedSide == nil ? activeSide : nil)
         case .comparePanels: CompareSheet.show(in: window) { [weak self] in self?.comparePanels() }
+        case .swapPanels:
+            // ⌃U: the panels exchange their current tab (folder, cursor, selection, sort, history).
+            let (leftState, rightState) = (left.model.snapshot(), right.model.snapshot())
+            Task {
+                await left.restoreTab(rightState)
+                await right.restoreTab(leftState)
+            }
+        case .sameFolderAsOther:
+            let other = activeSide == .left ? right : left
+            if other.model.results != nil {
+                Task { await activePanel.restoreTab(other.model.snapshot()) }
+            } else {
+                activePanel.go(to: other.model.location, focusing: other.model.cursorItem.flatMap { $0.isParent ? nil : $0.name })
+            }
         case .leftVolumeMenu: activate(.left); left.perform(.leftVolumeMenu)
         case .rightVolumeMenu: activate(.right); right.perform(.rightVolumeMenu)
         case .focusCommandLine:
@@ -356,6 +371,8 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         if command == .toggleHidden { menuItem.state = activePanel.showsHidden ? .on : .off }
         if command == .viewModeDetailed { menuItem.state = activePanel.viewMode == .detailed ? .on : .off }
         if command == .viewModeBrief { menuItem.state = activePanel.viewMode == .brief ? .on : .off }
+        let sortFields: [Command: SortField] = [.sortByName: .name, .sortByExtension: .ext, .sortByDate: .date, .sortBySize: .size]
+        if let field = sortFields[command] { menuItem.state = activePanel.model.sort.field == field ? .on : .off }
         if command == .maximizePanel { menuItem.title = maximizedSide == nil ? CommandRegistry.spec(.maximizePanel).localizedTitle
                                                   : String(localized: "Restore Panels") }
         return canPerform(command)
