@@ -24,7 +24,7 @@ struct PropertiesView: View {
             .textSelection(.enabled)
             if let edit {
                 GroupBox("Permissions and Attributes") {
-                    AttributesEditView(edit: edit).padding(6)
+                    AttributesEditView(edit: edit) { onClose(edit.hasChanges ? edit.change : nil) }.padding(6)
                 }
             }
             HStack {

@@ -86,6 +86,8 @@ import SwiftUI
 
 struct AttributesEditView: View {
     @Bindable var edit: AttributeEdit
+    /// Return in a text field that has nothing of its own to do (the default button of the sheet).
+    var submit: () -> Void = {}
     @State private var octalText = ""
 
     private static let rows: [(LocalizedStringKey, Int)] = [("Owner", 6), ("Group", 3), ("Everyone", 0)]
@@ -119,7 +121,11 @@ struct AttributesEditView: View {
                 Spacer()
                 TextField("Octal", text: $octalText, prompt: Text("mixed"))
                     .frame(width: 56).monospacedDigit()
-                    .onSubmit { edit.setOctal(octalText); octalText = edit.octal ?? "" }
+                    .onSubmit {
+                        if octalText == (edit.octal ?? "") { submit(); return }
+                        edit.setOctal(octalText)
+                        octalText = edit.octal ?? ""
+                    }
             }
             HStack(spacing: 14) {
                 TriStateCheckbox(title: String(localized: "Locked"), state: $edit.locked,
@@ -162,7 +168,8 @@ struct AttributesEditView: View {
             HStack {
                 Text("Tags:").foregroundStyle(.secondary)
                 TextField("Add Tag", text: $edit.newTag, prompt: Text("New tag"))
-                    .frame(width: 160).onSubmit { edit.addTag() }
+                    .frame(width: 160)
+                    .onSubmit { edit.newTag.trimmingCharacters(in: .whitespaces).isEmpty ? submit() : edit.addTag() }
                 Button("Add") { edit.addTag() }.disabled(edit.newTag.trimmingCharacters(in: .whitespaces).isEmpty)
             }
             if !edit.tags.isEmpty {

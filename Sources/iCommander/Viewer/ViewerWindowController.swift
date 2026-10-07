@@ -669,7 +669,8 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
             textView.setFrameSize(NSSize(width: width, height: textView.frame.height))
             textView.textContainer?.containerSize = NSSize(width: width, height: big)
         } else {
-            textView.textContainer?.containerSize = NSSize(width: big, height: big)
+            // A finite width: with an infinite container TextKit 2 loses the left inset of the lines.
+            textView.textContainer?.containerSize = NSSize(width: 10_000_000, height: big)
         }
     }
 
