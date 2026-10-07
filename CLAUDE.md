@@ -19,6 +19,16 @@ Plán etap a stav práce: `docs/PLAN.md` a `docs/STATE.md`.
 - **Nabízej `/compact`**, když je hotová ucelená etapa a stav je zapsaný v `STATE.md`.
 - Nová session začíná přečtením `docs/STATE.md`, ne prozkoumáváním celého repa.
 
+## Bezpečnost souborového systému (závazné)
+
+- **Nikdy nespouštěj souborové operace (kopie, přesun, mazání, přejmenování, zápis) na
+  skutečných datech uživatele** — ani v GUI testech, ani v unit testech.
+- Testy jen v izolovaném adresáři (`FileManager.default.temporaryDirectory`/scratchpad),
+  který test sám vytvoří a uklidí. GUI test operací: oba panely nejdřív přesměrovat do
+  takového testovacího adresáře, teprve pak posílat F5/F6/F8/F2…
+- GUI testy mimo testovací adresář smí jen číst (procházet, vybírat, řadit).
+- Mazání vlastních artefaktů (`build/`, `~/Applications/iCommander.app`) je v pořádku.
+
 ## Technologie
 
 - Swift + AppKit, Swift Package Manager (`swift build`, `swift test`), bez Xcode projektu.

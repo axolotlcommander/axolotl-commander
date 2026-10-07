@@ -21,7 +21,6 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
                               styleMask: [.titled, .closable, .miniaturizable, .resizable],
                               backing: .buffered, defer: false)
         window.title = "iCommander"
-        window.setFrameAutosaveName("MainWindow")
         window.minSize = NSSize(width: 600, height: 360)
         super.init(window: window)
 
@@ -36,8 +35,10 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
             split.addSplitViewItem(item)
         }
         window.contentViewController = split
+        window.setContentSize(NSSize(width: 1100, height: 700))
+        window.center()
+        window.setFrameAutosaveName("MainWindow")
         window.delegate = self
-        if window.frame.origin == .zero { window.center() }
         activate(.left)
     }
 
@@ -49,6 +50,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         left.isActive = side == .left
         right.isActive = side == .right
         window?.makeFirstResponder(activePanel.tableView)
+        window?.title = activePanel.model.location.path(percentEncoded: false)
     }
 
     func panelDidBecomeFirstResponder(_ panel: PanelViewController) {

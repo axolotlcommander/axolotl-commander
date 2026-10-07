@@ -1,0 +1,355 @@
+public import Foundation
+public import Observation
+
+public struct SelectionSummary: Sendable, Equatable {
+    public var files: Int
+    public var directories: Int
+    public var bytes: Int64
+
+    public init(files: Int = 0, directories: Int = 0, bytes: Int64 = 0) {
+        self.files = files
+        self.directories = directories
+        self.bytes = bytes
+    }
+}
+
+/// State and behavior of one file panel: listing, cursor, selection, history.
+@MainActor @Observable
+public final class PanelModel {
+    private struct HistoryEntry {
+        var url: URL
+        var cursorName: String?
+    }
+
+    private enum NavMode { case record, back, forward }
+
+    public static let historyLimit = 64
+
+    // MARK: State
+
+    public private(set) var location: URL
+    /// Sorted and filtered; the parent row comes first unless at "/".
+    public private(set) var items: [FileItem] = []
+    public private(set) var cursor: Int = 0
+    /// `rules.key(name)` of every selected item.
+    public private(set) var selection: Set<String> = []
+    public private(set) var rules: NameRules = .apfsDefault
+    public private(set) var isLoading = false
+    public private(set) var lastError: (any Error)?
+    public private(set) var directorySizes: [String: Int64] = [:]
+
+    public var sort: SortSpec = .default {
+        didSet { if sort != oldValue { rebuild() } }
+    }
+    public var showHidden = false {
+        didSet {
+            if showHidden != oldValue { Task { await refresh() } }
+        }
+    }
+    /// Never hides directories or the parent row; selection is untouched.
+    public var filter: WildcardMask? {
+        didSet { if filter != oldValue { rebuild() } }
+    }
+
+    private var back: [HistoryEntry] = []
+    private var forward: [HistoryEntry] = []
+
+    @ObservationIgnored private let source: any FileSource
+    @ObservationIgnored private var rawItems: [FileItem] = []
+    @ObservationIgnored private var navToken = 0
+    @ObservationIgnored private var inFlight = 0
+
+    public init(location: URL, source: any FileSource = LocalFileSource()) {
+        self.location = location
+        self.source = source
+    }
+
+    public var cursorItem: FileItem? {
+        items.indices.contains(cursor) ? items[cursor] : nil
+    }
+    public var canGoBack: Bool { !back.isEmpty }
+    public var canGoForward: Bool { !forward.isEmpty }
+
+    // MARK: Loading
+
+    private func load(_ url: URL) async throws -> (raw: [FileItem], rules: NameRules) {
+        inFlight += 1
+        isLoading = true
+        defer {
+            inFlight -= 1
+            isLoading = inFlight > 0
+        }
+        do {
+            let raw = try await source.list(url, includeHidden: showHidden).filter { !$0.isParent }
+            return (raw, NameRules.forVolume(containing: url))
+        } catch {
+            lastError = error
+            throw error
+        }
+    }
+
+    private func buildItems() -> [FileItem] {
+        var visible = rawItems
+        if let filter {
+            visible = visible.filter { $0.isDirectory || filter.matches($0.name, rules: rules) }
+        }
+        var result = sortItems(visible, by: sort, rules: rules, directorySizes: directorySizes)
+        if location.path != "/" { result.insert(.parent(of: location), at: 0) }
+        return result
+    }
+
+    private func index(ofName name: String) -> Int? {
+        if let i = items.firstIndex(where: { $0.name == name }) { return i }
+        let k = rules.key(name)
+        return items.firstIndex { rules.key($0.name) == k }
+    }
+
+    /// Rebuilds `items`, keeping the cursor on the same item when it survives.
+    private func rebuild() {
+        let name = cursorItem?.name
+        let old = cursor
+        items = buildItems()
+        if let name, let i = index(ofName: name) {
+            cursor = i
+        } else {
+            cursor = max(0, min(old, items.count - 1))
+        }
+    }
+
+    // MARK: Navigation
+
+    public func go(to url: URL, focusing name: String? = nil) async throws {
+        try await navigate(to: url, focusing: name, mode: .record)
+    }
+
+    private func navigate(to url: URL, focusing name: String?, mode: NavMode) async throws {
+        navToken += 1
+        let token = navToken
+        let loaded = try await load(url)
+        guard token == navToken else { throw CancellationError() }
+
+        let leaving = HistoryEntry(url: location, cursorName: cursorItem?.name)
+        switch mode {
+        case .record:
+            if leaving.url.standardizedFileURL.path != url.standardizedFileURL.path {
+                back.append(leaving)
+                if back.count > Self.historyLimit { back.removeFirst(back.count - Self.historyLimit) }
+                forward.removeAll()
+            }
+        case .back:
+            _ = back.popLast()
+            forward.append(leaving)
+            if forward.count > Self.historyLimit { forward.removeFirst(forward.count - Self.historyLimit) }
+        case .forward:
+            _ = forward.popLast()
+            back.append(leaving)
+            if back.count > Self.historyLimit { back.removeFirst(back.count - Self.historyLimit) }
+        }
+
+        location = url
+        rules = loaded.rules
+        rawItems = loaded.raw
+        selection = []
+        directorySizes = [:]
+        items = buildItems()
+        cursor = name.flatMap { index(ofName: $0) } ?? 0
+        lastError = nil
+    }
+
+    /// Reloads the current directory, keeping cursor, selection and sizes where possible.
+    public func refresh() async {
+        let token = navToken
+        let url = location
+        guard let loaded = try? await load(url), token == navToken else { return }
+        let name = cursorItem?.name
+        let old = cursor
+        rules = loaded.rules
+        rawItems = loaded.raw
+        let present = Set(rawItems.map { rules.key($0.name) })
+        selection.formIntersection(present)
+        directorySizes = directorySizes.filter { present.contains($0.key) }
+        items = buildItems()
+        if let name, let i = index(ofName: name) {
+            cursor = i
+        } else {
+            cursor = max(0, min(old, items.count - 1))
+        }
+        lastError = nil
+    }
+
+    /// Parent row goes up, directories are entered, files are returned untouched.
+    public func enterCursor() async throws -> FileItem? {
+        guard let item = cursorItem else { return nil }
+        if item.isParent {
+            try await goParent()
+            return nil
+        }
+        if item.isDirectory {
+            try await go(to: item.url)
+            return nil
+        }
+        return item
+    }
+
+    public func goParent() async throws {
+        guard location.path != "/" else { return }
+        try await go(to: location.deletingLastPathComponent(), focusing: location.lastPathComponent)
+    }
+
+    public func goRoot() async throws {
+        try await go(to: Volumes.root(of: location))
+    }
+
+    public func goBack() async throws {
+        guard let entry = back.last else { return }
+        try await navigate(to: entry.url, focusing: entry.cursorName, mode: .back)
+    }
+
+    public func goForward() async throws {
+        guard let entry = forward.last else { return }
+        try await navigate(to: entry.url, focusing: entry.cursorName, mode: .forward)
+    }
+
+    // MARK: Cursor
+
+    public func moveCursor(to index: Int) {
+        cursor = max(0, min(index, items.count - 1))
+    }
+
+    public func moveCursor(by delta: Int) {
+        moveCursor(to: cursor + delta)
+    }
+
+    // MARK: Quick search
+
+    @discardableResult
+    public func quickSearch(_ prefix: String) -> Bool {
+        guard let i = items.indices.first(where: { matches(items[$0], prefix: prefix) }) else { return false }
+        cursor = i
+        return true
+    }
+
+    /// Cycles to the next (or previous) match; wraps around.
+    @discardableResult
+    public func quickSearchNext(_ prefix: String, forward: Bool) -> Bool {
+        let n = items.count
+        guard n > 0 else { return false }
+        for step in 1...n {
+            let i = ((forward ? cursor + step : cursor - step) % n + n) % n
+            if matches(items[i], prefix: prefix) {
+                cursor = i
+                return true
+            }
+        }
+        return false
+    }
+
+    private func matches(_ item: FileItem, prefix: String) -> Bool {
+        guard !item.isParent, !prefix.isEmpty else { return false }
+        return rules.key(item.name).hasPrefix(rules.key(prefix))
+    }
+
+    // MARK: Selection
+
+    private func selectable(_ item: FileItem) -> Bool { !item.isParent }
+
+    public func isSelected(_ item: FileItem) -> Bool {
+        selectable(item) && selection.contains(rules.key(item.name))
+    }
+
+    private func set(_ item: FileItem, _ on: Bool) {
+        guard selectable(item) else { return }
+        let k = rules.key(item.name)
+        if on { selection.insert(k) } else { selection.remove(k) }
+    }
+
+    public func toggleSelection(at index: Int) {
+        guard items.indices.contains(index) else { return }
+        set(items[index], !isSelected(items[index]))
+    }
+
+    public func setSelected(_ on: Bool, range: ClosedRange<Int>) {
+        guard !items.isEmpty else { return }
+        let lo = max(range.lowerBound, 0), hi = min(range.upperBound, items.count - 1)
+        guard lo <= hi else { return }
+        for i in lo...hi { set(items[i], on) }
+    }
+
+    /// Per Open Salamander, masks apply to files and optionally directories.
+    public func select(mask: WildcardMask, _ on: Bool, includeDirectories: Bool = false) {
+        for item in items where includeDirectories || !item.isDirectory {
+            if mask.matches(item.name, rules: rules) { set(item, on) }
+        }
+    }
+
+    public func invertSelection(mask: WildcardMask = WildcardMask("*"), includeDirectories: Bool = false) {
+        for item in items where includeDirectories || !item.isDirectory {
+            if mask.matches(item.name, rules: rules) { set(item, !isSelected(item)) }
+        }
+    }
+
+    public func selectAll() {
+        for item in items { set(item, true) }
+    }
+
+    public func deselectAll() {
+        selection = []
+    }
+
+    /// Selects or deselects files sharing the cursor file's extension.
+    public func selectSameExtension(_ on: Bool) {
+        guard let current = cursorItem, !current.isDirectory, !current.isParent else { return }
+        let ext = rules.key(current.fileExtension)
+        for item in items where !item.isDirectory && rules.key(item.fileExtension) == ext { set(item, on) }
+    }
+
+    public var selectedItems: [FileItem] {
+        items.filter { isSelected($0) }
+    }
+
+    public var summary: SelectionSummary { summarize(selectedItems) }
+    public var totals: SelectionSummary { summarize(items.filter(selectable)) }
+
+    private func summarize(_ list: [FileItem]) -> SelectionSummary {
+        var s = SelectionSummary()
+        for item in list {
+            if item.isDirectory {
+                s.directories += 1
+                s.bytes += directorySizes[rules.key(item.name)] ?? 0
+            } else {
+                s.files += 1
+                s.bytes += item.size ?? 0
+            }
+        }
+        return s
+    }
+
+    // MARK: Sizes
+
+    /// Recursive size of a directory, computed off the main actor.
+    public func calculateSize(of item: FileItem) async {
+        guard item.isDirectory, !item.isParent, !item.isSymlink else { return }
+        let url = location
+        let key = rules.key(item.name)
+        guard let size = await Self.recursiveSize(of: item.url) else { return }
+        guard url == location else { return }
+        directorySizes[key] = size
+        if sort.field == .size { rebuild() }
+    }
+
+    @concurrent
+    private static func recursiveSize(of directory: URL) async -> Int64? {
+        let keys: [URLResourceKey] = [.fileSizeKey, .isSymbolicLinkKey, .isDirectoryKey]
+        guard let walker = FileManager.default.enumerator(
+            at: directory, includingPropertiesForKeys: keys, options: [], errorHandler: { _, _ in true }
+        ) else { return nil }
+        var total: Int64 = 0
+        while let url = walker.nextObject() as? URL {
+            if Task.isCancelled { return nil }
+            guard let v = try? url.resourceValues(forKeys: Set(keys)) else { continue }
+            if v.isSymbolicLink == true || v.isDirectory == true { continue }
+            total += Int64(v.fileSize ?? 0)
+        }
+        return total
+    }
+}

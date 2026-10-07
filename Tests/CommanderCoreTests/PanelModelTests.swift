@@ -1,0 +1,311 @@
+import Testing
+import Foundation
+@testable import CommanderCore
+
+@MainActor
+@Suite struct PanelModelTests {
+    /// Temp tree: dirs `docs/`, `Photos/`; files a.txt (3 B), b.txt (5 B), c.md (10 B), docs/inner.txt (7 B), docs/sub/deep.bin (100 B).
+    final class Fixture {
+        let root: URL
+        init() throws {
+            root = FileManager.default.temporaryDirectory
+                .appendingPathComponent("iCommanderTests-\(UUID().uuidString)", isDirectory: true)
+            let fm = FileManager.default
+            try fm.createDirectory(at: root.appendingPathComponent("docs/sub"), withIntermediateDirectories: true)
+            try fm.createDirectory(at: root.appendingPathComponent("Photos"), withIntermediateDirectories: true)
+            try write("a.txt", 3); try write("b.txt", 5); try write("c.md", 10)
+            try write("docs/inner.txt", 7); try write("docs/sub/deep.bin", 100)
+        }
+        func write(_ rel: String, _ bytes: Int) throws {
+            try Data(count: bytes).write(to: root.appendingPathComponent(rel))
+        }
+        deinit { try? FileManager.default.removeItem(at: root) }
+    }
+
+    func names(_ m: PanelModel) -> [String] { m.items.map(\.name) }
+
+    @Test func listing() async throws {
+        let f = try Fixture()
+        let m = PanelModel(location: f.root)
+        await m.refresh()
+        #expect(names(m) == ["..", "docs", "Photos", "a.txt", "b.txt", "c.md"])
+        #expect(m.items[0].isParent)
+        #expect(m.items[1].isDirectory && m.items[1].size == nil)
+        #expect(m.items[3].size == 3)
+        #expect(m.cursor == 0)
+        #expect(!m.isLoading)
+    }
+
+    @Test func hiddenFiles() async throws {
+        let f = try Fixture()
+        try f.write(".secret", 1)
+        let m = PanelModel(location: f.root)
+        await m.refresh()
+        #expect(!names(m).contains(".secret"))
+        m.showHidden = true
+        await m.refresh()
+        #expect(names(m).contains(".secret"))
+        #expect(m.items.first { $0.name == ".secret" }?.isHidden == true)
+    }
+
+    @Test func symlinkToDirectoryIsDirectory() async throws {
+        let f = try Fixture()
+        try FileManager.default.createSymbolicLink(
+            at: f.root.appendingPathComponent("link"), withDestinationURL: f.root.appendingPathComponent("docs"))
+        let m = PanelModel(location: f.root)
+        await m.refresh()
+        let link = try #require(m.items.first { $0.name == "link" })
+        #expect(link.isDirectory && link.isSymlink)
+    }
+
+    @Test func enterParentRestoresFocus() async throws {
+        let f = try Fixture()
+        let m = PanelModel(location: f.root)
+        await m.refresh()
+        m.moveCursor(to: 1)  // docs
+        #expect(try await m.enterCursor() == nil)
+        #expect(m.location.lastPathComponent == "docs")
+        #expect(names(m) == ["..", "sub", "inner.txt"])
+        #expect(m.cursor == 0)
+        m.moveCursor(to: 1)
+        _ = try await m.enterCursor()
+        #expect(m.location.lastPathComponent == "sub")
+        try await m.goParent()
+        #expect(m.cursorItem?.name == "sub")
+        try await m.goParent()
+        #expect(m.cursorItem?.name == "docs")
+        // Parent row enters the parent too.
+        m.moveCursor(to: 1)
+        _ = try await m.enterCursor()
+        m.moveCursor(to: 0)
+        #expect(try await m.enterCursor() == nil)
+        #expect(m.cursorItem?.name == "docs")
+    }
+
+    @Test func enterFileReturnsIt() async throws {
+        let f = try Fixture()
+        let m = PanelModel(location: f.root)
+        await m.refresh()
+        m.moveCursor(to: 3)
+        let item = try await m.enterCursor()
+        #expect(item?.name == "a.txt")
+        #expect(m.location == f.root)
+    }
+
+    @Test func backForwardRestoreCursor() async throws {
+        let f = try Fixture()
+        let m = PanelModel(location: f.root)
+        await m.refresh()
+        #expect(!m.canGoBack && !m.canGoForward)
+        m.moveCursor(to: 4)  // b.txt
+        try await m.go(to: f.root.appendingPathComponent("docs"))
+        #expect(m.canGoBack && !m.canGoForward)
+        m.moveCursor(to: 2)  // inner.txt
+        try await m.goBack()
+        #expect(m.location == f.root)
+        #expect(m.cursorItem?.name == "b.txt")
+        #expect(m.canGoForward)
+        try await m.goForward()
+        #expect(m.location.lastPathComponent == "docs")
+        #expect(m.cursorItem?.name == "inner.txt")
+        #expect(!m.canGoForward)
+    }
+
+    @Test func failedNavigationLeavesStateUnchanged() async throws {
+        let f = try Fixture()
+        let m = PanelModel(location: f.root)
+        await m.refresh()
+        m.moveCursor(to: 3)
+        m.toggleSelection(at: 3)
+        await #expect(throws: PathError.notFound) { try await m.go(to: f.root.appendingPathComponent("nope")) }
+        await #expect(throws: PathError.notADirectory) { try await m.go(to: f.root.appendingPathComponent("a.txt")) }
+        #expect(m.location == f.root)
+        #expect(m.cursor == 3 && m.selection.count == 1)
+        #expect(!m.canGoBack)
+        #expect(m.lastError != nil)
+    }
+
+    @Test func historyIsCapped() async throws {
+        let f = try Fixture()
+        let m = PanelModel(location: f.root)
+        await m.refresh()
+        let docs = f.root.appendingPathComponent("docs")
+        for i in 0..<(PanelModel.historyLimit + 10) {
+            try await m.go(to: i.isMultiple(of: 2) ? docs : f.root)
+        }
+        var steps = 0
+        while m.canGoBack { try await m.goBack(); steps += 1 }
+        #expect(steps == PanelModel.historyLimit)
+    }
+
+    @Test func goRootGoesToVolumeRoot() async throws {
+        let f = try Fixture()
+        let m = PanelModel(location: f.root)
+        await m.refresh()
+        try await m.goRoot()
+        #expect(m.location == Volumes.root(of: f.root))
+    }
+
+    @Test func selectionSurvivesSortFilterAndRefresh() async throws {
+        let f = try Fixture()
+        let m = PanelModel(location: f.root)
+        await m.refresh()
+        m.toggleSelection(at: 0)  // parent row: ignored
+        #expect(m.selection.isEmpty)
+        m.toggleSelection(at: 3)  // a.txt
+        m.toggleSelection(at: 5)  // c.md
+        m.moveCursor(to: 5)
+
+        m.sort = SortSpec(field: .size, ascending: false)
+        #expect(names(m) == ["..", "docs", "Photos", "c.md", "b.txt", "a.txt"])
+        #expect(m.cursorItem?.name == "c.md")
+        #expect(m.selectedItems.map(\.name).sorted() == ["a.txt", "c.md"])
+
+        m.filter = WildcardMask("*.txt")
+        #expect(names(m) == ["..", "docs", "Photos", "b.txt", "a.txt"])
+        #expect(m.selection.count == 2)
+        #expect(m.selectedItems.map(\.name) == ["a.txt"])
+        m.filter = nil
+        #expect(m.selectedItems.count == 2)
+        m.moveCursor(to: m.items.firstIndex { $0.name == "c.md" }!)
+
+        try f.write("new.txt", 1)
+        try FileManager.default.removeItem(at: f.root.appendingPathComponent("a.txt"))
+        await m.refresh()
+        #expect(names(m).contains("new.txt") && !names(m).contains("a.txt"))
+        #expect(m.selectedItems.map(\.name) == ["c.md"])
+        #expect(m.cursorItem?.name == "c.md")
+    }
+
+    @Test func selectionOperations() async throws {
+        let f = try Fixture()
+        let m = PanelModel(location: f.root)
+        await m.refresh()
+        m.select(mask: WildcardMask("*.txt"), true)
+        #expect(m.selectedItems.map(\.name) == ["a.txt", "b.txt"])
+        m.select(mask: WildcardMask("a.*"), false)
+        #expect(m.selectedItems.map(\.name) == ["b.txt"])
+        m.invertSelection()
+        #expect(m.selectedItems.map(\.name) == ["a.txt", "c.md"])  // directories excluded by default
+        m.deselectAll()
+        m.selectAll()
+        #expect(m.selectedItems.count == 5)  // parent never selected
+        #expect(!m.isSelected(m.items[0]))
+        m.deselectAll()
+        m.moveCursor(to: 3)
+        m.selectSameExtension(true)
+        #expect(m.selectedItems.map(\.name) == ["a.txt", "b.txt"])
+        m.selectSameExtension(false)
+        #expect(m.selection.isEmpty)
+        m.setSelected(true, range: 0...2)
+        #expect(m.selectedItems.map(\.name) == ["docs", "Photos"])
+        m.select(mask: WildcardMask("*"), true, includeDirectories: true)
+        #expect(m.selectedItems.count == 5)
+    }
+
+    @Test func filterKeepsDirectories() async throws {
+        let f = try Fixture()
+        let m = PanelModel(location: f.root)
+        await m.refresh()
+        m.filter = WildcardMask("*.md")
+        #expect(names(m) == ["..", "docs", "Photos", "c.md"])
+    }
+
+    @Test func quickSearchWithNormalizationAndCycling() async throws {
+        let f = try Fixture()
+        try f.write("e\u{301}clair.txt", 1)  // NFD on disk
+        try f.write("Echo.txt", 1)
+        try f.write("echo2.txt", 1)
+        let m = PanelModel(location: f.root)
+        await m.refresh()
+        #expect(m.quickSearch("\u{E9}cl"))  // NFC typed
+        #expect(m.cursorItem?.name == "e\u{301}clair.txt")
+        let before = m.cursor
+        #expect(!m.quickSearch("zzz"))
+        #expect(m.cursor == before)
+        #expect(m.quickSearch("E"))
+        let first = m.cursorItem?.name
+        #expect(m.quickSearchNext("E", forward: true))
+        let second = m.cursorItem?.name
+        #expect(first != second)
+        #expect(m.quickSearchNext("E", forward: true))
+        #expect(m.cursorItem?.name == first)  // wrapped
+        #expect(m.quickSearchNext("E", forward: false))
+        #expect(m.cursorItem?.name == second)
+        #expect(!m.quickSearch("."))  // parent row is not searchable
+    }
+
+    @Test func summaryAndCalculateSize() async throws {
+        let f = try Fixture()
+        let m = PanelModel(location: f.root)
+        await m.refresh()
+        #expect(m.totals == SelectionSummary(files: 3, directories: 2, bytes: 18))
+        m.toggleSelection(at: 1)  // docs
+        m.toggleSelection(at: 4)  // b.txt
+        #expect(m.summary == SelectionSummary(files: 1, directories: 1, bytes: 5))
+        await m.calculateSize(of: m.items[1])
+        #expect(m.directorySizes["docs"] == 107)
+        #expect(m.summary == SelectionSummary(files: 1, directories: 1, bytes: 112))
+        await m.refresh()
+        #expect(m.directorySizes["docs"] == 107)  // survives refresh
+        try await m.go(to: f.root.appendingPathComponent("docs"))
+        #expect(m.directorySizes.isEmpty)
+    }
+
+    @Test func calculateSizeIgnoresSymlinks() async throws {
+        let f = try Fixture()
+        try FileManager.default.createSymbolicLink(
+            at: f.root.appendingPathComponent("docs/loop"), withDestinationURL: f.root)
+        let m = PanelModel(location: f.root)
+        await m.refresh()
+        await m.calculateSize(of: m.items[1])
+        #expect(m.directorySizes["docs"] == 107)
+    }
+
+    @Test func cursorClamping() async throws {
+        let f = try Fixture()
+        let m = PanelModel(location: f.root)
+        await m.refresh()
+        m.moveCursor(to: 99)
+        #expect(m.cursor == m.items.count - 1)
+        m.moveCursor(by: -99)
+        #expect(m.cursor == 0)
+    }
+
+    @Test func fakeSourceAndRoot() async throws {
+        struct Fake: FileSource {
+            func list(_ directory: URL, includeHidden: Bool) async throws -> [FileItem] {
+                [FileItem(url: directory.appendingPathComponent("x"), size: 1)]
+            }
+        }
+        let m = PanelModel(location: URL(fileURLWithPath: "/"), source: Fake())
+        await m.refresh()
+        #expect(names(m) == ["x"])  // no parent row at "/"
+    }
+}
+
+@Suite struct DirectoryWatcherTests {
+    @Test func reportsChangesDebounced() async throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("iCommanderWatch-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let count = LockedCounter()
+        let watcher = try #require(DirectoryWatcher(url: dir) { count.increment() })
+        for i in 0..<5 { try Data().write(to: dir.appendingPathComponent("f\(i)")) }
+        try await Task.sleep(for: .milliseconds(600))
+        #expect(count.value >= 1 && count.value <= 2)
+        watcher.cancel()
+        try Data().write(to: dir.appendingPathComponent("after"))
+        let seen = count.value
+        try await Task.sleep(for: .milliseconds(400))
+        #expect(count.value == seen)
+        #expect(DirectoryWatcher(url: dir.appendingPathComponent("missing"), onChange: {}) == nil)
+    }
+}
+
+final class LockedCounter: @unchecked Sendable {
+    private let lock = NSLock()
+    private var n = 0
+    func increment() { lock.lock(); n += 1; lock.unlock() }
+    var value: Int { lock.lock(); defer { lock.unlock() }; return n }
+}
