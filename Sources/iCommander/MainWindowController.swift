@@ -12,6 +12,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
     let left = PanelViewController(side: .left)
     let right = PanelViewController(side: .right)
     private(set) var activeSide: PanelSide = .left
+    private(set) lazy var operations = OperationsController(windowController: self)
 
     var activePanel: PanelViewController { activeSide == .left ? left : right }
     var inactivePanel: PanelViewController { activeSide == .left ? right : left }
@@ -59,6 +60,13 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
     }
 
     func panel(_ side: PanelSide) -> PanelViewController { side == .left ? left : right }
+
+    func otherPanel(than panel: PanelViewController) -> PanelViewController { panel === left ? right : left }
+
+    func refreshPanels() async {
+        await left.model.refresh()
+        await right.model.refresh()
+    }
 
     // MARK: Routing
 

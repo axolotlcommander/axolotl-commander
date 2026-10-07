@@ -1,0 +1,264 @@
+import AppKit
+import CommanderCore
+import Observation
+import SwiftUI
+
+/// Live state of a running operation, shown by `ProgressSheet`.
+@Observable final class OperationState {
+    var title: String
+    var progress = OperationProgress(totalBytes: 0, doneBytes: 0, totalItems: 0, doneItems: 0, currentName: "")
+    var task: Task<Void, Never>?
+
+    init(title: String) { self.title = title }
+
+    var fraction: Double {
+        progress.totalBytes > 0 ? Double(progress.doneBytes) / Double(progress.totalBytes)
+            : progress.totalItems > 0 ? Double(progress.doneItems) / Double(progress.totalItems) : 0
+    }
+}
+
+struct ProgressSheet: View {
+    let state: OperationState
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(state.title).font(.headline)
+            Text(state.progress.currentName)
+                .lineLimit(1).truncationMode(.middle)
+                .foregroundStyle(.secondary)
+            ProgressView(value: state.fraction)
+            HStack {
+                Text("\(state.progress.doneItems) of \(state.progress.totalItems) items")
+                    .font(.caption).foregroundStyle(.secondary)
+                Spacer()
+                Button("Cancel", role: .cancel) { state.task?.cancel() }
+                    .keyboardShortcut(.cancelAction)
+            }
+        }
+        .padding(20)
+        .frame(width: 420)
+    }
+}
+
+/// Target dialog for F5/F6: destination prefilled with the other panel, plus a name mask.
+struct TransferSheet: View {
+    let title: String
+    @State var destination: String
+    @State var mask: String
+    let onDone: (_ destination: String, _ mask: String) -> Void
+    let onCancel: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(title).font(.headline)
+            Form {
+                TextField("To:", text: $destination)
+                TextField("Name mask:", text: $mask)
+            }
+            HStack {
+                Spacer()
+                Button("Cancel", role: .cancel, action: onCancel).keyboardShortcut(.cancelAction)
+                Button("OK") { onDone(destination, mask) }.keyboardShortcut(.defaultAction)
+            }
+        }
+        .padding(20)
+        .frame(width: 520)
+    }
+}
+
+/// Runs copy/move/delete/mkdir/rename for the window, with sheets for every question.
+final class OperationsController {
+    private let operations = FileOperations()
+    private unowned let windowController: MainWindowController
+    private var isBusy = false
+
+    init(windowController: MainWindowController) {
+        self.windowController = windowController
+    }
+
+    private var window: NSWindow? { windowController.window }
+
+    // MARK: Copy / move
+
+    func transfer(_ kind: TransferKind, sources: [URL], from panel: PanelViewController, to destination: URL? = nil) {
+        guard !isBusy, !sources.isEmpty else { return }
+        let names = sources.count == 1 ? "“\(sources[0].lastPathComponent)”" : "\(sources.count) items"
+        let verb = kind == .copy ? "Copy" : "Move"
+        if let destination {
+            run(kind, sources: sources, destination: destination, mask: "*.*", panel: panel)
+            return
+        }
+        let other = windowController.otherPanel(than: panel)
+        var sheetWindow: NSWindow?
+        let close = { [weak self] in
+            if let sheetWindow { self?.window?.endSheet(sheetWindow) }
+        }
+        let sheet = TransferSheet(
+            title: "\(verb) \(names) to:",
+            destination: other.model.location.path(percentEncoded: false),
+            mask: "*.*",
+            onDone: { [weak self] path, mask in
+                close()
+                guard let self else { return }
+                do {
+                    let url = try PathRules.resolve(path, relativeTo: panel.model.location)
+                    run(kind, sources: sources, destination: url, mask: mask.isEmpty ? "*.*" : mask, panel: panel)
+                } catch {
+                    report(error)
+                }
+            },
+            onCancel: close)
+        let host = NSWindow(contentViewController: NSHostingController(rootView: sheet))
+        sheetWindow = host
+        window?.beginSheet(host, completionHandler: nil)
+    }
+
+    private func run(_ kind: TransferKind, sources: [URL], destination: URL, mask: String, panel: PanelViewController) {
+        let state = OperationState(title: kind == .copy ? "Copying…" : "Moving…")
+        let request = TransferRequest(kind: kind, sources: sources, destinationDirectory: destination, nameMask: mask)
+        perform(state) { [operations] in
+            let report = try await operations.transfer(
+                request,
+                progress: { p in Task { @MainActor in state.progress = p } },
+                conflict: { conflict in await self.askConflict(conflict) })
+            if !report.keptSources.isEmpty {
+                await self.inform("Some sources were kept",
+                                  "\(report.keptSources.count) item(s) were copied but not removed, because they contain a link to a folder or could not be checked completely.")
+            }
+            panel.model.deselectAll()
+        }
+    }
+
+    @MainActor
+    private func askConflict(_ conflict: Conflict) async -> ConflictResolution {
+        let alert = NSAlert()
+        alert.messageText = "“\(conflict.destination.name)” already exists."
+        alert.informativeText = """
+            Existing: \(Format.bytes(conflict.destination.size ?? 0)), \(conflict.destination.modificationDate.map(Format.date) ?? "")
+            New: \(Format.bytes(conflict.source.size ?? 0)), \(conflict.source.modificationDate.map(Format.date) ?? "")
+            """
+        for title in ["Overwrite", "Overwrite All", "Skip", "Skip All", "Cancel"] { alert.addButton(withTitle: title) }
+        alert.buttons.last?.keyEquivalent = "\u{1b}"
+        guard let window else { return .cancel }
+        let response = await alert.beginSheetModal(for: window)
+        switch response.rawValue - NSApplication.ModalResponse.alertFirstButtonReturn.rawValue {
+        case 0: return .overwrite
+        case 1: return .overwriteAll
+        case 2: return .skip
+        case 3: return .skipAll
+        default: return .cancel
+        }
+    }
+
+    // MARK: Delete
+
+    func delete(_ urls: [URL], permanently: Bool) {
+        guard !isBusy, !urls.isEmpty else { return }
+        Task {
+            let names = urls.count == 1 ? "“\(urls[0].lastPathComponent)”" : "\(urls.count) items"
+            let alert = NSAlert()
+            alert.alertStyle = permanently ? .critical : .warning
+            alert.messageText = permanently ? "Delete \(names) immediately?" : "Move \(names) to the Trash?"
+            alert.informativeText = permanently ? "This can’t be undone." : "You can put them back from the Trash."
+            let confirm = alert.addButton(withTitle: permanently ? "Delete" : "Move to Trash")
+            confirm.hasDestructiveAction = permanently
+            alert.addButton(withTitle: "Cancel")
+            if permanently {
+                // Return must not delete by accident: Cancel is the default.
+                confirm.keyEquivalent = ""
+                alert.buttons[1].keyEquivalent = "\r"
+            }
+            guard let window, await alert.beginSheetModal(for: window) == .alertFirstButtonReturn else { return }
+            let state = OperationState(title: permanently ? "Deleting…" : "Moving to Trash…")
+            perform(state) { [operations] in
+                if permanently {
+                    try await operations.deletePermanently(urls, progress: { p in Task { @MainActor in state.progress = p } })
+                } else {
+                    _ = try await operations.trash(urls)
+                }
+            }
+        }
+    }
+
+    // MARK: Folder, rename
+
+    func makeDirectory(in panel: PanelViewController) {
+        Task {
+            guard let name = await TextPrompt.ask(title: "New Folder", message: "Name:", initial: "", in: window),
+                  !name.isEmpty else { return }
+            do {
+                let url = try await operations.makeDirectory(named: name, in: panel.model.location)
+                await panel.model.refresh()
+                panel.focus(name: url.lastPathComponent)
+            } catch {
+                report(error)
+            }
+        }
+    }
+
+    func rename(_ url: URL, to newName: String, in panel: PanelViewController) {
+        guard newName != url.lastPathComponent, !newName.isEmpty else { return }
+        Task {
+            do {
+                let renamed = try await operations.rename(url, to: newName)
+                await panel.model.refresh()
+                panel.focus(name: renamed.lastPathComponent)
+            } catch {
+                report(error)
+            }
+        }
+    }
+
+    // MARK: Running
+
+    private func perform(_ state: OperationState, _ body: @escaping () async throws -> Void) {
+        isBusy = true
+        let host = NSWindow(contentViewController: NSHostingController(rootView: ProgressSheet(state: state)))
+        // Show the sheet only for operations that take a noticeable time.
+        let showTimer = Task {
+            try? await Task.sleep(for: .milliseconds(300))
+            if !Task.isCancelled { window?.beginSheet(host, completionHandler: nil) }
+        }
+        state.task = Task {
+            do {
+                try await body()
+            } catch OperationError.cancelled {
+            } catch is CancellationError {
+            } catch {
+                showTimer.cancel()
+                if host.sheetParent != nil { window?.endSheet(host) }
+                report(error)
+            }
+            showTimer.cancel()
+            if host.sheetParent != nil { window?.endSheet(host) }
+            isBusy = false
+            await windowController.refreshPanels()
+        }
+    }
+
+    private func inform(_ title: String, _ text: String) async {
+        let alert = NSAlert()
+        alert.messageText = title
+        alert.informativeText = text
+        if let window { _ = await alert.beginSheetModal(for: window) }
+    }
+
+    func report(_ error: any Error) {
+        Task { await inform("The operation could not be completed.", OperationsController.describe(error)) }
+    }
+
+    static func describe(_ error: any Error) -> String {
+        switch error as? OperationError {
+        case .sameFile(let url)?: "“\(url.lastPathComponent)” would be copied onto itself."
+        case .intoItself(let url)?: "“\(url.lastPathComponent)” can’t be copied or moved into itself."
+        case .identityUnknown(let url)?: "Can’t verify that “\(url.lastPathComponent)” is a different file; nothing was removed."
+        case .sourceKeptBecauseOfLink(let url)?: "“\(url.lastPathComponent)” was kept because it contains a link to a folder."
+        case .alreadyExists(let url)?: "“\(url.lastPathComponent)” already exists."
+        case .invalidName(let name)?: "“\(name)” is not a valid name."
+        case .path(let e)?: Format.error(e)
+        case .io(let message)?: message
+        case .cancelled?: "Cancelled."
+        case nil: Format.error(error)
+        }
+    }
+}

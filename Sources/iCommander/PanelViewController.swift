@@ -100,6 +100,10 @@ final class PanelViewController: NSViewController {
         tableView.delegate = self
         tableView.target = self
         tableView.doubleAction = #selector(doubleClicked)
+        tableView.registerForDraggedTypes([.fileURL])
+        tableView.setDraggingSourceOperationMask([.copy, .move, .generic], forLocal: true)
+        tableView.setDraggingSourceOperationMask([.copy, .move, .generic], forLocal: false)
+        tableView.draggingDestinationFeedbackStyle = .regular
         tableView.onKey = { [weak self] event in self?.handleKey(event) ?? false }
         tableView.onFocus = { [weak self] in
             guard let self else { return }
@@ -164,6 +168,8 @@ final class PanelViewController: NSViewController {
     }
 
     private func modelChanged() {
+        // A reload would end in-place rename editing; the rename refreshes afterwards.
+        guard renaming == nil else { return }
         syncingSelection = true
         tableView.reloadData()
         if !model.items.isEmpty {
@@ -305,11 +311,16 @@ final class PanelViewController: NSViewController {
         .toggleSelection, .toggleSelectionAndSize, .selectByMask, .deselectByMask, .invertByMask,
         .selectAll, .deselectAll, .selectSameExtension, .deselectSameExtension,
         .copyFullPath, .copyName, .calculateSizes,
+        .copy, .move, .delete, .deletePermanently, .makeDirectory, .rename, .copyFiles, .pasteFiles,
     ]
+
+    private static let needTargets: Set<Command> = [.copy, .move, .delete, .deletePermanently, .rename, .copyFiles]
 
     func canPerform(_ command: Command) -> Bool {
         guard Self.handled.contains(command) else { return false }
+        if Self.needTargets.contains(command), targets().isEmpty { return false }
         switch command {
+        case .pasteFiles: return Self.pasteboardHasFilesOrPath
         case .goBack: return model.canGoBack
         case .goForward: return model.canGoForward
         case .selectSameExtension, .deselectSameExtension:
@@ -354,6 +365,14 @@ final class PanelViewController: NSViewController {
         case .deselectSameExtension: model.selectSameExtension(false)
         case .copyFullPath: copyText(targets().map { $0.url.path(percentEncoded: false) })
         case .copyName: copyText(targets().map(\.name))
+        case .copy, .move:
+            router?.operations.transfer(command == .copy ? .copy : .move, sources: targets().map(\.url), from: self)
+        case .delete, .deletePermanently:
+            router?.operations.delete(targets().map(\.url), permanently: command == .deletePermanently)
+        case .makeDirectory: router?.operations.makeDirectory(in: self)
+        case .rename: beginRename()
+        case .copyFiles: copyFilesToPasteboard()
+        case .pasteFiles: pasteFromPasteboard()
         case .calculateSizes:
             let dirs = model.selectedItems.filter(\.isDirectory)
             startSizing(dirs.isEmpty ? model.items.filter { $0.isDirectory && !$0.isParent } : dirs)
@@ -366,6 +385,13 @@ final class PanelViewController: NSViewController {
         let selected = model.selectedItems
         if !selected.isEmpty { return selected }
         return model.cursorItem.flatMap { $0.isParent ? nil : [$0] } ?? []
+    }
+
+    /// Puts the cursor on the item with this name (volume name rules).
+    func focus(name: String) {
+        if let index = model.items.firstIndex(where: { !$0.isParent && model.rules.same($0.name, name) }) {
+            model.moveCursor(to: index)
+        }
     }
 
     func go(to url: URL, focusing name: String? = nil) {
@@ -424,6 +450,62 @@ final class PanelViewController: NSViewController {
         guard !lines.isEmpty else { return }
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(lines.joined(separator: "\n"), forType: .string)
+    }
+
+    // MARK: Rename in place (F2)
+
+    private var renaming: (row: Int, item: FileItem)?
+
+    private func beginRename() {
+        guard let item = model.cursorItem, !item.isParent,
+              let column = tableView.tableColumn(withIdentifier: Column.name.identifier) else { return }
+        let row = model.cursor
+        let columnIndex = tableView.column(withIdentifier: column.identifier)
+        guard let cell = tableView.view(atColumn: columnIndex, row: row, makeIfNecessary: true) as? NSTableCellView,
+              let field = cell.textField else { return }
+        renaming = (row, item)
+        field.stringValue = item.name
+        field.isEditable = true
+        field.delegate = self
+        tableView.editColumn(columnIndex, row: row, with: nil, select: false)
+        if field.currentEditor() == nil { view.window?.makeFirstResponder(field) }
+        log.debug("rename begin editor=\(field.currentEditor() != nil)")
+        // Finder selects the base name only, so typing keeps the extension.
+        let base = item.isDirectory ? item.name : item.baseName
+        field.currentEditor()?.selectedRange = NSRange(location: 0, length: (base as NSString).length)
+    }
+
+    private func endRename(commit: Bool, newName: String) {
+        guard let (_, item) = renaming else { return }
+        renaming = nil
+        view.window?.makeFirstResponder(tableView)
+        modelChanged()
+        if commit { router?.operations.rename(item.url, to: newName, in: self) }
+    }
+
+    // MARK: Pasteboard
+
+    private static var pasteboardHasFilesOrPath: Bool {
+        let pb = NSPasteboard.general
+        if pb.canReadObject(forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) { return true }
+        return pb.string(forType: .string)?.hasPrefix("/") == true
+    }
+
+    private func copyFilesToPasteboard() {
+        let pb = NSPasteboard.general
+        pb.clearContents()
+        pb.writeObjects(targets().map { $0.url as NSURL })
+    }
+
+    /// Files on the pasteboard are copied here; a path as text navigates there.
+    private func pasteFromPasteboard() {
+        let pb = NSPasteboard.general
+        if let urls = pb.readObjects(forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) as? [URL], !urls.isEmpty {
+            router?.operations.transfer(.copy, sources: urls, from: self, to: model.location)
+        } else if let text = pb.string(forType: .string)?.trimmingCharacters(in: .whitespacesAndNewlines),
+                  let url = try? PathRules.resolve(text, relativeTo: model.location) {
+            go(to: url)
+        }
     }
 
     // MARK: Prompts
@@ -512,6 +594,20 @@ final class PanelViewController: NSViewController {
 
 extension PanelViewController: NSTextFieldDelegate {
     func control(_ control: NSControl, textView: NSTextView, doCommandBy selector: Selector) -> Bool {
+        if control !== pathField, renaming != nil {
+            if selector == #selector(NSResponder.cancelOperation(_:)) {
+                (control as? NSTextField)?.isEditable = false
+                endRename(commit: false, newName: "")
+                return true
+            }
+            if selector == #selector(NSResponder.insertNewline(_:)) {
+                let name = control.stringValue
+                (control as? NSTextField)?.isEditable = false
+                endRename(commit: true, newName: name)
+                return true
+            }
+            return false
+        }
         if selector == #selector(NSResponder.cancelOperation(_:)) {
             pathField.stringValue = model.location.path(percentEncoded: false)
             view.window?.makeFirstResponder(tableView)
@@ -584,6 +680,64 @@ extension PanelViewController: NSTableViewDataSource, NSTableViewDelegate {
             return Format.grouped(item.size ?? 0)
         case .date: return item.isParent ? "" : item.modificationDate.map(Format.date) ?? ""
         }
+    }
+
+    // MARK: Drag & drop — same rules as F5/F6: Option copies, Command moves,
+    // otherwise move within a volume and copy across volumes (Finder convention).
+
+    func tableView(_ tableView: NSTableView, pasteboardWriterForRow row: Int) -> (any NSPasteboardWriting)? {
+        guard row < model.items.count, !model.items[row].isParent else { return nil }
+        let item = model.items[row]
+        // Dragging a marked row drags the whole selection.
+        if model.isSelected(item) { return nil }
+        return item.url as NSURL
+    }
+
+    func tableView(_ tableView: NSTableView, draggingSession session: NSDraggingSession,
+                   willBeginAt screenPoint: NSPoint, forRowIndexes rowIndexes: IndexSet) {
+        guard let row = rowIndexes.first, row < model.items.count, model.isSelected(model.items[row]) else { return }
+        session.draggingPasteboard.clearContents()
+        session.draggingPasteboard.writeObjects(model.selectedItems.map { $0.url as NSURL })
+    }
+
+    func tableView(_ tableView: NSTableView, validateDrop info: any NSDraggingInfo, proposedRow row: Int,
+                   proposedDropOperation dropOperation: NSTableView.DropOperation) -> NSDragOperation {
+        guard let target = dropTarget(row: row, operation: dropOperation) else { return [] }
+        // Highlight the folder row, or the whole panel when dropping into the current folder.
+        tableView.setDropRow(target == model.location ? -1 : row, dropOperation: .on)
+        guard let urls = Self.fileURLs(info), !urls.isEmpty else { return [] }
+        if urls.contains(where: { $0.deletingLastPathComponent().standardizedFileURL == target.standardizedFileURL }) { return [] }
+        return dragOperation(info, sources: urls, target: target)
+    }
+
+    func tableView(_ tableView: NSTableView, acceptDrop info: any NSDraggingInfo, row: Int,
+                   dropOperation: NSTableView.DropOperation) -> Bool {
+        guard let urls = Self.fileURLs(info), !urls.isEmpty,
+              let target = dropTarget(row: row, operation: dropOperation) else { return false }
+        let op = dragOperation(info, sources: urls, target: target)
+        router?.operations.transfer(op == .move ? .move : .copy, sources: urls, from: self, to: target)
+        return true
+    }
+
+    private func dropTarget(row: Int, operation: NSTableView.DropOperation) -> URL? {
+        if operation == .on, row >= 0, row < model.items.count {
+            let item = model.items[row]
+            if item.isParent { return model.location.deletingLastPathComponent() }
+            if item.isDirectory && !item.isPackage { return item.url }
+        }
+        return model.location
+    }
+
+    private func dragOperation(_ info: any NSDraggingInfo, sources: [URL], target: URL) -> NSDragOperation {
+        let mask = info.draggingSourceOperationMask
+        if mask == .copy { return .copy }                 // Option held
+        if mask == .generic || mask == .move { return .move } // Command held
+        let sameVolume = sources.allSatisfy { Volumes.root(of: $0) == Volumes.root(of: target) }
+        return sameVolume ? .move : .copy
+    }
+
+    private static func fileURLs(_ info: any NSDraggingInfo) -> [URL]? {
+        info.draggingPasteboard.readObjects(forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) as? [URL]
     }
 
     func tableViewSelectionDidChange(_ notification: Notification) {
