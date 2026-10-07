@@ -2,8 +2,8 @@ import AppKit
 import CommanderCore
 
 /// ⌃⌥F10 / ⌃⇧D: what takes the space in a folder, as a treemap. Only reads the disk; the scan stays
-/// on the folder's volume. Double click or Return enters a folder, ⌫ goes up, “Show in Panel” opens
-/// the selected item in the active panel.
+/// on the folder's volume. Arrow keys select, double click or Return enters a folder, ⌫ goes up,
+/// “Show in Panel” opens the selected item in the active panel.
 final class DiskMapWindowController: NSWindowController, NSWindowDelegate {
     private static var open: [DiskMapWindowController] = []
 
@@ -11,6 +11,7 @@ final class DiskMapWindowController: NSWindowController, NSWindowDelegate {
         let controller = DiskMapWindowController(folder: folder, main: main)
         open.append(controller)
         controller.showWindow(nil)
+        controller.window?.makeFirstResponder(controller.map)
         controller.scan()
     }
 
@@ -21,8 +22,8 @@ final class DiskMapWindowController: NSWindowController, NSWindowDelegate {
     private let upButton = NSButton()
     private let rescanButton = NSButton()
     private let revealButton = NSButton()
-    private let statusField = NSTextField(labelWithString: "")
-    private let detailField = NSTextField(labelWithString: "")
+    private let statusField = PathLabel(labelWithString: "")
+    private let detailField = PathLabel(labelWithString: "")
     private let spinner = NSProgressIndicator()
     private let stopButton = NSButton()
     private var scanTask: Task<Void, Never>?
@@ -71,11 +72,13 @@ final class DiskMapWindowController: NSWindowController, NSWindowDelegate {
         spinner.style = .spinning
         spinner.controlSize = .small
         spinner.isDisplayedWhenStopped = false
-        statusField.lineBreakMode = .byTruncatingMiddle
-        statusField.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-        detailField.lineBreakMode = .byTruncatingMiddle
+        for field in [statusField, detailField] {
+            field.lineBreakMode = .byTruncatingMiddle
+            field.usesSingleLineMode = true
+            field.maximumNumberOfLines = 1
+            field.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        }
         detailField.textColor = .secondaryLabelColor
-        detailField.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
 
         let top = NSStackView(views: [upButton, pathControl, NSView(), rescanButton, revealButton])
         top.edgeInsets = NSEdgeInsets(top: 8, left: 10, bottom: 8, right: 10)
@@ -251,7 +254,7 @@ final class DiskMapWindowController: NSWindowController, NSWindowDelegate {
                 + (shown.allocatedSize > 0 ? String(format: " (%.1f %%)", Double(node.allocatedSize) * 100 / Double(shown.allocatedSize)) : "")
                 + "  —  \(kind)"
         } else {
-            detailField.stringValue = String(localized: "Double click enters a folder, ⌫ goes up.")
+            detailField.stringValue = String(localized: "Arrow keys select, Return or double click enters a folder, ⌫ goes up.")
         }
     }
 
@@ -260,5 +263,12 @@ final class DiskMapWindowController: NSWindowController, NSWindowDelegate {
     func windowWillClose(_ notification: Notification) {
         scanTask?.cancel()
         Self.open.removeAll { $0 === self }
+    }
+}
+
+/// Label whose full text is also its tool tip, so a truncated path stays readable on hover.
+private final class PathLabel: NSTextField {
+    override var stringValue: String {
+        didSet { toolTip = stringValue.isEmpty ? nil : stringValue }
     }
 }

@@ -51,7 +51,8 @@ enum DiskMapKind: CaseIterable {
 }
 
 /// The treemap of one folder of a scan: folders as framed boxes with a title, files as colored tiles.
-/// Click selects, double click (or Return) enters a folder, ⌫ or ⌘↑ goes up.
+/// Click or arrow keys select (Tab/⇧Tab by size, Home/End the largest/smallest), double click, Return
+/// or ⌘↓ enters a folder, ⌫ or ⌘↑ goes up.
 final class TreemapView: NSView {
     private static let header = 15.0
     private static let inset = 2.0
@@ -84,20 +85,80 @@ final class TreemapView: NSView {
         selected = nil
         hovered = nil
         relayout()
+        window?.makeFirstResponder(self)
         onLocationChange?()
     }
 
+    /// Shows the enclosing folder with the folder just left selected (when it is laid out).
     func goUp() {
         guard !location.isEmpty else { NSSound.beep(); return }
         let previous = location
         show(Array(location.dropLast()))
-        selected = previous
+        if cells.contains(where: { $0.path == [previous.last!] }) { selected = previous }
     }
 
     /// Enters the selected folder (or the folder holding the selected file).
     func enterSelection() {
         guard let path = selected, let node = selectedNode else { return }
         if node.isDirectory, !node.children.isEmpty { show(path) } else if path.count > location.count + 1 { show(Array(path.dropLast())) }
+    }
+
+    // MARK: Keyboard selection
+
+    /// The selected cell's path relative to the shown folder, when it is laid out.
+    private var selectedCellPath: [Int]? {
+        guard let selected, selected.starts(with: location) else { return nil }
+        let relative = Array(selected.dropFirst(location.count))
+        return cells.contains { $0.path == relative } ? relative : nil
+    }
+
+    /// Indices into `cells` of the cells sharing the parent of `path` (`path` itself included),
+    /// largest first (ties in child order, as the layout orders them).
+    private func level(of path: [Int]) -> [Int] {
+        let parent = path.dropLast()
+        let indices = cells.indices.filter { cells[$0].path.count == path.count && cells[$0].path.dropLast() == parent }
+        guard let node = shownNode else { return indices }
+        let sizes = Dictionary(uniqueKeysWithValues: indices.map {
+            ($0, DiskUsage.node(at: cells[$0].path, in: node)?.allocatedSize ?? 0)
+        })
+        return indices.sorted { sizes[$0]! != sizes[$1]! ? sizes[$0]! > sizes[$1]! : cells[$0].path.last! < cells[$1].path.last! }
+    }
+
+    /// Selects a cell (path relative to the shown folder) from the keyboard; the detail then shows it.
+    private func selectCell(_ path: [Int]) {
+        hovered = nil
+        selected = location + path
+    }
+
+    /// Arrow keys: the neighbouring cell among the selection's siblings, else among its ancestors' siblings.
+    private func move(_ direction: Treemap.Direction) {
+        guard var path = selectedCellPath else { selectInLevel(first: true); return }
+        while !path.isEmpty {
+            let level = level(of: path)
+            if let current = level.firstIndex(where: { cells[$0].path == path }),
+               let next = Treemap.neighbor(of: current, in: level.map { cells[$0].rect }, toward: direction) {
+                selectCell(cells[level[next]].path)
+                return
+            }
+            path.removeLast()
+        }
+        NSSound.beep()
+    }
+
+    /// Tab/⇧Tab: the next/previous sibling by size, wrapping around.
+    private func cycle(forward: Bool) {
+        guard let path = selectedCellPath else { selectInLevel(first: forward); return }
+        let level = level(of: path)
+        guard let current = level.firstIndex(where: { cells[$0].path == path }) else { return }
+        let next = (current + (forward ? 1 : level.count - 1)) % level.count
+        selectCell(cells[level[next]].path)
+    }
+
+    /// Home/End: the largest/smallest sibling of the selection (of the shown folder's children without one).
+    private func selectInLevel(first: Bool) {
+        let level = level(of: selectedCellPath ?? [0])
+        guard let index = first ? level.first : level.last else { NSSound.beep(); return }
+        selectCell(cells[index].path)
     }
 
     // MARK: Layout
@@ -193,11 +254,22 @@ final class TreemapView: NSView {
 
     override func keyDown(with event: NSEvent) {
         if onKey?(event) == true { return }
-        let plain = event.modifierFlags.intersection([.command, .option, .control, .shift]).isEmpty
+        let flags = event.modifierFlags.intersection([.command, .option, .control, .shift])
+        let plain = flags.isEmpty
         switch event.specialKey {
         case .carriageReturn?, .enter?: if plain { enterSelection() } else { super.keyDown(with: event) }
         case .backspace?: if plain { goUp() } else { super.keyDown(with: event) }
-        case .upArrow? where event.modifierFlags.contains(.command): goUp()
+        case .upArrow? where flags == .command: goUp()
+        case .downArrow? where flags == .command: enterSelection()
+        case .leftArrow? where plain: move(.left)
+        case .rightArrow? where plain: move(.right)
+        case .upArrow? where plain: move(.up)
+        case .downArrow? where plain: move(.down)
+        case .tab? where plain: cycle(forward: true)
+        case .tab? where flags == .shift: cycle(forward: false)
+        case .backTab?: cycle(forward: false)
+        case .home? where plain: selectInLevel(first: true)
+        case .end? where plain: selectInLevel(first: false)
         default: super.keyDown(with: event)
         }
     }

@@ -331,4 +331,80 @@ private final class Counter: @unchecked Sendable {
         #expect(Treemap.hit(cells, x: -5, y: -5) == nil)
         #expect(Treemap.hit([], x: 1, y: 1) == nil)
     }
+
+    private func rect(_ x: Double, _ y: Double, _ w: Double, _ h: Double) -> TreemapRect {
+        TreemapRect(x: x, y: y, width: w, height: h)
+    }
+
+    @Test func neighborInGrid() {
+        // 0 1 2
+        // 3 4 5
+        let grid = (0..<6).map { rect(Double($0 % 3) * 10, Double($0 / 3) * 10, 10, 10) }
+        #expect(Treemap.neighbor(of: 4, in: grid, toward: .left) == 3)
+        #expect(Treemap.neighbor(of: 4, in: grid, toward: .right) == 5)
+        #expect(Treemap.neighbor(of: 4, in: grid, toward: .up) == 1)
+        #expect(Treemap.neighbor(of: 0, in: grid, toward: .right) == 1)
+        #expect(Treemap.neighbor(of: 0, in: grid, toward: .down) == 3)
+        // Edges: nothing beyond.
+        #expect(Treemap.neighbor(of: 0, in: grid, toward: .left) == nil)
+        #expect(Treemap.neighbor(of: 0, in: grid, toward: .up) == nil)
+        #expect(Treemap.neighbor(of: 5, in: grid, toward: .right) == nil)
+        #expect(Treemap.neighbor(of: 5, in: grid, toward: .down) == nil)
+        // Invalid index.
+        #expect(Treemap.neighbor(of: 6, in: grid, toward: .left) == nil)
+        #expect(Treemap.neighbor(of: 0, in: [], toward: .left) == nil)
+        #expect(Treemap.neighbor(of: 0, in: [rect(0, 0, 10, 10)], toward: .right) == nil)
+    }
+
+    @Test func neighborInUnevenLayout() {
+        // A tall cell on the left, a column of two on the right (the lower one larger), a strip below.
+        let rects = [rect(0, 0, 50, 100), rect(50, 0, 50, 30), rect(50, 30, 50, 70), rect(0, 100, 100, 20)]
+        #expect(Treemap.neighbor(of: 0, in: rects, toward: .right) == 2) // greater overlap
+        #expect(Treemap.neighbor(of: 1, in: rects, toward: .left) == 0)
+        #expect(Treemap.neighbor(of: 2, in: rects, toward: .left) == 0)
+        #expect(Treemap.neighbor(of: 1, in: rects, toward: .down) == 2) // nearest edge before the strip
+        #expect(Treemap.neighbor(of: 2, in: rects, toward: .up) == 1)
+        #expect(Treemap.neighbor(of: 0, in: rects, toward: .down) == 3)
+        #expect(Treemap.neighbor(of: 3, in: rects, toward: .up) == 0) // equal overlap: first one wins
+        #expect(Treemap.neighbor(of: 3, in: rects, toward: .down) == nil)
+        // An adjacent cell wins over a farther one with full overlap.
+        let row = [rect(0, 0, 10, 40), rect(10, 0, 10, 10), rect(20, 0, 10, 40)]
+        #expect(Treemap.neighbor(of: 0, in: row, toward: .right) == 1)
+        #expect(Treemap.neighbor(of: 2, in: row, toward: .left) == 1)
+    }
+
+    @Test func neighborFallsBackToNearestCenter() {
+        // No cell overlaps 0's span: the nearest center beyond it is taken.
+        let rects = [rect(0, 0, 10, 10), rect(20, 20, 10, 10), rect(20, 60, 10, 10), rect(-30, 30, 10, 10)]
+        #expect(Treemap.neighbor(of: 0, in: rects, toward: .right) == 1)
+        #expect(Treemap.neighbor(of: 0, in: rects, toward: .down) == 1)
+        #expect(Treemap.neighbor(of: 0, in: rects, toward: .left) == 3)
+        #expect(Treemap.neighbor(of: 0, in: rects, toward: .up) == nil)
+        // Empty rects are skipped.
+        #expect(Treemap.neighbor(of: 0, in: [rect(0, 0, 10, 10), rect(10, 0, 0, 10)], toward: .right) == nil)
+    }
+
+    @Test func neighborInSquarifiedLayoutIsAdjacent() {
+        let sizes: [Double] = [500, 300, 200, 120, 80, 60, 40, 25, 10, 5]
+        let rects = Treemap.squarify(sizes, in: rect(0, 0, 400, 300))
+        for index in rects.indices {
+            for direction in Treemap.Direction.allCases {
+                guard let next = Treemap.neighbor(of: index, in: rects, toward: direction) else { continue }
+                let a = rects[index], b = rects[next]
+                // Cells tile the rect, so the neighbor shares the edge.
+                let gap = switch direction {
+                case .right: b.x - a.maxX
+                case .left: a.x - b.maxX
+                case .down: b.y - a.maxY
+                case .up: a.y - b.maxY
+                }
+                #expect(abs(gap) < 1e-6)
+            }
+            // Only cells touching the outer edge have no neighbor that way.
+            if Treemap.neighbor(of: index, in: rects, toward: .left) == nil { #expect(abs(rects[index].x) < 1e-6) }
+            if Treemap.neighbor(of: index, in: rects, toward: .right) == nil { #expect(abs(rects[index].maxX - 400) < 1e-6) }
+            if Treemap.neighbor(of: index, in: rects, toward: .up) == nil { #expect(abs(rects[index].y) < 1e-6) }
+            if Treemap.neighbor(of: index, in: rects, toward: .down) == nil { #expect(abs(rects[index].maxY - 300) < 1e-6) }
+        }
+    }
 }
