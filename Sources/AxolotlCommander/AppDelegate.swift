@@ -88,7 +88,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
     func showSettings(tab: SettingsTab? = nil) {
         if let tab { UserDefaults.standard.set(tab.rawValue, forKey: "settings.tab") }
         if settingsWindow == nil {
-            let window = NSWindow(contentViewController: NSHostingController(rootView: SettingsView()))
+            let window = SettingsWindow(contentViewController: NSHostingController(rootView: SettingsView()))
             window.title = String(localized: "Settings")
             window.styleMask = [.titled, .closable]
             window.isReleasedWhenClosed = false
@@ -96,5 +96,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
             settingsWindow = window
         }
         settingsWindow?.makeKeyAndOrderFront(nil)
+    }
+}
+
+/// Esc closes Settings wherever the focus is: a focused checkbox or button keeps Esc from
+/// SwiftUI's exit command. A field that is composing text (an input method) keeps its own Esc.
+private final class SettingsWindow: NSWindow {
+    override func performKeyEquivalent(with event: NSEvent) -> Bool {
+        if event.type == .keyDown, event.keyCode == 53,
+           event.modifierFlags.intersection([.shift, .control, .option, .command]).isEmpty,
+           (firstResponder as? NSTextView)?.hasMarkedText() != true {
+            close()
+            return true
+        }
+        return super.performKeyEquivalent(with: event)
     }
 }

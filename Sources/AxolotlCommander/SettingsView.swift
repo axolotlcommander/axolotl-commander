@@ -52,7 +52,6 @@ struct SettingsView: View {
                 .tag(SettingsTab.keyboard.rawValue)
         }
         .frame(width: 720, height: 500)
-        .onExitCommand { NSApp.keyWindow?.close() }
     }
 }
 
