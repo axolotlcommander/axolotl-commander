@@ -2,11 +2,19 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2026 The Axolotl Commander Authors
 # Builds Axolotl Commander.app into build/. Usage: scripts/bundle.sh [debug|release]
+# Environment: VERSION (e.g. 0.2.0), BUILD_NUMBER, UNIVERSAL=1 (Apple silicon + Intel).
 set -eu
 CONFIG="${1:-debug}"
+VERSION="${VERSION:-0.1.0}"
+BUILD_NUMBER="${BUILD_NUMBER:-1}"
 cd "$(dirname "$0")/.."
-swift build -c "$CONFIG"
-BIN="$(swift build -c "$CONFIG" --show-bin-path)"
+if [ "${UNIVERSAL:-0}" = 1 ]; then
+  set -- --arch arm64 --arch x86_64
+else
+  set --
+fi
+swift build -c "$CONFIG" "$@"
+BIN="$(swift build -c "$CONFIG" "$@" --show-bin-path)"
 APP="build/Axolotl Commander.app"
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
@@ -28,8 +36,8 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>CFBundleExecutable</key><string>AxolotlCommander</string>
   <key>CFBundleIconFile</key><string>AppIcon</string>
   <key>CFBundlePackageType</key><string>APPL</string>
-  <key>CFBundleShortVersionString</key><string>0.1</string>
-  <key>CFBundleVersion</key><string>1</string>
+  <key>CFBundleShortVersionString</key><string>$VERSION</string>
+  <key>CFBundleVersion</key><string>$BUILD_NUMBER</string>
   <key>NSHumanReadableCopyright</key><string>© 2026 The Axolotl Commander Authors. GPL-3.0-or-later.</string>
   <key>LSMinimumSystemVersion</key><string>15.0</string>
   <key>NSPrincipalClass</key><string>AxolotlCommander.CommanderApplication</string>

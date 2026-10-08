@@ -86,6 +86,8 @@ Projekt je nová implementace **chování** vzoru, ne převod jeho kódu.
 Větší funkce se dělají přes Spec Kit: `/speckit-specify` → `/speckit-plan` → `/speckit-tasks` →
 `/speckit-implement`, specifikace vznikne v `specs/NNN-nazev/` a patří do pull requestu.
 
+Vydávání nových verzí popisuje [docs/RELEASING.md](docs/RELEASING.md).
+
 ## Původ příspěvků (DCO)
 
 Podepiš každý commit volbou `-s` (`git commit -s`). Tím potvrzuješ

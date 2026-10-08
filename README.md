@@ -31,6 +31,13 @@ English are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).*
 - Hledání podle jména a obsahu, duplicity, výsledky do panelu.
 - Příkazová řádka, uživatelské menu, vlastní klávesové zkratky; čeština a angličtina.
 
+## Instalace
+
+Hotové sestavení je v [Releases](https://github.com/ACiDekCZ/axolotl-commander/releases):
+stáhni `.dmg` nebo `.zip` a přetáhni Axolotl Commander do složky Aplikace. Dokud vydání nejsou
+podepsaná Apple Developer ID, macOS aplikaci při prvním spuštění zablokuje — povol ji v
+*Nastavení systému → Soukromí a zabezpečení → Přesto otevřít*.
+
 ## Sestavení
 
 Vyžaduje macOS 15+ a Swift 6.2 (Xcode 26 nebo Command Line Tools).
