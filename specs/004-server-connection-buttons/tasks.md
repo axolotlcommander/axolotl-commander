@@ -75,8 +75,8 @@ local test servers.
 - [X] T017 Overflow: descending visibility priorities from first to last item so a narrow bar drops items from the end (quickstart Q14), in Sources/AxolotlCommander/VolumeBar.swift
 - [X] T018 [P] Czech translations for all new strings in Resources/Localizable.xcstrings (Home, Network, Servers, Copy Address, Disconnect, Disconnect %@, Volume bar shows:, Server connections) and a test that each new key has a cs entry in Tests/CommanderCoreTests/VolumeBarTests.swift
 - [X] T019 [P] README (volume bar paragraph) and CHANGELOG (Unreleased → Added)
-- [ ] T020 GUI verification per quickstart.md Q1–Q16 in the test copy against the local test servers; record results at the end of this file
-- [ ] T021 Mark spec Status Implemented, all tasks [X]; merge to main through a pull request; `scripts/bundle.sh release` + `scripts/install.sh` (ask first if the app runs)
+- [X] T020 GUI verification per quickstart.md Q1–Q16 in the test copy against the local test servers; record results at the end of this file
+- [X] T021 Mark spec Status Implemented, all tasks [X]; merge to main through a pull request; `scripts/bundle.sh release` + `scripts/install.sh` (ask first if the app runs)
 
 ## Dependencies
 
@@ -93,3 +93,31 @@ local test servers.
 
 MVP = Phases 1–4 (toolbar button + server buttons with return to the last folder). Then US3,
 US4, US5, US6, each committed on its own, then polish and GUI verification.
+
+## GUI Verification (T020, 2026-10-08)
+
+Test copy `iCmdTest.app` in English, two local FTP test servers on 127.0.0.1 (users alice and
+bob, different ports, roots in a scratch folder), passwords typed in the address only (nothing
+stored in the Keychain).
+
+| Scenario | Result |
+|---|---|
+| Q1 toolbar and default bar | Pass ("Connect to Server" in the toolbar; Macintosh HD, Network; no iCloud Drive button because this Mac has no iCloud Drive folder) |
+| Q2 toolbar Connect to Server | Pass (dialog for the active panel) |
+| Q3 connect → server button in both bars, pressed in its panel | Pass after the fix below |
+| Q4 leave via Macintosh HD, click the server button | Pass (back in `/data/sub`) |
+| Q5 server button in the other panel | Pass |
+| Q6 two users on one host | Pass (`alice@127.0.0.1`, `bob@127.0.0.1`; back to `127.0.0.1` after one closed) |
+| Q7 hover eject, click | Pass (closed without a dialog, gone in both bars, the panel on it went home) |
+| Q8 button menu | Pass (Open in Other Panel, Copy Address, Disconnect shown); Copy Address not clicked (it would overwrite the maintainer's clipboard) |
+| Q9 server stopped, click the button | Pass (error in the status line, button stays); reconnect not tried (the password prompt offers saving to the Keychain) |
+| Q10 ⌥F1 "Servers" section | Pass |
+| Q11 iCloud Drive | Not testable on this Mac (no iCloud Drive folder); covered by unit tests |
+| Q12 Network menu | Pass (servers, Connect to Server…; no network volumes mounted) |
+| Q13 Settings: Home on, Network off | Pass (both bars at once; Home pressed only in the home folder, Macintosh HD not) |
+| Q14 minimum window width | Pass (Network and the server button hidden from the end in the narrower panel; volumes stay) |
+| Q15 F12 with a dropped connection | Pass (listed, closed, button gone; Disconnect disabled with no connection) |
+| Q16 accessibility | Not inspected |
+
+Found and fixed during the check: server labels were cut ("127.0.…") because the accessory bar
+bezel ignored the cell's extra width for the eject symbol.

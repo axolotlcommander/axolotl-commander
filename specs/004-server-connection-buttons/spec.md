@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-08
 
-**Status**: Draft
+**Status**: Implemented
 
 **Input**: User description: "Server connections in the toolbar and the volume bar. An open
 SFTP/FTP/FTPS connection is easy to see and to return to with one click, as in Commander One, and
@@ -25,6 +25,9 @@ setting for what the volume bar shows (see Clarifications).
 - Q: What can be turned off? → A: Settings → Appearance lists Home (off by default), iCloud
   Drive, Network and Server connections (all on by default); volumes are always shown. Hiding the
   whole volume bar is not part of this feature.
+- Q: Should Disconnect (menu, F12, toolbar) stay enabled when no connection is open? → A: No;
+  it is disabled then, like the toolbar item (User Story 1 scenario 4). Recorded during
+  implementation.
 
 ## User Scenarios & Testing *(mandatory)*
 
