@@ -962,6 +962,16 @@
         }
       }
     },
+    "Breadcrumbs": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Drobečková navigace"
+          }
+        }
+      }
+    },
     "Brief": {
       "extractionState": "manual",
       "localizations": {
@@ -1507,6 +1517,16 @@
         }
       }
     },
+    "Copy Path": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopírovat cestu"
+          }
+        }
+      }
+    },
     "Copy Path as Text": {
       "extractionState": "manual",
       "localizations": {
@@ -2031,6 +2051,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Upravit nový soubor"
+          }
+        }
+      }
+    },
+    "Edit Path": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upravit cestu"
           }
         }
       }
@@ -3043,6 +3073,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Skryté soubory"
+          }
+        }
+      }
+    },
+    "Hidden folders": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skryté složky"
           }
         }
       }
@@ -4493,6 +4533,26 @@
         }
       }
     },
+    "Open in New Tab": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otevřít v nové záložce"
+          }
+        }
+      }
+    },
+    "Open in Other Panel": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otevřít v druhém panelu"
+          }
+        }
+      }
+    },
     "Open Keyboard Settings": {
       "localizations": {
         "cs": {
@@ -4744,6 +4804,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Cesta (absolutní, relativní k této složce nebo začínající ~):"
+          }
+        }
+      }
+    },
+    "Path bar:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Řádek s cestou:"
           }
         }
       }
@@ -5586,6 +5656,16 @@
         }
       }
     },
+    "Set as Hot Path": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nastavit jako oblíbenou cestu"
+          }
+        }
+      }
+    },
     "Set Current Folder As": {
       "localizations": {
         "cs": {
@@ -5867,6 +5947,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zobrazit skryté soubory"
+          }
+        }
+      }
+    },
+    "Show icons in path bar": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ikony v řádku s cestou"
           }
         }
       }
@@ -6248,6 +6338,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kódování textu, když se nerozpozná:"
+          }
+        }
+      }
+    },
+    "Text field": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Textové pole"
           }
         }
       }

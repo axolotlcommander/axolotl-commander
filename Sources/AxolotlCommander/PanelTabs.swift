@@ -130,7 +130,7 @@ extension PanelViewController {
         let edit = NSMenuItem(title: String(localized: "Edit Hot Paths…"), action: #selector(editHotPaths), keyEquivalent: "")
         edit.target = self
         menu.addItem(edit)
-        menu.popUp(positioning: nil, at: NSPoint(x: 0, y: pathField.bounds.height + 2), in: pathField)
+        menu.popUp(positioning: nil, at: NSPoint(x: 0, y: pathBar.bounds.height + 2), in: pathBar)
     }
 
     @objc private func hotPathChosen(_ sender: NSMenuItem) { goToHotPath(sender.tag) }
@@ -162,8 +162,9 @@ extension PanelViewController {
         }
     }
 
-    func setHotPath(_ slot: Int) {
-        let path = model.location.displayPath
+    /// Saves `path` (the current folder by default) in hot path `slot`.
+    func setHotPath(_ slot: Int, path: String? = nil) {
+        let path = path ?? model.location.displayPath
         AppSettings.shared.hotPaths.set(slot, HotPath(path: path))
         statusField.stringValue = String(localized: "Hot path \(slot + 1) (⌃\(HotPaths.digit(forSlot: slot) ?? 0)): \(path)")
     }

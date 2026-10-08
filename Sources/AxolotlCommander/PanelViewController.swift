@@ -54,6 +54,10 @@ final class PanelViewController: NSViewController {
     let model: PanelModel
     let tableView = PanelTableView()
     let pathField = NSTextField()
+    /// Breadcrumbs or the path field (hosted inside), by the "Path bar" setting.
+    private(set) lazy var pathBar = PathBar(field: pathField)
+    private var trailLocation: URL?
+    private var trailResults: ResultsListing?
     let statusField = NSTextField(labelWithString: "")
     private let volumeBar = VolumeBar()
     let tabStrip = TabStrip()
@@ -115,6 +119,9 @@ final class PanelViewController: NSViewController {
         pathField.target = self
         pathField.action = #selector(pathFieldCommitted)
         pathField.delegate = self
+        // Leaving the field never navigates; only Enter does.
+        pathField.cell?.sendsActionOnEndEditing = false
+        configurePathBar()
 
         for column in Column.allCases {
             let tc = NSTableColumn(identifier: column.identifier)
@@ -182,7 +189,7 @@ final class PanelViewController: NSViewController {
         }
         lists.setContentHuggingPriority(.defaultLow, for: .vertical)
 
-        let stack = NSStackView(views: [volumeBar, tabStrip, pathField, lists, statusField])
+        let stack = NSStackView(views: [volumeBar, tabStrip, pathBar, lists, statusField])
         stack.orientation = .vertical
         stack.alignment = .leading
         stack.spacing = 2
@@ -196,7 +203,7 @@ final class PanelViewController: NSViewController {
             stack.bottomAnchor.constraint(equalTo: root.bottomAnchor),
             volumeBar.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -8),
             tabStrip.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -8),
-            pathField.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -8),
+            pathBar.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -8),
             lists.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -8),
             statusField.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -8),
         ])
@@ -211,7 +218,7 @@ final class PanelViewController: NSViewController {
     }
 
     private func updateActiveAppearance() {
-        pathField.backgroundColor = isActive ? .controlAccentColor.withAlphaComponent(0.28) : .quaternarySystemFill
+        pathBar.isActive = isActive
         tableView.enumerateAvailableRowViews { rowView, _ in
             (rowView as? PanelRowView)?.panelIsActive = isActive
             rowView.needsDisplay = true
@@ -271,6 +278,7 @@ final class PanelViewController: NSViewController {
             syncingSelection = false
         }
         if pathField.currentEditor() == nil { pathField.stringValue = locationText }
+        updatePathBar()
         volumeBar.show(location: model.location)
         router?.panelLocationChanged(self)
         ArchivePasswords.panel(self, showsArchive: model.archive?.archive)
@@ -445,7 +453,7 @@ final class PanelViewController: NSViewController {
     private static var rememberedSelection: [String] = []
 
     private static let handled: Set<Command> = [
-        .open, .goParent, .goRoot, .goHome, .goBack, .goForward, .changeDirectory, .refresh,
+        .open, .goParent, .goRoot, .goHome, .goBack, .goForward, .changeDirectory, .editPath, .refresh,
         .sortByName, .sortByExtension, .sortByDate, .sortBySize, .toggleHidden, .filter,
         .leftVolumeMenu, .rightVolumeMenu,
         .toggleSelection, .toggleSelectionAndSize, .selectByMask, .deselectByMask, .invertByMask,
@@ -540,6 +548,7 @@ final class PanelViewController: NSViewController {
         case .goBack: Task { await navigate { try await model.goBack() } }
         case .goForward: Task { await navigate { try await model.goForward() } }
         case .changeDirectory: Task { await askGoToFolder() }
+        case .editPath: beginEditingPath()
         case .newTab: newTab()
         case .viewModeDetailed: viewMode = .detailed
         case .viewModeBrief: viewMode = .brief
@@ -942,7 +951,7 @@ final class PanelViewController: NSViewController {
         }
         menu.addItem(placeItem(String(localized: "Network Volumes"), URL(filePath: "/Volumes", directoryHint: .isDirectory),
                                icon: NSImage(systemSymbolName: "network", accessibilityDescription: nil)))
-        menu.popUp(positioning: nil, at: NSPoint(x: 0, y: pathField.bounds.height + 2), in: pathField)
+        menu.popUp(positioning: nil, at: NSPoint(x: 0, y: pathBar.bounds.height + 2), in: pathBar)
     }
 
     private func placeItem(_ title: String, _ url: URL, icon: NSImage?) -> NSMenuItem {
@@ -962,6 +971,10 @@ final class PanelViewController: NSViewController {
     // MARK: Path field
 
     @objc private func pathFieldCommitted() {
+        // With breadcrumbs the bar comes back at once; the panel then shows the new folder, or the
+        // status line the error.
+        let returnFocus = pathBar.style == .breadcrumbs
+        defer { if returnFocus { view.window?.makeFirstResponder(listView) } }
         let input = pathField.stringValue
         if model.results != nil, input == locationText {
             view.window?.makeFirstResponder(tableView)
@@ -995,6 +1008,10 @@ final class PanelViewController: NSViewController {
 }
 
 extension PanelViewController: NSTextFieldDelegate {
+    func controlTextDidEndEditing(_ obj: Notification) {
+        if (obj.object as? NSTextField) === pathField { pathBar.endEditing() }
+    }
+
     func control(_ control: NSControl, textView: NSTextView, doCommandBy selector: Selector) -> Bool {
         if control !== pathField, renaming != nil {
             if selector == #selector(NSResponder.cancelOperation(_:)) {
@@ -1192,5 +1209,143 @@ final class FileCellView: NSTableCellView {
             constraints.append(label.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 2))
         }
         NSLayoutConstraint.activate(constraints)
+    }
+}
+
+// MARK: - Path bar
+
+extension PanelViewController {
+    fileprivate func configurePathBar() {
+        pathBar.onClick = { [weak self] index, flags in self?.pathSegmentClicked(index, flags: flags) }
+        pathBar.menuForSegment = { [weak self] index in self?.pathSegmentMenu(index) }
+        pathBar.onEmptyClick = { [weak self] in
+            guard let self else { return }
+            router?.activate(side)
+            beginEditingPath()
+        }
+        NotificationCenter.default.addObserver(self, selector: #selector(pathBarSettingsChanged),
+                                               name: UserDefaults.didChangeNotification, object: nil)
+    }
+
+    /// The trail follows the location; cursor moves and selection changes leave it alone.
+    fileprivate func updatePathBar() {
+        guard model.location != trailLocation || model.results != trailResults else { return }
+        trailLocation = model.location
+        trailResults = model.results
+        pathBar.show(trail: Breadcrumbs.trail(
+            location: model.location, results: model.results, archive: model.archive, remote: model.remote,
+            volume: Self.volume(containing: model.location),
+            home: FileManager.default.homeDirectoryForCurrentUser))
+    }
+
+    /// The volume a local location is on, named as the volume bar names it. A mount point that is
+    /// not part of the shown path (firmlinked system folders) counts as the boot volume.
+    private static func volume(containing url: URL) -> (root: URL, name: String) {
+        var root = URL(filePath: "/", directoryHint: .isDirectory)
+        if !RemoteURL.isRemote(url) {
+            let mount = Volumes.root(of: url)
+            let path = url.path(percentEncoded: false), mountPath = mount.path(percentEncoded: false)
+            let prefix = mountPath.hasSuffix("/") ? mountPath : mountPath + "/"
+            if mountPath != "/", path == mountPath || (path + "/").hasPrefix(prefix) { root = mount }
+        }
+        let name = (try? root.resourceValues(forKeys: [.volumeNameKey]))?.volumeName
+            ?? FileManager.default.displayName(atPath: root.path(percentEncoded: false))
+        return (root, name)
+    }
+
+    @objc private func pathBarSettingsChanged() {
+        let style = PathBar.savedStyle, icons = PathBar.savedShowsIcons
+        guard style != pathBar.style || icons != pathBar.showsIcons else { return }
+        if style != pathBar.style, pathField.currentEditor() != nil { view.window?.makeFirstResponder(listView) }
+        pathBar.apply(style: style, showsIcons: icons)
+    }
+
+    /// ⌘L: the path field of this panel, all text selected (breadcrumbs make way for it).
+    func beginEditingPath() {
+        pathField.stringValue = locationText
+        pathBar.beginEditing()
+        view.window?.makeFirstResponder(pathField)
+        pathField.currentEditor()?.selectAll(nil)
+    }
+
+    private func pathSegmentClicked(_ index: Int, flags: NSEvent.ModifierFlags) {
+        let trail = pathBar.trail
+        guard trail.indices.contains(index), trail[index].isClickable else { return }
+        router?.activate(side)
+        let url = trail[index].url
+        if flags.contains(.command) { return openInNewTab(url) }
+        // The current folder; with results, its root leaves the results.
+        if index == trail.count - 1, model.results == nil { return }
+        go(to: url, focusing: Breadcrumbs.focusName(after: index, in: trail))
+    }
+
+    private func openInNewTab(_ url: URL) {
+        newTab()
+        go(to: url)
+    }
+
+    private func pathSegmentMenu(_ index: Int) -> NSMenu? {
+        let trail = pathBar.trail
+        guard trail.indices.contains(index), trail[index].isClickable else { return nil }
+        let segment = trail[index]
+        let menu = NSMenu()
+        menu.autoenablesItems = false
+        @discardableResult
+        func add(_ title: String, _ action: Selector, to menu: NSMenu, tag: Int = 0) -> NSMenuItem {
+            let item = NSMenuItem(title: title, action: action, keyEquivalent: "")
+            item.target = self
+            item.tag = tag
+            item.representedObject = segment
+            menu.addItem(item)
+            return item
+        }
+        add(String(localized: "Open in Other Panel"), #selector(segmentOpenInOtherPanel(_:)), to: menu)
+        add(String(localized: "Open in New Tab"), #selector(segmentOpenInNewTab(_:)), to: menu)
+        menu.addItem(.separator())
+        add(String(localized: "Copy Path"), #selector(segmentCopyPath(_:)), to: menu)
+        let slots = NSMenu()
+        for slot in 0..<HotPaths.shortcutSlots {
+            let title = "\(slot + 1)" + (AppSettings.shared.hotPaths[slot].map { "  —  \($0.name)" } ?? "")
+            add(title, #selector(segmentSetHotPath(_:)), to: slots, tag: slot)
+        }
+        let hotPath = NSMenuItem(title: String(localized: "Set as Hot Path"), action: nil, keyEquivalent: "")
+        hotPath.submenu = slots
+        menu.addItem(hotPath)
+        menu.addItem(.separator())
+        let finder = add(String(localized: "Show in Finder"), #selector(segmentShowInFinder(_:)), to: menu)
+        finder.isEnabled = [.volume, .home, .folder, .archive].contains(segment.kind)
+        return menu
+    }
+
+    private static func segment(of sender: NSMenuItem) -> PathSegment? { sender.representedObject as? PathSegment }
+
+    @objc private func segmentOpenInOtherPanel(_ sender: NSMenuItem) {
+        guard let segment = Self.segment(of: sender) else { return }
+        router?.otherPanel(than: self).go(to: segment.url)
+    }
+
+    @objc private func segmentOpenInNewTab(_ sender: NSMenuItem) {
+        guard let segment = Self.segment(of: sender) else { return }
+        router?.activate(side)
+        openInNewTab(segment.url)
+    }
+
+    @objc private func segmentCopyPath(_ sender: NSMenuItem) {
+        guard let segment = Self.segment(of: sender) else { return }
+        copyText([segment.url.displayPath])
+    }
+
+    @objc private func segmentSetHotPath(_ sender: NSMenuItem) {
+        guard let segment = Self.segment(of: sender) else { return }
+        setHotPath(sender.tag, path: segment.url.displayPath)
+    }
+
+    @objc private func segmentShowInFinder(_ sender: NSMenuItem) {
+        guard let segment = Self.segment(of: sender) else { return }
+        if segment.kind == .archive {
+            Launcher.revealInFinder([segment.url], directory: segment.url.deletingLastPathComponent())
+        } else {
+            Launcher.revealInFinder([], directory: segment.url)
+        }
     }
 }

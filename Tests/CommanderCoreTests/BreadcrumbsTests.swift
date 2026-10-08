@@ -165,4 +165,28 @@ import Testing
             }
         }
     }
+
+    // MARK: Localization
+
+    /// Texts of the path bar, its menu and settings are translated (looked up by English text).
+    @Test func pathBarTextsAreTranslated() throws {
+        let catalog = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+            .appending(path: "Resources/Localizable.xcstrings")
+        let json = try JSONSerialization.jsonObject(with: Data(contentsOf: catalog)) as? [String: Any]
+        let strings = try #require(json?["strings"] as? [String: Any])
+        func czech(_ key: String) -> String? {
+            let entry = strings[key] as? [String: Any]
+            let cs = (entry?["localizations"] as? [String: Any])?["cs"] as? [String: Any]
+            return (cs?["stringUnit"] as? [String: Any])?["value"] as? String
+        }
+        let keys = [
+            "Path", "Hidden folders", "Open in Other Panel", "Open in New Tab", "Copy Path", "Set as Hot Path",
+            "Show in Finder", "Path bar:", "Breadcrumbs", "Text field", "Show icons in path bar",
+            CommandRegistry.spec(.editPath).title,
+        ]
+        for key in keys {
+            #expect(czech(key) != nil, "missing Czech translation for \"\(key)\"")
+        }
+    }
 }

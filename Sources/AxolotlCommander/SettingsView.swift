@@ -93,6 +93,8 @@ private struct ViewerSettings: View {
 private struct AppearanceSettings: View {
     @Bindable private var settings = AppSettings.shared
     @State private var selection: HighlightRule.ID?
+    @AppStorage(PathBar.styleKey) private var pathBarStyle = PathBar.Style.breadcrumbs.rawValue
+    @AppStorage(PathBar.iconsKey) private var pathBarIcons = true
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -100,6 +102,15 @@ private struct AppearanceSettings: View {
                 ForEach(SystemColor.allCases, id: \.self) { ColorLabel(color: $0).tag($0) }
             }
             .frame(width: 260)
+            HStack(spacing: 16) {
+                Picker("Path bar:", selection: $pathBarStyle) {
+                    Text("Breadcrumbs").tag(PathBar.Style.breadcrumbs.rawValue)
+                    Text("Text field").tag(PathBar.Style.text.rawValue)
+                }
+                .frame(width: 260)
+                Toggle("Show icons in path bar", isOn: $pathBarIcons)
+                    .disabled(pathBarStyle != PathBar.Style.breadcrumbs.rawValue)
+            }
             Text("Highlighting — the first matching rule from the top wins:").font(.headline)
             Table($settings.appearance.highlights, selection: $selection) {
                 TableColumn("On") { $rule in Toggle("", isOn: $rule.isEnabled).labelsHidden() }.width(28)
