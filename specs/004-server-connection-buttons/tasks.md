@@ -68,7 +68,7 @@ local test servers.
 
 **Independent Test**: quickstart Q13.
 
-- [ ] T016 [US6] Settings → Appearance "Volume bar shows:" with Home, iCloud Drive, Network, Server connections (`@AppStorage` with the keys and defaults of T005), in Sources/AxolotlCommander/SettingsView.swift
+- [X] T016 [US6] Settings → Appearance "Volume bar shows:" with Home, iCloud Drive, Network, Server connections (`@AppStorage` with the keys and defaults of T005), in Sources/AxolotlCommander/SettingsView.swift
 
 ## Phase 9: Polish & Cross-Cutting
 
