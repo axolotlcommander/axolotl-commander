@@ -11,13 +11,17 @@ REPO="${1:-axolotlcommander/axolotl-commander}"
 
 echo "== Repository settings"
 gh repo edit "$REPO" \
-  --description "Keyboard-driven two-panel file manager for macOS, modeled on Tandem Commander / Open Salamander" \
+  --description "Keyboard-driven dual-pane file manager for macOS, inspired by Salamander and Tandem Commander" \
   --homepage "https://github.com/$REPO" \
   --enable-issues --enable-discussions --enable-wiki=false --enable-projects=false \
   --enable-squash-merge --enable-merge-commit=false --enable-rebase-merge=false \
   --delete-branch-on-merge --allow-update-branch \
-  --add-topic macos --add-topic file-manager --add-topic swift --add-topic appkit \
-  --add-topic orthodox-file-manager --add-topic two-panel --add-topic gpl-3
+  --add-topic macos --add-topic macos-app --add-topic file-manager --add-topic file-explorer \
+  --add-topic orthodox-file-manager --add-topic dual-pane --add-topic two-panel \
+  --add-topic keyboard-driven --add-topic norton-commander \
+  --add-topic total-commander-alternative --add-topic salamander --add-topic tandem-commander \
+  --add-topic swift --add-topic appkit --add-topic sftp --add-topic ftp \
+  --add-topic archive-manager --add-topic native-app --add-topic gplv3 --add-topic vibe-coding
 
 echo "== Private vulnerability reporting"
 gh api -X PUT "repos/$REPO/private-vulnerability-reporting" >/dev/null
