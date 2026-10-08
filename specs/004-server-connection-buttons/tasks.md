@@ -31,7 +31,7 @@ local test servers.
 
 **Independent Test**: quickstart Q1–Q2.
 
-- [ ] T008 [US1] Add `.connectToServer` to the default toolbar set (file tools group) and allow `.disconnect` in Customize Toolbar; verify enabling follows `canPerform`, in Sources/AxolotlCommander/MainToolbar.swift
+- [X] T008 [US1] Add `.connectToServer` to the default toolbar set (file tools group) and allow `.disconnect` in Customize Toolbar; verify enabling follows `canPerform`, in Sources/AxolotlCommander/MainToolbar.swift
 
 ## Phase 4: User Story 2 — See open connections and return with one click (P1) 🎯 MVP part 2
 

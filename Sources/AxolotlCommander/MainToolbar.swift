@@ -10,11 +10,14 @@ enum MainToolbar {
     /// The default set in named groups, so adding a button does not shift the others.
     static let navigationGroup: [Command] = [.goBack, .goForward, .goParent, .goHome]
     static let viewGroup: [Command] = [.refresh, .toggleHidden]
-    static let fileToolsGroup: [Command] = [.quickLook, .properties, .makeDirectory, .openTerminal, .revealInFinder]
+    static let fileToolsGroup: [Command] = [
+        .quickLook, .properties, .makeDirectory, .openTerminal, .revealInFinder, .connectToServer,
+    ]
     static let windowLayoutGroup: [Command] = [.comparePanels, .maximizePanel]
 
     static var defaultItems: [Command] { navigationGroup + viewGroup + fileToolsGroup + windowLayoutGroup }
 
+    /// Every command offered in Customize Toolbar (the default set and optional ones such as Disconnect).
     static let symbols: [Command: String] = [
         .goBack: "chevron.left", .goForward: "chevron.right", .goParent: "arrow.turn.left.up",
         .goHome: "house", .goRoot: "externaldrive", .refresh: "arrow.clockwise", .toggleHidden: "eye",
