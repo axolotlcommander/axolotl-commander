@@ -183,11 +183,11 @@ story `swift build` without warnings, `swift test` green, commit `[Spec 001] USn
 
 ## Phase 11: Polish
 
-- [ ] T043 `swift build` without warnings, the whole `swift test` green and < 10 s (SC-005)
-- [ ] T044 Manually, once, temporarily disable the D1, D2, D3 safeguard and verify that the tests fail (then restore)
-- [ ] T045 GUI scenarios G1–G7 from `quickstart.md` in a test copy of the app (own bundle id, both panels in a test folder)
-- [ ] T046 Update `docs/STATE.md` (local) and `docs/AUDIT.md` (D1–D8 → resolved); record the side finding `ArchiveCatalog.invalidate` (URL key) as a known issue
-- [ ] T047 Check off the tasks in this file, commit `[Spec 001] Done`
+- [X] T043 `swift build` without warnings, the whole `swift test` green and < 10 s (SC-005)
+- [X] T044 Manually, once, temporarily disable the D1, D2, D3 safeguard and verify that the tests fail (then restore)
+- [X] T045 GUI scenarios G1–G7 from `quickstart.md` in a test copy of the app (own bundle id, both panels in a test folder)
+- [X] T046 Update `docs/STATE.md` (local) and `docs/AUDIT.md` (D1–D8 → resolved); record the side finding `ArchiveCatalog.invalidate` (URL key) as a known issue
+- [X] T047 Check off the tasks in this file, commit `[Spec 001] Done`
 
 ---
 
