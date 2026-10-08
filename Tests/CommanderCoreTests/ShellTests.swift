@@ -291,3 +291,25 @@ import Foundation
         #expect(FileProperties.octal(0o644) == "0644")
     }
 }
+
+@Suite struct PipeTailTests {
+    /// Far more than a pipe buffer holds: the program finishes only because the pipe is drained.
+    @Test(.timeLimit(.minutes(1))) func drainsWhileTheProgramRunsAndKeepsTheEnd() async throws {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/bin/sh")
+        process.arguments = ["-c", "head -c 300000 /dev/zero | tr '\\0' x >&2; printf END >&2; exit 3"]
+        process.standardOutput = FileHandle.nullDevice
+        let errors = Pipe()
+        process.standardError = errors
+        try process.run()
+        let tail = PipeTail.read(errors.fileHandleForReading, limit: 10)
+        let status: Int32 = await withCheckedContinuation { continuation in
+            DispatchQueue.global().async {
+                process.waitUntilExit()
+                continuation.resume(returning: process.terminationStatus)
+            }
+        }
+        #expect(status == 3)
+        #expect(String(decoding: await tail.value, as: UTF8.self) == "xxxxxxxEND")
+    }
+}

@@ -211,13 +211,20 @@ enum UserMenuPresenter {
         process.standardOutput = FileHandle.nullDevice
         let errors = Pipe()
         process.standardError = errors
+        var tail: Task<Data, Never>?
         let status: Int32 = try await withCheckedThrowingContinuation { continuation in
             process.terminationHandler = { continuation.resume(returning: $0.terminationStatus) }
-            do { try process.run() } catch { continuation.resume(throwing: error) }
+            do {
+                try process.run()
+                // Read while the program runs: once the pipe buffer is full, its writes would block forever.
+                tail = PipeTail.read(errors.fileHandleForReading, limit: 2000)
+            } catch {
+                continuation.resume(throwing: error)
+            }
         }
         guard status != 0 else { return }
-        let data = (try? errors.fileHandleForReading.readToEnd()) ?? Data()
-        let output = String(decoding: data.suffix(2000), as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines)
+        let data = await tail?.value ?? Data()
+        let output = String(decoding: data, as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines)
         throw LaunchError.failed(program, status, output)
     }
 
