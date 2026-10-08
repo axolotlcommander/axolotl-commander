@@ -8163,6 +8163,26 @@
           }
         }
       }
+    },
+    "The properties could not be read.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vlastnosti se nepodařilo načíst."
+          }
+        }
+      }
+    },
+    "The attributes could not be changed.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atributy se nepodařilo změnit."
+          }
+        }
+      }
     }
   },
   "version": "1.0"
