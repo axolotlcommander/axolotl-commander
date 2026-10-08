@@ -174,6 +174,17 @@ final class PanelViewController: NSViewController {
             go(to: url)
         }
         volumeBar.onChooseServer = { [weak self] endpoint in self?.openServer(endpoint) }
+        volumeBar.onOpenServerInOtherPanel = { [weak self] endpoint in
+            guard let self else { return }
+            router?.otherPanel(than: self).openServer(endpoint)
+        }
+        volumeBar.onCopyServerAddress = { [weak self] endpoint in
+            guard let self else { return }
+            copyText([RemoteURL.displayText(ServerConnectionsUI.shared.place(for: endpoint, panel: self))])
+        }
+        volumeBar.onDisconnectServer = { endpoint in
+            Task { await ServerConnectionsUI.shared.disconnect([endpoint]) }
+        }
 
         configureTabStrip()
 

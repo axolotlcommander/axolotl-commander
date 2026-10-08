@@ -50,7 +50,7 @@ local test servers.
 
 **Independent Test**: quickstart Q7–Q8.
 
-- [ ] T013 [US3] Server button subclass: hover tracking shows an eject symbol at the trailing edge (accessibility child "Disconnect <label>"), click on it disconnects via the helper; right-click menu Open in Other Panel / Copy Address (`RemoteURL` of the place, no password) / Disconnect, in Sources/AxolotlCommander/VolumeBar.swift and Sources/AxolotlCommander/PanelViewController.swift
+- [X] T013 [US3] Server button subclass: hover tracking shows an eject symbol at the trailing edge (accessibility child "Disconnect <label>"), click on it disconnects via the helper; right-click menu Open in Other Panel / Copy Address (`RemoteURL` of the place, no password) / Disconnect, in Sources/AxolotlCommander/VolumeBar.swift and Sources/AxolotlCommander/PanelViewController.swift
 
 ## Phase 6: User Story 4 — Servers in the volume menu (P2)
 
