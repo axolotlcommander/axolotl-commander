@@ -36,29 +36,20 @@ found while reading the current code (`CommandRegistry`, `KeyMaps`, `MainWindowC
 ## R3. Fitting labels into narrow buttons
 
 - **Decision**: On every layout pass the bar computes the width available per button and, for
-  each button, picks the first variant that fits: (1) icon + key + full name, (2) icon + key +
-  short name, (3) icon + key + short name truncated with "…" at the tail, (4) icon + key only.
+  each button, picks the first variant that fits: (1) key + full name, (2) key + short name,
+  (3) key + short name truncated with "…" at the tail, (4) key only.
   Text is single-line (`lineBreakMode = .byTruncatingTail`, `usesSingleLineMode`). The tooltip
   always holds the full name and the shortcut (e.g. "Copy… (F5)").
 - **Rationale**: Covers FR-011/SC-007. The window minimum width is 600 pt, i.e. about 50 pt per
-  button, which still fits a 16 pt symbol and "F12".
+  button, which still fits "F12" and a few letters.
 - **Alternatives considered**: Let AppKit truncate the full name only (rejected: "Move to T…"
   is worse than "Trash"); hiding buttons at small widths (rejected: SC-007 wants all twelve).
 
 ## R4. Icons
 
-- **Decision**: One shared table of SF Symbol names per command, moved from
-  `MainToolbar.symbols` to the core (`CommandRegistry.symbolName(_:)`, plain strings, no
-  AppKit) and extended with every command that has a default function-key chord in the panel
-  context. Both the toolbar and the bar use it. Symbols are template images, so they follow
-  light/dark mode and Increase Contrast automatically (FR-012). A command without a symbol
-  shows text only (FR-004).
-- **Rationale**: "Icons belong to the command" (FR-004) and the toolbar already had such a
-  table; one table keeps toolbar and bar consistent. A test (which may import AppKit) checks
-  that every name in the table exists on macOS 15 and that every default F-key command of
-  the panel map has a symbol.
-- **Alternatives considered**: Custom images like the reference program (rejected: D-003, and
-  clean-room rules); a second table for the bar (rejected: duplication).
+- **Decision**: Withdrawn (spec Clarification 2026-10-08): the buttons show text only, as in
+  Tandem Commander. The toolbar keeps its own symbol table in `MainToolbar`; nothing moves to the
+  core.
 
 ## R5. Following the held modifiers
 
@@ -161,8 +152,8 @@ found while reading the current code (`CommandRegistry`, `KeyMaps`, `MainWindowC
   row (~24 pt), twelve equal-width `NSButton`s in a horizontal stack (`.fillEqually`), bezel
   style `.recessed` with `showsBorderOnlyWhileMouseInside` (flat like the reference, hover and
   press feedback like macOS), small system font, key number in the secondary label color,
-  command name in the primary color, symbol at the leading edge. Empty positions keep their
+  command name in the primary color, no icon. Empty positions keep their
   place (disabled, title only "F10" in tertiary color, no tooltip). Accessibility label
   "F5, Copy" so the bar is usable with VoiceOver and with AX-driven GUI tests.
-- **Rationale**: Familiar from Tandem/Total Commander (D-003: system symbols), native look,
+- **Rationale**: Familiar from Tandem/Total Commander (text-only buttons), native look,
   testable through Accessibility.

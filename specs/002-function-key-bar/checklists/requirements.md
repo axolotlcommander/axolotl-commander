@@ -31,8 +31,7 @@
 
 ## Notes
 
-- SF Symbols are named only in deviation D-003, because the maintainer asked for system icons
-  instead of the reference program's images; it is a product decision, not a design detail.
+- 2026-10-08: icons were dropped after the first build (Clarification in spec.md); D-003 withdrawn.
 - All open points were settled in the discussion with the maintainer before the spec was
-  written (default visibility, F1–F12, icons on the buttons, hideable command line, the `fn`
+  written (default visibility, F1–F12, text-only buttons, hideable command line, the `fn`
   notice), so `/speckit-clarify` is not needed.

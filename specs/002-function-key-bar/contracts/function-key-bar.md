@@ -16,8 +16,6 @@ public enum FunctionKeyBar {
 extension CommandRegistry {
     /// English short name for the bar when the title is too long; nil = use the title.
     public static func shortTitle(_ command: Command) -> String?
-    /// SF Symbol name of the command (bar and toolbar); nil = no icon.
-    public static func symbolName(_ command: Command) -> String?
 }
 
 extension Command {
@@ -44,11 +42,9 @@ Guarantees checked by tests:
 2. Factory plain set: F1 help, F2 rename, F3 view, F4 edit, F5 copy, F6 move, F7 makeDirectory,
    F8 delete, F9 userMenu, F10 nil, F11 nil, F12 disconnect.
 3. A command with several F-key chords appears in every matching slot.
-4. Every `symbolName` resolves to an existing SF Symbol (test imports AppKit), and every command
-   with a factory F-key chord in the panel map has a symbol.
-5. `shortTitle` is never longer than the title; titles and short titles of the new commands are
+4. `shortTitle` is never longer than the title; titles and short titles of the new commands are
    in `Localizable.xcstrings` with a Czech translation.
-6. `FunctionKeyNotice`: shown at most `maxShowings` times, never after `suppress()`, never when
+5. `FunctionKeyNotice`: shown at most `maxShowings` times, never after `suppress()`, never when
    `standardFunctionKeys` is true.
 
 ## UI behavior (`AxolotlCommander`)
@@ -58,7 +54,7 @@ Guarantees checked by tests:
 | Main window opens, fresh settings | Bar and command line visible; View shows both items checked. |
 | `.flagsChanged` in the key main window | Bar shows `slots(in: KeyMaps.panel, modifiers: held)`. |
 | Window becomes key / resigns key | Bar re-reads `NSEvent.modifierFlags`. |
-| `KeyMaps.didChange` | Bar recomputes slots, titles, icons, tooltips. |
+| `KeyMaps.didChange` | Bar recomputes slots, titles, tooltips. |
 | Window update | Each button enabled = `canPerformIgnoringFocus(command)`. |
 | Click on a non-empty, enabled button | `performFromBar(command)`; first responder unchanged. |
 | Click on an empty or disabled button | Nothing. |

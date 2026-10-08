@@ -7,13 +7,13 @@
 ## Summary
 
 A row of twelve buttons F1–F12 at the bottom of the main window shows, for the modifiers held
-right now, the command each function key runs, with the command's icon, and runs it on click
+right now, the command each function key runs (key number and name, no icons), and runs it on click
 without taking focus. The bar and the command line can each be hidden from the View menu,
 Settings and the bar's right-click menu; both are shown by default and remembered. Settings →
 Keyboard and a one-time notice explain when function keys need `fn` and open System Settings.
 
 Approach (see [research.md](research.md)): the core computes the slots from the existing
-`KeyMap` (R1) and holds short titles and the shared symbol table (R2, R4) and the notice rule
+`KeyMap` (R1) and holds short titles (R2) and the notice rule
 (R10); the UI adds `FunctionKeyBar` (AppKit view, R3, R6, R11) to the window's vertical stack,
 follows `.flagsChanged` (R5), validates through `canPerformIgnoringFocus` (R7), and stores the
 two visibility flags in UserDefaults shared with Settings (R8). The system `fnState` is only
@@ -30,7 +30,7 @@ preferences API (read-only) for `com.apple.keyboard.fnState`
 **Storage**: UserDefaults — `showCommandLine`, `showFunctionKeyBar` (Bool, default true),
 `functionKeyNotice` (JSON); existing `keys.bindings` unchanged
 
-**Testing**: Swift Testing (`swift test`) for the core (slots, short titles, symbols, notice
+**Testing**: Swift Testing (`swift test`) for the core (slots, short titles, notice
 rule); GUI checks in the test copy `iCmdTest.app` (bundle id `cz.acidek.axolotlcommander.gtest`)
 with both panels in a scratch folder
 
@@ -53,9 +53,9 @@ setting; no hard-coded command names in the bar; all new texts in en + cs
 | Principle | Compliance | Note |
 |---|---|---|
 | I Data safety | ✅ | No new file operations; buttons run the existing commands with their existing confirmations. GUI tests of F5/F7/F8 clicks only in a scratch folder in the test copy. |
-| II Faithful reference behavior | ✅ | Bar as in Tandem/Total Commander (F-key row, modifier sets). Deviations D-001–D-003 recorded in the spec. Unfinished commands stay grayed out. |
-| III Native macOS | ✅ | AppKit buttons, SF Symbols (template images, dark mode, contrast), UserDefaults, System Settings link; no main-thread I/O; texts through `String(localized:)` and the String Catalog. |
-| IV Testable core | ✅ | Slot computation, short titles, symbol table and notice rule live in `CommanderCore` with tests; the UI only renders. |
+| II Faithful reference behavior | ✅ | Bar as in Tandem/Total Commander (F-key row, modifier sets). Deviations D-001–D-002 recorded in the spec (D-003 withdrawn: no icons). Unfinished commands stay grayed out. |
+| III Native macOS | ✅ | AppKit buttons with system label colors (dark mode, contrast), UserDefaults, System Settings link; no main-thread I/O; texts through `String(localized:)` and the String Catalog. |
+| IV Testable core | ✅ | Slot computation, short titles and notice rule live in `CommanderCore` with tests; the UI only renders. |
 | V Clean-room, GPL | ✅ | Behavior from the spec and the reference help; no reference sources; own wording; no new dependencies; SPDX headers in new files. |
 | VI Incremental delivery | ✅ | US1 → US2 → US3 → US4, each usable on its own; commit after each step. |
 | VII Language | ✅ | Spec, plan, code, comments and commits in English; Czech only in the String Catalog translations. |
@@ -85,14 +85,13 @@ specs/002-function-key-bar/
 Sources/CommanderCore/
 ├── Command.swift                 # + .toggleCommandLine, .toggleFunctionKeyBar (View menu)
 └── Window/
-    ├── FunctionKeyBar.swift      # NEW: slots(in:modifiers:), labels, short titles, symbols
+    ├── FunctionKeyBar.swift      # NEW: slots(in:modifiers:), short titles
     └── FunctionKeyNotice.swift   # NEW: notice state and decision rule
 
 Sources/AxolotlCommander/
 ├── FunctionKeyBarView.swift      # NEW: the bar (buttons, fitting, tooltips, context menu)
 ├── FunctionKeys.swift            # NEW: read fnState, open System Settings, show the notice
 ├── MainWindowController.swift    # stack layout, modifier monitor, visibility, performFromBar
-├── MainToolbar.swift             # symbols from the shared core table
 ├── SettingsView.swift            # General: two visibility toggles
 ├── KeyboardSettings.swift        # fn state line + "Open Keyboard Settings"
 ├── AppDelegate.swift             # trigger the notice after the main window appears
@@ -101,12 +100,12 @@ Sources/AxolotlCommander/
 Resources/Localizable.xcstrings   # new titles, short titles, notice and settings texts (en, cs)
 
 Tests/CommanderCoreTests/
-├── FunctionKeyBarTests.swift     # NEW: slots × modifiers, remap, short titles, symbols
+├── FunctionKeyBarTests.swift     # NEW: slots × modifiers, remap, short titles
 └── FunctionKeyNoticeTests.swift  # NEW: shown at most twice, suppress, standard keys
 ```
 
 **Structure Decision**: The existing two-module layout. Pure logic (what each slot shows, what
-it is called, which icon, whether to show the notice) goes into `CommanderCore/Window` next to
+it is called, whether to show the notice) goes into `CommanderCore/Window` next to
 `WindowLayout`; AppKit rendering and system integration go into the UI module.
 
 ## Implementation Notes

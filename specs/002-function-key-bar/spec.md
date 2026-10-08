@@ -11,12 +11,22 @@ coming from Windows two-panel file managers (Tandem Commander, Total Commander, 
 row of function key buttons at the bottom of the window. Classic Windows behavior is the default;
 deviations only where macOS forces them, and each deviation is listed in the spec."
 
+## Clarifications
+
+### Session 2026-10-08
+
+- Q: Should the function key buttons show icons? → A: No. The maintainer reviewed the first
+  build and decided that the buttons show only the key number and the command name (e.g. "F5
+  Copy", "F3 View"), as in Tandem Commander; no icons. This replaces the earlier wording "icon,
+  key number and short label" (FR-004, FR-011, FR-012, D-003, SC-007 updated). The toolbar at the
+  top keeps its icons; it is not part of this spec.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Function key buttons at the bottom of the window (Priority: P1)
 
 A user who comes from Tandem Commander or Total Commander sees, at the bottom of the main window
-below the command line, a row of twelve buttons F1–F12. Each button shows an icon, the key number
+below the command line, a row of twelve buttons F1–F12. Each button shows the key number
 and the name of the command that the key runs, e.g. "F5 Copy", "F7 New Folder", "F8 Move to
 Trash". Clicking a button does exactly what pressing the key does, for the active panel. The bar
 is shown by default.
@@ -36,23 +46,21 @@ opens. Neither click moves keyboard focus away from the panel.
    is visible at the bottom, below the command line, with buttons F1–F12 in this order.
 2. **Given** the default key map, **When** the user looks at the bar, **Then** each button shows
    the command bound to the plain key (F1 Help, F2 Rename, F3 View, F4 Edit, F5 Copy, F6 Move,
-   F7 New Folder, F8 Move to Trash, F9 User Menu, F12 Disconnect), with the command's icon where
-   it has one; positions without a command (F10, F11 in the default map) are empty.
+   F7 New Folder, F8 Move to Trash, F9 User Menu, F12 Disconnect); positions without a command (F10, F11 in the default map) are empty.
 3. **Given** the cursor on a file in the left panel and the left panel active, **When** the user
    clicks "F3 View", **Then** the file opens in the viewer, exactly as with the F3 key, and after
    closing the viewer the left panel still has keyboard focus with the cursor on the same file.
 4. **Given** the user remapped F2 to "Compare Panels" in Settings → Keyboard, **When** the
-   settings change is applied, **Then** the F2 button immediately shows "Compare Panels" (with
-   its icon) without restarting the app, and clicking it compares the panels.
+   settings change is applied, **Then** the F2 button immediately shows "Compare Panels" without restarting the app, and clicking it compares the panels.
 5. **Given** the cursor on the ".." row, **When** the user looks at the bar, **Then** commands
    that are unavailable there (e.g. F3 View, F4 Edit, F2 Rename) are grayed out and do nothing
    when clicked, following the same rules as the corresponding menu items.
 6. **Given** the window is made narrow, **When** the buttons no longer fit with full names,
-   **Then** the names are shortened, and at the smallest width only the icon and key number
-   remain; hovering a button shows the full command name and its shortcut in a tooltip; text
+   **Then** the names are shortened, and at the smallest width only the key number
+   remains; hovering a button shows the full command name and its shortcut in a tooltip; text
    never wraps to a second line.
-7. **Given** dark mode is switched on or off, **When** the bar is visible, **Then** icons and
-   text follow the system appearance like the rest of the window.
+7. **Given** dark mode is switched on or off, **When** the bar is visible, **Then** the text
+   follows the system appearance like the rest of the window.
 
 ---
 
@@ -203,9 +211,8 @@ section of System Settings; the app never changes the setting itself.
 - **FR-003**: Each button MUST show the key number and the localized name of the command bound
   to that key for the currently held modifiers, taken from the current key map (default bindings
   plus the user's remapping). The bar MUST NOT contain hard-coded command names.
-- **FR-004**: Each command shown MUST be accompanied by its icon when the command has one; the
-  icon belongs to the command, so it moves with the command when the key map changes. A command
-  without an icon is shown with text only.
+- **FR-004**: Buttons MUST show text only (key number and command name), no icons
+  (Clarification 2026-10-08).
 - **FR-005**: Changing the key map in Settings → Keyboard MUST update the bar immediately,
   without restarting the app or reopening the window.
 - **FR-006**: Clicking a button MUST run the command exactly as the corresponding key press
@@ -220,8 +227,8 @@ section of System Settings; the app never changes the setting itself.
 - **FR-010**: Every non-empty button MUST show a tooltip with the full command name and its
   shortcut.
 - **FR-011**: When the window is too narrow for full names, names MUST be shortened first; at the
-  smallest width only the icon and key number remain. Text MUST never wrap.
-- **FR-012**: Icons and text MUST follow the system appearance (light/dark) and the system's
+  smallest width only the key number remains. Text MUST never wrap.
+- **FR-012**: The text MUST follow the system appearance (light/dark) and the system's
   accessibility contrast settings, like other controls in the window.
 
 **Modifier keys**
@@ -278,14 +285,13 @@ section of System Settings; the app never changes the setting itself.
 - **D-002 (FR-003, FR-013)**: The reference programs show Alt, Ctrl and Shift variants. On macOS
   the modifiers are ⇧, ⌃, ⌥ and ⌘ (⌥ takes the role of Alt), and the bar shows whatever the
   app's key map binds for each combination.
-- **D-003 (FR-004)**: Icons are system symbols (SF Symbols) chosen to resemble the reference
-  program's meaning (copy, move, folder, trash…), not the reference program's images.
+- **D-003**: Withdrawn (Clarification 2026-10-08): the buttons have no icons, as in the reference.
 
 ### Key Entities
 
 - **Function key slot**: one of F1–F12; for a given set of held modifiers it shows at most one
   command (from the key map) or nothing.
-- **Command presentation**: the localized name, short name, icon (optional) and availability of
+- **Command presentation**: the localized name, short name and availability of
   a command, shared by the menu, the tooltip and the bar.
 - **Window layout settings**: two remembered choices, "show command line" and "show function key
   bar", both on by default.
@@ -310,7 +316,7 @@ section of System Settings; the app never changes the setting itself.
 - **SC-006**: A user whose function keys need `fn` sees an explanation at most twice in total,
   and can reach the right place in System Settings with one click from the notice or Settings.
 - **SC-007**: At the minimum window width, all twelve buttons are still visible, identifiable
-  (icon or key number) and clickable; no text wraps or overlaps.
+  (key number) and clickable; no text wraps or overlaps.
 
 ## Assumptions
 

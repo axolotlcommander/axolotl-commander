@@ -22,7 +22,6 @@
 |---|---|---|
 | `title` | `CommandSpec.title` (English) → `localizedTitle` | Full name; the bar drops a trailing "…". |
 | `shortTitle` | `CommandRegistry.shortTitle(command)` → localized | Optional; only for long names. |
-| `symbolName` | `CommandRegistry.symbolName(command)` | Optional SF Symbol name; shared with the toolbar. |
 | `tooltip` | UI | Full localized title + " (" + chord description + ")". |
 | `enabled` | `MainWindowController.canPerformIgnoringFocus` | Same rules as the menu item / toolbar. |
 
