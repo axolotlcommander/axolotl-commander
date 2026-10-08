@@ -359,7 +359,7 @@ public actor SFTPClient: RemoteFileSystem {
                 case .name(_, let names):
                     for n in names {
                         let name = String(decoding: n.filename, as: UTF8.self)
-                        if name == "." || name == ".." { continue }
+                        guard RemoteEntry.isValidName(name) else { continue }
                         entries.append(Self.entry(name: name, attributes: n.attributes, longname: n.longname))
                     }
                 case .status(_, SFTPStatus.eof, _):

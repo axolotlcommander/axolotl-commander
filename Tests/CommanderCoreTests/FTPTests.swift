@@ -223,6 +223,23 @@ private func noise(_ count: Int) -> Data {
         #expect(e[5].kind == .other)
     }
 
+    @Test func namesWithSlashAreDropped() {
+        // A recursive delete or move must never leave the selected tree through a listed name.
+        let mlsd = FTPListParser.parseMLSD(listing([
+            "type=file;size=1; x/../../etc",
+            "type=dir; /abs",
+            "type=file;size=1; ok.txt",
+        ]))
+        #expect(mlsd.map(\.name) == ["ok.txt"])
+        let list = FTPListParser.parseLIST(listing([
+            "-rw-r--r--    1 1000     1000            1 Jan  5 10:15 a/../b",
+            "-rw-r--r--    1 1000     1000            1 Jan  5 10:15 fine",
+        ]))
+        #expect(list.map(\.name) == ["fine"])
+        #expect(!RemoteEntry.isValidName("") && !RemoteEntry.isValidName("..") && !RemoteEntry.isValidName("a\0b"))
+        #expect(RemoteEntry.isValidName("a b") && RemoteEntry.isValidName("..."))
+    }
+
     @Test func unix() throws {
         let ref = utcDate(2024, 6, 15, 12)
         let data = listing([

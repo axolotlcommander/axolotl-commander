@@ -39,6 +39,10 @@ import Foundation
 
     @Test func rejectsNonRemoteAndBadPorts() {
         #expect(RemoteURL.parse(typed: "/Users/x") == nil)
+        // A space in the address (e.g. in the password) must be percent-encoded; otherwise the
+        // history scrubber would not find the password, so it is not taken as an address.
+        #expect(RemoteURL.parse(typed: "sftp://u:my pass@host/") == nil)
+        #expect(RemoteURL.parse(typed: "sftp://u:my%20pass@host/")?.password == "my pass")
         #expect(RemoteURL.parse(typed: "http://host/") == nil)
         #expect(RemoteURL.parse(typed: "sftp://host:99999/") == nil)
         #expect(RemoteURL.parse(typed: "sftp://host:abc/") == nil)

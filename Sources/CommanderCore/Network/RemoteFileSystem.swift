@@ -74,6 +74,13 @@ public struct RemoteEntry: Hashable, Sendable {
 
     /// Browsed like a folder (directories and symlinks to directories).
     public var isDirectoryLike: Bool { kind == .directory || (kind == .symlink && targetIsDirectory) }
+
+    /// A name a listing may contain: not empty, ".", "..", and without "/" or NUL. A broken or
+    /// hostile server listing "x/../../etc" would otherwise let a recursive delete or move leave
+    /// the selected tree.
+    public static func isValidName(_ name: String) -> Bool {
+        !name.isEmpty && name != "." && name != ".." && !name.contains("/") && !name.contains("\0")
+    }
 }
 
 public enum RemoteError: Error, Equatable, Sendable {

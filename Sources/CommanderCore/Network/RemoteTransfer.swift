@@ -338,7 +338,8 @@ public struct RemoteTransfer: Sendable {
         let down = try await download(sources, to: scratch, kind: .copy, progress: { p in
             progress(OperationProgress(totalBytes: p.totalBytes * 2, doneBytes: p.doneBytes, totalItems: p.totalItems,
                                        doneItems: p.doneItems, currentName: p.currentName))
-        }, conflict: { _ in .overwrite })
+        }, conflict: { _ in .skip })  // the scratch folder starts empty: a clash means names that differ
+                                       // only in case; overwriting would lose one (and a move delete both)
         let local = sources.map { scratch.appending(path: RemotePath.name($0.path)) }
             .filter { FileManager.default.fileExists(atPath: $0.path) }
         let totalBytes = local.reduce(Int64(0)) { $0 + ((try? LocalNode.scan($1.path).bytes) ?? 0) }

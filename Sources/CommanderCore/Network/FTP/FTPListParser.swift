@@ -49,7 +49,7 @@ public enum FTPListParser {
     public static func parseMLSDLine(_ line: String) -> RemoteEntry? {
         guard let space = line.firstIndex(of: " ") else { return nil }
         let name = String(line[line.index(after: space)...])
-        guard !name.isEmpty, name != ".", name != ".." else { return nil }
+        guard RemoteEntry.isValidName(name) else { return nil }
 
         var kind = RemoteEntry.Kind.file
         var size: Int64?
@@ -135,7 +135,7 @@ public enum FTPListParser {
         } else {
             entry = parseUnix(line, referenceDate: referenceDate, timeZone: timeZone)
         }
-        guard let entry, entry.name != ".", entry.name != ".." else { return nil }
+        guard let entry, RemoteEntry.isValidName(entry.name) else { return nil }
         return entry
     }
 

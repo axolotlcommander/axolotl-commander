@@ -59,6 +59,8 @@ public enum RemoteURL {
         let rest = text[sep.upperBound...]
         let slash = rest.firstIndex(of: "/") ?? rest.endIndex
         let authority = rest[..<slash]
+        // Spaces belong percent-encoded; with one the history scrubber would miss the password.
+        guard !authority.contains(where: \.isWhitespace) else { return nil }
         let path = String(rest[slash...])
 
         var user: String?
