@@ -85,8 +85,9 @@ What that means for you:
 - **Panels:** two panels with tabs, detailed and brief view, sorting, filters, selection by
   mask, favorite and recent paths, volume information.
 - **Operations:** copy, move, delete to the Trash, rename (also batch rename, with ⌘Z undo),
-  new folder, attributes, permissions and Finder tags, checksums, folder sizes, disk map.
-  Drag and drop works too.
+  new folder, symbolic and hard links (also pasted as links), going to a link's target,
+  attributes, permissions and Finder tags (⌃F2), checksums, folder sizes, disk map. Drag and
+  drop works too.
 - **Viewing:** text and hex viewer with encoding detection, wrapping and search. Preview of
   Markdown, HTML (without scripts) and images, plus Quick Look (⌘Y).
 - **Comparing:** two files side by side, and the contents of both panels (folders).

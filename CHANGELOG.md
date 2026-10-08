@@ -26,6 +26,12 @@ First public release of the source code: a two-panel file manager (stages 0–11
   volumes, connections, Connect to Server…) and an optional Home button, chosen in Settings →
   Appearance; the toolbar gets Connect to Server, and Disconnect can be added
   ([004-server-connection-buttons](specs/004-server-connection-buttons/spec.md)).
+- Links: New Symbolic Link… (⌃⌘L) and New Hard Link… create links in the other panel's folder
+  (absolute or relative target, several items at once), Edit Symbolic Link… changes a link's
+  target in one step, Paste as Symbolic Link (⌃⌘V, ⌃S) links copied items, and Go to Link Target
+  (⌃T) follows symbolic links and Finder aliases. Existing items are never replaced. Change
+  Attributes… (⌃F2) opens the permissions editor directly
+  ([005-unix-link-commands](specs/005-unix-link-commands/spec.md)).
 - The macOS prompts for folder access (Desktop, Documents, Downloads, disks, cloud storage)
   explain why a file manager needs it, in English and Czech.
 - Releases can be signed with a stable project certificate (`scripts/make-signing-cert.sh`), so
