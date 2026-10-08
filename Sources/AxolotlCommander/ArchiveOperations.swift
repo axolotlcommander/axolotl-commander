@@ -339,9 +339,12 @@ extension OperationsController {
     private func addToArchive(_ kind: TransferKind, sources: [URL], names: [String], from source: ArchivePath?,
                               to target: ArchivePath, panel: PanelViewController) {
         guard target.format.isWritable else { return report(ArchiveError.readOnly) }
-        if let source, source.archive.standardizedFileURL == target.archive.standardizedFileURL {
-            let into = names.map { source.member($0) }.first { target.inner == $0 || target.inner.hasPrefix($0 + "/") }
-            if let into { return report(OperationError.intoItself(URL(filePath: into))) }
+        do {
+            // Same archive by identity (also through a symlink or another letter case).
+            try ArchiveTransferCheck.validate(source: source, names: names, target: target)
+            if source == nil { try ArchiveTransferCheck.validatePack(archive: target.archive, sources: sources) }
+        } catch {
+            return report(error)
         }
         let state = OperationState(title: kind == .copy ? String(localized: "Copying…") : String(localized: "Moving…"))
         perform(state) { [operations] in
@@ -480,6 +483,8 @@ extension OperationsController {
             guard let format = ArchiveFormat.detect(fileName: url.lastPathComponent) else { throw ArchiveError.unsupportedFormat }
             guard format.isWritable else { throw ArchiveError.readOnly }
             let sources = items.map { ArchiveWriter.Source(file: $0.url, path: $0.name) }
+            // Not into one of its own source folders, and not the archive among its sources.
+            try ArchiveTransferCheck.validatePack(archive: url, sources: items.map(\.url))
             if FileManager.default.fileExists(atPath: url.path(percentEncoded: false)) {
                 // An existing archive gets the items added, like F5 into it.
                 self.addToArchive(.copy, sources: items.map(\.url), names: items.map(\.name), from: nil,

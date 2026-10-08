@@ -88,12 +88,12 @@ příběhu `swift build` bez varování, `swift test` zelené, commit `[Spec 001
 
 ### Tests
 
-- [ ] T023 [US3] `Tests/CommanderCoreTests/ArchiveTransferCheckTests.swift` (nový): ZIP v sandboxu (`ArchiveWriter.create`), symlink na něj a cesta s jinou velikostí písmen → `validate(source:names:target:)` s `target.inner = "docs/old"` vyhodí `.intoItself`; jiný archiv → projde; `validatePack`: zdroj `projekt` + archiv `projekt/zaloha.zip` → `.intoItself`; archiv mezi zdroji → `.intoItself`; nesouvisející → projde; ve všech odmítnutích bajty archivu i zdrojů beze změny
+- [X] T023 [US3] `Tests/CommanderCoreTests/ArchiveTransferCheckTests.swift` (nový): ZIP v sandboxu (`ArchiveWriter.create`), symlink na něj a cesta s jinou velikostí písmen → `validate(source:names:target:)` s `target.inner = "docs/old"` vyhodí `.intoItself`; jiný archiv → projde; `validatePack`: zdroj `projekt` + archiv `projekt/zaloha.zip` → `.intoItself`; archiv mezi zdroji → `.intoItself`; nesouvisející → projde; ve všech odmítnutích bajty archivu i zdrojů beze změny
 
 ### Implementation
 
-- [ ] T024 [US3] Nový `Sources/CommanderCore/Archive/ArchiveTransferCheck.swift`: `validate` (totožnost archivu přes `FileIdentity.of`, nil → `.identityUnknown`; člen `target.inner == m || hasPrefix(m + "/")`), `validatePack` (identita archivu mezi identitami zdrojů; identita zdrojové složky v `TransferPlanner.ancestorIdentities(of: archive.deletingLastPathComponent())`, `TransferPlan.swift:211`, zpřístupnit jako internal/public podle potřeby)
-- [ ] T025 [US3] V `Sources/AxolotlCommander/ArchiveOperations.swift` volat `validate` místo `:285-288` v `addToArchive` a `validatePack` v `pack` (`:415-444`) před `create` i před `addToArchive(from: nil)`; chybu ukázat přes `report`
+- [X] T024 [US3] Nový `Sources/CommanderCore/Archive/ArchiveTransferCheck.swift`: `validate` (totožnost archivu přes `FileIdentity.of`, nil → `.identityUnknown`; člen `target.inner == m || hasPrefix(m + "/")`), `validatePack` (identita archivu mezi identitami zdrojů; identita zdrojové složky v `TransferPlanner.ancestorIdentities(of: archive.deletingLastPathComponent())`, `TransferPlan.swift:211`, zpřístupnit jako internal/public podle potřeby)
+- [X] T025 [US3] V `Sources/AxolotlCommander/ArchiveOperations.swift` volat `validate` místo `:285-288` v `addToArchive` a `validatePack` v `pack` (`:415-444`) před `create` i před `addToArchive(from: nil)`; chybu ukázat přes `report`
 
 **Checkpoint**: zelené → commit.
 
