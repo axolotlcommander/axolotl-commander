@@ -1,103 +1,113 @@
-# Jak přispět do Axolotl Commanderu
+# Contributing to Axolotl Commander
 
-Díky za zájem! Vítané jsou opravy chyb, nové funkce, překlady, testy i hlášení problémů.
-Issues a pull requesty můžeš psát česky i anglicky.
+Thanks for your interest! Bug fixes, new features, translations, tests, and problem reports are
+all welcome.
 
-*English summary: contributions are welcome in Czech or English. Build with `swift build`,
-test with `swift test`, open a pull request against `main`. Please read the two binding rules
-below (data safety and clean implementation) and sign off your commits (`git commit -s`).*
+## Language
 
-## Než začneš
+Everything committed to the repository is in English: code, comments, documentation, specs,
+commit messages, and the texts in issue and pull request templates. You are welcome to discuss
+issues and pull requests in Czech or English.
 
-- Menší opravy rovnou pošli jako pull request.
-- Větší změnu nebo novou funkci nejdřív navrhni v [issue](https://github.com/axolotlcommander/axolotl-commander/issues)
-  nebo v [Discussions](https://github.com/axolotlcommander/axolotl-commander/discussions), ať se domluvíme
-  na chování dřív, než napíšeš hodně kódu.
-- Chování se řídí vzorem — [Tandem Commanderem](https://github.com/tandemcommander/tandemcommander)
-  a [Open Salamanderem](https://github.com/OpenSalamander/salamander) — upravené na zvyklosti macOS.
-  Plán vývoje je v [docs/PLAN.md](docs/PLAN.md), principy v
+## Before you start
+
+- Send small fixes straight away as a pull request.
+- For a larger change or a new feature, start with a discussion: open an
+  [issue](https://github.com/axolotlcommander/axolotl-commander/issues) or a thread in
+  [Discussions](https://github.com/axolotlcommander/axolotl-commander/discussions), so we can agree
+  on the behavior before you write a lot of code. Once the idea is agreed, the feature gets a spec
+  in `specs/NNN-name/`, written in English via Spec Kit (see [Pull requests](#pull-requests)).
+- Behavior follows the reference programs, [Tandem Commander](https://github.com/tandemcommander/tandemcommander)
+  and [Open Salamander](https://github.com/OpenSalamander/salamander), adapted to macOS conventions.
+  The development plan is in [docs/PLAN.md](docs/PLAN.md), the principles in
   [.specify/memory/constitution.md](.specify/memory/constitution.md).
 
-## Sestavení a testy
+## Building and testing
 
-Vyžaduje macOS 15+ a Swift 6.2 (Xcode 26 nebo Command Line Tools). Xcode projekt není potřeba.
+Requires macOS 15+ and Swift 6.2 (Xcode 26 or the Command Line Tools). No Xcode project is needed.
 
 ```sh
-swift build                  # sestavení (musí projít bez varování)
-swift test                   # testy jádra
-swift run AxolotlCommander   # spuštění
+swift build                  # build (must pass without warnings)
+swift test                   # core tests
+swift run AxolotlCommander   # run
 scripts/bundle.sh            # build/Axolotl Commander.app
 ```
 
-Struktura:
+Layout:
 
-- `Sources/CommanderCore` — jádro bez AppKitu (operace, archivy, síť, hledání…). Veškerá
-  rozhodovací logika patří sem a má testy.
-- `Sources/AxolotlCommander` — uživatelské rozhraní v AppKitu; jen dialogy a volání jádra.
-- `Tests/CommanderCoreTests` — testy (Swift Testing).
-- `specs/` — specifikace funkcí ([Spec Kit](https://github.com/github/spec-kit)).
+- `Sources/CommanderCore` — the AppKit-free core (operations, archives, network, search, ...).
+  All decision logic belongs here and has tests.
+- `Sources/AxolotlCommander` — the AppKit user interface; only dialogs and calls into the core.
+- `Tests/CommanderCoreTests` — tests (Swift Testing).
+- `specs/` — feature specifications ([Spec Kit](https://github.com/github/spec-kit)).
 
-## Závazná pravidla
+## Binding rules
 
-### 1. Bezpečnost dat
+### 1. Data safety
 
-Správce souborů nesmí ztratit data. Proto:
+A file manager must never lose data. Therefore:
 
-- Testy pracují **jen v dočasné složce**, kterou si samy vytvoří
-  (`FileManager.default.temporaryDirectory`) a uklidí — viz `Tests/CommanderCoreTests/TestSupport.swift`.
-  Nikdy nesahají na skutečné soubory, skutečný Koš, Klíčenku ani skutečné servery
-  (síťové testy používají lokální `sftp-server` a `scripts/ftp-test-server.py`).
-- Ruční zkoušky operací (kopírování, přesun, mazání…) dělej jen v testovací složce.
-- Operace, která by mohla zničit data, se raději odmítne s jasnou hláškou.
-- Každá oprava chování má test, který bez opravy selže.
+- Tests work **only in a temporary directory** that they create themselves
+  (`FileManager.default.temporaryDirectory`) and clean up afterwards — see
+  `Tests/CommanderCoreTests/TestSupport.swift`. They never touch real files, the real Trash, the
+  Keychain, or real servers (network tests use a local `sftp-server` and
+  `scripts/ftp-test-server.py`).
+- Do manual checks of operations (copy, move, delete, ...) only in a test directory.
+- An operation that could destroy data is refused with a clear message instead.
+- Every behavior fix comes with a test that fails without the fix.
 
-### 2. Čistá implementace (clean room)
+### 2. Clean-room implementation
 
-Projekt je nová implementace **chování** vzoru, ne převod jeho kódu.
+The project is a new implementation of the reference programs' **behavior**, not a port of their
+code.
 
-- **Nečti ani nekopíruj C++ zdrojáky** Tandem Commanderu ani Open Salamanderu
-  (`src/**/*.cpp|h|rc`). Vzorem je chování spuštěného programu, jeho uživatelská nápověda
-  a dokumentace.
-- Texty nápovědy a dialogů nepřebírej doslova; napiš vlastní.
-- Nová závislost jen s licencí slučitelnou s GPL-3.0; zapiš ji do [THIRD_PARTY.md](THIRD_PARTY.md).
+- **Do not read or copy the C++ sources** of Tandem Commander or Open Salamander
+  (`src/**/*.cpp|h|rc`). The reference is the behavior of the running program, its user help, and
+  its documentation.
+- Do not copy help and dialog texts verbatim; write your own.
+- A new dependency needs a license compatible with GPL-3.0; record it in
+  [THIRD_PARTY.md](THIRD_PARTY.md).
 
-## Konvence
+## Conventions
 
-- Kód, identifikátory, komentáře a specifikace (`specs/`) anglicky; ostatní dokumentace česky.
-- Každý nový zdrojový soubor začíná hlavičkou:
+- Code, identifiers, comments, documentation, and specs (`specs/`) are in English.
+- Every new source file starts with this header:
 
   ```swift
   // SPDX-License-Identifier: GPL-3.0-or-later
   // Copyright (C) 2026 The Axolotl Commander Authors
   ```
 
-- Nové texty v UI patří do `Resources/Localizable.xcstrings` (angličtina je zdroj, čeština překlad).
-- Nehotový příkaz v menu zůstává šedý, nepadá.
-- Commit zpráva: `[Oblast] stručný popis` (např. `[Archivy] F6 z 7z zachová datum`).
+- New UI strings go into `Resources/Localizable.xcstrings` (English is the source, Czech a translation).
+- A command that is not finished yet stays grayed out in the menu; it must not crash.
+- Commit message format: `[Area] short description` in English
+  (e.g. `[Archive] Refuse moving an archive into itself`). Work on a feature from a spec uses
+  `[Spec NNN] ...` (e.g. `[Spec 001] ...`).
 
-## Pull requesty
+## Pull requests
 
-1. Udělej fork a větev od `main`.
-2. Drž změnu malou a s jedním tématem; přidej testy.
-3. `swift build` bez varování a `swift test` zelené (stejně to ověří CI).
-4. Otevři pull request a vyplň šablonu. Každý PR potřebuje schválení správce
-   (viz [CODEOWNERS](.github/CODEOWNERS)) a zelené CI; do `main` se slučuje přes *squash*.
+1. Fork the repository and branch from `main`.
+2. Keep the change small and focused on one topic; add tests.
+3. `swift build` without warnings and `swift test` green (CI checks the same).
+4. Open a pull request and fill in the template. Every PR needs maintainer approval
+   (see [CODEOWNERS](.github/CODEOWNERS)) and green CI; PRs are merged into `main` by *squash*.
 
-Větší funkce se dělají přes Spec Kit: `/speckit-specify` → `/speckit-plan` → `/speckit-tasks` →
-`/speckit-implement`, specifikace vznikne v `specs/NNN-nazev/` a patří do pull requestu.
+Larger features go through Spec Kit: `/speckit-specify` → `/speckit-plan` → `/speckit-tasks` →
+`/speckit-implement`. The spec is written in English in `specs/NNN-name/` and belongs in the
+pull request.
 
-Vydávání nových verzí popisuje [docs/RELEASING.md](docs/RELEASING.md).
+Releasing new versions is described in [docs/RELEASING.md](docs/RELEASING.md).
 
-## Původ příspěvků (DCO)
+## Origin of contributions (DCO)
 
-Podepiš každý commit volbou `-s` (`git commit -s`). Tím potvrzuješ
-[Developer Certificate of Origin](https://developercertificate.org/): příspěvek je tvůj (nebo ho
-smíš poskytnout) a souhlasíš s jeho zveřejněním pod licencí GPL-3.0-or-later.
+Sign off every commit with the `-s` option (`git commit -s`). This certifies the
+[Developer Certificate of Origin](https://developercertificate.org/): the contribution is yours
+(or you are allowed to submit it), and you agree to its release under the GPL-3.0-or-later license.
 
-Používáš-li při psaní AI asistenta, odpovídáš za výsledek stejně jako za vlastní kód — včetně
-pravidla čisté implementace výše.
+If you use an AI assistant while writing, you are as responsible for the result as for your own
+code — including the clean-room rule above.
 
-## Chování v komunitě
+## Community conduct
 
-Platí [pravidla chování](CODE_OF_CONDUCT.md). Bezpečnostní chyby hlas soukromě podle
-[SECURITY.md](SECURITY.md).
+The [Code of Conduct](CODE_OF_CONDUCT.md) applies. Report security vulnerabilities privately as
+described in [SECURITY.md](SECURITY.md).

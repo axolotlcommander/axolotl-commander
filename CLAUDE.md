@@ -1,53 +1,81 @@
-# Axolotl Commander — nativní macOS port Tandem Commanderu
+# Axolotl Commander — a native macOS port of Tandem Commander
 
-Vzor chování: [Tandem Commander](https://github.com/tandemcommander/tandemcommander) (Windows,
-WinAPI), naklonovaný vedle tohoto repa jako `../tandemcommander`. Analýza portu:
+Reference behavior: [Tandem Commander](https://github.com/tandemcommander/tandemcommander)
+(Windows, WinAPI), cloned next to this repository as `../tandemcommander`. Port analysis:
 `../tandemcommander/docs/macos-port/`.
-Plán etap: `docs/PLAN.md`.
-Principy: `.specify/memory/constitution.md`. Nové funkce přes Spec Kit (`/speckit-specify` →
-`/speckit-plan` → `/speckit-tasks` → `/speckit-implement`), specifikace v `specs/NNN-nazev/`.
-Soukromé pokyny pro vlastní stroj patří do `CLAUDE.local.md` (je v `.gitignore`).
+Stage plan: `docs/PLAN.md`.
+Principles: `.specify/memory/constitution.md`. New features go through Spec Kit
+(`/speckit-specify` → `/speckit-plan` → `/speckit-tasks` → `/speckit-implement`), specs in
+`specs/NNN-name/`.
+Private instructions for your own machine belong in `CLAUDE.local.md` (listed in `.gitignore`).
 
-## Postup práce
+## Language (binding)
 
-- Po každém dokončeném kroku commit (build bez varování, `swift test` zelené).
-- Nečti velké soubory celé: `../tandemcommander/CLAUDE.md` má ~150 kB — jen `grep`
-  a cílené výřezy.
+- **Everything committed to git is in English**: code, comments, documentation, specs, plans,
+  tasks, commit messages, PR descriptions and issue templates. The only exception is
+  localized UI text in `Resources/Localizable.xcstrings` (English source + translations).
+- **Talk to each contributor in their own language.** Discussion, questions, summaries and
+  reports go in the language the contributor writes in; whatever ends up in git is written
+  in English.
+- Input from the contributor that goes into git (a feature description, wording of a message,
+  a requirement) is used **as written when it is in English**; in any other language you
+  translate it into English before it goes into a spec, code comment or commit message.
+- It works both ways: when you present an existing spec, plan, task list or review, or ask
+  Spec Kit clarification questions, translate it into the contributor's language. Feedback
+  given in their language is applied to the English documents.
+- Local files that are not committed (`CLAUDE.local.md`, files listed in `.gitignore`) may be
+  in any language.
 
-## Bezpečnost souborového systému (závazné)
+## New features
 
-- **Nikdy nespouštěj souborové operace (kopie, přesun, mazání, přejmenování, zápis) na
-  skutečných datech uživatele** — ani v GUI testech, ani v unit testech.
-- Testy jen v izolovaném adresáři (`FileManager.default.temporaryDirectory`), který test sám
-  vytvoří a uklidí. GUI test operací: oba panely nejdřív přesměrovat do takového testovacího
-  adresáře, teprve pak posílat F5/F6/F8/F2…
-- GUI testy mimo testovací adresář smí jen číst (procházet, vybírat, řadit).
-- GUI testy pouštěj na kopii aplikace s vlastním bundle id (ne `cz.acidek.axolotlcommander`),
-  ať nesahají na nastavení nainstalované aplikace.
-- Mazání vlastních artefaktů (`build/`) je v pořádku.
+1. Discuss the idea in chat in the contributor's language: behavior, edge cases, what is out
+   of scope, data-safety risks, how the reference program behaves.
+2. Write a short summary of what was agreed (in their language) and wait for confirmation.
+3. Run `/speckit-specify` with an English version of the summary, then `/speckit-plan`,
+   `/speckit-tasks`, `/speckit-implement`. `/speckit-clarify` only if something is still open.
 
-## Licence a čistota implementace (závazné)
+Small changes (a bug fix, a layout tweak, a new shortcut) do not need a spec: a test and a
+commit are enough.
 
-- Projekt je `GPL-3.0-or-later`. Každý nový zdrojový soubor začíná hlavičkou
+## Workflow
+
+- Commit after every completed step (build without warnings, `swift test` green).
+- Do not read large files in full: `../tandemcommander/CLAUDE.md` is ~150 kB — use `grep`
+  and targeted excerpts.
+
+## File system safety (binding)
+
+- **Never run file operations (copy, move, delete, rename, write) on the user's real
+  data** — neither in GUI tests nor in unit tests.
+- Tests only in an isolated directory (`FileManager.default.temporaryDirectory`) that the test
+  creates and removes itself. GUI test of operations: first point both panels to such a test
+  directory, only then send F5/F6/F8/F2…
+- GUI tests outside the test directory may only read (browse, select, sort).
+- Run GUI tests on a copy of the app with its own bundle id (not `cz.acidek.axolotlcommander`),
+  so they do not touch the settings of the installed app.
+- Deleting your own artifacts (`build/`) is fine.
+
+## License and clean-room implementation (binding)
+
+- The project is `GPL-3.0-or-later`. Every new source file starts with the header
   `// SPDX-License-Identifier: GPL-3.0-or-later` + `// Copyright (C) 2026 The Axolotl Commander Authors`.
-- Vzorem je **chování**: nápověda (`../tandemcommander/help/`), `docs/macos-port/`, `specs/`
-  a spuštěný program. **C++ zdrojáky vzoru (`../tandemcommander/src/**/*.cpp|h|rc`) nečíst
-  ani necitovat** — ani v subagentech. Výjimka jen na výslovný pokyn správce projektu, a pak
-  zapsat do `NOTICE`, co se odkud převzalo.
-- Texty nápovědy a dialogů nepřebírat doslovně; psát vlastní formulace.
-- Nová závislost jen s licencí slučitelnou s GPL-3.0; zapsat do `THIRD_PARTY.md`.
+- The reference is **behavior**: the help (`../tandemcommander/help/`), `docs/macos-port/`,
+  `specs/` and the running program. **Do not read or quote the reference C++ sources
+  (`../tandemcommander/src/**/*.cpp|h|rc`)** — not even in subagents. Exceptions only on an
+  explicit instruction from the project maintainer, and then record in `NOTICE` what was taken
+  from where.
+- Do not copy help or dialog texts verbatim; write your own wording.
+- New dependencies only with a GPL-3.0-compatible license; record them in `THIRD_PARTY.md`.
 
-## Technologie
+## Technology
 
-- Swift + AppKit, Swift Package Manager (`swift build`, `swift test`), bez Xcode projektu.
-- Spuštění: `swift run AxolotlCommander` nebo `scripts/bundle.sh` → `build/Axolotl Commander.app`.
-- Jádro (`Sources/CommanderCore`) bez AppKitu → testovatelné `swift test`.
+- Swift + AppKit, Swift Package Manager (`swift build`, `swift test`), no Xcode project.
+- Run: `swift run AxolotlCommander` or `scripts/bundle.sh` → `build/Axolotl Commander.app`.
+- Core (`Sources/CommanderCore`) without AppKit → testable with `swift test`.
 - UI (`Sources/AxolotlCommander`) AppKit.
 
-## Konvence
+## Conventions
 
-- Kód a identifikátory anglicky, specifikace (`specs/`) anglicky, ostatní dokumentace česky.
-- Nová funkce: nejdřív diskuse v chatu (česky), po odsouhlasení shrnutí ji agent zapíše
-  přes `/speckit-specify` anglicky; specifikace `001-…` zůstává česky.
-- Commit zprávy: `[Etapa N] stručný popis` (mimo etapy `[Oblast] popis`).
-- Nehotový příkaz v menu zůstává šedý (disabled), nepadá.
+- Commit messages: `[Area] short description` (e.g. `[Archive] Refuse moving an archive into
+  itself`); work from a spec: `[Spec NNN] …`; plan stages: `[Stage N] …`.
+- An unfinished menu command stays grayed out (disabled) and never crashes.

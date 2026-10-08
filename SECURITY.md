@@ -1,24 +1,22 @@
-# Bezpečnost
+# Security
 
-## Hlášení zranitelnosti
+## Reporting a vulnerability
 
-Bezpečnostní chyby **nehlas veřejným issue**. Použij soukromé hlášení na GitHubu:
+Do **not** report security vulnerabilities in a public issue. Use GitHub's private reporting:
 [Report a vulnerability](https://github.com/axolotlcommander/axolotl-commander/security/advisories/new),
-případně e-mailem na **acidek@icloud.com**.
+or e-mail **acidek@icloud.com**.
 
-Uveď prosím, čeho se chyba týká (např. rozbalování archivů, SFTP/FTP, náhled Markdownu/HTML,
-ukládání hesel), jak ji zopakovat a jaký může mít dopad. Ozveme se do 14 dnů; opravu zveřejníme
-společně s poděkováním, pokud o ně stojíš.
+Please say what the bug affects (e.g. archive extraction, SFTP/FTP, Markdown/HTML preview,
+password storage), how to reproduce it, and what impact it may have. We will respond within
+14 days; the fix is published together with credit to you, if you want it.
 
-Za bezpečnostní chybu považujeme hlavně:
+We mainly consider the following to be security bugs:
 
-- zápis mimo cílovou složku při rozbalování archivu (`../`, absolutní cesty, symlinky),
-- únik hesla (do historie, logu, URL, na disk mimo Klíčenku),
-- spuštění kódu nebo načtení vzdáleného obsahu z náhledu bez souhlasu,
-- ztrátu nebo přepsání dat, které operace nemá dovoleno měnit.
+- writing outside the target directory when extracting an archive (`../`, absolute paths, symlinks),
+- password leaks (into history, logs, URLs, or onto disk outside the Keychain),
+- running code or loading remote content from a preview without consent,
+- loss or overwriting of data that an operation is not allowed to change.
 
-## Podporované verze
+## Supported versions
 
-Opravy vycházejí pro poslední vydanou verzi a pro větev `main`.
-
-*Please report vulnerabilities privately via GitHub's "Report a vulnerability", not as public issues.*
+Fixes are released for the latest released version and for the `main` branch.

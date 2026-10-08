@@ -1,4 +1,4 @@
-# Specification Quality Checklist: Bezpečnost dat — mezery z auditu (D1–D8)
+# Specification Quality Checklist: Data Safety — Gaps from the Audit (D1–D8)
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning
 **Created**: 2026-10-08
@@ -31,7 +31,7 @@
 
 ## Notes
 
-- Pojmy jako symlink, pevný odkaz (hard link), NFC/NFD, Koš, F5/F8 jsou uživatelské pojmy
-  správce souborů, ne implementační detaily.
-- Konkrétní soubory a funkce kódu (z `docs/AUDIT.md`) patří do `plan.md`, ne sem.
-- Validace: 1 iterace, vše prošlo.
+- Terms such as symlink, hard link, NFC/NFD, Trash, and F5/F8 are file-manager concepts the user
+  knows, not implementation details.
+- Specific files and functions of the code (from `docs/AUDIT.md`) belong in `plan.md`, not here.
+- Validation: 1 iteration, everything passed.

@@ -1,72 +1,72 @@
-# Data model: Bezpečnost dat (001)
+# Data Model: Data Safety (001)
 
-## FileIdentity (změna)
+## FileIdentity (changed)
 
-| Pole | Typ | Poznámka |
+| Field | Type | Note |
 |---|---|---|
-| device | Int64 | `st_dev` — platí jen po dobu připojení svazku |
-| inode | UInt64 | `st_ino`; 0 → identita neznámá (`nil`) |
-| reliable | Bool | z `VolumeTraits.identityReliable` |
+| device | Int64 | `st_dev` — valid only while the volume is mounted |
+| inode | UInt64 | `st_ino`; 0 → identity unknown (`nil`) |
+| reliable | Bool | from `VolumeTraits.identityReliable` |
 
-- Rovnost dvou identit má význam „týž soubor“ jen když jsou obě `reliable`; jinak operace
-  mazající zdroj nad existujícím cílem → `OperationError.identityUnknown`.
-- Nikdy se neukládá (mezi spuštěními ani přes odpojení svazku).
+- Equality of two identities means "the same file" only when both are `reliable`; otherwise an
+  operation that deletes the source over an existing target → `OperationError.identityUnknown`.
+- Never persisted (neither across launches nor across a volume being unmounted).
 
-## VolumeTraits (nové)
+## VolumeTraits (new)
 
-| Pole | Typ | Poznámka |
+| Field | Type | Note |
 |---|---|---|
-| identityReliable | Bool | `apfs`, `hfs` → true; ostatní typy → false |
+| identityReliable | Bool | `apfs`, `hfs` → true; other types → false |
 | uuid | String? | `URLResourceKey.volumeUUIDStringKey` |
-| trashAvailable | Bool | `FileManager.url(for: .trashDirectory, …, appropriateFor:, create: false)` uspěje |
+| trashAvailable | Bool | `FileManager.url(for: .trashDirectory, …, appropriateFor:, create: false)` succeeds |
 
-Cache podle `st_dev` jen po dobu jedné operace.
+Cached by `st_dev` for the duration of a single operation only.
 
-## PersistentFileStamp (nové)
+## PersistentFileStamp (new)
 
-| Pole | Typ | Poznámka |
+| Field | Type | Note |
 |---|---|---|
-| volumeUUID | String? | identita svazku přes odpojení |
+| volumeUUID | String? | volume identity across unmounts |
 | fileID | UInt64 | `fileIdentifierKey` / `st_ino` |
 | size | Int64 | |
-| modified | Int64 | mtime v ns |
+| modified | Int64 | mtime in ns |
 
-Shoda všech polí = „archiv se od vytažení nezměnil“ (FR-009). Codable.
+All fields matching = "the archive has not changed since extraction" (FR-009). Codable.
 
-## PendingEdit (nové, `ArchiveEditStore`)
+## PendingEdit (new, `ArchiveEditStore`)
 
-| Pole | Typ | Poznámka |
+| Field | Type | Note |
 |---|---|---|
-| id | UUID | název podsložky v `Edits/` |
-| target | enum `member(archive: URL, path: String)` / `server(location)` | kam se vrací |
-| copyRelPath | String | relativně k `Edits/<id>/` |
-| baseline | FileStamp | velikost + mtime kopie po vytažení / posledním uložení |
-| archiveStamp | PersistentFileStamp? | stav archivu při vytažení (jen `member`) |
-| declined | Bool | uživatel zvolil „Teď ne“ — kopie se nesmí uklidit |
+| id | UUID | name of the subfolder in `Edits/` |
+| target | enum `member(archive: URL, path: String)` / `server(location)` | where it is written back to |
+| copyRelPath | String | relative to `Edits/<id>/` |
+| baseline | FileStamp | size + mtime of the copy after extraction / the last save |
+| archiveStamp | PersistentFileStamp? | state of the archive at extraction (`member` only) |
+| declined | Bool | the user chose "Not Now" — the copy must not be cleaned up |
 
-**Stavy**: `extracted` (kopie = baseline) → `changed` (kopie ≠ baseline) →
-`saved` (vráceno; baseline := kopie, archiveStamp := nový) | `declined` (zachovat, nabídnout
-při startu) | `discarded` (smazat kopii i záznam). Při ukončení: `extracted`/`saved` bez dalších
-změn → uklidit; `changed`/`declined` → zachovat. Při startu: záznam bez kopie → zahodit;
-`changed`/`declined` → nabídnout.
+**States**: `extracted` (copy = baseline) → `changed` (copy ≠ baseline) →
+`saved` (written back; baseline := copy, archiveStamp := new) | `declined` (keep, offer
+at startup) | `discarded` (delete both the copy and the record). On quit: `extracted`/`saved` with no
+further changes → clean up; `changed`/`declined` → keep. On startup: a record without a copy → discard;
+`changed`/`declined` → offer.
 
-**Úložiště**: `~/Library/Application Support/Axolotl Commander/Edits/manifest.json` (pole
-`PendingEdit`), zapisuje se přes `SafeFileWriter`. V testech vlastní `root` v sandboxu.
+**Storage**: `~/Library/Application Support/Axolotl Commander/Edits/manifest.json` (an array of
+`PendingEdit`), written via `SafeFileWriter`. In tests, a custom `root` in a sandbox.
 
-## DeletePlan / TrashReport (nové)
+## DeletePlan / TrashReport (new)
 
-| Typ | Pole |
+| Type | Fields |
 |---|---|
-| DeletePlan | `toTrash: [URL]`, `permanent: [URL]` (svazek bez Koše) |
+| DeletePlan | `toTrash: [URL]`, `permanent: [URL]` (volume without a Trash) |
 | TrashReport | `trashed: [(original: URL, inTrash: URL)]`, `failed: (URL, String)?`, `notAttempted: [URL]` |
 
-Pravidlo: `permanent` se smaže jen po potvrzení; když se Koš v téže dávce nepovede
-(`failed != nil`), `permanent` se neprovede.
+Rule: `permanent` is deleted only after confirmation; when the Trash step fails in the same batch
+(`failed != nil`), `permanent` is not performed.
 
-## Chyby (rozšíření)
+## Errors (extended)
 
-| Enum | Nový případ | Kdy |
+| Enum | New case | When |
 |---|---|---|
-| RemoteError | `replaceIncomplete(target:, newAt:, oldAt:)` | výměna na serveru selhala a zálohu nešlo vrátit |
-| ArchiveError | `changedSinceRead(URL)` | archiv se změnil/zmizel mezi vytažením a vrácením |
-| OperationError | (beze změny) `intoItself`, `identityUnknown`, `alreadyExists` | D3, D5, D7, D8 |
+| RemoteError | `replaceIncomplete(target:, newAt:, oldAt:)` | the replace on the server failed and the backup could not be restored |
+| ArchiveError | `changedSinceRead(URL)` | the archive changed/disappeared between extraction and write-back |
+| OperationError | (unchanged) `intoItself`, `identityUnknown`, `alreadyExists` | D3, D5, D7, D8 |

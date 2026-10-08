@@ -1,22 +1,21 @@
-name: Návrh funkce / Feature request
-description: Nápad na novou funkci nebo zlepšení. / An idea for a new feature or improvement.
+name: Feature request
+description: An idea for a new feature or improvement.
 labels: [enhancement]
 body:
   - type: textarea
     id: problem
     attributes:
-      label: Jaký problém to řeší / What problem does it solve
+      label: What problem does it solve
     validations:
       required: true
   - type: textarea
     id: proposal
     attributes:
-      label: Návrh / Proposal
-      description: Jak by to mělo fungovat (klávesy, menu, dialogy). Jak se to chová v Tandem Commanderu / Open Salamanderu? /
-        How should it work? How does Tandem Commander / Open Salamander behave?
+      label: Proposal
+      description: How should it work (keys, menus, dialogs)? How do Tandem Commander and Open Salamander behave?
     validations:
       required: true
   - type: textarea
     id: alternatives
     attributes:
-      label: Alternativy / Alternatives considered
+      label: Alternatives considered

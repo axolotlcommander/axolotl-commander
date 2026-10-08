@@ -1,9 +1,9 @@
-# Etapa 4 — příkazový řádek a vlastnosti (zadání jádra)
+# Stage 4 — command line and properties (core specification)
 
-Vše v `Sources/CommanderCore/Shell/`, testy Swift Testing v `Tests/CommanderCoreTests/ShellTests.swift`.
-Bez AppKitu. Package má upcoming features `ExistentialAny`, `InternalImportsByDefault`,
-`MemberImportVisibility` → veřejné API potřebuje `public import Foundation`.
-Pravidlo hesla: `../tandemcommander/docs/macos-port/05-pravidla.md` (adresa se do historie ukládá bez hesla).
+Everything in `Sources/CommanderCore/Shell/`, Swift Testing tests in `Tests/CommanderCoreTests/ShellTests.swift`.
+No AppKit. The package has the upcoming features `ExistentialAny`, `InternalImportsByDefault`,
+`MemberImportVisibility` → public API needs `public import Foundation`.
+Password rule: `../tandemcommander/docs/macos-port/05-pravidla.md` (the address is stored in history without the password).
 
 ## API
 
@@ -103,19 +103,19 @@ public struct FileProperties: Sendable, Equatable {
 }
 ```
 
-## Testy
+## Tests
 
-- ShellQuote: `abc` beze změny, `a b` → `'a b'`, `it's` → `'it'\''s'`, `""` → `''`, `čaj` → `'čaj'`.
-- ShellWords: `cd "a b"` → [cd, a b]; `a\ b`; `'x"y'`; `~/x` → home/x; `"~/x"` bez expanze;
+- ShellQuote: `abc` unchanged, `a b` → `'a b'`, `it's` → `'it'\''s'`, `""` → `''`, `čaj` → `'čaj'`.
+- ShellWords: `cd "a b"` → [cd, a b]; `a\ b`; `'x"y'`; `~/x` → home/x; `"~/x"` without expansion;
   `a; b`, `a | b`, `$HOME`, `*.txt`, `"unclosed` → nil.
 - Credentials: `ftp://joe:secret@host/x` → `ftp://joe@host/x`; `sftp joe:pw@host` → `sftp joe@host`;
-  `git clone git@github.com:a/b` beze změny; `scp f user@host:/p` beze změny; `https://host/a:b@c`? beze změny.
-- CommandHistory: limit 30, duplikát se přesune dopředu, prázdné ignoruje, heslo se neuloží, Codable roundtrip.
-- HistoryBrowser: older → newest…oldest → nil; newer → zpět → draft.
-- CommandInput (exists injektovaný nebo temp adresář jen pro čtení): `""` → none; `cd` → home; `cd ..`;
-  `cd ~/x`; `cd /usr/bin`; `cd "a b"` relativně; `cd -` → back; `cd a b` → run; `cd x && make` → run;
-  `readme.txt` existující → open; `ls -la` → run; `cd` + příliš dlouhá cesta → invalid.
-- TerminalScript: obsahuje `cd -- '/tmp/a b'` a `-c 'echo '\''hi'\'''` (správné quotování).
-- FileProperties (v temp adresáři, který test vytvoří a smaže): soubor 0644 → `-rw-r--r--`, size;
-  symlink → isSymlink, linkDestination; složka → isDirectory, size nil; permissionsString pro 04755,
-  01777 (`drwxrwxrwt`), 02644 bez x (`-rw-r-Sr--`); octal.
+  `git clone git@github.com:a/b` unchanged; `scp f user@host:/p` unchanged; `https://host/a:b@c`? unchanged.
+- CommandHistory: limit 30, a duplicate moves to the front, empty ignored, password not stored, Codable round trip.
+- HistoryBrowser: older → newest…oldest → nil; newer → back → draft.
+- CommandInput (exists injected, or a read-only temp directory): `""` → none; `cd` → home; `cd ..`;
+  `cd ~/x`; `cd /usr/bin`; `cd "a b"` relative; `cd -` → back; `cd a b` → run; `cd x && make` → run;
+  existing `readme.txt` → open; `ls -la` → run; `cd` + too long a path → invalid.
+- TerminalScript: contains `cd -- '/tmp/a b'` and `-c 'echo '\''hi'\'''` (correct quoting).
+- FileProperties (in a temp directory that the test creates and deletes): file 0644 → `-rw-r--r--`, size;
+  symlink → isSymlink, linkDestination; folder → isDirectory, size nil; permissionsString for 04755,
+  01777 (`drwxrwxrwt`), 02644 without x (`-rw-r-Sr--`); octal.

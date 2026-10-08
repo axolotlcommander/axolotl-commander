@@ -1,4 +1,4 @@
-# Feature Specification: Bezpečnost dat — mezery z auditu (D1–D8)
+# Feature Specification: Data Safety — Gaps from the Audit (D1–D8)
 
 **Feature Branch**: `001-data-safety-gaps`
 
@@ -6,319 +6,345 @@
 
 **Status**: Draft
 
-**Input**: User description: "Bezpečnost dat: odstranit mezery D1–D8 z auditu docs/AUDIT.md proti pravidlům vzoru (05-pravidla.md, specs Tandemu 062, 092, 103, 105, 106, 107, 112, 119) a doplnit chybějící testy pojistek."
+**Input**: User description: "Data safety: close the gaps D1–D8 from the audit in docs/AUDIT.md against the reference program's rules (05-pravidla.md, Tandem specs 062, 092, 103, 105, 106, 107, 112, 119) and add the missing tests for the safeguards."
 
-Vzor: `../tandemcommander/docs/macos-port/05-pravidla.md` (sekce Identita souboru, Přepsání,
-Přesun a odkaz, Archiv) a záznamy funkcí 062, 092, 103, 105, 106, 107, 112, 119 ve
+Reference: `../tandemcommander/docs/macos-port/05-pravidla.md` (sections File identity, Overwrite,
+Move and link, Archive) and the feature records 062, 092, 103, 105, 106, 107, 112, 119 in
 `../tandemcommander/specs/`.
 
 ## User Scenarios & Testing *(mandatory)*
 
-### User Story 1 - Přepis souboru na serveru nezničí starou verzi (Priority: P1)
+### User Story 1 - Overwriting a file on a server does not destroy the old version (Priority: P1)
 
-Uživatel kopíruje (F5) soubor na FTP/SFTP server, kde už soubor stejného jména je, a potvrdí
-přepsání. Spojení během operace spadne nebo server odmítne poslední krok. Na serveru musí
-zůstat buď stará verze, nebo nová úplná verze — nikdy žádná.
+The user copies (F5) a file to an FTP/SFTP server where a file of the same name already exists,
+and confirms the overwrite. The connection drops during the operation, or the server rejects the
+final step. The server must be left with either the old version or the new complete version —
+never neither.
 
-**Why this priority**: Jediné místo, kde dnes běžná operace může zničit data bez možnosti
-návratu (na serveru není Koš).
+**Why this priority**: This is the only place where an everyday operation can destroy data
+irrecoverably today (there is no Trash on a server).
 
-**Independent Test**: Simulovaný server, který selže v závěrečném kroku výměny; po operaci
-existuje původní obsah cíle (nebo úplný nový obsah) a uživatel dostal chybovou hlášku.
+**Independent Test**: A simulated server that fails in the final swap step; after the operation
+either the original content of the target or the complete new content exists, and the user got an
+error message.
 
 **Acceptance Scenarios**:
 
-1. **Given** na serveru je `zprava.txt` (stará verze), **When** uživatel přepíše soubor novou
-   verzí a výměna na konci selže, **Then** na serveru zůstane `zprava.txt` se starým obsahem
-   nebo nová úplná verze pod jménem, které hláška uvede, a hláška řekne, co se stalo.
-2. **Given** totéž, **When** přenos dat selže uprostřed, **Then** stará verze je beze změny
-   a na serveru nezůstane rozpracovaná kopie.
-3. **Given** server umí atomickou výměnu, **When** přepis proběhne, **Then** v žádném okamžiku
-   cíl na serveru nechybí.
+1. **Given** the server holds `zprava.txt` (old version), **When** the user overwrites it with a
+   new version and the final swap fails, **Then** the server keeps `zprava.txt` with the old
+   content, or the new complete version under the name given in the message, and the message says
+   what happened.
+2. **Given** the same setup, **When** the data transfer fails midway, **Then** the old version is
+   unchanged and no partial copy is left on the server.
+3. **Given** the server supports an atomic swap, **When** the overwrite runs, **Then** the target
+   on the server is never missing at any moment.
 
 ---
 
-### User Story 2 - Neuložené úpravy členů archivu přežijí ukončení (Priority: P1)
+### User Story 2 - Unsaved edits to archive members survive quitting (Priority: P1)
 
-Uživatel otevře soubor uvnitř ZIPu přes F4, upraví ho v editoru a pak aplikaci ukončí.
-Aplikace nabídne vrácení úprav do archivu. Uživatel zvolí „Teď ne“, nebo zápis do archivu
-selže (archiv je jen pro čtení, disk plný). Úprava se nesmí ztratit.
+The user opens a file inside a ZIP with F4, edits it in the editor, and then quits the app. The
+app offers to put the edits back into the archive. The user chooses "Not Now", or writing to the
+archive fails (the archive is read-only, the disk is full). The edit must not be lost.
 
-**Why this priority**: Dnes se upravené kopie při ukončení smažou bez varování — ztráta práce.
+**Why this priority**: Today the edited copies are deleted on quit without warning — loss of work.
 
-**Independent Test**: Upravená kopie člena + odmítnutí nebo chyba zápisu + ukončení → kopie
-existuje a při dalším spuštění se znovu nabídne.
+**Independent Test**: Edited member copy + refusal or write error + quit → the copy exists and is
+offered again at the next launch.
 
 **Acceptance Scenarios**:
 
-1. **Given** upravená kopie člena archivu, **When** uživatel při ukončení zvolí „Teď ne“,
-   **Then** kopie zůstane zachována a při příštím spuštění aplikace ji znovu nabídne
-   k vrácení (s názvem archivu a člena).
-2. **Given** upravená kopie, **When** vrácení do archivu při ukončení selže, **Then** aplikace
-   ohlásí chybu, kopii zachová a řekne, kde ji uživatel najde.
-3. **Given** kopie bez úprav (jen prohlížená), **When** aplikace končí, **Then** se uklidí.
-4. **Given** zachovaná úprava z minula, **When** uživatel ji při dalším spuštění vrátí nebo
-   výslovně zahodí, **Then** se kopie uklidí.
+1. **Given** an edited copy of an archive member, **When** the user chooses "Not Now" on quit,
+   **Then** the copy is kept and the app offers it again for restoring at the next launch (with
+   the archive name and the member name).
+2. **Given** an edited copy, **When** putting it back into the archive fails on quit, **Then**
+   the app reports the error, keeps the copy, and tells the user where to find it.
+3. **Given** a copy without edits (only viewed), **When** the app quits, **Then** it is cleaned up.
+4. **Given** an edit kept from a previous run, **When** the user restores it or explicitly
+   discards it at the next launch, **Then** the copy is cleaned up.
 
 ---
 
-### User Story 3 - Operace s archivem se nezacyklí do sebe (Priority: P1)
+### User Story 3 - Archive operations do not loop into themselves (Priority: P1)
 
-Uživatel přesouvá složku do její vlastní podsložky uvnitř téhož archivu, ale archiv má
-v panelech otevřený pod různými zápisy cesty (přes symlink, jinou velikostí písmen).
-Nebo balí (Alt+F5) obsah do archivu, který je sám mezi zdroji nebo uvnitř zdrojové složky.
-Obojí se musí odmítnout dřív, než se cokoli změní.
+The user moves a folder into its own subfolder inside the same archive, but the archive is open
+in the panels under different path spellings (via a symlink, with different letter case). Or the
+user packs (Alt+F5) content into an archive that is itself among the sources or lies inside a
+source folder. Both must be rejected before anything changes.
 
-**Why this priority**: Přesun do sebe může v archivu odstranit originál i kopii.
+**Why this priority**: Moving into itself can remove both the original and the copy in the archive.
 
-**Independent Test**: Archiv otevřený přes symlink v jednom panelu a přímo ve druhém; přesun
-složky do jejího potomka → odmítnuto, archiv beze změny. Zabalení složky do archivu, který
-v té složce leží → odmítnuto.
+**Independent Test**: The archive is open via a symlink in one panel and directly in the other;
+moving a folder into its descendant → rejected, archive unchanged. Packing a folder into an
+archive that lies in that folder → rejected.
 
 **Acceptance Scenarios**:
 
-1. **Given** archiv `a.zip` otevřený v levém panelu jako `~/odkaz/a.zip` (symlink) a v pravém
-   jako `~/data/a.zip`, **When** uživatel přesune složku `docs` do `docs/old` mezi panely,
-   **Then** operace se odmítne s hláškou „nelze přesunout do sebe“ a archiv se nezmění.
-2. **Given** totéž s jinou velikostí písmen cesty na svazku bez rozlišení velikosti písmen,
-   **Then** stejný výsledek.
-3. **Given** složka `projekt` obsahuje `projekt/zaloha.zip`, **When** uživatel zabalí
-   `projekt` do `projekt/zaloha.zip`, **Then** operace se odmítne před zápisem.
-4. **Given** mezi označenými zdroji je i cílový archiv, **When** uživatel balí, **Then**
-   odmítnuto před zápisem.
+1. **Given** the archive `a.zip` is open in the left panel as `~/odkaz/a.zip` (a symlink) and in
+   the right panel as `~/data/a.zip`, **When** the user moves the folder `docs` to `docs/old`
+   between the panels, **Then** the operation is rejected with the message "can't be moved into
+   itself" and the archive is unchanged.
+2. **Given** the same with a different letter case of the path on a case-insensitive volume,
+   **Then** the result is the same.
+3. **Given** the folder `projekt` contains `projekt/zaloha.zip`, **When** the user packs
+   `projekt` into `projekt/zaloha.zip`, **Then** the operation is rejected before any write.
+4. **Given** the target archive is also among the selected sources, **When** the user packs,
+   **Then** it is rejected before any write.
 
 ---
 
-### User Story 4 - Mazání na svazku bez Koše je vědomé (Priority: P2)
+### User Story 4 - Deleting on a volume without a Trash is a conscious decision (Priority: P2)
 
-Uživatel maže (F8) na síťovém svazku nebo disku, který Koš nepodporuje. Musí se to dozvědět
-předem a rozhodnout se, ne zjistit po chybě, že dávka zůstala napůl.
+The user deletes (F8) on a network volume or a disk that does not support the Trash. They must
+learn this up front and decide, rather than find out after an error that the batch was left
+half-done.
 
-**Why this priority**: Trvalé smazání bez varování je nevratné; napůl provedená dávka mate.
+**Why this priority**: Permanent deletion without warning is irreversible; a half-done batch is
+confusing.
 
-**Independent Test**: Simulovaný svazek bez Koše; F8 na několik položek → jeden dotaz na
-trvalé smazání; po „Zrušit“ se nic nesmaže, po „Smazat trvale“ se smaže vše.
+**Independent Test**: A simulated volume without a Trash; F8 on several items → a single prompt
+about permanent deletion; after "Cancel" nothing is deleted, after "Delete Permanently" everything
+is deleted.
 
 **Acceptance Scenarios**:
 
-1. **Given** položky na svazku bez Koše, **When** uživatel stiskne F8, **Then** dotaz výslovně
-   řekne, že položky se smažou trvale a nepůjde to vrátit, a nabídne „Smazat trvale“ a „Zrušit“.
-2. **Given** smíšený výběr (část na svazku s Košem, část bez), **When** F8, **Then** dotaz
-   uvede, které položky se smažou trvale; po potvrzení jdou ostatní do Koše.
-3. **Given** dotaz, **When** uživatel zvolí „Zrušit“, **Then** se nesmaže ani nepřesune nic.
-4. **Given** přesun do Koše nečekaně selže uprostřed dávky, **When** operace skončí, **Then**
-   uživatel vidí, které položky v Koši jsou a které zůstaly, a nic se nesmazalo trvale bez
-   jeho potvrzení.
+1. **Given** items on a volume without a Trash, **When** the user presses F8, **Then** the prompt
+   states explicitly that the items will be deleted permanently and cannot be recovered, and
+   offers "Delete Permanently" and "Cancel".
+2. **Given** a mixed selection (some on a volume with a Trash, some without), **When** F8,
+   **Then** the prompt lists which items will be deleted permanently; after confirmation the
+   others go to the Trash.
+3. **Given** the prompt, **When** the user chooses "Cancel", **Then** nothing is deleted or moved.
+4. **Given** moving to the Trash unexpectedly fails midway through a batch, **When** the
+   operation ends, **Then** the user sees which items are in the Trash and which remained, and
+   nothing was deleted permanently without their confirmation.
 
 ---
 
-### User Story 5 - Svazek bez spolehlivé identity souborů (Priority: P2)
+### User Story 5 - A volume without reliable file identity (Priority: P2)
 
-Na některých svazcích (síťové, starší souborové systémy) nelze spolehlivě zjistit, zda dvě
-cesty vedou na tentýž soubor. Operace, která by při shodě smazala zdroj, se tam nesmí spoléhat
-na odhad.
+On some volumes (network volumes, older file systems) it is not possible to reliably tell whether
+two paths lead to the same file. An operation that would delete the source on a match must not
+rely on a guess there.
 
-**Why this priority**: Přesun „souboru na sebe sama“ by smazal jediný exemplář.
+**Why this priority**: Moving a "file onto itself" would delete the only copy.
 
-**Independent Test**: Svazek simulující chybějící nebo nestálou identitu; přesun na cíl, který
-může být týž soubor → odmítnut s vysvětlením; kopie do nové složky funguje.
+**Independent Test**: A volume simulating missing or unstable identity; a move onto a target that
+may be the same file → rejected with an explanation; a copy into a new folder works.
 
 **Acceptance Scenarios**:
 
-1. **Given** svazek bez spolehlivé identity a cíl, který už existuje pod jménem, jež svazek
-   považuje za stejné, **When** uživatel přesouvá nebo přepisuje se smazáním zdroje,
-   **Then** operace se odmítne s vysvětlením.
-2. **Given** týž svazek a cíl, který neexistuje, **When** přesun, **Then** proběhne normálně.
-3. **Given** dva soubory na různých svazcích, **When** se porovnává identita, **Then** se
-   rozhoduje podle identity svazku a souboru, ne podle textu cesty ani čísla zařízení.
+1. **Given** a volume without reliable identity and a target that already exists under a name the
+   volume treats as the same, **When** the user moves or overwrites with deletion of the source,
+   **Then** the operation is rejected with an explanation.
+2. **Given** the same volume and a target that does not exist, **When** moving, **Then** it
+   proceeds normally.
+3. **Given** two files on different volumes, **When** their identity is compared, **Then** the
+   decision is based on the volume and file identity, not on the path text or the device number.
 
 ---
 
-### User Story 6 - „Uložit jako“ v prohlížeči neničí cíl (Priority: P2)
+### User Story 6 - "Save As" in the viewer does not destroy the target (Priority: P2)
 
-Uživatel v prohlížeči obrázku nebo textu zvolí „Uložit jako“ přes existující soubor. Cíl
-může být symlink nebo mít štítky a práva. Uložení se musí chovat jako ostatní bezpečné zápisy.
+In the image or text viewer the user chooses "Save As" over an existing file. The target may be a
+symlink or may have labels and permissions. The save must behave like the other safe writes.
 
-**Why this priority**: Dnes uložení nahradí symlink obyčejným souborem a ztratí atributy.
+**Why this priority**: Today the save replaces a symlink with a regular file and loses attributes.
 
-**Independent Test**: Cíl = symlink na soubor se štítkem; uložit jako → symlink zůstane
-symlinkem, soubor za ním má nový obsah a své atributy; simulovaná chyba zápisu → cíl beze změny.
+**Independent Test**: Target = a symlink to a file with a label; Save As → the symlink stays a
+symlink, the file behind it has the new content and its attributes; a simulated write error →
+target unchanged.
 
 **Acceptance Scenarios**:
 
-1. **Given** cíl je symlink, **When** uložit jako, **Then** symlink zůstane a nový obsah má
-   soubor, na který ukazuje.
-2. **Given** cíl má štítky a práva, **When** uložit jako, **Then** štítky a práva zůstanou.
-3. **Given** zápis selže, **When** uložit jako, **Then** cíl je beze změny a nezůstane po
-   operaci dočasný soubor.
+1. **Given** the target is a symlink, **When** Save As, **Then** the symlink stays and the file it
+   points to gets the new content.
+2. **Given** the target has labels and permissions, **When** Save As, **Then** the labels and
+   permissions are preserved.
+3. **Given** the write fails, **When** Save As, **Then** the target is unchanged and no temporary
+   file is left behind after the operation.
 
 ---
 
-### User Story 7 - Přejmenování na jiný odkaz téhož souboru je konflikt (Priority: P3)
+### User Story 7 - Renaming onto another link of the same file is a conflict (Priority: P3)
 
-Soubor má dva pevné odkazy (`a.txt` a `b.txt`). Uživatel přejmenuje `a.txt` na `b.txt`.
-Dnes operace tiše „uspěje“ a nic se nestane. Má se ohlásit, že cíl existuje.
+A file has two hard links (`a.txt` and `b.txt`). The user renames `a.txt` to `b.txt`. Today the
+operation silently "succeeds" and nothing happens. It should report that the target exists.
 
-**Why this priority**: Nezpůsobí ztrátu dat, ale zprávu o úspěchu, která neodpovídá stavu.
+**Why this priority**: It does not cause data loss, but it gives a success message that does not
+match the state.
 
-**Independent Test**: Dva hard linky; F2 jednoho na jméno druhého → hláška o existujícím cíli,
-oba odkazy beze změny. Změna jen velikosti písmen téhož jména dál funguje.
+**Independent Test**: Two hard links; F2 of one to the name of the other → a message about the
+existing target, both links unchanged. Changing only the letter case of the same name still works.
 
 **Acceptance Scenarios**:
 
-1. **Given** `a.txt` a `b.txt` jsou pevné odkazy na tentýž soubor, **When** F2 `a.txt` →
-   `b.txt`, **Then** aplikace ohlásí, že cíl už existuje, a nic nezmění.
-2. **Given** `Zprava.txt`, **When** F2 na `zprava.txt` (jen velikost písmen), **Then**
-   přejmenování proběhne.
+1. **Given** `a.txt` and `b.txt` are hard links to the same file, **When** F2 `a.txt` → `b.txt`,
+   **Then** the app reports that the target already exists and changes nothing.
+2. **Given** `Zprava.txt`, **When** F2 to `zprava.txt` (letter case only), **Then** the rename
+   succeeds.
 
 ---
 
-### User Story 8 - Pojistky, které už platí, mají testy (Priority: P3)
+### User Story 8 - Safeguards that already hold have tests (Priority: P3)
 
-Několik pravidel vzoru je splněných, ale bez automatického testu, takže je může nenápadně
-rozbít budoucí změna.
+Several of the reference program's rules are already satisfied but have no automated test, so a
+future change could break them unnoticed.
 
-**Why this priority**: Ochrana proti regresi; nemění chování.
+**Why this priority**: Regression protection; behavior does not change.
 
-**Independent Test**: Nové testy procházejí na současném kódu a selžou, když se pojistka
-záměrně vypne.
+**Independent Test**: The new tests pass on the current code and fail when a safeguard is
+deliberately switched off.
 
 **Acceptance Scenarios**:
 
-1. **Given** samotný symlink na adresář, **When** uživatel ho přesune jinam, **Then** soubory
-   za odkazem zůstanou a přesune se jen odkaz.
-2. **Given** složka s nečitelnou podsložkou, **When** přesun, **Then** zdroj se nesmaže
-   a uživatel se dozví, co se nepřeneslo.
-3. **Given** jméno v rozloženém tvaru (NFD), **When** kopie nebo přejmenování jiného souboru
-   do stejné složky, **Then** jména si zachovají přesně ty kódové jednotky, které měla.
+1. **Given** a symlink to a directory by itself, **When** the user moves it elsewhere, **Then**
+   the files behind the link stay and only the link is moved.
+2. **Given** a folder with an unreadable subfolder, **When** moving, **Then** the source is not
+   deleted and the user learns what was not transferred.
+3. **Given** a name in decomposed form (NFD), **When** another file is copied or renamed into the
+   same folder, **Then** the names keep exactly the code units they had.
 
 ---
 
 ### Edge Cases
 
-- Server bez podpory přejmenování přes existující soubor: nová verze se nahraje pod dočasné
-  jméno a stará se odstraní až po úspěšném nahrání; když výměna selže, uživatel ví, kde je
-  která verze (US1).
-- Zrušení operace uživatelem uprostřed přepisu na serveru: platí totéž co selhání (US1).
-- Archiv zmizel nebo se změnil mezi úpravou a vrácením: úprava se nevrací naslepo, kopie
-  zůstane a uživatel dostane hlášku (US2).
-- Více zachovaných úprav z minula: nabídnou se všechny najednou v jednom přehledu (US2).
-- Hard link ve stejné složce pod jménem lišícím se jen NFC/NFD: rozhoduje identita, ne text (US7).
-- Mazání, kde část položek je na svazku bez Koše a uživatel nemá právo mazat: dotaz se
-  neukáže pro položky, které by stejně selhaly; chyba se ohlásí (US4).
-- Svazek, kde identita existuje, ale po odpojení a připojení se mění: identita se
-  nepoužívá mezi připojeními (US5).
+- A server without support for renaming over an existing file: the new version is uploaded under
+  a temporary name and the old one is removed only after a successful upload; when the swap
+  fails, the user knows where each version is (US1).
+- The user cancels the operation midway through an overwrite on a server: the same as a failure
+  (US1).
+- The archive disappeared or changed between the edit and the restore: the edit is not restored
+  blindly, the copy stays and the user gets a message (US2).
+- Several edits kept from previous runs: all are offered at once in a single overview (US2).
+- A hard link in the same folder under a name differing only in NFC/NFD: identity decides, not
+  the text (US7).
+- Deleting where some items are on a volume without a Trash and the user has no permission to
+  delete: the prompt is not shown for items that would fail anyway; the error is reported (US4).
+- A volume where identity exists but changes after unmounting and remounting: identity is not
+  used across mounts (US5).
 
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
 
-**Přepis na serveru (D1)**
+**Overwrite on a server (D1)**
 
-- **FR-001**: Přepis existujícího souboru na serveru MUSÍ nejdřív úplně nahrát nová data pod
-  dočasné jméno ve stejné složce; cíl se nesmí odstranit dřív, než je nahrání dokončené.
-- **FR-002**: Pokud server umí výměnu souboru jedním krokem, MUSÍ se použít.
-- **FR-003**: Když výměna selže, na serveru MUSÍ zůstat aspoň jedna úplná verze (stará, nebo
-  nová pod dočasným jménem) a hláška MUSÍ uvést, kde je.
-- **FR-004**: Když selže nebo se zruší samotné nahrávání, stará verze MUSÍ zůstat beze změny
-  a nedokončená dočasná kopie se MUSÍ odstranit.
+- **FR-001**: Overwriting an existing file on a server MUST first upload the new data completely
+  under a temporary name in the same folder; the target MUST NOT be removed before the upload is
+  complete.
+- **FR-002**: If the server can swap the file in a single step, that step MUST be used.
+- **FR-003**: When the swap fails, at least one complete version (the old one, or the new one
+  under a temporary name) MUST remain on the server, and the message MUST say where it is.
+- **FR-004**: When the upload itself fails or is cancelled, the old version MUST remain
+  unchanged and the unfinished temporary copy MUST be removed.
 
-**Úpravy členů archivu (D2)**
+**Edits of archive members (D2)**
 
-- **FR-005**: Ukončení aplikace NESMÍ smazat upravenou kopii člena archivu, kterou uživatel
-  nevrátil do archivu nebo výslovně nezahodil.
-- **FR-006**: Zachované úpravy se MUSÍ při dalším spuštění nabídnout k vrácení nebo zahození,
-  s uvedením archivu a člena.
-- **FR-007**: Když vrácení do archivu selže, aplikace MUSÍ kopii zachovat a říct, kde je.
-- **FR-008**: Kopie bez úprav se MUSÍ při ukončení uklidit.
-- **FR-009**: Úprava se do archivu NESMÍ vrátit, pokud se archiv mezitím změnil nebo zmizel;
-  uživatel dostane hlášku a kopie zůstane.
+- **FR-005**: Quitting the app MUST NOT delete an edited copy of an archive member that the user
+  has not put back into the archive or explicitly discarded.
+- **FR-006**: Kept edits MUST be offered for restoring or discarding at the next launch, naming
+  the archive and the member.
+- **FR-007**: When putting the copy back into the archive fails, the app MUST keep the copy and
+  say where it is.
+- **FR-008**: Copies without edits MUST be cleaned up on quit.
+- **FR-009**: An edit MUST NOT be put back into the archive if the archive has changed or
+  disappeared in the meantime; the user gets a message and the copy stays.
 
-**Archiv a operace do sebe (D3, D7)**
+**Archive and operations into themselves (D3, D7)**
 
-- **FR-010**: Kontrola „složka do sebe nebo svého potomka“ uvnitř archivu MUSÍ porovnávat
-  identitu souboru archivu, ne text jeho cesty.
-- **FR-011**: Zabalení do archivu, který je mezi zdroji nebo leží uvnitř některé zdrojové
-  složky, se MUSÍ odmítnout před jakýmkoli zápisem.
-- **FR-012**: Každé odmítnutí MUSÍ ponechat archiv i zdroje beze změny a ukázat důvod.
+- **FR-010**: The check "folder into itself or its descendant" inside an archive MUST compare the
+  identity of the archive file, not the text of its path.
+- **FR-011**: Packing into an archive that is among the sources or lies inside one of the source
+  folders MUST be rejected before any write.
+- **FR-012**: Every rejection MUST leave the archive and the sources unchanged and show the
+  reason.
 
-**Mazání bez Koše (D4)**
+**Deleting without a Trash (D4)**
 
-- **FR-013**: Před mazáním MUSÍ aplikace zjistit, které položky nelze přesunout do Koše.
-- **FR-014**: Pro takové položky MUSÍ jeden dotaz výslovně oznámit trvalé smazání a nabídnout
-  „Smazat trvale“ a „Zrušit“; bez potvrzení se nic trvale nesmaže.
-- **FR-015**: Po „Zrušit“ se NESMÍ smazat ani přesunout žádná položka dávky.
-- **FR-016**: Když přesun do Koše selže uprostřed dávky, aplikace MUSÍ skončit a ukázat,
-  co je v Koši a co zůstalo; selhané položky NESMÍ smazat trvale bez nového potvrzení.
+- **FR-013**: Before deleting, the app MUST determine which items cannot be moved to the Trash.
+- **FR-014**: For such items, a single prompt MUST state the permanent deletion explicitly and
+  offer "Delete Permanently" and "Cancel"; nothing is permanently deleted without confirmation.
+- **FR-015**: After "Cancel", no item of the batch MAY be deleted or moved.
+- **FR-016**: When moving to the Trash fails midway through a batch, the app MUST stop and show
+  what is in the Trash and what remained; failed items MUST NOT be permanently deleted without a
+  new confirmation.
 
-**Identita souborů (D5)**
+**File identity (D5)**
 
-- **FR-017**: Identita souboru MUSÍ být určena identitou svazku a identifikátorem souboru;
-  číslo zařízení samo nestačí a identita se nesmí uchovávat přes odpojení svazku.
-- **FR-018**: Na svazku, kde identitu nelze spolehlivě určit, se operace, která by při shodě
-  zdroje a cíle smazala zdroj, MUSÍ odmítnout, pokud cíl existuje pod jménem, které svazek
-  považuje za stejné nebo může být týmž souborem.
-- **FR-019**: Operace bez mazání zdroje (kopie do nového jména) MUSÍ na takovém svazku fungovat.
+- **FR-017**: File identity MUST be determined by the volume identity and the file identifier;
+  the device number alone is not enough, and identity MUST NOT be retained across a volume being
+  unmounted.
+- **FR-018**: On a volume where identity cannot be reliably determined, an operation that would
+  delete the source if the source and target match MUST be rejected when the target exists under
+  a name the volume treats as the same or may be the same file.
+- **FR-019**: Operations that do not delete the source (a copy to a new name) MUST work on such a
+  volume.
 
-**Uložit jako (D6)**
+**Save As (D6)**
 
-- **FR-020**: „Uložit jako“ v prohlížečích MUSÍ zapsat přes dočasný soubor ve stejné složce
-  a vyměnit až po úplném zápisu; při chybě cíl zůstane beze změny a dočasný soubor zmizí.
-- **FR-021**: Je-li cílem symlink, MUSÍ zůstat symlinkem a nový obsah dostane soubor za ním.
-- **FR-022**: Práva, štítky a rozšířené atributy cíle MUSÍ zůstat zachovány.
+- **FR-020**: "Save As" in the viewers MUST write via a temporary file in the same folder and swap
+  only after a complete write; on error the target stays unchanged and the temporary file is
+  gone.
+- **FR-021**: If the target is a symlink, it MUST stay a symlink and the file behind it gets the
+  new content.
+- **FR-022**: The target's permissions, labels, and extended attributes MUST be preserved.
 
-**Přejmenování (D8)**
+**Rename (D8)**
 
-- **FR-023**: Přejmenování na jméno jiného pevného odkazu téhož souboru se MUSÍ ohlásit jako
-  existující cíl a nic nezměnit.
-- **FR-024**: Přejmenování téhož záznamu jen na jinou velikost písmen nebo jiný tvar
-  Unicode MUSÍ dál fungovat.
+- **FR-023**: Renaming onto the name of another hard link of the same file MUST be reported as an
+  existing target and change nothing.
+- **FR-024**: Renaming the same entry only to a different letter case or a different Unicode form
+  MUST keep working.
 
-**Testy (D1–D8 a stávající pojistky)**
+**Tests (D1–D8 and existing safeguards)**
 
-- **FR-025**: Každý požadavek FR-001 až FR-024 MUSÍ mít automatický test, který selže, když
-  se pojistka odstraní; testy běží jen v izolovaných dočasných složkách a na simulovaných
-  serverech/svazcích.
-- **FR-026**: Testy MUSÍ pokrýt i stávající pojistky: přesun samotného symlinku na adresář,
-  neúplný průchod stromem nechá zdroj, zachování kódových jednotek jmen (NFC/NFD).
-- **FR-027**: Logika úprav členů archivu (sledování kopií, rozhodnutí co vrátit, co zachovat)
-  MUSÍ být testovatelná bez uživatelského rozhraní.
+- **FR-025**: Every requirement FR-001 through FR-024 MUST have an automated test that fails when
+  the safeguard is removed; the tests run only in isolated temporary folders and on simulated
+  servers/volumes.
+- **FR-026**: The tests MUST also cover the existing safeguards: moving a symlink to a directory
+  by itself, an incomplete tree walk leaves the source, and preservation of name code units
+  (NFC/NFD).
+- **FR-027**: The logic for edits of archive members (tracking copies, deciding what to put back
+  and what to keep) MUST be testable without the user interface.
 
 ### Key Entities
 
-- **Upravená kopie člena archivu**: dočasný soubor vytažený z archivu kvůli F4; váže se
-  k archivu (identita), jménu člena a stavu při vytažení; stav: neupravená / upravená /
-  vrácená / zahozená / zachovaná na příště.
-- **Identita souboru**: dvojice identita svazku + identifikátor souboru; platí jen během
-  jednoho připojení svazku; může chybět („neznámá“).
-- **Dávka mazání**: seznam položek rozdělený na „do Koše“ a „trvale“ ještě před provedením.
+- **Edited copy of an archive member**: a temporary file extracted from an archive for F4; it is
+  tied to the archive (identity), the member name, and the state at extraction; states: unedited
+  / edited / restored / discarded / kept for next time.
+- **File identity**: a pair of volume identity + file identifier; valid only during a single
+  mount of the volume; may be missing ("unknown").
+- **Delete batch**: a list of items split into "to the Trash" and "permanently" before execution.
 
 ## Success Criteria *(mandatory)*
 
 ### Measurable Outcomes
 
-- **SC-001**: Ve 100 % simulovaných selhání přepisu na serveru (přerušení nahrávání, selhání
-  výměny, zrušení) zůstane na serveru aspoň jedna úplná verze souboru.
-- **SC-002**: Ve 100 % případů ukončení aplikace s neuloženou úpravou člena archivu je úprava
-  po dalším spuštění k dispozici.
-- **SC-003**: Žádná z operací „do sebe“ (přesun do potomka v archivu, zabalení do vlastního
-  zdroje) nezmění jediný bajt archivu ani zdrojů — ověřeno pro všechny zápisy cesty ve
-  scénářích US3.
-- **SC-004**: Žádná položka se trvale nesmaže bez dotazu, který trvalé smazání výslovně uvádí.
-- **SC-005**: Všechny mezery D1–D8 mají aspoň jeden automatický test; celá sada testů projde
-  a trvá do 10 sekund.
-- **SC-006**: Každé odmítnutí operace ukáže uživateli srozumitelný důvod (žádné tiché selhání
-  ani tichý „úspěch“).
+- **SC-001**: In 100% of simulated overwrite failures on a server (interrupted upload, failed
+  swap, cancellation), at least one complete version of the file remains on the server.
+- **SC-002**: In 100% of cases of quitting the app with an unsaved edit of an archive member, the
+  edit is available after the next launch.
+- **SC-003**: None of the "into itself" operations (moving into a descendant within an archive,
+  packing into its own source) changes a single byte of the archive or the sources — verified for
+  all path spellings in the US3 scenarios.
+- **SC-004**: No item is permanently deleted without a prompt that explicitly states permanent
+  deletion.
+- **SC-005**: All gaps D1–D8 have at least one automated test; the whole test suite passes and
+  takes at most 10 seconds.
+- **SC-006**: Every rejection of an operation shows the user an understandable reason (no silent
+  failure and no silent "success").
 
 ## Assumptions
 
-- Testy serveru používají simulovaný souborový systém serveru (jako stávající testy přenosů);
-  skutečné servery ani uživatelská data se nepoužijí.
-- „Svazek bez spolehlivé identity“ se rozpozná podle vlastností svazku hlášených systémem;
-  testy ho simulují.
-- Zachované úpravy členů archivu se ukládají v soukromé složce aplikace (ne v dočasné
-  složce systému, kterou systém může vyčistit).
-- Výchozí volba dotazu na trvalé smazání je „Zrušit“ (bezpečná volba, jako Finder).
-- Plán (ne tato specifikace) rozhodne o přesunu logiky úprav členů archivu do jádra aplikace,
-  aby šla testovat bez UI (FR-027).
-- Mimo rozsah: hesla a soukromí (P1–P4 auditu, samostatná specifikace), nové funkce UI.
+- The server tests use a simulated server file system (like the existing transfer tests); no real
+  servers or user data are used.
+- A "volume without reliable identity" is recognized by volume properties reported by the system;
+  the tests simulate it.
+- Kept edits of archive members are stored in the app's private folder (not in the system
+  temporary folder, which the system may clean up).
+- The default choice of the permanent-deletion prompt is "Cancel" (the safe choice, like Finder).
+- The plan (not this specification) will decide on moving the archive-member edit logic into the
+  app core so it can be tested without the UI (FR-027).
+- Out of scope: passwords and privacy (P1–P4 of the audit, a separate specification), new UI
+  features.

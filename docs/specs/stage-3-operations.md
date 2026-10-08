@@ -1,7 +1,7 @@
-# Etapa 3 — souborové operace (zadání jádra)
+# Stage 3 — file operations (core specification)
 
-Pravidla: `../tandemcommander/docs/macos-port/05-pravidla.md` (Identita, Přepsání, Přesun a odkaz).
-Vše v `Sources/CommanderCore/Operations/`, testy Swift Testing v `Tests/CommanderCoreTests/`.
+Rules: `../tandemcommander/docs/macos-port/05-pravidla.md` (Identity, Overwrite, Move and link).
+Everything in `Sources/CommanderCore/Operations/`, Swift Testing tests in `Tests/CommanderCoreTests/`.
 
 ## API
 
@@ -49,25 +49,26 @@ public struct TransferReport: Sendable { copied: Int; skipped: [URL]; keptSource
 public enum NameMask { static func apply(_ mask: String, to name: String) -> String }  // "*.*" identity, "*.bak", "new_*.*"
 ```
 
-## Chování
+## Behavior
 
-- Kopie souboru: `copyfile(3)` s `COPYFILE_ALL | COPYFILE_CLONE` (APFS clone), progress callback,
-  storno = `COPYFILE_QUIT` mezi bloky. Zápis vždy do dočasného jména `.~icmd-<uuid>` v cílové složce,
-  pak `rename(2)` na cíl (přes existující cíl atomicky). Chyba/storno → dočasný soubor smazat, cíl beze změny.
-- Složka: rekurzivně, symlinky kopírovat jako symlinky (nesledovat).
-- Přesun na stejném svazku: `rename(2)` (konflikt řešit předem). Mezi svazky: kopie, pak smazání zdroje
-  jen když vše zkopírováno, nic přeskočeno a ve stromu nebyl symlink na adresář; jinak zdroj zůstane a
-  report ho uvede v `keptSources`.
-- Konflikt se ptá jen u existujícího cíle; `overwriteAll`/`skipAll` platí pro zbytek operace.
-  Cíl, který je stejný soubor jako zdroj (identita), je `sameFile`, ne konflikt.
-- Kontroly před zápisem: délka cesty cíle (PathRules), sameFile, intoItself.
+- File copy: `copyfile(3)` with `COPYFILE_ALL | COPYFILE_CLONE` (APFS clone), progress callback,
+  cancel = `COPYFILE_QUIT` between blocks. Always write to a temporary name `.~icmd-<uuid>` in the target
+  folder, then `rename(2)` onto the target (atomic over an existing target). Error/cancel → delete the
+  temporary file, target unchanged.
+- Folder: recursively, copy symlinks as symlinks (do not follow them).
+- Move on the same volume: `rename(2)` (resolve conflicts beforehand). Between volumes: copy, then delete
+  the source only if everything was copied, nothing was skipped, and the tree contained no symlink to a
+  directory; otherwise the source stays and the report lists it in `keptSources`.
+- A conflict is asked about only for an existing target; `overwriteAll`/`skipAll` apply to the rest of the
+  operation. A target that is the same file as the source (identity) is `sameFile`, not a conflict.
+- Checks before writing: target path length (PathRules), sameFile, intoItself.
 
-## Testy (musí padnout při porušení)
+## Tests (must fail on a violation)
 
-1. Kopie souboru na jeho hard link → `sameFile`, oba odkazy a obsah beze změny.
-2. Kopie přes `/tmp/x` vs `/private/tmp/x` → `sameFile`.
-3. Kopie/přesun složky do vlastní podsložky → `intoItself`, strom beze změny.
-4. Přepsání se stornem uprostřed (velký soubor, cancel v progress) → cíl má původní obsah, žádný `.~icmd-*`.
-5. Přesun složky se symlinkem na adresář mezi „svazky" (simulovat vynucením copy+delete cesty) → soubory za odkazem existují, zdroj zůstal.
-6. Konflikt skip/overwrite/rename; NameMask `*.bak`; case-only rename `a.txt` → `A.txt`.
-7. Dvě jména NFC/NFD na APFS → konflikt (stejné jméno), ne dva soubory.
+1. Copying a file onto its hard link → `sameFile`, both links and content unchanged.
+2. Copy via `/tmp/x` vs `/private/tmp/x` → `sameFile`.
+3. Copy/move of a folder into its own subfolder → `intoItself`, tree unchanged.
+4. Overwrite with a cancel midway (large file, cancel in progress) → target has the original content, no `.~icmd-*`.
+5. Move of a folder containing a directory symlink between "volumes" (simulate by forcing the copy+delete path) → the files behind the link exist, the source stayed.
+6. Conflict skip/overwrite/rename; NameMask `*.bak`; case-only rename `a.txt` → `A.txt`.
+7. Two names NFC/NFD on APFS → conflict (same name), not two files.

@@ -1,20 +1,21 @@
-<!-- Děkujeme! Pull requesty v češtině i angličtině jsou vítány. / Thanks! PRs in Czech or English are welcome. -->
+<!-- Thanks! Pull requests are welcome; discussion may be in Czech or English, but everything committed (code, comments, docs, commit messages) is in English. -->
 
-## Co a proč
+## What and why
 
-<!-- Stručně: co změna dělá a jaký problém řeší. Odkaz na issue: "Closes #123". -->
+<!-- Briefly: what the change does and what problem it solves. Link the issue: "Closes #123". -->
 
-## Jak jsem to ověřil(a)
+## How I verified it
 
-- [ ] `swift build` bez varování
-- [ ] `swift test` zelené
-- [ ] Ručně v aplikaci (popiš, co a kde — **jen v testovací složce**, nikdy na skutečných datech)
+- [ ] `swift build` without warnings
+- [ ] `swift test` green
+- [ ] Manually in the app (describe what and where — **only in a test directory**, never on real data)
 
-## Kontrolní seznam
+## Checklist
 
-- [ ] Nové soubory mají SPDX hlavičku (`GPL-3.0-or-later`)
-- [ ] Nečetl(a) jsem ani nekopíroval(a) C++ zdrojáky Tandem Commanderu / Open Salamanderu
-      (vzorem je jen chování a dokumentace — viz [CONTRIBUTING.md](../CONTRIBUTING.md))
-- [ ] Logika je v `CommanderCore` a má test; UI jen volá
-- [ ] Nové texty v UI jsou v `Resources/Localizable.xcstrings` (i s českým překladem, pokud to umíš)
-- [ ] Commity jsou podepsané (`git commit -s`, Developer Certificate of Origin)
+- [ ] New files have the SPDX header (`GPL-3.0-or-later`)
+- [ ] I did not read or copy the C++ sources of Tandem Commander / Open Salamander
+      (the reference is behavior and documentation only — see [CONTRIBUTING.md](../CONTRIBUTING.md))
+- [ ] Logic is in `CommanderCore` and has a test; the UI only calls into it
+- [ ] New UI strings are in `Resources/Localizable.xcstrings` (with a Czech translation, if you can)
+- [ ] Commits are signed off (`git commit -s`, Developer Certificate of Origin)
+- [ ] Commit messages are in English, formatted `[Area] short description`

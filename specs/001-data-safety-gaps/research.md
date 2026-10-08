@@ -1,125 +1,125 @@
-# Research: Bezpečnost dat (001)
+# Research: Data Safety (001)
 
-Fakta z kódu (file:line) zjištěna 2026-10-08 na větvi `001-data-safety-gaps`.
+Facts from the code (file:line) established on 2026-10-08 on the `001-data-safety-gaps` branch.
 
-## R1 — Přepis na serveru (D1, FR-001–004)
+## R1 — Overwriting on a Server (D1, FR-001–004)
 
-- **Fakta**: `RemoteTransfer.swift:132-134` v jednom `perform` volá `removeFile(final)` a pak
-  `rename(temp → final)`; při chybě `:137` smaže i temp. Totéž v `renameOnServer` `:377-379`.
-  `RemoteConnections.perform` po `.disconnected` opakuje celý closure (`RemoteConnections.swift:106-117`).
-  SFTP klient je vlastní (`SFTPClient.swift`), `rename` `:580-583` odmítá existující cíl,
-  rozšíření serveru v `extensions` (`:57`), vzor extended requestu `:149`. FTP `FTPClient.swift:193-199`
-  odmítá existující cíl před RNFR/RNTO.
-- **Decision**: Do `RemoteFileSystem` přidat `replace(_ from:, over to:) async throws -> Bool`
-  (výchozí `false` = neumím, nic se nezměnilo). SFTP: `posix-rename@openssh.com`, když ho server
-  hlásí. FTP: RNFR/RNTO bez předchozí kontroly, 5xx → `false` (neúspěšné RNTO nic nemění).
-  `RemoteTransfer.placeReplacing`: (1) `replace`; (2) jinak `final → záloha` (skryté jméno ve stejné
-  složce); (3) `temp → final`, při chybě vrátit zálohu; (4) smazat zálohu (selhání = upozornění).
-  Každý krok samostatný `perform` (opakování po odpojení nesmí zopakovat smazání), v odpojeném
-  `Task` (zrušení nepřeruší výměnu uprostřed). Nová chyba `RemoteError.replaceIncomplete(target:,
-  newAt:, oldAt:)` pro případ, kdy nejde vrátit zálohu.
-- **Rationale**: Atomická výměna, kde server umí; jinak sekvence, v níž v každém okamžiku existuje
-  úplná verze pod známým jménem (FR-003).
-- **Alternatives**: Nahrát rovnou přes cíl (STOR přes existující) — při přerušení zůstane
-  poloviční soubor; zamítnuto. Smazat cíl až po nahrání (dnešní stav) — okno bez verze; zamítnuto.
+- **Facts**: `RemoteTransfer.swift:132-134` calls `removeFile(final)` and then
+  `rename(temp → final)` in a single `perform`; on error `:137` it also deletes the temp file. The same in `renameOnServer` `:377-379`.
+  After `.disconnected`, `RemoteConnections.perform` repeats the entire closure (`RemoteConnections.swift:106-117`).
+  The SFTP client is custom (`SFTPClient.swift`); `rename` `:580-583` rejects an existing target,
+  server extensions are in `extensions` (`:57`), a pattern for an extended request is at `:149`. FTP `FTPClient.swift:193-199`
+  rejects an existing target before RNFR/RNTO.
+- **Decision**: Add `replace(_ from:, over to:) async throws -> Bool` to `RemoteFileSystem`
+  (default `false` = cannot do it, nothing changed). SFTP: `posix-rename@openssh.com` when the server
+  advertises it. FTP: RNFR/RNTO without a prior check, 5xx → `false` (a failed RNTO changes nothing).
+  `RemoteTransfer.placeReplacing`: (1) `replace`; (2) otherwise `final → backup` (a hidden name in the same
+  folder); (3) `temp → final`, on error restore the backup; (4) delete the backup (failure = a warning).
+  Each step is a separate `perform` (a retry after a disconnect must not repeat a delete), in a detached
+  `Task` (canceling does not interrupt the replace midway). A new error `RemoteError.replaceIncomplete(target:,
+  newAt:, oldAt:)` for the case when the backup cannot be restored.
+- **Rationale**: An atomic replace where the server supports it; otherwise a sequence in which a complete
+  version exists under a known name at every moment (FR-003).
+- **Alternatives considered**: Upload straight over the target (STOR over an existing file) — an interruption leaves a
+  half-written file; rejected. Delete the target only after the upload (the current state) — a window with no version; rejected.
 
-## R2 — Úpravy členů archivu (D2, FR-005–009, FR-027)
+## R2 — Archive Member Edits (D2, FR-005–009, FR-027)
 
-- **Fakta**: `AppDelegate.swift:33-44` po `offerChanges` vždy ukončí a `applicationWillTerminate`
-  volá `ArchiveScratch.removeAll()` (temp `Axolotl-<UUID>`). `ArchiveEdits`
-  (`ArchiveOperations.swift:44-150`) jen v paměti; „Not Now“ (`:118-121`) přepíše `stamp`, takže
-  kopie vypadá nezměněná a smaže se. Zápis zpět (`ArchiveWriter.update`, `ArchiveWriter.swift:41`)
-  neověřuje, že se archiv mezitím nezměnil.
-- **Decision**: Nový `CommanderCore/Archive/ArchiveEditStore.swift` (testovatelný, `init(root:)`).
-  Kopie pro F4 se vytahují do `~/Library/Application Support/Axolotl Commander/Edits/<id>/`,
-  seznam v `manifest.json` (zápis přes `SafeFileWriter`). Store rozhoduje, co je změněné, co
-  zachovat, co uklidit; „Teď ne“ = `decline` (zůstane, nabídne se při startu). Zápis zpět ověří
-  `PersistentFileStamp` archivu (UUID svazku + file id + velikost + mtime) a jinak odmítne
-  (`ArchiveError.changedSinceRead`). UI zůstanou jen alerty a volání writeru/uploadu.
-- **Rationale**: Temp složku může systém vyčistit; Application Support přežije restart. Logika
-  v jádru splní princip IV a FR-027.
-- **Alternatives**: Jen varovat při ukončení (bez zachování) — při chybě zápisu by se práce stejně
-  ztratila; zamítnuto. Zablokovat ukončení — uživatele zdržuje, při pádu nepomůže; zamítnuto.
+- **Facts**: `AppDelegate.swift:33-44`, after `offerChanges`, always quits and `applicationWillTerminate`
+  calls `ArchiveScratch.removeAll()` (temp `Axolotl-<UUID>`). `ArchiveEdits`
+  (`ArchiveOperations.swift:44-150`) is in memory only; "Not Now" (`:118-121`) overwrites `stamp`, so the
+  copy looks unchanged and gets deleted. Writing back (`ArchiveWriter.update`, `ArchiveWriter.swift:41`)
+  does not verify that the archive has not changed in the meantime.
+- **Decision**: New `CommanderCore/Archive/ArchiveEditStore.swift` (testable, `init(root:)`).
+  Copies for F4 are extracted into `~/Library/Application Support/Axolotl Commander/Edits/<id>/`,
+  the list is in `manifest.json` (written via `SafeFileWriter`). The store decides what is changed, what to
+  keep, what to clean up; "Not Now" = `decline` (it stays and is offered at startup). Writing back verifies the
+  archive's `PersistentFileStamp` (volume UUID + file id + size + mtime) and otherwise refuses
+  (`ArchiveError.changedSinceRead`). The UI keeps only alerts and calls to the writer/upload.
+- **Rationale**: The system may clean up a temp folder; Application Support survives a restart. Logic
+  in the core satisfies principle IV and FR-027.
+- **Alternatives considered**: Only warn on quit (without keeping) — work would still be lost on a write
+  error; rejected. Block quitting — it holds the user up and does not help on a crash; rejected.
 
-## R3 — Archiv do sebe a balení do vlastního zdroje (D3, D7, FR-010–012)
+## R3 — Archive Into Itself and Packing Into Its Own Source (D3, D7, FR-010–012)
 
-- **Fakta**: `ArchiveOperations.swift:285` porovnává `standardizedFileURL` (text). Následně `:320`
-  přidá a `:327` `update(removing:)` odstraní vše pod zdrojem. `pack` (`:415-444`) a F5/F6 do archivu
-  (`addToArchive`, `source == nil`) nekontrolují, zda archiv leží mezi zdroji / uvnitř zdroje.
+- **Facts**: `ArchiveOperations.swift:285` compares `standardizedFileURL` (text). Then `:320`
+  adds and `:327` `update(removing:)` removes everything under the source. `pack` (`:415-444`) and F5/F6 into an archive
+  (`addToArchive`, `source == nil`) do not check whether the archive lies among the sources / inside a source.
   `FileIdentity.of(_:followingLinks:)` (`Operations/FileIdentity.swift:9-26`),
   `TransferPlanner.ancestorIdentities(of:)` (`TransferPlan.swift:211`).
-- **Decision**: Core `ArchiveTransferCheck` se dvěma funkcemi: `validate(source:names:target:)`
-  (totožnost archivu podle `FileIdentity`, neznámá → `.identityUnknown`) a
-  `validatePack(archive:sources:)` (archiv mezi zdroji nebo zdrojová složka mezi předky archivu →
-  `.intoItself`). Volá se před jakýmkoli zápisem v `addToArchive` i `pack`.
-- **Rationale**: Stejné pravidlo identity jako u lokálních operací (05-pravidla, Identita).
-- **Alternatives**: `realpath` porovnání — neřeší hard linky a velikost písmen na všech svazcích;
-  zamítnuto.
-- **Vedlejší nález (mimo rozsah)**: `ArchiveCatalog.invalidate` klíčovaný URL — panel se symlinkovou
-  cestou může mít zastaralý výpis. Zapsat do STATE.
+- **Decision**: Core `ArchiveTransferCheck` with two functions: `validate(source:names:target:)`
+  (archive sameness by `FileIdentity`, unknown → `.identityUnknown`) and
+  `validatePack(archive:sources:)` (archive among the sources, or a source folder among the archive's ancestors →
+  `.intoItself`). Called before any write in `addToArchive` and `pack`.
+- **Rationale**: The same identity rule as for local operations (05-pravidla, Identity).
+- **Alternatives considered**: A `realpath` comparison — does not handle hard links or letter case on all volumes;
+  rejected.
+- **Side finding (out of scope)**: `ArchiveCatalog.invalidate` keyed by URL — a panel with a symlinked
+  path may have a stale listing. Record in STATE.
 
-## R4 — Mazání bez Koše (D4, FR-013–016)
+## R4 — Deleting Without a Trash (D4, FR-013–016)
 
-- **Fakta**: `FileOperations.trash` (`FileOperations.swift:53-67`) při první chybě vyhodí `.io`
-  a předchozí položky jsou už v Koši bez hlášení. UI `OperationsController.delete`
-  (`OperationsController.swift:163-196`), další volající `FindWindowController.swift:624`.
-  Klíč „svazek má Koš“ v SDK není; `FileManager.url(for: .trashDirectory, in: .userDomainMask,
-  appropriateFor: url, create: false)` vrací `~/.Trash` na domácím svazku a chybu 3328 na svazcích
-  bez Koše (ověřeno na DMG, Time Machine, devfs).
-- **Decision**: `TrashSupport.isAvailable(_:)` přes tento dotaz (cache podle svazku po dobu jedné
-  operace). `FileOperations.planDelete(_:) -> DeletePlan { toTrash, permanent }`; `trash` vrací
-  `TrashReport { trashed, failed, notAttempted }` místo vyhození uprostřed. Seamy v
-  `FileOperations.Options`: `trashAvailable`, `trashItem` — testy nikdy nesahají na skutečný Koš.
-  UI: když `permanent` není prázdné, jeden kritický dotaz se seznamem, výchozí „Zrušit“; po
-  potvrzení nejdřív Koš, při jeho selhání se trvalé mazání neprovede a ukáže se report.
-- **Rationale**: Chování jako Finder („Položka bude okamžitě smazána“), rozhodnutí před první změnou.
-- **Alternatives**: Zkusit Koš a při chybě se zeptat — dávka už je napůl; zamítnuto.
-- **Ruční ověření (jen čtení)**: USB FAT a SMB svazek — zda dotaz vrací chybu (quickstart).
+- **Facts**: `FileOperations.trash` (`FileOperations.swift:53-67`) throws `.io` on the first error
+  and the preceding items are already in the Trash with no report. UI `OperationsController.delete`
+  (`OperationsController.swift:163-196`), another caller `FindWindowController.swift:624`.
+  There is no "volume has a Trash" key in the SDK; `FileManager.url(for: .trashDirectory, in: .userDomainMask,
+  appropriateFor: url, create: false)` returns `~/.Trash` on the home volume and error 3328 on volumes
+  without a Trash (verified on a DMG, Time Machine, devfs).
+- **Decision**: `TrashSupport.isAvailable(_:)` via this query (cached per volume for the duration of a single
+  operation). `FileOperations.planDelete(_:) -> DeletePlan { toTrash, permanent }`; `trash` returns
+  `TrashReport { trashed, failed, notAttempted }` instead of throwing midway. Seams in
+  `FileOperations.Options`: `trashAvailable`, `trashItem` — tests never touch the real Trash.
+  UI: when `permanent` is non-empty, a single critical prompt with a list, default "Cancel"; after
+  confirmation the Trash goes first, if it fails the permanent deletion is not performed and a report is shown.
+- **Rationale**: Behaves like Finder ("The item will be deleted immediately"), the decision is made before the first change.
+- **Alternatives considered**: Try the Trash and ask on error — the batch is already half done; rejected.
+- **Manual verification (read-only)**: a USB FAT volume and an SMB volume — whether the query returns an error (quickstart).
 
-## R5 — Identita na svazku bez spolehlivých id (D5, FR-017–019)
+## R5 — Identity on a Volume Without Reliable IDs (D5, FR-017–019)
 
-- **Fakta**: `FileStat.init` (`FileIdentity.swift:37-44`) = `st_dev` + `st_ino`, `ino == 0` → nil.
+- **Facts**: `FileStat.init` (`FileIdentity.swift:37-44`) = `st_dev` + `st_ino`, `ino == 0` → nil.
   `TransferPlanner.plan` (`TransferPlan.swift:166-177`), `validateNested` (`:197-201`),
-  `TransferRun.resolve` (`:237-239`), `deleteSource` znovu ověří identitu (`:205-216`).
-- **Decision**: `VolumeTraits { identityReliable, uuid }` podle `statfs.f_fstypename`; spolehlivé jen
-  `apfs` a `hfs` (allowlist), ostatní (msdos, exfat, smbfs, afpfs, nfs, webdav, ntfs, fuse, neznámé)
-  nespolehlivé. `FileIdentity` = (`st_dev`, `st_ino`) jen v rámci jednoho připojení (dokumentovat:
-  neukládat); co se ukládá (R2), používá `PersistentFileStamp` s UUID svazku. Na nespolehlivém svazku:
-  existující cíl + operace mazající zdroj (přesun, přepis při přesunu) → `.identityUnknown`; kopie
-  a přesun na neexistující jméno projdou. Seam `Options.volumeTraits`.
-- **Rationale**: Pravidlo vzoru výslovně: „Operace, která by při shodě mazala zdroj, se odmítne.“
-- **Tradeoff**: Přesun s přepsáním existujícího souboru na SMB/FAT se odmítne; uživatel může
-  kopírovat a pak smazat. Přijato (bezpečnost má přednost, princip I).
-- **Alternatives**: Důvěřovat `st_ino` na všech svazcích (dnešní stav) — FAT/SMB id mohou být
-  syntetická; zamítnuto.
+  `TransferRun.resolve` (`:237-239`); `deleteSource` re-verifies identity (`:205-216`).
+- **Decision**: `VolumeTraits { identityReliable, uuid }` based on `statfs.f_fstypename`; reliable only
+  `apfs` and `hfs` (allowlist), all others (msdos, exfat, smbfs, afpfs, nfs, webdav, ntfs, fuse, unknown)
+  unreliable. `FileIdentity` = (`st_dev`, `st_ino`) only within a single mount (document it:
+  do not persist); what is persisted (R2) uses `PersistentFileStamp` with the volume UUID. On an unreliable volume:
+  existing target + an operation that deletes the source (move, overwrite during a move) → `.identityUnknown`; copy
+  and move to a nonexistent name pass.
+- **Rationale**: The reference's rule is explicit: "An operation that would delete the source if the identities match is rejected."
+- **Tradeoff**: A move that overwrites an existing file on SMB/FAT is rejected; the user can
+  copy and then delete. Accepted (safety takes precedence, principle I).
+- **Alternatives considered**: Trust `st_ino` on all volumes (the current state) — FAT/SMB ids may be
+  synthetic; rejected.
 
-## R6 — „Uložit jako“ v prohlížeči (D6, FR-020–022)
+## R6 — "Save As" in the Viewer (D6, FR-020–022)
 
-- **Fakta**: `ViewerWindowController.saveCopy()` (`:843-867`) zapisuje přes `Data.write(.atomic)`
-  (`:863`) — nahradí symlink, ztratí atributy. `saveImage()` už jde přes `ImageExport` →
-  `SafeFileWriter.write(to:_:)` (`SafeFileWriter.swift:12`, rozřeší symlink, temp ve stejné složce,
-  `replaceItemAt` zachová práva/štítky).
-- **Decision**: `:863` → `SafeFileWriter.write(to: url) { try payload.write(to: $0) }`. Testy doplní
-  štítky, xattr a úklid tempu při chybě.
-- **Alternatives**: Vlastní kopírování atributů — duplicita SafeFileWriteru; zamítnuto.
+- **Facts**: `ViewerWindowController.saveCopy()` (`:843-867`) writes via `Data.write(.atomic)`
+  (`:863`) — it replaces a symlink and loses attributes. `saveImage()` already goes through `ImageExport` →
+  `SafeFileWriter.write(to:_:)` (`SafeFileWriter.swift:12`, resolves a symlink, temp in the same folder,
+  `replaceItemAt` preserves permissions/labels).
+- **Decision**: `:863` → `SafeFileWriter.write(to: url) { try payload.write(to: $0) }`. Tests add
+  labels, xattr, and temp cleanup on error.
+- **Alternatives considered**: Copying attributes ourselves — duplicates SafeFileWriter; rejected.
 
-## R7 — Přejmenování na jiný hard link (D8, FR-023–024)
+## R7 — Renaming Onto Another Hard Link (D8, FR-023–024)
 
-- **Fakta**: `FileOperations.rename` (`:153-180`): identita zdroje == identita existujícího `b.txt`
-  → `Darwin.rename` (`:169`), které u dvou odkazů téhož inode vrátí 0 a nic neudělá.
-- **Decision**: Při shodě identity a `st_nlink > 1` projít výpis rodiče: existuje-li jiný záznam
-  (jiné `unicodeScalars` než zdroj) se jménem, které svazek považuje za stejné jako nové → 
-  `.alreadyExists`. Do `FileStat` přidat `linkCount`. Změna jen velikosti písmen / NFC↔NFD téhož
-  záznamu projde.
+- **Facts**: `FileOperations.rename` (`:153-180`): source identity == identity of the existing `b.txt`
+  → `Darwin.rename` (`:169`), which for two links to the same inode returns 0 and does nothing.
+- **Decision**: When the identities match and `st_nlink > 1`, go through the parent's listing: if there is another entry
+  (different `unicodeScalars` than the source) with a name the volume considers the same as the new one →
+  `.alreadyExists`. Add `linkCount` to `FileStat`. A change of only letter case / NFC↔NFD of the same
+  entry passes.
 
-## R8 — Testy stávajících pojistek (FR-026)
+## R8 — Tests of Existing Safeguards (FR-026)
 
-- **Samotný symlink na adresář**: na stejném svazku rename (odkaz se přesune). Přes `forceCopyMove`
-  dnes zdroj zůstane v `keptSources` (`TransferPlan.swift:77,84`, `TransferRun.swift:197`).
-  **Decision**: u položky druhu symlink (samotný odkaz, ne obsah) po zkopírování povolit `unlink`
-  odkazu — nesmaže nic za ním (05-pravidla, Přesun a odkaz). Test oba případy.
-- **Neúplný průchod**: podsložka `chmod 000` v sandboxu (vrátit v `defer`), přesun s `forceCopyMove`
-  → zdroj v `keptSources`.
-- **Kódové jednotky**: porovnávat `Array(name.unicodeScalars)`, ne `==` (kanonická ekvivalence).
-- **Společné pomůcky**: `Tests/CommanderCoreTests/TestSupport.swift` (`withSandbox`, zápis/čtení,
-  fake svazky/Koš) — dnes má každý testový soubor vlastní.
+- **A lone symlink to a directory**: on the same volume a rename (the link is moved). Via `forceCopyMove`
+  the source currently stays in `keptSources` (`TransferPlan.swift:77,84`, `TransferRun.swift:197`).
+  **Decision**: for an item of the symlink kind (the link itself, not its contents), after copying allow `unlink`
+  of the link — it deletes nothing behind it (05-pravidla, Move and Link). Test both cases.
+- **Incomplete traversal**: a `chmod 000` subfolder in the sandbox (restored in `defer`), a move with `forceCopyMove`
+  → the source in `keptSources`.
+- **Code units**: compare `Array(name.unicodeScalars)`, not `==` (canonical equivalence).
+- **Shared helpers**: `Tests/CommanderCoreTests/TestSupport.swift` (`withSandbox`, write/read,
+  fake volumes/Trash) — currently every test file has its own.

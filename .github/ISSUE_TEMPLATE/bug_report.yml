@@ -1,56 +1,55 @@
-name: Chyba / Bug report
-description: Něco nefunguje, jak má. / Something does not work as it should.
+name: Bug report
+description: Something does not work as it should.
 labels: [bug]
 body:
   - type: markdown
     attributes:
       value: |
-        Pokud chyba může vést ke ztrátě dat, napiš to prosím hned do názvu. /
-        If the bug can lose data, please say so in the title.
+        If the bug can lose data, please say so in the title. Please write the report in English;
+        discussion in Czech is fine too.
   - type: textarea
     id: what
     attributes:
-      label: Co se stalo / What happened
-      description: Co jsi čekal(a) a co se stalo místo toho. / Expected vs. actual.
+      label: What happened
+      description: What you expected and what happened instead.
     validations:
       required: true
   - type: textarea
     id: steps
     attributes:
-      label: Kroky k zopakování / Steps to reproduce
+      label: Steps to reproduce
       placeholder: |
-        1. Otevřít složku …
-        2. Stisknout F5 …
+        1. Open a folder ...
+        2. Press F5 ...
     validations:
       required: true
   - type: input
     id: version
     attributes:
-      label: Verze aplikace (O aplikaci) / App version
+      label: App version (About)
     validations:
       required: true
   - type: input
     id: macos
     attributes:
-      label: Verze macOS / macOS version
+      label: macOS version
       placeholder: "macOS 26.1"
     validations:
       required: true
   - type: dropdown
     id: area
     attributes:
-      label: Oblast / Area
+      label: Area
       options:
-        - Panely a výběr / Panels
-        - Operace se soubory / File operations
-        - Archivy / Archives
-        - Síť (SFTP, FTP) / Network
-        - Prohlížeč a editor / Viewer
-        - Hledání / Search
-        - Jiné / Other
+        - Panels and selection
+        - File operations
+        - Archives
+        - Network (SFTP, FTP)
+        - Viewer and editor
+        - Search
+        - Other
   - type: textarea
     id: extra
     attributes:
-      label: Další informace / Additional context
-      description: Typ svazku (APFS, exFAT, SMB…), snímky, výpis z Console.app. Nevkládej hesla ani soukromé cesty. /
-        Volume type, screenshots, logs. Do not paste passwords or private paths.
+      label: Additional context
+      description: Volume type (APFS, exFAT, SMB, ...), screenshots, Console.app output. Do not paste passwords or private paths.

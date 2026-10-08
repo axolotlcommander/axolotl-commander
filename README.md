@@ -5,8 +5,7 @@
 <h1 align="center">Axolotl Commander</h1>
 
 <p align="center">
-  Dvoupanelový správce souborů pro macOS ovládaný z klávesnice.<br>
-  <em>A keyboard-driven two-panel file manager for macOS.</em>
+  A keyboard-driven two-panel file manager for macOS.
 </p>
 
 <p align="center">
@@ -15,169 +14,150 @@
   <img src="https://img.shields.io/badge/macOS-15%2B-lightgrey.svg" alt="macOS 15+">
 </p>
 
-## Proč
+## Why
 
-Na Windows jsem léta používal Salamander: dva panely, všechno z klávesnice, rychlý náhled
-souboru na F3, porovnání souborů i celých složek, archivy a FTP jako obyčejné složky. Na Macu
-mi nic takového nesedlo. Finder je na práci se soubory pomalý a hodně věcí v něm vůbec nejde.
+For years I used Salamander on Windows: two panels, everything from the keyboard, a quick
+look at a file with F3, comparing files and whole folders, archives and FTP as ordinary folders.
+Nothing on the Mac felt like that. The Finder is slow for serious file work and a lot of
+things simply cannot be done in it.
 
-Axolotl Commander je pokus mít to samé nativně na Macu, jako opravdovou aplikaci pro macOS
-(Swift, AppKit, Koš, Klíčenka, Quick Look, štítky Finderu), ne jako přenesený program pro
-Windows.
+Axolotl Commander is an attempt to have the same on the Mac, as a real macOS app (Swift,
+AppKit, Trash, Keychain, Quick Look, Finder tags) rather than a ported Windows program.
+If you are missing a Salamander, Total Commander or Norton Commander-style (orthodox,
+dual-pane) file manager on the Mac, this is for you.
 
-## Inspirace
+## Inspiration
 
-Chování, rozložení kláves, příkazy a dialogy vycházejí
-z [Tandem Commanderu](https://github.com/tandemcommander/tandemcommander), který navazuje
-na [Open Salamander](https://github.com/OpenSalamander/salamander) (dříve Altap Salamander).
-Vzorem bylo chování těchto programů a jejich nápověda. Kód je napsaný znovu, nic z jejich
-zdrojových kódů se nepřebíralo (viz [NOTICE](NOTICE)).
+The behavior, key layout, commands and dialogs follow
+[Tandem Commander](https://github.com/tandemcommander/tandemcommander), which builds on
+[Open Salamander](https://github.com/OpenSalamander/salamander) (formerly Altap Salamander).
+The reference was the behavior of these programs and their help. The code is written from
+scratch; nothing was taken from their source code (see [NOTICE](NOTICE)).
 
-Axolotl Commander není spojen s autory Tandem Commanderu ani Open Salamanderu a není jimi
-podporován.
+Axolotl Commander is not affiliated with or endorsed by the authors of Tandem Commander or
+Open Salamander.
 
-## Vznik s pomocí AI — čti před použitím
+## Built with AI — please read before use
 
-Projekt je z velké části **„vibekódovaný“**: kód psal AI asistent
-[Claude Code](https://claude.com/claude-code) od Anthropicu. Správce projektu určuje, co a jak
-má program dělat, zkouší ho a rozhoduje o změnách. Ne každý řádek ale prošel podrobnou lidskou
-kontrolou.
+Most of this project is **"vibe-coded"**: the code was written by the AI assistant
+[Claude Code](https://claude.com/claude-code) by Anthropic. The maintainer decides what the
+program should do and how, tries it out and decides on changes, but not every line has had
+a detailed human review.
 
-Co z toho plyne:
+What that means for you:
 
-- **Je to raná vývojová verze.** Bez záruky, jak říká licence GPL.
-- **Bezpečnost dat má přednost.** Operace se soubory mají sady automatických testů
-  (přes 600, jen v dočasných složkách), například úplný zápis před nahrazením souboru,
-  identitu souborů místo porovnávání textu cest, odmítnutí kopie „do sebe“ nebo mazání do
-  Koše s jasným přehledem, co se nepodařilo. Přesto platí:
-- **Na důležitých datech mít zálohu** (Time Machine). Chybu prosím nahlas
-  v [issues](https://github.com/axolotlcommander/axolotl-commander/issues).
-  Pokud může vést ke ztrátě dat, označ ji štítkem `data-safety`.
+- **This is early development software**, provided without warranty, as the GPL says.
+- **Data safety comes first.** File operations are covered by automated tests (more than 600,
+  all running in temporary folders only): a complete write before a file is replaced, file
+  identity instead of comparing path strings, refusing to copy something into itself, deleting
+  to the Trash with a clear report of what failed. Still:
+- **Keep a backup of important data** (Time Machine). Please report bugs in the
+  [issues](https://github.com/axolotlcommander/axolotl-commander/issues); if a bug could lose
+  data, label it `data-safety`.
 
-## Co umí
+## Features
 
-- **Panely:** dva panely se záložkami, podrobné i stručné zobrazení, řazení, filtry, výběr
-  podle masky, oblíbené a nedávné cesty, informace o svazku.
-- **Operace:** kopírování, přesun, mazání do Koše, přejmenování (i hromadné, s vrácením ⌘Z),
-  nová složka, atributy, práva a štítky Finderu, kontrolní součty, velikosti složek, mapa disku.
-  Funguje i drag & drop.
-- **Prohlížení:** prohlížeč textu a hexu s rozpoznáním kódování, zalamováním a hledáním.
-  Náhled Markdownu, HTML (bez skriptů) a obrázků, plus Quick Look (⌘Y).
-- **Porovnání:** porovnání dvou souborů vedle sebe a porovnání obsahu panelů (složek).
-- **Archivy:** ZIP, 7z, tar (gz/bz2/xz) se otevírají jako složky, jde do nich kopírovat
-  a upravovat jejich obsah. Šifrovaný ZIP a RAR (jen čtení).
-- **Servery:** SFTP (přes systémové `ssh`, tedy i s tvým `~/.ssh/config`) a FTP/FTPS, hesla
-  v Klíčence, kódování názvů pro starší servery.
-- **Hledání:** podle jména a obsahu, hledání duplicit, výsledky jdou poslat do panelu.
-- **Přizpůsobení:** příkazová řádka, uživatelské menu (F9), vlastní klávesové zkratky.
-  Rozhraní česky a anglicky.
+- **Panels:** two panels with tabs, detailed and brief view, sorting, filters, selection by
+  mask, favorite and recent paths, volume information.
+- **Operations:** copy, move, delete to the Trash, rename (also batch rename, with ⌘Z undo),
+  new folder, attributes, permissions and Finder tags, checksums, folder sizes, disk map.
+  Drag and drop works too.
+- **Viewing:** text and hex viewer with encoding detection, wrapping and search. Preview of
+  Markdown, HTML (without scripts) and images, plus Quick Look (⌘Y).
+- **Comparing:** two files side by side, and the contents of both panels (folders).
+- **Archives:** ZIP, 7z and tar (gz/bz2/xz) open like folders; you can copy into them and edit
+  their contents. Encrypted ZIP, and RAR (read-only).
+- **Servers:** SFTP (through the system `ssh`, so your `~/.ssh/config` applies) and FTP/FTPS,
+  passwords in the Keychain, name encodings for older servers.
+- **Find:** by name and content, duplicate search, results can be sent to a panel.
+- **Customization:** command line, user menu (F9), custom keyboard shortcuts. English and
+  Czech user interface.
 
-## Instalace
+## Installation
 
-### Hotová aplikace
+### Prebuilt app
 
-1. Z [Releases](https://github.com/axolotlcommander/axolotl-commander/releases) stáhni
-   `Axolotl-Commander-<verze>.dmg` (nebo `.zip`). Aplikace je univerzální, běží na Apple
-   Silicon i Intelu a potřebuje **macOS 15 Sequoia nebo novější**.
-2. Přetáhni **Axolotl Commander** do složky **Aplikace**.
-3. **První spuštění:** dokud vydání nejsou podepsaná certifikátem Apple Developer ID, macOS
-   aplikaci zablokuje se zprávou, že ji nelze ověřit. Klikni na *Hotovo* a pak
-   v *Nastavení systému → Soukromí a zabezpečení* dole u Axolotl Commanderu na
-   *Přesto otevřít*. Stačí to jednou.
+1. Download `Axolotl-Commander-<version>.dmg` (or `.zip`) from
+   [Releases](https://github.com/axolotlcommander/axolotl-commander/releases). The app is
+   universal (Apple silicon and Intel) and needs **macOS 15 Sequoia or later**.
+2. Drag **Axolotl Commander** into the **Applications** folder.
+3. **First launch:** until the releases are signed with an Apple Developer ID, macOS blocks
+   the app with a message that it cannot be verified. Click *Done*, then go to *System
+   Settings → Privacy & Security* and click *Open Anyway* next to Axolotl Commander. This is
+   needed only once.
 
-Kontrolní součty stažených souborů jsou u vydání v `SHA256SUMS.txt`.
+Checksums of the downloads are in `SHA256SUMS.txt` attached to each release.
 
-### Ze zdrojových kódů
+### From source
 
-Potřebuješ macOS 15+ a Swift 6.2: buď Xcode 26, nebo jen Command Line Tools
+You need macOS 15+ and Swift 6.2: either Xcode 26 or just the Command Line Tools
 (`xcode-select --install`).
 
 ```sh
 git clone https://github.com/axolotlcommander/axolotl-commander.git
 cd axolotl-commander
 
-swift run AxolotlCommander     # rychlé spuštění bez instalace
-swift test                     # testy jádra (běží jen v dočasných složkách)
+swift run AxolotlCommander     # quick start without installing
+swift test                     # core tests (run in temporary folders only)
 
-scripts/bundle.sh release      # sestaví build/Axolotl Commander.app
-scripts/install.sh             # nainstaluje do ~/Applications a dá alias na plochu
+scripts/bundle.sh release      # builds build/Axolotl Commander.app
+scripts/install.sh             # installs into ~/Applications and puts an alias on the Desktop
 ```
 
-`scripts/install.sh` před instalací **ukončí běžící Axolotl Commander** a nahradí ho novou
-verzí. `UNIVERSAL=1 scripts/bundle.sh release` sestaví aplikaci pro obě architektury.
+`scripts/install.sh` **quits a running Axolotl Commander** before replacing it with the new
+build. `UNIVERSAL=1 scripts/bundle.sh release` builds the app for both architectures.
 
-## První kroky
+## Getting started
 
-**Funkční klávesy.** Na Macu F1–F12 ve výchozím stavu ovládají jas, hlasitost a podobně.
-Buď drž `fn`, nebo zapni *Nastavení systému → Klávesnice → Klávesové zkratky → Funkční
-klávesy → Používat klávesy F1, F2 atd. jako standardní funkční klávesy*. Kolize se systémovými
-zkratkami (Mission Control, Spotlight) se dají vyřešit v nastavení aplikace (⌘,) pod
-*Klávesnice*, kde jde každý příkaz přemapovat.
+**Function keys.** On a Mac, F1–F12 control brightness, volume and so on by default. Either
+hold `fn`, or turn on *System Settings → Keyboard → Keyboard Shortcuts → Function Keys → Use
+F1, F2, etc. keys as standard function keys*. Clashes with system shortcuts (Mission Control,
+Spotlight) can be resolved in the app's settings (⌘,) under *Keyboard*, where every command
+can be remapped.
 
-| Klávesa | Příkaz | Klávesa | Příkaz |
+| Key | Command | Key | Command |
 |---|---|---|---|
-| Tab | přepnout panel | F7 | nová složka |
-| F2 | přejmenovat | F8 | do Koše |
-| F3 | zobrazit | ⇧F8 | smazat natrvalo |
-| F4 | upravit | F9 | uživatelské menu |
-| F5 | kopírovat | ⌃F10 | porovnat panely |
-| F6 | přesunout | ⌘Y | Quick Look |
-| ⌘F | hledat soubory | ⌘K | připojit k serveru |
-| ⇧F7 / ⌘⇧G | přejít do složky | ⌘, | nastavení |
+| Tab | switch panel | F7 | new folder |
+| F2 | rename | F8 | move to Trash |
+| F3 | view | ⇧F8 | delete permanently |
+| F4 | edit | F9 | user menu |
+| F5 | copy | ⌃F10 | compare panels |
+| F6 | move | ⌘Y | Quick Look |
+| ⌘F | find files | ⌘K | connect to server |
+| ⇧F7 / ⌘⇧G | go to folder | ⌘, | settings |
 
-Všechny příkazy a jejich zkratky jsou v menu.
+All commands and their shortcuts are in the menus.
 
-**Oprávnění.** Při prvním vstupu do Plochy, Dokumentů, Stažených souborů nebo na síťový či
-vyměnitelný disk se macOS zeptá, jestli to aplikaci dovolíš. Kvůli složkám chráněným systémem
-(například `~/Library/Mail`) jde aplikaci přidat do *Soukromí a zabezpečení → Plný přístup
-k disku*. Není to ale nutné.
+**Permissions.** The first time you open the Desktop, Documents, Downloads, or a network or
+removable volume, macOS asks whether to allow access. For folders protected by the system
+(such as `~/Library/Mail`) you can add the app to *Privacy & Security → Full Disk Access*,
+but it is not required.
 
-**Odinstalace.** Smaž aplikaci a případně nastavení
-`~/Library/Preferences/cz.acidek.axolotlcommander.plist` a složku
-`~/Library/Application Support/Axolotl Commander`. Uložená hesla k serverům najdeš
-v aplikaci Klíčenka, mají v názvu „(Axolotl Commander)“.
+**Uninstalling.** Delete the app and, if you like, the settings in
+`~/Library/Preferences/cz.acidek.axolotlcommander.plist` and the folder
+`~/Library/Application Support/Axolotl Commander`. Saved server passwords are in the Keychain
+Access app, with "(Axolotl Commander)" in their name.
 
-## Přispívání
+## Contributing
 
-Pomoc je vítaná: hlášení chyb, nápady, překlady i pull requesty. Návod je
-v [CONTRIBUTING.md](CONTRIBUTING.md). Dvě pravidla jsou závazná:
+Help is welcome: bug reports, ideas, translations and pull requests. See
+[CONTRIBUTING.md](CONTRIBUTING.md). Two rules are binding:
 
-- testy pracují jen v dočasných složkách, nikdy ne na skutečných datech,
-- implementace je čistá, zdrojové kódy vzoru se nečtou ani nekopírují.
+- tests work only in temporary folders, never on real data,
+- the implementation is clean-room: the reference program's source code is not read or copied.
 
-Platí [pravidla chování](CODE_OF_CONDUCT.md). Bezpečnostní chyby hlas podle
-[SECURITY.md](SECURITY.md). Seznam změn je v [CHANGELOG.md](CHANGELOG.md).
+Everything in the repository is in English; issues and pull requests can be discussed in
+English or Czech. The [Code of Conduct](CODE_OF_CONDUCT.md) applies. Report security issues
+as described in [SECURITY.md](SECURITY.md). Changes are listed in [CHANGELOG.md](CHANGELOG.md).
 
-## Poděkování
+## Acknowledgments
 
-Díky autorům Open Salamanderu a Tandem Commanderu za desítky let práce na správci souborů
-ovládaném z klávesnice a za to, že ho uvolnili jako svobodný software (GPL-2.0-or-later).
-Díky také autorům knihoven, které aplikace používá: libarchive, libcurl, swift-markdown, cmark
-(viz [THIRD_PARTY.md](THIRD_PARTY.md)).
+Thanks to the authors of Open Salamander and Tandem Commander for decades of work on a
+keyboard-driven file manager and for releasing it as free software (GPL-2.0-or-later). Thanks
+also to the authors of the libraries the app uses: libarchive, libcurl, swift-markdown and
+cmark (see [THIRD_PARTY.md](THIRD_PARTY.md)).
 
-## Licence
+## License
 
-Axolotl Commander je svobodný software pod licencí [GNU GPL verze 3 nebo novější](LICENSE)
-(`GPL-3.0-or-later`). Autoři: [AUTHORS](AUTHORS).
-
----
-
-### In English
-
-Axolotl Commander is a native, keyboard-driven two-panel (dual-pane, orthodox) file manager for
-macOS, for anyone missing Salamander, Total Commander or Norton Commander-style file management
-on the Mac. Its behavior,
-key layout and dialogs are modeled on [Tandem Commander](https://github.com/tandemcommander/tandemcommander)
-and [Open Salamander](https://github.com/OpenSalamander/salamander). It is written from
-scratch in Swift and AppKit and is not affiliated with either project.
-
-**Heads-up:** most of the code was written with the AI assistant Claude Code ("vibe-coded").
-The maintainer steers the behavior and tests the app, but not every line has had a detailed
-human review. File operations are covered by an extensive test suite, but this is early
-software. Keep backups and report bugs, especially anything that could lose data.
-
-Download the universal app (macOS 15+) from [Releases](https://github.com/axolotlcommander/axolotl-commander/releases).
-Until the builds are notarized, allow the first launch in *System Settings → Privacy &
-Security → Open Anyway*. To build it yourself: `swift run AxolotlCommander`, or
-`scripts/bundle.sh release`. Contributions in English are welcome, see
-[CONTRIBUTING.md](CONTRIBUTING.md).
+Axolotl Commander is free software under the [GNU GPL version 3 or later](LICENSE)
+(`GPL-3.0-or-later`). Authors: [AUTHORS](AUTHORS).

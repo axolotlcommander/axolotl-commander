@@ -1,48 +1,48 @@
-# Vydání nové verze
+# Releasing a new version
 
-Vydání sestavuje a nahrává GitHub Actions (`.github/workflows/release.yml`); správce jen
-označí verzi tagem a návrh vydání zveřejní.
+The release is built and uploaded by GitHub Actions (`.github/workflows/release.yml`); the maintainer
+only marks the version with a tag and publishes the draft release.
 
-## Postup
+## Procedure
 
-1. V `main` je vše sloučené a CI zelené.
-2. V [CHANGELOG.md](../CHANGELOG.md) přesunout položky z „Nevydáno“ pod novou verzi s datem.
-3. Tag a push:
+1. Everything is merged into `main` and CI is green.
+2. In [CHANGELOG.md](../CHANGELOG.md), move the items from "Unreleased" under the new version with a date.
+3. Tag and push:
 
    ```sh
    git tag -a v0.1.0 -m "Axolotl Commander 0.1.0"
    git push origin v0.1.0
    ```
 
-4. Workflow spustí testy, sestaví univerzální aplikaci (Apple silicon + Intel) s verzí z tagu,
-   případně ji podepíše a notarizuje, zabalí `Axolotl-Commander-0.1.0.zip` a `.dmg`
-   se `SHA256SUMS.txt` a vytvoří **návrh** vydání s automatickými poznámkami z pull requestů.
-5. Na GitHubu v *Releases* návrh zkontrolovat, doplnit poznámky a kliknout na *Publish release*.
+4. The workflow runs the tests, builds a universal app (Apple silicon + Intel) with the version from the tag,
+   optionally signs and notarizes it, packages `Axolotl-Commander-0.1.0.zip` and `.dmg`
+   with `SHA256SUMS.txt`, and creates a **draft** release with automatic notes from pull requests.
+5. On GitHub, under *Releases*, review the draft, add notes, and click *Publish release*.
 
-Verze se řídí [Semantic Versioning](https://semver.org/lang/cs/): do 1.0 `0.MINOR.PATCH`.
+Versions follow [Semantic Versioning](https://semver.org/): before 1.0, `0.MINOR.PATCH`.
 
-## Podpis a notarizace
+## Signing and notarization
 
-Bez podpisu Apple Developer ID aplikace funguje, ale macOS ji po stažení zablokuje
-(„nelze ověřit vývojáře“) a uživatel ji musí jednou povolit: otevřít, pak
-*Nastavení systému → Soukromí a zabezpečení → Přesto otevřít*.
+Without an Apple Developer ID signature the app works, but macOS blocks it after download
+("cannot verify the developer") and the user has to allow it once: open it, then
+*System Settings → Privacy & Security → Open Anyway*.
 
-S účtem [Apple Developer Program](https://developer.apple.com/programs/) (99 USD ročně)
-workflow aplikaci podepíše a notarizuje automaticky, stačí přidat tajemství repozitáře
+With an [Apple Developer Program](https://developer.apple.com/programs/) account (99 USD per year)
+the workflow signs and notarizes the app automatically; just add the repository secrets
 (*Settings → Secrets and variables → Actions*):
 
-| Tajemství | Obsah |
+| Secret | Contents |
 |---|---|
-| `MACOS_CERTIFICATE_P12` | certifikát „Developer ID Application“ jako .p12, v base64 (`base64 -i cert.p12`) |
-| `MACOS_CERTIFICATE_PASSWORD` | heslo k .p12 |
-| `MACOS_SIGNING_IDENTITY` | např. `Developer ID Application: Jméno (TEAMID)` |
-| `NOTARY_KEY_P8` | API klíč App Store Connect (.p8) v base64 |
-| `NOTARY_KEY_ID`, `NOTARY_ISSUER_ID` | ID klíče a vydavatele z App Store Connect |
+| `MACOS_CERTIFICATE_P12` | the "Developer ID Application" certificate as .p12, base64-encoded (`base64 -i cert.p12`) |
+| `MACOS_CERTIFICATE_PASSWORD` | password for the .p12 |
+| `MACOS_SIGNING_IDENTITY` | e.g. `Developer ID Application: Name (TEAMID)` |
+| `NOTARY_KEY_P8` | App Store Connect API key (.p8), base64-encoded |
+| `NOTARY_KEY_ID`, `NOTARY_ISSUER_ID` | key ID and issuer ID from App Store Connect |
 
-Aplikace není v sandboxu (správce souborů potřebuje přístup k celému disku), proto se
-distribuuje mimo Mac App Store — přes GitHub Releases, později případně Homebrew Cask.
+The app is not sandboxed (a file manager needs access to the whole disk), so it is
+distributed outside the Mac App Store — via GitHub Releases, possibly a Homebrew Cask later.
 
-## Ručně (bez GitHubu)
+## Manually (without GitHub)
 
 ```sh
 UNIVERSAL=1 VERSION=0.1.0 scripts/bundle.sh release

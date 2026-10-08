@@ -1,40 +1,40 @@
-# Quickstart: ověření bezpečnosti dat (001)
+# Quickstart: verifying data safety (001)
 
-Vše běží jen v dočasných složkách a na lokálních testovacích serverech. Žádná operace na
-skutečných datech uživatele, žádný skutečný Koš v automatických testech.
+Everything runs only in temporary folders and on local test servers. No operation on the user's
+real data, no real Trash in the automated tests.
 
-## 1. Automatické testy
+## 1. Automated tests
 
 ```sh
-swift build                       # bez varování
-swift test                        # celá sada zelená, < 10 s
-swift test --filter RemoteTransferTests    # D1: přepis na serveru
-swift test --filter ArchiveEditStoreTests  # D2: zachování úprav
+swift build                       # no warnings
+swift test                        # whole suite green, < 10 s
+swift test --filter RemoteTransferTests    # D1: overwrite on a server
+swift test --filter ArchiveEditStoreTests  # D2: keeping edits
 swift test --filter ArchiveTransferCheck   # D3, D7
 swift test --filter DeletePlanTests        # D4
 swift test --filter OperationsTests        # D5, D8, US8
 swift test --filter PreviewTests           # D6
 ```
 
-Očekávání: každý test z `tasks.md` u D1–D8 a US8 existuje a selže, když se pojistka v kódu
-dočasně vypne (ověřit ručně u D1, D2, D3 jednou).
+Expectation: every test from `tasks.md` for D1–D8 and US8 exists and fails when the safeguard in
+the code is temporarily switched off (verify manually once for D1, D2, D3).
 
-## 2. Ruční scénáře v GUI (testovací kopie aplikace s vlastním bundle id)
+## 2. Manual scenarios in the GUI (test copy of the app with its own bundle id)
 
-Předpoklad: oba panely v testovací složce (např. `$TMPDIR/axo-001/`).
+Prerequisite: both panels in a test folder (e.g. `$TMPDIR/axo-001/`).
 
-| # | Scénář | Očekávání |
+| # | Scenario | Expectation |
 |---|---|---|
-| G1 | SFTP na lokální `sftp-server` (testovací): F5 přes existující soubor | soubor nahrazen, žádný skrytý `.…icmd-old…` nezůstal |
-| G2 | F4 na člen ZIPu, upravit, ⌘Q, „Teď ne“; spustit znovu | při startu nabídka vrácení úpravy; po Vrátit je změna v ZIPu |
-| G3 | ZIP otevřený přes symlink vlevo a přímo vpravo; F6 `docs` → `docs/old` | odmítnuto, ZIP beze změny |
-| G4 | Alt+F5 složky `projekt` do `projekt/zaloha.zip` | odmítnuto před zápisem |
-| G5 | F8 na připojeném DMG bez Koše (vytvořit `hdiutil create` v testovací složce) | dotaz „smaže se trvale“, výchozí Zrušit; Zrušit nic nesmaže |
-| G6 | Prohlížeč F3 → Uložit jako přes symlink na soubor se štítkem | symlink zůstal, štítek zůstal |
-| G7 | `ln a.txt b.txt`; F2 `a.txt` → `b.txt` | hláška „už existuje“; `Zprava`→`zprava` funguje |
+| G1 | SFTP to a local (test) `sftp-server`: F5 over an existing file | file replaced, no hidden `.…icmd-old…` left behind |
+| G2 | F4 on a ZIP member, edit, ⌘Q, "Not Now"; launch again | at startup an offer to save the edit back; after "Save Back" the change is in the ZIP |
+| G3 | ZIP open via a symlink on the left and directly on the right; F6 `docs` → `docs/old` | rejected, ZIP unchanged |
+| G4 | Alt+F5 of the folder `projekt` into `projekt/zaloha.zip` | rejected before any write |
+| G5 | F8 on a mounted DMG without a Trash (create with `hdiutil create` in the test folder) | prompt "will be deleted permanently", default Cancel; Cancel deletes nothing |
+| G6 | Viewer F3 → Save As over a symlink to a file with a label | symlink stayed, label stayed |
+| G7 | `ln a.txt b.txt`; F2 `a.txt` → `b.txt` | message "already exists"; `Zprava`→`zprava` works |
 
-## 3. Ruční ověření jen čtením (nepovinné)
+## 3. Read-only manual verification (optional)
 
-Na připojeném USB (FAT/exFAT) nebo SMB svazku spustit jednorázový čtecí skript, který vypíše
-`statfs.f_fstypename` a výsledek dotazu na Koš (`FileManager.url(for: .trashDirectory, …,
-create: false)`). Nic nezapisuje. Výsledek zapsat do `research.md` (R4, R5).
+On a mounted USB (FAT/exFAT) or SMB volume, run a one-off read-only script that prints
+`statfs.f_fstypename` and the result of the Trash query (`FileManager.url(for: .trashDirectory, …,
+create: false)`). It writes nothing. Record the result in `research.md` (R4, R5).
