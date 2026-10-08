@@ -61,7 +61,8 @@ comes about like this:
    specification never drift apart.
 
 Examples: [001-data-safety-gaps](specs/001-data-safety-gaps/spec.md),
-[002-function-key-bar](specs/002-function-key-bar/spec.md).
+[002-function-key-bar](specs/002-function-key-bar/spec.md),
+[003-breadcrumb-path-bar](specs/003-breadcrumb-path-bar/spec.md).
 
 What that means for you:
 
