@@ -194,7 +194,10 @@ final class TransferRun {
     /// and no directory symlink was found.
     private func copyThenDelete(_ node: PlanNode, into dir: String) async throws {
         let complete = try await copy(node, into: dir)
-        guard complete, node.traversalComplete, !node.containsDirectoryLink, node.identity != nil else {
+        // A link that is itself the source was copied as a link; removing it (unlink, never
+        // followed) leaves what it points to alone. A folder containing one is kept.
+        let isLoneLink = if case .symlink = node.kind { true } else { false }
+        guard complete, node.traversalComplete, !node.containsDirectoryLink || isLoneLink, node.identity != nil else {
             kept.append(node.url)
             return
         }

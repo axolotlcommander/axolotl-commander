@@ -548,3 +548,59 @@ private func move(_ sources: [URL], to dest: URL, ops: FileOperations = FileOper
         }
     }
 }
+
+/// Safeguards that already hold get tests, so they keep holding (FR-026).
+@Suite struct ExistingSafeguardTests {
+    /// The source is the link itself: it moves (or is copied and removed); what it points to is untouched.
+    @Test(arguments: [false, true])
+    func movingLoneDirectoryLinkMovesOnlyTheLink(forceCopy: Bool) async throws {
+        try await withSandbox { root in
+            let src = root.sub("src"), dst = root.sub("dst"), outside = root.sub("outside")
+            try mkdirs(src); try mkdirs(dst); try mkdirs(outside)
+            try write(outside.sub("important.txt"), "keep me")
+            try FileManager.default.createSymbolicLink(at: src.sub("link"), withDestinationURL: outside)
+            let ops = FileOperations(options: .init(forceCopyMove: forceCopy))
+            let report = try await move([src.sub("link")], to: dst, ops: ops)
+            #expect(report.keptSources.isEmpty)
+            #expect(names(src).isEmpty)
+            #expect(try FileManager.default.destinationOfSymbolicLink(atPath: dst.sub("link").path) == outside.path)
+            #expect(names(outside) == ["important.txt"])
+            #expect(read(outside.sub("important.txt")) == "keep me")
+        }
+    }
+
+    /// A folder that can't be read completely is copied as far as it goes and never removed.
+    @Test func incompleteTraversalKeepsSource() async throws {
+        try await withSandbox { root in
+            let src = root.sub("src"), dst = root.sub("dst")
+            try mkdirs(src.sub("folder/locked")); try mkdirs(dst)
+            try write(src.sub("folder/a.txt"), "a")
+            try write(src.sub("folder/locked/secret.txt"), "s")
+            chmod(src.sub("folder/locked").path, 0)
+            defer { chmod(src.sub("folder/locked").path, 0o755) }
+            let ops = FileOperations(options: .init(forceCopyMove: true))
+            let report = try await move([src.sub("folder")], to: dst, ops: ops, conflict: { _ in .overwrite })
+            #expect(report.keptSources.contains(src.sub("folder")))
+            chmod(src.sub("folder/locked").path, 0o755)
+            #expect(read(src.sub("folder/a.txt")) == "a")
+            #expect(read(src.sub("folder/locked/secret.txt")) == "s")
+        }
+    }
+
+    /// Copying an NFD-named file, and renaming its neighbour, keep its stored code units.
+    @Test func nfdNamesKeepTheirCodeUnits() async throws {
+        try await withSandbox { root in
+            let nfd = "e\u{301}clair.txt"
+            let src = root.sub("src"), dst = root.sub("dst")
+            try mkdirs(src); try mkdirs(dst)
+            try write(src.sub(nfd), "x")
+            try write(src.sub("other.txt"), "o")
+            _ = try await copy([src.sub(nfd)], to: dst)
+            let scalars = { (dir: URL) in names(dir).map { Array($0.unicodeScalars) } }
+            #expect(scalars(dst) == [Array(nfd.unicodeScalars)])
+            _ = try await FileOperations().rename(src.sub("other.txt"), to: "renamed.txt")
+            #expect(scalars(src).contains(Array(nfd.unicodeScalars)))
+            #expect(!scalars(src).contains(Array("\u{E9}clair.txt".unicodeScalars)))
+        }
+    }
+}

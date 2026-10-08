@@ -172,10 +172,10 @@ příběhu `swift build` bez varování, `swift test` zelené, commit `[Spec 001
 
 **Goal**: FR-026. **Independent Test**: nové testy zelené; po dočasném vypnutí pojistky selžou.
 
-- [ ] T039 [P] [US8] Test v `Tests/CommanderCoreTests/OperationsTests.swift`: přesun samotného symlinku na adresář (a) na stejném svazku → odkaz přesunut, soubory za ním nedotčené; (b) s `forceCopyMove` → odkaz zkopírován, soubory za ním nedotčené
-- [ ] T040 [US8] Podle research R8 v `Sources/CommanderCore/Operations/TransferPlan.swift:77,84` / `TransferRun.swift:197` povolit u položky druhu symlink (samotný odkaz) po zkopírování `unlink` odkazu (nesleduje cíl); složka obsahující odkaz dál zůstane v `keptSources`
-- [ ] T041 [P] [US8] Test v `Tests/CommanderCoreTests/OperationsTests.swift`: podsložka `chmod 000` (v `defer` vrátit `0o755`), přesun s `forceCopyMove` → zdroj v `keptSources`, nic smazáno
-- [ ] T042 [P] [US8] Opravit `Tests/CommanderCoreTests/PanelModelTests.swift:225` na porovnání `Array(name.unicodeScalars)`; přidat testy kopie a přejmenování jiného souboru ve složce s NFD jménem → kódové jednotky beze změny
+- [X] T039 [P] [US8] Test v `Tests/CommanderCoreTests/OperationsTests.swift`: přesun samotného symlinku na adresář (a) na stejném svazku → odkaz přesunut, soubory za ním nedotčené; (b) s `forceCopyMove` → odkaz zkopírován, soubory za ním nedotčené
+- [X] T040 [US8] Podle research R8 v `Sources/CommanderCore/Operations/TransferPlan.swift:77,84` / `TransferRun.swift:197` povolit u položky druhu symlink (samotný odkaz) po zkopírování `unlink` odkazu (nesleduje cíl); složka obsahující odkaz dál zůstane v `keptSources`
+- [X] T041 [P] [US8] Test v `Tests/CommanderCoreTests/OperationsTests.swift`: podsložka `chmod 000` (v `defer` vrátit `0o755`), přesun s `forceCopyMove` → zdroj v `keptSources`, nic smazáno
+- [X] T042 [P] [US8] Opravit `Tests/CommanderCoreTests/PanelModelTests.swift:225` na porovnání `Array(name.unicodeScalars)`; přidat testy kopie a přejmenování jiného souboru ve složce s NFD jménem → kódové jednotky beze změny
 
 **Checkpoint**: zelené → commit.
 

@@ -222,7 +222,8 @@ import Foundation
         let m = PanelModel(location: f.root)
         await m.refresh()
         #expect(m.quickSearch("\u{E9}cl"))  // NFC typed
-        #expect(m.cursorItem?.name == "e\u{301}clair.txt")
+        // Code units, not canonical equivalence: the stored NFD name, not an NFC copy of it.
+        #expect(m.cursorItem.map { Array($0.name.unicodeScalars) } == Array("e\u{301}clair.txt".unicodeScalars))
         let before = m.cursor
         #expect(!m.quickSearch("zzz"))
         #expect(m.cursor == before)
