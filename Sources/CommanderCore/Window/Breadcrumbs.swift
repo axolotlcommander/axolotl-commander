@@ -64,17 +64,17 @@ public enum Breadcrumbs {
                                     kind: .volume)]
         let rest = base == "/" ? path : String(path.dropFirst(base.count))
         let homePath = plainPath(home)
-        let archivePath = archive.map { plainPath($0.archive) }
+        let parts = rest.split(separator: "/", omittingEmptySubsequences: true)
+        // The archive file is the component before the folders inside it. Counting them (instead of
+        // comparing paths) also works when the archive's path is spelled differently, e.g.
+        // "/tmp" vs "/private/tmp".
+        let archiveIndex = archive.map { parts.count - $0.inner.split(separator: "/").count - 1 }.flatMap { $0 >= 0 ? $0 : nil }
         var current = base == "/" ? "" : base
-        var insideArchive = false
-        for part in rest.split(separator: "/", omittingEmptySubsequences: true) {
+        for (index, part) in parts.enumerated() {
             current += "/" + part
             let kind: PathSegment.Kind
-            if insideArchive {
-                kind = .archiveFolder
-            } else if current == archivePath {
-                kind = .archive
-                insideArchive = true
+            if let archiveIndex, index >= archiveIndex {
+                kind = index == archiveIndex ? .archive : .archiveFolder
             } else {
                 kind = current == homePath ? .home : .folder
             }

@@ -75,6 +75,16 @@ import Testing
         #expect(Breadcrumbs.focusName(after: 2, in: trail) == "pack.zip")
     }
 
+    /// The archive's own path may be spelled differently from the panel location ("/tmp" vs
+    /// "/private/tmp"); the archive segment is still found.
+    @Test func archiveWithDifferentlySpelledPath() {
+        let archive = ArchivePath(archive: URL(filePath: "/tmp/t/pack.zip"), inner: "inner", format: .zip)
+        let location = URL(filePath: "/private/tmp/t/pack.zip/inner", directoryHint: .isDirectory)
+        let trail = Breadcrumbs.trail(location: location, archive: archive, volume: boot, home: home)
+        #expect(names(trail) == ["Macintosh HD", "private", "tmp", "t", "pack.zip", "inner"])
+        #expect(trail.map(\.kind) == [.volume, .folder, .folder, .folder, .archive, .archiveFolder])
+    }
+
     @Test func archiveRoot() {
         let archive = ArchivePath(archive: URL(filePath: "/tmp/pack.zip"), format: .zip)
         let trail = Breadcrumbs.trail(location: archive.url, archive: archive, volume: boot, home: home)

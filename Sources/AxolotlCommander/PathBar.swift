@@ -210,7 +210,7 @@ final class PathBar: NSView {
         case .volume, .home, .folder, .archive:
             image = NSWorkspace.shared.icon(forFile: segment.url.path(percentEncoded: false))
         case .archiveFolder, .remoteFolder:
-            image = NSWorkspace.shared.icon(for: .folder)
+            image = NSImage(named: NSImage.folderName) ?? NSWorkspace.shared.icon(for: .folder)
         case .server:
             image = NSImage(systemSymbolName: "network", accessibilityDescription: nil) ?? NSImage()
         case .results:
@@ -235,6 +235,8 @@ private final class PathSegmentView: NSView {
     private var clickable = true
     private var hovering = false { didSet { if hovering != oldValue { needsDisplay = true } } }
     private var pressed = false { didSet { if pressed != oldValue { needsDisplay = true } } }
+    /// Modifiers of the mouse down that the next mouse up completes.
+    private var pressedFlags: NSEvent.ModifierFlags?
 
     private static let padding: CGFloat = 4
     private static let iconGap: CGFloat = 3
@@ -311,19 +313,21 @@ private final class PathSegmentView: NSView {
             showMenu(for: event)
             return
         }
-        guard clickable else { return }
-        pressed = true
-        // Track until the button goes up; the click counts only when released inside.
-        while let next = window?.nextEvent(matching: [.leftMouseUp, .leftMouseDragged]) {
-            let inside = bounds.contains(convert(next.locationInWindow, from: nil))
-            if next.type == .leftMouseUp {
-                pressed = false
-                if inside { onClick?(event.modifierFlags) }
-                return
-            }
-            pressed = inside
-        }
+        pressedFlags = event.modifierFlags
+        pressed = clickable
+    }
+
+    override func mouseDragged(with event: NSEvent) {
+        guard pressedFlags != nil else { return }
+        pressed = clickable && bounds.contains(convert(event.locationInWindow, from: nil))
+    }
+
+    /// The click counts only when the button goes up inside the segment.
+    override func mouseUp(with event: NSEvent) {
+        guard let flags = pressedFlags else { return }
+        pressedFlags = nil
         pressed = false
+        if clickable, bounds.contains(convert(event.locationInWindow, from: nil)) { onClick?(flags) }
     }
 
     override func menu(for event: NSEvent) -> NSMenu? { onMenu?() }

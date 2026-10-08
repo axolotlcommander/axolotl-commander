@@ -56,8 +56,8 @@ final class PanelViewController: NSViewController {
     let pathField = NSTextField()
     /// Breadcrumbs or the path field (hosted inside), by the "Path bar" setting.
     private(set) lazy var pathBar = PathBar(field: pathField)
-    private var trailLocation: URL?
-    private var trailResults: ResultsListing?
+    /// What the shown trail was built from (location, results, archive).
+    private var trailSource: (URL, ResultsListing?, ArchivePath?)?
     let statusField = NSTextField(labelWithString: "")
     private let volumeBar = VolumeBar()
     let tabStrip = TabStrip()
@@ -1229,9 +1229,9 @@ extension PanelViewController {
 
     /// The trail follows the location; cursor moves and selection changes leave it alone.
     fileprivate func updatePathBar() {
-        guard model.location != trailLocation || model.results != trailResults else { return }
-        trailLocation = model.location
-        trailResults = model.results
+        // The archive counts too: a restored tab learns that its location is an archive only after loading.
+        if let source = trailSource, source == (model.location, model.results, model.archive) { return }
+        trailSource = (model.location, model.results, model.archive)
         pathBar.show(trail: Breadcrumbs.trail(
             location: model.location, results: model.results, archive: model.archive, remote: model.remote,
             volume: Self.volume(containing: model.location),
@@ -1273,15 +1273,21 @@ extension PanelViewController {
         guard trail.indices.contains(index), trail[index].isClickable else { return }
         router?.activate(side)
         let url = trail[index].url
-        if flags.contains(.command) { return openInNewTab(url) }
+        let focus = Breadcrumbs.focusName(after: index, in: trail)
+        if flags.contains(.command) { return openInNewTab(url, focusing: focus) }
         // The current folder; with results, its root leaves the results.
         if index == trail.count - 1, model.results == nil { return }
-        go(to: url, focusing: Breadcrumbs.focusName(after: index, in: trail))
+        go(to: url, focusing: focus)
     }
 
-    private func openInNewTab(_ url: URL) {
+    private func openInNewTab(_ url: URL, focusing name: String?) {
         newTab()
-        go(to: url)
+        go(to: url, focusing: name)
+    }
+
+    /// The child of `segment` on the current trail, for the cursor wherever the segment is opened.
+    private func focusName(after segment: PathSegment) -> String? {
+        pathBar.trail.firstIndex(of: segment).flatMap { Breadcrumbs.focusName(after: $0, in: pathBar.trail) }
     }
 
     private func pathSegmentMenu(_ index: Int) -> NSMenu? {
@@ -1321,13 +1327,13 @@ extension PanelViewController {
 
     @objc private func segmentOpenInOtherPanel(_ sender: NSMenuItem) {
         guard let segment = Self.segment(of: sender) else { return }
-        router?.otherPanel(than: self).go(to: segment.url)
+        router?.otherPanel(than: self).go(to: segment.url, focusing: focusName(after: segment))
     }
 
     @objc private func segmentOpenInNewTab(_ sender: NSMenuItem) {
         guard let segment = Self.segment(of: sender) else { return }
         router?.activate(side)
-        openInNewTab(segment.url)
+        openInNewTab(segment.url, focusing: focusName(after: segment))
     }
 
     @objc private func segmentCopyPath(_ sender: NSMenuItem) {
