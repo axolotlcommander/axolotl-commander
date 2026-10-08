@@ -24,16 +24,16 @@ příběhu `swift build` bez varování, `swift test` zelené, commit `[Spec 001
 
 ## Phase 1: Setup
 
-- [ ] T001 Vytvořit `Tests/CommanderCoreTests/TestSupport.swift`: sdílené `withSandbox(_:)` (vytvoří a uklidí složku v `temporaryDirectory`), `write(_:_:)`, `read(_:)`, `names(in:)`; stávající privátní varianty v testových souborech ponechat (sjednotit jen tam, kde se soubor stejně mění)
+- [X] T001 Vytvořit `Tests/CommanderCoreTests/TestSupport.swift`: sdílené `withSandbox(_:)` (vytvoří a uklidí složku v `temporaryDirectory`), `write(_:_:)`, `read(_:)`, `names(in:)`; stávající privátní varianty v testových souborech ponechat (sjednotit jen tam, kde se soubor stejně mění)
 
 ---
 
 ## Phase 2: Foundational (blokuje US2, US5, US7)
 
-- [ ] T002 V `Sources/CommanderCore/Operations/FileIdentity.swift` přidat `linkCount` do `FileStat` (z `st_nlink`) a doc komentář u `FileIdentity`: „platí jen během jednoho připojení svazku, nikdy neukládat“
-- [ ] T003 V `Sources/CommanderCore/Operations/FileIdentity.swift` přidat `public struct VolumeTraits: Sendable, Equatable { identityReliable: Bool; uuid: String? }` a `static func of(_ url: URL) -> VolumeTraits` podle `statfs.f_fstypename` — `apfs`, `hfs` → reliable; vše ostatní (msdos, exfat, smbfs, afpfs, nfs, webdav, ntfs, fuse, neznámé) → nereliable; `uuid` z `URLResourceKey.volumeUUIDStringKey`
-- [ ] T004 V `Sources/CommanderCore/Operations/FileIdentity.swift` přidat `public struct PersistentFileStamp: Codable, Sendable, Equatable { volumeUUID: String?; fileID: UInt64; size: Int64; modified: Int64 /* mtime ns */ }` + `init?(_ url: URL)`
-- [ ] T005 [P] Testy T002–T004 v `Tests/CommanderCoreTests/FileIdentityTests.swift` (nový): `linkCount == 2` po `link(2)`, sandbox na APFS → `identityReliable`, `PersistentFileStamp` se změní po zápisu a je Codable round-trip
+- [X] T002 V `Sources/CommanderCore/Operations/FileIdentity.swift` přidat `linkCount` do `FileStat` (z `st_nlink`) a doc komentář u `FileIdentity`: „platí jen během jednoho připojení svazku, nikdy neukládat“
+- [X] T003 V `Sources/CommanderCore/Operations/FileIdentity.swift` přidat `public struct VolumeTraits: Sendable, Equatable { identityReliable: Bool; uuid: String? }` a `static func of(_ url: URL) -> VolumeTraits` podle `statfs.f_fstypename` — `apfs`, `hfs` → reliable; vše ostatní (msdos, exfat, smbfs, afpfs, nfs, webdav, ntfs, fuse, neznámé) → nereliable; `uuid` z `URLResourceKey.volumeUUIDStringKey`
+- [X] T004 V `Sources/CommanderCore/Operations/FileIdentity.swift` přidat `public struct PersistentFileStamp: Codable, Sendable, Equatable { volumeUUID: String?; fileID: UInt64; size: Int64; modified: Int64 /* mtime ns */ }` + `init?(_ url: URL)`
+- [X] T005 [P] Testy T002–T004 v `Tests/CommanderCoreTests/FileIdentityTests.swift` (nový): `linkCount == 2` po `link(2)`, sandbox na APFS → `identityReliable`, `PersistentFileStamp` se změní po zápisu a je Codable round-trip
 
 ---
 

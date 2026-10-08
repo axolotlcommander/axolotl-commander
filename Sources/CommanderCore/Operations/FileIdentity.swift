@@ -6,6 +6,10 @@ import Darwin
 
 /// Identity of a file system object: device + inode. Two paths name the same
 /// object exactly when their identities are equal; the path text is irrelevant.
+///
+/// Valid only while the volume stays mounted (`st_dev` changes across mounts) and only
+/// on volumes whose file ids are real (see `VolumeTraits.identityReliable`). Never store
+/// it across launches; use `PersistentFileStamp` for that.
 public struct FileIdentity: Hashable, Sendable {
     public let device: Int64
     public let inode: UInt64
@@ -33,9 +37,12 @@ struct FileStat: Sendable {
     let mode: mode_t
     let size: Int64
     let modificationDate: Date
+    /// Number of hard links (`st_nlink`).
+    let linkCount: Int
 
     init(_ st: Darwin.stat) {
         device = Int64(st.st_dev)
+        linkCount = Int(st.st_nlink)
         identity = st.st_ino == 0 ? nil : FileIdentity(device: Int64(st.st_dev), inode: UInt64(st.st_ino))
         mode = st.st_mode
         size = Int64(st.st_size)
@@ -47,6 +54,67 @@ struct FileStat: Sendable {
     var isDirectory: Bool { type == S_IFDIR }
     var isSymlink: Bool { type == S_IFLNK }
     var isRegular: Bool { type == S_IFREG }
+}
+
+/// What a volume promises about its file ids.
+public struct VolumeTraits: Sendable, Equatable {
+    /// True when (`st_dev`, `st_ino`) reliably names one object: equal ids mean the same
+    /// file and different ids mean different files. Only APFS and HFS+ are trusted; FAT,
+    /// exFAT, NTFS, network and FUSE file systems may synthesize or reuse ids.
+    public var identityReliable: Bool
+    /// Volume UUID, stable across mounts when the file system has one.
+    public var uuid: String?
+
+    public init(identityReliable: Bool, uuid: String?) {
+        self.identityReliable = identityReliable
+        self.uuid = uuid
+    }
+
+    static let reliableTypes: Set<String> = ["apfs", "hfs"]
+
+    /// Traits of the volume holding `url` (the nearest existing ancestor when `url` does
+    /// not exist yet). Unknown volumes are unreliable.
+    public static func of(_ url: URL) -> VolumeTraits {
+        var path = url.path
+        var fs = statfs()
+        while statfs(path, &fs) != 0 {
+            let parent = FSPath.parent(path)
+            if parent == path || parent.isEmpty { return VolumeTraits(identityReliable: false, uuid: nil) }
+            path = parent
+        }
+        let type = withUnsafeBytes(of: fs.f_fstypename) { raw in
+            String(decoding: raw.prefix(while: { $0 != 0 }), as: UTF8.self)
+        }
+        let uuid = (try? URL(fileURLWithPath: path).resourceValues(forKeys: [.volumeUUIDStringKey]))?.volumeUUIDString
+        return VolumeTraits(identityReliable: reliableTypes.contains(type), uuid: uuid)
+    }
+}
+
+/// A file's state that can be stored across launches and remounts: volume UUID + file id
+/// + size + modification time. Equal stamps mean "the file has not changed since".
+public struct PersistentFileStamp: Codable, Sendable, Equatable {
+    public var volumeUUID: String?
+    public var fileID: UInt64
+    public var size: Int64
+    /// Modification time in nanoseconds since 1970.
+    public var modified: Int64
+
+    public init(volumeUUID: String?, fileID: UInt64, size: Int64, modified: Int64) {
+        self.volumeUUID = volumeUUID
+        self.fileID = fileID
+        self.size = size
+        self.modified = modified
+    }
+
+    /// nil when the file does not exist or cannot be examined. Follows symlinks.
+    public init?(_ url: URL) {
+        var st = Darwin.stat()
+        guard stat(url.path, &st) == 0 else { return nil }
+        volumeUUID = (try? url.resourceValues(forKeys: [.volumeUUIDStringKey]))?.volumeUUIDString
+        fileID = UInt64(st.st_ino)
+        size = Int64(st.st_size)
+        modified = Int64(st.st_mtimespec.tv_sec) * 1_000_000_000 + Int64(st.st_mtimespec.tv_nsec)
+    }
 }
 
 /// Result of stat/lstat that distinguishes "does not exist" from "cannot tell".
