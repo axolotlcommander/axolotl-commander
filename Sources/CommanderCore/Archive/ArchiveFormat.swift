@@ -54,6 +54,8 @@ public enum ArchiveError: Error, Equatable, Sendable {
     /// libarchive error string.
     case library(String)
     case cancelled
+    /// The archive at this path was changed, replaced or removed since a member was taken out of it.
+    case changedSinceRead(String)
 }
 
 extension ArchiveError: LocalizedError {
@@ -77,6 +79,8 @@ extension ArchiveError: LocalizedError {
             String(localized: "Archive error: \(message)")
         case .cancelled:
             String(localized: "The operation was cancelled.")
+        case .changedSinceRead(let path):
+            String(localized: "The archive “\((path as NSString).lastPathComponent)” has changed since the file was taken out of it, so it was not updated.")
         }
     }
 }

@@ -67,16 +67,16 @@ příběhu `swift build` bez varování, `swift test` zelené, commit `[Spec 001
 
 ### Tests
 
-- [ ] T016 [US2] `Tests/CommanderCoreTests/ArchiveEditStoreTests.swift` (nový): (a) nezměněná kopie → `cleanupForQuit` ji smaže; (b) změněná kopie → zachována, nová instance `ArchiveEditStore(root:)` nad stejným root ji vrátí z `loadPending`; (c) `decline` → zachována i po `cleanupForQuit`; (d) `markSaved` + bez dalších změn → uklizena; (e) `discard` smaže kopii i záznam; (f) archiv přepsán/smazán po vytažení → `verifyArchiveUnchanged` vyhodí `ArchiveError.changedSinceRead`, kopie zůstane; (g) záznam bez kopie se při `loadPending` zahodí
-- [ ] T017 [P] [US2] Test v `Tests/CommanderCoreTests/ArchiveTests.swift`: `ArchiveWriter.update(..., expecting:)` s neshodným `PersistentFileStamp` → `changedSinceRead`, archiv beze změny
+- [X] T016 [US2] `Tests/CommanderCoreTests/ArchiveEditStoreTests.swift` (nový): (a) nezměněná kopie → `cleanupForQuit` ji smaže; (b) změněná kopie → zachována, nová instance `ArchiveEditStore(root:)` nad stejným root ji vrátí z `loadPending`; (c) `decline` → zachována i po `cleanupForQuit`; (d) `markSaved` + bez dalších změn → uklizena; (e) `discard` smaže kopii i záznam; (f) archiv přepsán/smazán po vytažení → `verifyArchiveUnchanged` vyhodí `ArchiveError.changedSinceRead`, kopie zůstane; (g) záznam bez kopie se při `loadPending` zahodí
+- [X] T017 [P] [US2] Test v `Tests/CommanderCoreTests/ArchiveTests.swift`: `ArchiveWriter.update(..., expecting:)` s neshodným `PersistentFileStamp` → `changedSinceRead`, archiv beze změny
 
 ### Implementation
 
-- [ ] T018 [US2] Přidat `case changedSinceRead(URL)` do `ArchiveError` (`Sources/CommanderCore/Archive/ArchiveFormat.swift:42-55`) s popisem
-- [ ] T019 [US2] Nový `Sources/CommanderCore/Archive/ArchiveEditStore.swift` podle `contracts/core-api.md` a `data-model.md` (PendingEdit: id, target `member(archive:path:)`/`server(...)`, copyRelPath, baseline FileStamp, archiveStamp `PersistentFileStamp?`, declined); manifest `root/manifest.json` přes `SafeFileWriter`; `defaultRoot = ~/Library/Application Support/Axolotl Commander/Edits`; vlákna: `Mutex` nebo actor
-- [ ] T020 [US2] `ArchiveWriter.update(_:adding:expecting: PersistentFileStamp? = nil)` v `Sources/CommanderCore/Archive/ArchiveWriter.swift:41` (kontrola po `stat` v `updateArchive`, `:94-95`)
-- [ ] T021 [US2] V `Sources/AxolotlCommander/ArchiveOperations.swift:44-150` předělat `ArchiveEdits` na tenkou vrstvu nad `ArchiveEditStore` (F4 kopie do store, F3 kopie dál do `ArchiveScratch`); „Teď ne“ (`:118-121`) → `decline`; chyba zápisu (`:138-145`) → kopie zůstane + hláška s cestou; před zápisem `verifyArchiveUnchanged`
-- [ ] T022 [US2] V `Sources/AxolotlCommander/AppDelegate.swift:33-44`: ukončení → `cleanupForQuit`, zachované úpravy → informativní hláška s cestou ke kopiím; `ArchiveScratch.removeAll()` maže už jen temp; při startu (`applicationDidFinishLaunching`) `loadPending` neprázdné → jeden přehled (Vrátit / Zahodit / Teď ne); texty do `Resources/Localizable.xcstrings` (cs)
+- [X] T018 [US2] Přidat `case changedSinceRead(URL)` do `ArchiveError` (`Sources/CommanderCore/Archive/ArchiveFormat.swift:42-55`) s popisem
+- [X] T019 [US2] Nový `Sources/CommanderCore/Archive/ArchiveEditStore.swift` podle `contracts/core-api.md` a `data-model.md` (PendingEdit: id, target `member(archive:path:)`/`server(...)`, copyRelPath, baseline FileStamp, archiveStamp `PersistentFileStamp?`, declined); manifest `root/manifest.json` přes `SafeFileWriter`; `defaultRoot = ~/Library/Application Support/Axolotl Commander/Edits`; vlákna: `Mutex` nebo actor
+- [X] T020 [US2] `ArchiveWriter.update(_:adding:expecting: PersistentFileStamp? = nil)` v `Sources/CommanderCore/Archive/ArchiveWriter.swift:41` (kontrola po `stat` v `updateArchive`, `:94-95`)
+- [X] T021 [US2] V `Sources/AxolotlCommander/ArchiveOperations.swift:44-150` předělat `ArchiveEdits` na tenkou vrstvu nad `ArchiveEditStore` (F4 kopie do store, F3 kopie dál do `ArchiveScratch`); „Teď ne“ (`:118-121`) → `decline`; chyba zápisu (`:138-145`) → kopie zůstane + hláška s cestou; před zápisem `verifyArchiveUnchanged`
+- [X] T022 [US2] V `Sources/AxolotlCommander/AppDelegate.swift:33-44`: ukončení → `cleanupForQuit`, zachované úpravy → informativní hláška s cestou ke kopiím; `ArchiveScratch.removeAll()` maže už jen temp; při startu (`applicationDidFinishLaunching`) `loadPending` neprázdné → jeden přehled (Vrátit / Zahodit / Teď ne); texty do `Resources/Localizable.xcstrings` (cs)
 
 **Checkpoint**: `swift test --filter ArchiveEditStoreTests|ArchiveTests` zelené → commit.
 

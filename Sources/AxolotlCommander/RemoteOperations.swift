@@ -102,9 +102,9 @@ enum RemotePrompts {
 }
 
 extension ArchiveScratch {
-    /// Downloads a server file into a fresh folder; returns the copy.
-    static func download(_ remote: RemoteLocation) async throws -> URL {
-        let folder = try makeFolder()
+    /// Downloads a server file into `folder` (a fresh one by default); returns the copy.
+    static func download(_ remote: RemoteLocation, into folder: URL? = nil) async throws -> URL {
+        let folder = try folder ?? makeFolder()
         let copy = folder.appending(path: RemotePath.name(remote.path))
         try await RemoteConnections.shared.perform(on: remote.endpoint) { fs in
             try await fs.download(remote.path, to: copy, progress: { _ in })

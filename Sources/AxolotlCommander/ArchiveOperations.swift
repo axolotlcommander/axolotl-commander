@@ -5,7 +5,8 @@ import AppKit
 import CommanderCore
 import SwiftUI
 
-/// Temporary copies of archive members (open, view, edit); removed when the app quits.
+/// Temporary copies of archive members and server files (open, view, compare); removed when
+/// the app quits. Copies being edited (F4) live in `ArchiveEdits.store` instead.
 enum ArchiveScratch {
     static let root = FileManager.default.temporaryDirectory
         .appending(path: "Axolotl-\(UUID().uuidString)", directoryHint: .isDirectory)
@@ -23,8 +24,10 @@ enum ArchiveScratch {
 
     /// Extracts the member `name` of the folder `archive` into a fresh folder; returns the copy.
     /// An encrypted member asks for the password on `window` (the key window by default).
-    static func extract(_ name: String, from archive: ArchivePath, in window: NSWindow? = nil) async throws -> URL {
-        let folder = try makeFolder()
+    /// `folder` is the (empty) folder to extract into; a fresh one below `root` by default.
+    static func extract(_ name: String, from archive: ArchivePath, into folder: URL? = nil,
+                        in window: NSWindow? = nil) async throws -> URL {
+        let folder = try folder ?? makeFolder()
         let members = [archive.member(name)]
         try await ArchivePasswords.run(archive.archive, members: members, in: window) { passphrases in
             _ = try await ArchiveExtractor.extract(
@@ -39,114 +42,168 @@ enum ArchiveScratch {
     }
 }
 
-/// F4 on an archive member: the extracted copy is edited, and a changed copy is offered
-/// back to the archive under the member's own name when the app comes to the front again.
+/// F4 on an archive member (or a server file): the extracted copy is edited, and a changed
+/// copy is offered back under the member's own name when the app comes to the front again.
+///
+/// The copies live in `ArchiveEditStore` (Application Support), not in the temporary folder:
+/// a copy with unsaved changes, or one the user said "Not Now" to, survives quitting and is
+/// offered again at the next launch. A copy is never thrown away because saving it failed.
 final class ArchiveEdits {
     static let shared = ArchiveEdits()
 
-    private final class Session {
-        enum Target: Equatable {
-            case member(archive: URL, path: String)
-            case server(RemoteLocation)
-        }
-
-        let target: Target
-        let copy: URL
-        /// State of the copy when it was extracted or last saved (or declined).
-        var stamp: Stamp?
-
-        init(target: Target, copy: URL) {
-            self.target = target
-            self.copy = copy
-            stamp = Stamp(copy)
-        }
-
-        var isChanged: Bool { Stamp(copy) != stamp }
-    }
-
-    private struct Stamp: Equatable {
-        let date: Date?
-        let size: Int64?
-
-        init?(_ url: URL) {
-            guard let attributes = try? FileManager.default.attributesOfItem(atPath: url.path(percentEncoded: false)) else { return nil }
-            date = attributes[.modificationDate] as? Date
-            size = (attributes[.size] as? NSNumber)?.int64Value
-        }
-    }
-
-    private var sessions: [Session] = []
+    let store: ArchiveEditStore
     private var isAsking = false
 
+    init() {
+        // A test copy of the app (own bundle id) keeps its edits apart from the real app's.
+        let id = Bundle.main.bundleIdentifier ?? "unbundled"
+        store = ArchiveEditStore(root: ArchiveEditStore.defaultRoot(folder: id == "cz.acidek.axolotlcommander" ? "Edits" : "Edits-\(id)"))
+    }
+
     func edit(_ name: String, in archive: ArchivePath) async throws {
-        let target = Session.Target.member(archive: archive.archive, path: archive.member(name))
-        try await edit(target) { try await ArchiveScratch.extract(name, from: archive) }
+        let target = PendingEdit.Target.member(archive: archive.archive, path: archive.member(name))
+        try await edit(target, archiveStamp: PersistentFileStamp(archive.archive)) { folder in
+            try await ArchiveScratch.extract(name, from: archive, into: folder)
+        }
     }
 
     /// F4 on a server file: the downloaded copy is edited and offered back to the server.
     func edit(_ remote: RemoteLocation) async throws {
-        try await edit(.server(remote)) { try await ArchiveScratch.download(remote) }
+        try await edit(.server(remote.url), archiveStamp: nil) { folder in
+            try await ArchiveScratch.download(remote, into: folder)
+        }
     }
 
-    private func edit(_ target: Session.Target, makeCopy: () async throws -> URL) async throws {
+    private func edit(_ target: PendingEdit.Target, archiveStamp: PersistentFileStamp?,
+                      makeCopy: (URL) async throws -> URL) async throws {
         // Editing the same item again reuses its copy, so changes not yet saved stay.
-        if let session = sessions.first(where: { $0.target == target }) {
-            try await Launcher.edit(session.copy)
+        if let existing = store.edit(for: target), FileManager.default.fileExists(atPath: store.copyURL(existing).path) {
+            try await Launcher.edit(store.copyURL(existing))
             return
         }
-        let copy = try await makeCopy()
-        sessions.append(Session(target: target, copy: copy))
-        try await Launcher.edit(copy)
+        if let stale = store.edit(for: target) { try? store.discard(stale.id) }
+        let edit = try await store.begin(target: target, archiveStamp: archiveStamp, makeCopy: makeCopy)
+        try await Launcher.edit(store.copyURL(edit))
     }
 
-    var hasChanges: Bool { sessions.contains { $0.isChanged } }
+    var hasChanges: Bool { !store.changed().isEmpty }
 
     /// Asks about every changed copy. A declined change is asked about again only after a
-    /// further change; a failed save keeps the member as it was and asks again next time.
+    /// further change; a failed save keeps the copy and asks again next time.
     func offerChanges() async {
         guard !isAsking else { return }
         isAsking = true
         defer { isAsking = false }
-        for session in sessions where session.isChanged {
+        for edit in store.changed() {
             let alert = NSAlert()
-            alert.messageText = String(localized: "“\(session.copy.lastPathComponent)” was changed.")
-            switch session.target {
-            case .member(let archive, _):
-                alert.informativeText = String(localized: "Update it in the archive “\(archive.lastPathComponent)”?")
-            case .server(let remote):
-                alert.informativeText = String(localized: "Upload it to \(RemoteURL.displayName(remote.endpoint))?")
-            }
+            alert.messageText = String(localized: "“\(edit.name)” was changed.")
+            alert.informativeText = Self.question(edit)
             alert.addButton(withTitle: String(localized: "Update"))
             alert.addButton(withTitle: String(localized: "Not Now"))
             NSApp.activate()
             guard alert.runModal() == .alertFirstButtonReturn else {
-                session.stamp = Stamp(session.copy)
+                try? store.decline(edit.id)
                 continue
             }
-            let saved = Stamp(session.copy)
-            do {
-                switch session.target {
-                case .member(let archive, let path):
-                    try await ArchiveWriter.update(
-                        archive, adding: [ArchiveWriter.Source(file: session.copy, path: path)], progress: { _ in })
-                    await ArchiveCatalog.shared.invalidate(archive)
-                case .server(let remote):
-                    // The copy has the file's own name, so it replaces the file (complete upload first).
-                    let folder = RemoteLocation(endpoint: remote.endpoint, path: RemotePath.parent(remote.path))
-                    _ = try await RemoteTransfer().upload([session.copy], to: folder, kind: .copy, progress: { _ in },
-                                                          conflict: { _ in .overwrite })
-                }
-                session.stamp = saved
-            } catch {
-                let failure = NSAlert()
-                failure.messageText = {
-                    if case .server = session.target { return String(localized: "The file on the server was not updated.") }
-                    return String(localized: "The archive was not updated.")
-                }()
-                failure.informativeText = OperationsController.describe(error)
-                failure.runModal()
-            }
+            await saveBack(edit)
         }
+    }
+
+    private static func question(_ edit: PendingEdit) -> String {
+        switch edit.target {
+        case .member(let archive, _):
+            String(localized: "Update it in the archive “\(archive.lastPathComponent)”?")
+        case .server(let url):
+            String(localized: "Upload it to \(RemoteURL.parse(url).map { RemoteURL.displayName($0.endpoint) } ?? url.absoluteString)?")
+        }
+    }
+
+    /// Writes the copy back; on an error the copy stays and the message says where it is.
+    @discardableResult
+    private func saveBack(_ edit: PendingEdit) async -> Bool {
+        let copy = store.copyURL(edit)
+        do {
+            switch edit.target {
+            case .member(let archive, let path):
+                try store.verifyArchiveUnchanged(edit)
+                try await ArchiveWriter.update(archive, adding: [ArchiveWriter.Source(file: copy, path: path)],
+                                               expecting: edit.archiveStamp, progress: { _ in })
+                await ArchiveCatalog.shared.invalidate(archive)
+                try store.markSaved(edit.id, archiveStamp: PersistentFileStamp(archive))
+            case .server(let url):
+                guard let remote = RemoteURL.parse(url) else { throw RemoteError.invalidName(url.absoluteString) }
+                // The copy has the file's own name, so it replaces the file (complete upload first).
+                let folder = RemoteLocation(endpoint: remote.endpoint, path: RemotePath.parent(remote.path))
+                _ = try await RemoteTransfer().upload([copy], to: folder, kind: .copy, progress: { _ in },
+                                                      conflict: { _ in .overwrite })
+                try store.markSaved(edit.id, archiveStamp: nil)
+            }
+            return true
+        } catch {
+            let failure = NSAlert()
+            failure.messageText = {
+                if case .server = edit.target { return String(localized: "The file on the server was not updated.") }
+                return String(localized: "The archive was not updated.")
+            }()
+            failure.informativeText = OperationsController.describe(error) + "\n\n"
+                + String(localized: "Your edited copy is kept in “\(copy.path(percentEncoded: false))”.")
+            NSApp.activate()
+            failure.runModal()
+            return false
+        }
+    }
+
+    /// When the app quits: copies with nothing unsaved go; the user is told where the kept ones are.
+    func finishForQuit() {
+        guard let kept = try? store.cleanupForQuit(), !kept.isEmpty else { return }
+        let alert = NSAlert()
+        alert.messageText = String(localized: "Edited files that were not saved back are kept.")
+        alert.informativeText = Self.list(kept) + "\n\n"
+            + String(localized: "They are offered again the next time Axolotl Commander starts. The copies are in “\(store.root.path(percentEncoded: false))”.")
+        NSApp.activate()
+        alert.runModal()
+    }
+
+    /// At launch: edits kept from last time are offered together.
+    func offerPendingFromLastTime() async {
+        guard let pending = try? store.loadPending(), !pending.isEmpty else { return }
+        isAsking = true
+        defer { isAsking = false }
+        let alert = NSAlert()
+        alert.messageText = String(localized: "\(pending.count) edited file(s) were not saved back last time.")
+        alert.informativeText = Self.list(pending)
+        alert.addButton(withTitle: String(localized: "Save Back"))
+        alert.addButton(withTitle: String(localized: "Not Now"))
+        alert.addButton(withTitle: String(localized: "Discard…"))
+        NSApp.activate()
+        switch alert.runModal() {
+        case .alertFirstButtonReturn:
+            for edit in pending { await saveBack(edit) }
+        case .alertThirdButtonReturn:
+            let confirm = NSAlert()
+            confirm.alertStyle = .critical
+            confirm.messageText = String(localized: "Discard the edited copies?")
+            confirm.informativeText = String(localized: "The changes in them will be lost.")
+            confirm.addButton(withTitle: String(localized: "Cancel"))
+            confirm.addButton(withTitle: String(localized: "Discard")).hasDestructiveAction = true
+            if confirm.runModal() == .alertSecondButtonReturn {
+                for edit in pending { try? store.discard(edit.id) }
+            } else {
+                for edit in pending { try? store.decline(edit.id) }
+            }
+        default:
+            // Kept for the next launch, not asked about again until changed further.
+            for edit in pending { try? store.decline(edit.id) }
+        }
+    }
+
+    private static func list(_ edits: [PendingEdit]) -> String {
+        edits.prefix(10).map { edit in
+            switch edit.target {
+            case .member(let archive, let path): "• \(path) — \(archive.path(percentEncoded: false))"
+            case .server(let url): "• \(url.absoluteString)"
+            }
+        }.joined(separator: "\n") + (edits.count > 10 ? "\n…" : "")
     }
 }
 

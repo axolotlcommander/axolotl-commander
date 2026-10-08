@@ -465,6 +465,34 @@ func updateOtherFormats(format: ArchiveFormat) async throws {
     }
 }
 
+@Test func updateRefusesArchiveChangedSinceRead() async throws {
+    try await withSandbox { root in
+        let src = root.sub("src")
+        try write(src.sub("a.txt"), "a")
+        try write(src.sub("b.txt"), "b")
+        let work = root.sub("work")
+        try FileManager.default.createDirectory(at: work, withIntermediateDirectories: true)
+        let archive = work.sub("a.zip")
+        try await ArchiveWriter.create(archive, format: .zip, adding: [.init(file: src.sub("a.txt"), path: "a.txt")], progress: noProgress)
+        let stamp = try #require(PersistentFileStamp(archive))
+
+        // Someone else updates the archive after the member was taken out.
+        try await ArchiveWriter.update(archive, adding: [.init(file: src.sub("b.txt"), path: "other.txt")], progress: noProgress)
+        let changed = try #require(read(archive))
+        await #expect(throws: ArchiveError.changedSinceRead(archive.path)) {
+            try await ArchiveWriter.update(archive, adding: [.init(file: src.sub("a.txt"), path: "a.txt")],
+                                           expecting: stamp, progress: noProgress)
+        }
+        #expect(read(archive) == changed)
+        #expect(names(work) == ["a.zip"])
+
+        // With the current stamp it goes through.
+        try await ArchiveWriter.update(archive, adding: [.init(file: src.sub("b.txt"), path: "a.txt")],
+                                       expecting: PersistentFileStamp(archive), progress: noProgress)
+        #expect(read(archive) != changed)
+    }
+}
+
 @Test func rarIsReadOnly() async throws {
     try await withSandbox { root in
         let rar = root.sub("x.rar")

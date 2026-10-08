@@ -21,6 +21,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         controller.showWindow(nil)
         mainWindow = controller
         NSApp.activate()
+        Task { await ArchiveEdits.shared.offerPendingFromLastTime() }
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
@@ -30,16 +31,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         Task { await ArchiveEdits.shared.offerChanges() }
     }
 
+    /// Changed copies are offered back first; whatever stays unsaved is kept for the next launch.
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
-        guard ArchiveEdits.shared.hasChanges else { return .terminateNow }
+        let edits = ArchiveEdits.shared
+        guard edits.hasChanges else {
+            edits.finishForQuit()
+            return .terminateNow
+        }
         Task {
-            await ArchiveEdits.shared.offerChanges()
+            await edits.offerChanges()
+            edits.finishForQuit()
             sender.reply(toApplicationShouldTerminate: true)
         }
         return .terminateLater
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        // Only temporary copies (view, open, compare); edited copies are in ArchiveEdits.store.
         ArchiveScratch.removeAll()
     }
 

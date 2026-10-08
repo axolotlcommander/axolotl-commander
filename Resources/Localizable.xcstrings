@@ -7553,6 +7553,106 @@
           }
         }
       }
+    },
+    "The archive “%@” has changed since the file was taken out of it, so it was not updated.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archiv „%@“ se od vytažení souboru změnil, proto nebyl aktualizován."
+          }
+        }
+      }
+    },
+    "Your edited copy is kept in “%@”.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upravená kopie zůstala v „%@“."
+          }
+        }
+      }
+    },
+    "Edited files that were not saved back are kept.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upravené soubory, které se nevrátily, zůstaly zachované."
+          }
+        }
+      }
+    },
+    "They are offered again the next time Axolotl Commander starts. The copies are in “%@”.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Při příštím spuštění Axolotl Commanderu se znovu nabídnou. Kopie jsou v „%@“."
+          }
+        }
+      }
+    },
+    "%lld edited file(s) were not saved back last time.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upravené soubory, které se minule nevrátily: %lld."
+          }
+        }
+      }
+    },
+    "Save Back": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vrátit"
+          }
+        }
+      }
+    },
+    "Discard…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zahodit…"
+          }
+        }
+      }
+    },
+    "Discard": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zahodit"
+          }
+        }
+      }
+    },
+    "Discard the edited copies?": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zahodit upravené kopie?"
+          }
+        }
+      }
+    },
+    "The changes in them will be lost.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Změny v nich se ztratí."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

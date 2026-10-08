@@ -37,16 +37,20 @@ public enum ArchiveWriter {
     /// and those whose (renamed) path equals a path being added, renames path prefixes per
     /// `renaming` [old: new], then appends `adding`. The original is replaced only after
     /// a complete write and is left untouched on any error or cancellation.
+    /// With `expecting`, an archive whose current stamp differs (changed, replaced, removed)
+    /// is not touched: `ArchiveError.changedSinceRead`.
     @concurrent
     public static func update(
         _ archive: URL,
         removing: Set<String> = [],
         renaming: [String: String] = [:],
         adding: [Source] = [],
+        expecting: PersistentFileStamp? = nil,
         progress: @escaping @Sendable (Int64) -> Void
     ) async throws {
         try withUTF8Locale {
-            try updateArchive(archive, removing: removing, renaming: renaming, adding: adding, progress: progress)
+            try updateArchive(archive, removing: removing, renaming: renaming, adding: adding,
+                              expecting: expecting, progress: progress)
         }
     }
 
@@ -83,8 +87,12 @@ public enum ArchiveWriter {
         removing: Set<String>,
         renaming: [String: String],
         adding: [Source],
+        expecting: PersistentFileStamp?,
         progress: @escaping (Int64) -> Void
     ) throws {
+        if let expecting, PersistentFileStamp(archive) != expecting {
+            throw ArchiveError.changedSinceRead(archive.path)
+        }
         guard let named = ArchiveFormat.detect(fileName: archive.lastPathComponent) else {
             throw ArchiveError.unsupportedFormat
         }
@@ -158,6 +166,10 @@ public enum ArchiveWriter {
             if let missing = Set(renames.keys).subtracting(renameHits).sorted().first { throw ArchiveError.notFound(missing) }
             for item in items { try copier.write(item, to: writer, format: format) }
             try writer.close()
+            // Changed while it was being rewritten: replacing it would lose that change.
+            if let expecting, PersistentFileStamp(archive) != expecting {
+                throw ArchiveError.changedSinceRead(archive.path)
+            }
             if chmod(temp, original.st_mode & 0o7777) != 0 || rename(temp, target) != 0 {
                 throw ArchiveError.library(posixMessage())
             }
