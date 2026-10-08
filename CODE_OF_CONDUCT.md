@@ -7,7 +7,7 @@ Stručně: jednáme s ostatními s respektem, bez ohledu na původ, zkušenosti,
 kritizujeme kód a nápady, ne lidi; obtěžování, urážky a zveřejňování cizích soukromých údajů
 nejsou přijatelné.
 
-Porušení pravidel nahlas správci projektu na **KONTAKT_DOPLNIT**. Každé hlášení se posoudí
+Porušení pravidel nahlas správci projektu na **acidek@icloud.com**. Každé hlášení se posoudí
 důvěrně. Správci mohou nevhodné příspěvky upravit nebo odstranit a účastníka dočasně nebo trvale
 vyloučit, jak popisuje Contributor Covenant.
 

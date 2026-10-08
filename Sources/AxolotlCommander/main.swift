@@ -8,8 +8,6 @@ import CommanderCore
 // Launched by ssh as SSH_ASKPASS: answer the prompt and quit before any UI starts.
 if let status = Askpass.runHelperIfRequested() { exit(status) }
 
-LegacySettings.migrateIfNeeded()
-
 /// The Help key (Insert on PC keyboards) is consumed by AppKit for context
 /// help before any keyDown. Commander needs it as Insert, so deliver it directly.
 final class CommanderApplication: NSApplication {
