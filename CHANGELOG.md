@@ -20,6 +20,12 @@ First public release of the source code: a two-panel file manager (stages 0–11
   new tab, right-click for more; ⌘L (Edit Path) types a path; long paths collapse into "…";
   the text field stays available in Settings → Appearance
   ([003-breadcrumb-path-bar](specs/003-breadcrumb-path-bar/spec.md)).
+- Open server connections as buttons in the volume bar: one click returns to the last folder on
+  the server, ⏏ on hover or the right-click menu disconnects; the volume menu (⌥F1/⌥F2) lists
+  them under "Servers". The volume bar also offers iCloud Drive, Network (mounted network
+  volumes, connections, Connect to Server…) and an optional Home button, chosen in Settings →
+  Appearance; the toolbar gets Connect to Server, and Disconnect can be added
+  ([004-server-connection-buttons](specs/004-server-connection-buttons/spec.md)).
 - The macOS prompts for folder access (Desktop, Documents, Downloads, disks, cloud storage)
   explain why a file manager needs it, in English and Czech.
 - Releases can be signed with a stable project certificate (`scripts/make-signing-cert.sh`), so

@@ -173,6 +173,23 @@ final class PanelViewController: NSViewController {
             router?.activate(side)
             go(to: url)
         }
+        volumeBar.onChooseServer = { [weak self] endpoint in self?.openServer(endpoint) }
+        volumeBar.onOpenServerInOtherPanel = { [weak self] endpoint in
+            guard let self else { return }
+            router?.otherPanel(than: self).openServer(endpoint)
+        }
+        volumeBar.onCopyServerAddress = { [weak self] endpoint in
+            guard let self else { return }
+            copyText([RemoteURL.displayText(ServerConnectionsUI.shared.place(for: endpoint, panel: self))])
+        }
+        volumeBar.onConnectToServer = { [weak self] in
+            guard let self else { return }
+            router?.activate(side)
+            ConnectSheet.show(for: self)
+        }
+        volumeBar.onDisconnectServer = { endpoint in
+            Task { await ServerConnectionsUI.shared.disconnect([endpoint]) }
+        }
 
         configureTabStrip()
 
@@ -282,6 +299,7 @@ final class PanelViewController: NSViewController {
         if pathField.currentEditor() == nil { pathField.stringValue = locationText }
         updatePathBar()
         volumeBar.show(location: model.location)
+        if let remote = model.remote { ServerConnectionsUI.shared.visit(remote, panel: self) }
         router?.panelLocationChanged(self)
         ArchivePasswords.panel(self, showsArchive: model.archive?.archive)
         updateQuickLook()
@@ -500,6 +518,7 @@ final class PanelViewController: NSViewController {
             return model.cursorItem.map { !$0.isDirectory && !$0.fileExtension.isEmpty } ?? false
         case .pack: return !targets().isEmpty
         case .unpack: return !archiveTargets().isEmpty
+        case .disconnect: return !ServerConnectionsUI.shared.opened.isEmpty
         default: return true
         }
     }
@@ -757,6 +776,13 @@ final class PanelViewController: NSViewController {
         }
     }
 
+    /// A server button: this panel's last folder on the connection (else any panel's, else the
+    /// login folder), with the panel made active.
+    func openServer(_ endpoint: RemoteEndpoint) {
+        router?.activate(side)
+        go(to: ServerConnectionsUI.shared.place(for: endpoint, panel: self).url)
+    }
+
     func showResults(_ listing: ResultsListing, focusing name: String? = nil) {
         Task { await navigate { try await model.showResults(listing, focusing: name) } }
     }
@@ -949,12 +975,25 @@ final class PanelViewController: NSViewController {
                 menu.addItem(placeItem(url.lastPathComponent, url, icon: NSImage(systemSymbolName: symbol, accessibilityDescription: nil)))
             }
         }
-        let iCloud = home.appending(path: "Library/Mobile Documents/com~apple~CloudDocs", directoryHint: .isDirectory)
-        if fm.fileExists(atPath: iCloud.path) {
+        if let iCloud = VolumeBar.iCloudDrive {
             menu.addItem(placeItem(String(localized: "iCloud Drive"), iCloud, icon: NSImage(systemSymbolName: "icloud", accessibilityDescription: nil)))
         }
         menu.addItem(placeItem(String(localized: "Network Volumes"), URL(filePath: "/Volumes", directoryHint: .isDirectory),
                                icon: NSImage(systemSymbolName: "network", accessibilityDescription: nil)))
+        // Open server connections, as the volume bar shows them (also those its width hides).
+        let connections = ServerConnectionsUI.shared
+        if !connections.opened.isEmpty {
+            menu.addItem(.separator())
+            menu.addItem(.sectionHeader(title: String(localized: "Servers")))
+            for endpoint in connections.opened {
+                let item = actionItem(connections.label(for: endpoint)) { [weak self] in self?.openServer(endpoint) }
+                let icon = NSImage(systemSymbolName: "network", accessibilityDescription: nil)
+                icon?.size = NSSize(width: 16, height: 16)
+                item.image = icon
+                item.toolTip = connections.address(of: endpoint)
+                menu.addItem(item)
+            }
+        }
         menu.popUp(positioning: nil, at: NSPoint(x: 0, y: pathBar.bounds.height + 2), in: pathBar)
     }
 

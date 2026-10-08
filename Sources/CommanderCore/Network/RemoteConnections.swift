@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 The Axolotl Commander Authors
 
-import Foundation
+public import Foundation
 import Synchronization
 
 /// What the user answered to an `AuthPrompt`.
@@ -40,6 +40,9 @@ public actor RemoteConnections {
 
     public static let shared = RemoteConnections()
 
+    /// Posted (object: the instance) after `openedEndpoints` changed.
+    public static let didChangeNotification = Notification.Name("RemoteConnections.didChange")
+
     private struct Setup {
         var connector: Connector?
         var ask: UserPrompter = { _ in nil }
@@ -51,6 +54,9 @@ public actor RemoteConnections {
     private var sessions: [RemoteEndpoint: any RemoteFileSystem] = [:]
     private var pending: [RemoteEndpoint: Task<any RemoteFileSystem, any Error>] = [:]
     private var options: [RemoteEndpoint: ConnectOptions] = [:]
+    /// Endpoints in the order their first session opened; a dropped session stays listed
+    /// until the user disconnects.
+    private var opened: [RemoteEndpoint] = []
 
     public init() {}
 
@@ -66,6 +72,9 @@ public actor RemoteConnections {
     }
 
     public func isConnected(_ endpoint: RemoteEndpoint) -> Bool { sessions[endpoint] != nil }
+
+    /// Connections the user opened and has not closed, in opening order, including dropped ones.
+    public var openedEndpoints: [RemoteEndpoint] { opened }
 
     /// The open session, or a new one. `password` (typed in a dialog or an address) is tried
     /// before the stored one; `options` are kept for later reconnects.
@@ -96,6 +105,10 @@ public actor RemoteConnections {
         defer { pending[endpoint] = nil }
         let session = try await task.value
         sessions[endpoint] = session
+        if !opened.contains(endpoint) {
+            opened.append(endpoint)
+            postChange()
+        }
         if let reply = attempt.lastReply, reply.remember {
             try? passwords.save(reply.text, for: endpoint)
         }
@@ -164,14 +177,30 @@ public actor RemoteConnections {
         return total
     }
 
+    /// Closes the session (if any) and drops the endpoint from `openedEndpoints`.
     public func disconnect(_ endpoint: RemoteEndpoint) async {
-        pending[endpoint]?.cancel()
-        guard let session = sessions.removeValue(forKey: endpoint) else { return }
-        await session.close()
+        if await close(endpoint) { postChange() }
     }
 
     public func disconnectAll() async {
-        for endpoint in sessions.keys { await disconnect(endpoint) }
+        var changed = false
+        for endpoint in opened + sessions.keys {
+            if await close(endpoint) { changed = true }
+        }
+        if changed { postChange() }
+    }
+
+    /// True when `opened` lost the endpoint.
+    private func close(_ endpoint: RemoteEndpoint) async -> Bool {
+        pending[endpoint]?.cancel()
+        let index = opened.firstIndex(of: endpoint)
+        if let index { opened.remove(at: index) }
+        if let session = sessions.removeValue(forKey: endpoint) { await session.close() }
+        return index != nil
+    }
+
+    private func postChange() {
+        NotificationCenter.default.post(name: Self.didChangeNotification, object: self)
     }
 
     public func forgetPassword(for endpoint: RemoteEndpoint) {

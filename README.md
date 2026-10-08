@@ -150,6 +150,12 @@ there, ⌘-click to open it in a new tab, right-click for more (other panel, cop
 Finder). To type a path, press ⌘L or click right of the path. Settings → Appearance switches back
 to the plain text field.
 
+**Volume bar.** Above the path bar sit the mounted volumes, then iCloud Drive, Network and a
+button for every open SFTP/FTP/FTPS connection. A server button returns the panel to the folder
+it left there; hover over it and click ⏏ to disconnect, or right-click for more. Network lists
+mounted network volumes, the open connections and Connect to Server… (also in the toolbar, ⌘K).
+Settings → Appearance chooses what the bar shows, including an optional Home button.
+
 | Key | Command | Key | Command |
 |---|---|---|---|
 | Tab | switch panel | F7 | new folder |

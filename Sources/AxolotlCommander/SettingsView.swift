@@ -95,6 +95,10 @@ private struct AppearanceSettings: View {
     @State private var selection: HighlightRule.ID?
     @AppStorage(PathBar.styleKey) private var pathBarStyle = PathBar.Style.breadcrumbs.rawValue
     @AppStorage(PathBar.iconsKey) private var pathBarIcons = true
+    @AppStorage(VolumeBarSettings.homeKey) private var volumeBarHome = VolumeBarSettings().showHome
+    @AppStorage(VolumeBarSettings.iCloudKey) private var volumeBarICloud = VolumeBarSettings().showICloud
+    @AppStorage(VolumeBarSettings.networkKey) private var volumeBarNetwork = VolumeBarSettings().showNetwork
+    @AppStorage(VolumeBarSettings.serversKey) private var volumeBarServers = VolumeBarSettings().showServers
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -110,6 +114,14 @@ private struct AppearanceSettings: View {
                 .frame(width: 260)
                 Toggle("Show icons in path bar", isOn: $pathBarIcons)
                     .disabled(pathBarStyle != PathBar.Style.breadcrumbs.rawValue)
+            }
+            // Volumes are always shown; these items follow them.
+            HStack(spacing: 16) {
+                Text("Volume bar shows:")
+                Toggle("Home", isOn: $volumeBarHome)
+                Toggle("iCloud Drive", isOn: $volumeBarICloud)
+                Toggle("Network", isOn: $volumeBarNetwork)
+                Toggle("Server connections", isOn: $volumeBarServers)
             }
             Text("Highlighting — the first matching rule from the top wins:").font(.headline)
             Table($settings.appearance.highlights, selection: $selection) {
