@@ -7,11 +7,13 @@ import CommanderCore
 /// One toolbar with commands that already exist; every button runs a registry command,
 /// so it is enabled exactly when the menu item is.
 enum MainToolbar {
-    static let defaultItems: [Command] = [
-        .goBack, .goForward, .goParent, .goHome, .refresh, .toggleHidden,
-        .quickLook, .properties, .makeDirectory, .openTerminal, .revealInFinder,
-        .comparePanels, .maximizePanel,
-    ]
+    /// The default set in named groups, so adding a button does not shift the others.
+    static let navigationGroup: [Command] = [.goBack, .goForward, .goParent, .goHome]
+    static let viewGroup: [Command] = [.refresh, .toggleHidden]
+    static let fileToolsGroup: [Command] = [.quickLook, .properties, .makeDirectory, .openTerminal, .revealInFinder]
+    static let windowLayoutGroup: [Command] = [.comparePanels, .maximizePanel]
+
+    static var defaultItems: [Command] { navigationGroup + viewGroup + fileToolsGroup + windowLayoutGroup }
 
     static let symbols: [Command: String] = [
         .goBack: "chevron.left", .goForward: "chevron.right", .goParent: "arrow.turn.left.up",
@@ -22,6 +24,7 @@ enum MainToolbar {
         .find: "magnifyingglass", .hotPaths: "star", .newTab: "plus.square.on.square",
         .filter: "line.3.horizontal.decrease.circle", .changeDirectory: "arrow.right.circle",
         .copy: "doc.on.doc", .move: "arrow.right.doc.on.clipboard", .delete: "trash",
+        .connectToServer: "network", .disconnect: "eject",
     ]
 
     static func make(delegate: any NSToolbarDelegate) -> NSToolbar {
@@ -43,9 +46,10 @@ enum MainToolbar {
 
 extension MainWindowController: NSToolbarDelegate, NSToolbarItemValidation {
     func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
-        let ids = MainToolbar.defaultItems.map(MainToolbar.identifier)
-        // Navigation | view | file | tools, with a flexible space before the window-layout buttons.
-        return Array(ids[0..<6]) + [.space] + Array(ids[6..<11]) + [.flexibleSpace] + Array(ids[11...])
+        func ids(_ group: [Command]) -> [NSToolbarItem.Identifier] { group.map(MainToolbar.identifier) }
+        // Navigation and view | file tools, with a flexible space before the window-layout buttons.
+        return ids(MainToolbar.navigationGroup) + ids(MainToolbar.viewGroup) + [.space]
+            + ids(MainToolbar.fileToolsGroup) + [.flexibleSpace] + ids(MainToolbar.windowLayoutGroup)
     }
 
     func toolbarAllowedItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {

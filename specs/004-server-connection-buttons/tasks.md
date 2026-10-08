@@ -12,7 +12,7 @@ local test servers.
 
 ## Phase 1: Setup
 
-- [ ] T001 [P] Toolbar symbols `.connectToServer: "network"`, `.disconnect: "eject"`; default identifiers built from named groups (navigation, view, file tools, window layout) instead of fixed index ranges, in Sources/AxolotlCommander/MainToolbar.swift
+- [X] T001 [P] Toolbar symbols `.connectToServer: "network"`, `.disconnect: "eject"`; default identifiers built from named groups (navigation, view, file tools, window layout) instead of fixed index ranges, in Sources/AxolotlCommander/MainToolbar.swift
 
 ## Phase 2: Foundational (core, blocks all stories)
 
