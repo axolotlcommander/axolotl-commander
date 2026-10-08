@@ -4,7 +4,7 @@
 
 # Axolotl Commander
 
-[![CI](https://github.com/ACiDekCZ/axolotl-commander/actions/workflows/ci.yml/badge.svg)](https://github.com/ACiDekCZ/axolotl-commander/actions/workflows/ci.yml)
+[![CI](https://github.com/axolotlcommander/axolotl-commander/actions/workflows/ci.yml/badge.svg)](https://github.com/axolotlcommander/axolotl-commander/actions/workflows/ci.yml)
 [![License: GPL v3+](https://img.shields.io/badge/license-GPL--3.0--or--later-blue.svg)](LICENSE)
 
 Nativní dvoupanelový správce souborů pro macOS ovládaný z klávesnice. Chováním a klávesami
@@ -33,7 +33,7 @@ English are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).*
 
 ## Instalace
 
-Hotové sestavení je v [Releases](https://github.com/ACiDekCZ/axolotl-commander/releases):
+Hotové sestavení je v [Releases](https://github.com/axolotlcommander/axolotl-commander/releases):
 stáhni `.dmg` nebo `.zip` a přetáhni Axolotl Commander do složky Aplikace. Dokud vydání nejsou
 podepsaná Apple Developer ID, macOS aplikaci při prvním spuštění zablokuje — povol ji v
 *Nastavení systému → Soukromí a zabezpečení → Přesto otevřít*.

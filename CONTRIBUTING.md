@@ -10,8 +10,8 @@ below (data safety and clean implementation) and sign off your commits (`git com
 ## Než začneš
 
 - Menší opravy rovnou pošli jako pull request.
-- Větší změnu nebo novou funkci nejdřív navrhni v [issue](https://github.com/ACiDekCZ/axolotl-commander/issues)
-  nebo v [Discussions](https://github.com/ACiDekCZ/axolotl-commander/discussions), ať se domluvíme
+- Větší změnu nebo novou funkci nejdřív navrhni v [issue](https://github.com/axolotlcommander/axolotl-commander/issues)
+  nebo v [Discussions](https://github.com/axolotlcommander/axolotl-commander/discussions), ať se domluvíme
   na chování dřív, než napíšeš hodně kódu.
 - Chování se řídí vzorem — [Tandem Commanderem](https://github.com/tandemcommander/tandemcommander)
   a [Open Salamanderem](https://github.com/OpenSalamander/salamander) — upravené na zvyklosti macOS.

@@ -3,7 +3,7 @@
 ## Hlášení zranitelnosti
 
 Bezpečnostní chyby **nehlas veřejným issue**. Použij soukromé hlášení na GitHubu:
-[Report a vulnerability](https://github.com/ACiDekCZ/axolotl-commander/security/advisories/new),
+[Report a vulnerability](https://github.com/axolotlcommander/axolotl-commander/security/advisories/new),
 případně e-mailem na **acidek@icloud.com**.
 
 Uveď prosím, čeho se chyba týká (např. rozbalování archivů, SFTP/FTP, náhled Markdownu/HTML,

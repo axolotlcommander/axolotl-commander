@@ -7,7 +7,7 @@
 #
 #   scripts/github-setup.sh [owner/repo]
 set -euo pipefail
-REPO="${1:-ACiDekCZ/axolotl-commander}"
+REPO="${1:-axolotlcommander/axolotl-commander}"
 
 echo "== Repository settings"
 gh repo edit "$REPO" \
