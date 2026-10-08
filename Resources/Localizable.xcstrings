@@ -8113,6 +8113,36 @@
           }
         }
       }
+    },
+    "A file operation is still running.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ještě probíhá operace se soubory."
+          }
+        }
+      }
+    },
+    "Quitting stops it; items it has not finished stay as they are now.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ukončení ji zastaví; položky, které nedokončila, zůstanou v současném stavu."
+          }
+        }
+      }
+    },
+    "Stop and Quit": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zastavit a ukončit"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

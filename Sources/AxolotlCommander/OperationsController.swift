@@ -382,6 +382,13 @@ final class OperationsController {
         }
     }
 
+    /// Cancels the running operations and waits until they have stopped (and cleaned up after themselves).
+    func stopAll() async {
+        let states = running
+        for state in states { state.task?.cancel() }
+        for state in states { await state.task?.value }
+    }
+
     func inform(_ title: String, _ text: String) async {
         let alert = NSAlert()
         alert.messageText = title
