@@ -30,8 +30,9 @@ Private instructions for your own machine belong in `CLAUDE.local.md` (listed in
 
 1. Discuss the idea in chat in the contributor's language: behavior, edge cases, what is out
    of scope, data-safety risks, how the reference program behaves.
-2. Write a short summary of what was agreed (in their language) and wait for confirmation.
-3. Run `/speckit-specify` with an English version of the summary, then `/speckit-plan`,
+2. Write a short summary of what was agreed (in their language) when asked or when the
+   discussion settles. Do not create a spec, branch or task on your own initiative.
+3. Only when the contributor says so, run `/speckit-specify` with an English version of the summary, then `/speckit-plan`,
    `/speckit-tasks`, `/speckit-implement`. `/speckit-clarify` only if something is still open.
 
 Small changes (a bug fix, a layout tweak, a new shortcut) do not need a spec: a test and a
