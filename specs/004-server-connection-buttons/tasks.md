@@ -16,12 +16,12 @@ local test servers.
 
 ## Phase 2: Foundational (core, blocks all stories)
 
-- [ ] T002 Opened connections in `RemoteConnections`: ordered `opened` list (appended on the first successful session, unique, kept when a session drops, removed only by `disconnect`/`disconnectAll`, also when no session is open), `openedEndpoints`, `didChangeNotification` posted after every change, in Sources/CommanderCore/Network/RemoteConnections.swift
-- [ ] T003 [P] `ServerLabels.labels(for:)` (host → user@host → user@host:port with non-default port → protocol:// prefix; never a password) in Sources/CommanderCore/Network/ServerLabels.swift
-- [ ] T004 [P] `ConnectionPlaces<PanelID>` (`visit`, `place(for:panel:)` = this panel's last folder, else any panel's, else login folder with empty path; `forget`) in Sources/CommanderCore/Network/ConnectionPlaces.swift
-- [ ] T005 [P] `VolumeBarSettings` (showHome false, showICloud/showNetwork/showServers true; UserDefaults keys `volumeBar.showHome`, `volumeBar.showICloud`, `volumeBar.showNetwork`, `volumeBar.showServers`) and `VolumeBarModel.items(...)` (order: volumes, Home, iCloud Drive, Network, servers) and `pressed(...)` (remote → its server; inside iCloud → iCloud Drive; exactly home → Home; else the volume) in Sources/CommanderCore/Window/VolumeBarModel.swift
-- [ ] T006 Tests: opened list order, dropped session kept, disconnect without session removes it, notification posted (fake connector as in existing remote tests) in Tests/CommanderCoreTests/RemoteConnectionsListTests.swift
-- [ ] T007 [P] Tests: labels (unique hosts, same host other users, same user other ports, SFTP vs FTP), places (own panel, other panel, none, forget), items (each setting, iCloud missing), pressed rule (remote, iCloud vs Macintosh HD, home exact vs below, volume) in Tests/CommanderCoreTests/VolumeBarTests.swift
+- [X] T002 Opened connections in `RemoteConnections`: ordered `opened` list (appended on the first successful session, unique, kept when a session drops, removed only by `disconnect`/`disconnectAll`, also when no session is open), `openedEndpoints`, `didChangeNotification` posted after every change, in Sources/CommanderCore/Network/RemoteConnections.swift
+- [X] T003 [P] `ServerLabels.labels(for:)` (host → user@host → user@host:port with non-default port → protocol:// prefix; never a password) in Sources/CommanderCore/Network/ServerLabels.swift
+- [X] T004 [P] `ConnectionPlaces<PanelID>` (`visit`, `place(for:panel:)` = this panel's last folder, else any panel's, else login folder with empty path; `forget`) in Sources/CommanderCore/Network/ConnectionPlaces.swift
+- [X] T005 [P] `VolumeBarSettings` (showHome false, showICloud/showNetwork/showServers true; UserDefaults keys `volumeBar.showHome`, `volumeBar.showICloud`, `volumeBar.showNetwork`, `volumeBar.showServers`) and `VolumeBarModel.items(...)` (order: volumes, Home, iCloud Drive, Network, servers) and `pressed(...)` (remote → its server; inside iCloud → iCloud Drive; exactly home → Home; else the volume) in Sources/CommanderCore/Window/VolumeBarModel.swift
+- [X] T006 Tests: opened list order, dropped session kept, disconnect without session removes it, notification posted (fake connector as in existing remote tests) in Tests/CommanderCoreTests/RemoteConnectionsListTests.swift
+- [X] T007 [P] Tests: labels (unique hosts, same host other users, same user other ports, SFTP vs FTP), places (own panel, other panel, none, forget), items (each setting, iCloud missing), pressed rule (remote, iCloud vs Macintosh HD, home exact vs below, volume) in Tests/CommanderCoreTests/VolumeBarTests.swift
 
 **Checkpoint**: `swift test` green; core API usable from the UI.
 
