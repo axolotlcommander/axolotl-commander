@@ -3,16 +3,14 @@
 Vzor chování: [Tandem Commander](https://github.com/tandemcommander/tandemcommander) (Windows,
 WinAPI), naklonovaný vedle tohoto repa jako `../tandemcommander`. Analýza portu:
 `../tandemcommander/docs/macos-port/`.
-Plán etap a stav práce: `docs/PLAN.md` a `docs/STATE.md`.
+Plán etap: `docs/PLAN.md`.
 Principy: `.specify/memory/constitution.md`. Nové funkce přes Spec Kit (`/speckit-specify` →
 `/speckit-plan` → `/speckit-tasks` → `/speckit-implement`), specifikace v `specs/NNN-nazev/`.
 Soukromé pokyny pro vlastní stroj patří do `CLAUDE.local.md` (je v `.gitignore`).
 
 ## Postup práce
 
-- Nová session začíná přečtením `docs/STATE.md`, ne prozkoumáváním celého repa.
-- **Stav ukládej průběžně** do `docs/STATE.md` (hotové kroky, rozpracované, další krok,
-  známé problémy). Po každém dokončeném kroku commit.
+- Po každém dokončeném kroku commit (build bez varování, `swift test` zelené).
 - Nečti velké soubory celé: `../tandemcommander/CLAUDE.md` má ~150 kB — jen `grep`
   a cílené výřezy.
 

@@ -10,8 +10,7 @@ Sync Impact Report
 # Ústava Axolotl Commanderu
 
 Ústava platí pro veškerou práci ve Spec Kitu (`/speckit-*`) i mimo něj. Provozní detaily
-(cesty, skripty, testovací aplikace) jsou v `CLAUDE.md`, plán etap v `docs/PLAN.md`,
-stav v `docs/STATE.md`.
+(cesty, skripty, testovací aplikace) jsou v `CLAUDE.md`, plán etap v `docs/PLAN.md`.
 
 ## Základní principy
 
@@ -60,7 +59,7 @@ stav v `docs/STATE.md`.
 
 - Práce po etapách z `docs/PLAN.md`; každá funkce je samostatně dokončitelná a použitelná.
 - Jednodušší řešení má přednost (YAGNI); optimalizace až po měření.
-- Po každém kroku commit `[Etapa N] popis` a zápis do `docs/STATE.md`.
+- Po každém kroku commit `[Etapa N] popis`.
 
 ## Postup vývoje (Spec Kit)
 
@@ -70,7 +69,7 @@ stav v `docs/STATE.md`.
 3. `/speckit-plan` — technický plán; sekce *Constitution Check* ověří principy I–VI.
 4. `/speckit-tasks` → `/speckit-analyze` (volitelně) → `/speckit-implement`.
 5. Hotovo = build bez varování, `swift test` zelené, scénář z klávesnice ověřen v testovací
-   aplikaci, `docs/STATE.md` aktualizován.
+   aplikaci.
 
 Drobné opravy (chyba, úprava rozvržení) nemusí projít celým cyklem; stačí test a commit.
 

@@ -22,7 +22,7 @@ Pojistky do testů: `../tandemcommander/docs/macos-port/05-pravidla.md`.
 ## Etapy
 
 Každá etapa končí: build bez varování, `swift test` zelené, scénář z klávesnice projde ručně,
-nehotové příkazy v menu šedé, commit, zápis do `docs/STATE.md`.
+nehotové příkazy v menu šedé, commit.
 
 ### Milník A — první použitelná verze
 
@@ -51,11 +51,3 @@ nehotové příkazy v menu šedé, commit, zápis do `docs/STATE.md`.
 | 10 | Prohlížeče podle typu | Markdown (WKWebView), obrázky (ImageIO), zvýraznění kódu, porovnání souborů |
 | 11 | Pokročilé | Práva/příznaky/štítky, velikost písmen, checksumy, dávkové přejmenování, disk map, user menu F9, nastavení kláves, duplicity podle obsahu |
 | 12 | Pluginy | Jen s konkrétním rozšiřujícím oknem |
-
-## Jak pracovat (úspora tokenů)
-
-- Izolované moduly jádra s jasným rozhraním (masky, pravidla jmen, řazení, operace + testy)
-  → subagent (`sonnet`), zadání obsahuje rozhraní a akceptační testy.
-- Hledání v nápovědě vzoru (`../tandemcommander/help/src/hh/salamand/*.htm`) → subagent
-  (`haiku`), vrací jen pravidla v bodech.
-- Hlavní session: architektura, AppKit integrace, review, commit, `STATE.md`.
