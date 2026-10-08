@@ -345,7 +345,8 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         if let data = defaults.data(forKey: layoutKey), let layout = WindowLayout.decode(data) { return layout }
         func legacy(_ side: String) -> TabList {
             let path = defaults.string(forKey: "panel.\(side).path")
-            var state = PanelState(location: path.map { URL(filePath: $0, directoryHint: .isDirectory) }
+            // Written by hand or by scripts: "a/../b" would show ".." in the path bar.
+            var state = PanelState(location: path.map { URL(filePath: $0, directoryHint: .isDirectory).standardizedFileURL }
                                    ?? FileManager.default.homeDirectoryForCurrentUser)
             if let raw = defaults.data(forKey: "panel.\(side).sort"),
                let sort = try? JSONDecoder().decode(SortSpec.self, from: raw) { state.sort = sort }

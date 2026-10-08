@@ -1070,10 +1070,22 @@ private enum Column: String, CaseIterable {
         case .date: 130
         }
     }
-    /// The Date column always fits a date, also in bold (marked rows): middle-truncated dates mislead.
+    /// The Date and Size columns always fit their values, also in bold (marked rows): a
+    /// middle-truncated date or size misleads.
     var minWidth: CGFloat {
-        self == .date ? Self.dateWidth : 40
+        switch self {
+        case .date: Self.dateWidth
+        case .size: Self.sizeWidth
+        default: 40
+        }
     }
+
+    /// Sizes up to 999 GB in bytes with grouping, measured in the bold font, plus the cell's insets.
+    private static let sizeWidth: CGFloat = {
+        let font = NSFont.boldSystemFont(ofSize: NSFont.systemFontSize)
+        let widest = (Format.grouped(999_999_999_999) as NSString).size(withAttributes: [.font: font]).width
+        return ceil(widest) + 12
+    }()
 
     /// The widest date the current locale writes, measured in the bold font, plus the cell's insets.
     private static let dateWidth: CGFloat = {
