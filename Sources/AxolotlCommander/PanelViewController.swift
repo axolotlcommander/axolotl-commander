@@ -173,6 +173,7 @@ final class PanelViewController: NSViewController {
             router?.activate(side)
             go(to: url)
         }
+        volumeBar.onChooseServer = { [weak self] endpoint in self?.openServer(endpoint) }
 
         configureTabStrip()
 
@@ -282,6 +283,7 @@ final class PanelViewController: NSViewController {
         if pathField.currentEditor() == nil { pathField.stringValue = locationText }
         updatePathBar()
         volumeBar.show(location: model.location)
+        if let remote = model.remote { ServerConnectionsUI.shared.visit(remote, panel: self) }
         router?.panelLocationChanged(self)
         ArchivePasswords.panel(self, showsArchive: model.archive?.archive)
         updateQuickLook()
@@ -500,6 +502,7 @@ final class PanelViewController: NSViewController {
             return model.cursorItem.map { !$0.isDirectory && !$0.fileExtension.isEmpty } ?? false
         case .pack: return !targets().isEmpty
         case .unpack: return !archiveTargets().isEmpty
+        case .disconnect: return !ServerConnectionsUI.shared.opened.isEmpty
         default: return true
         }
     }
@@ -755,6 +758,13 @@ final class PanelViewController: NSViewController {
                 router?.operations.report(error)
             }
         }
+    }
+
+    /// A server button: this panel's last folder on the connection (else any panel's, else the
+    /// login folder), with the panel made active.
+    func openServer(_ endpoint: RemoteEndpoint) {
+        router?.activate(side)
+        go(to: ServerConnectionsUI.shared.place(for: endpoint, panel: self).url)
     }
 
     func showResults(_ listing: ResultsListing, focusing name: String? = nil) {

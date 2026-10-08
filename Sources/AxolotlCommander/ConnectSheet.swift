@@ -250,7 +250,7 @@ struct DisconnectSheet: View {
     static func show(for panel: PanelViewController) {
         guard let window = panel.view.window else { return }
         Task {
-            let endpoints = await RemoteConnections.shared.connected
+            let endpoints = await RemoteConnections.shared.openedEndpoints
             guard !endpoints.isEmpty else {
                 let alert = NSAlert()
                 alert.messageText = String(localized: "No servers are connected.")
@@ -267,14 +267,8 @@ struct DisconnectSheet: View {
                 chosen: current.map { endpoints.contains($0) ? [$0] : Set(endpoints) } ?? Set(endpoints),
                 onDisconnect: { chosen in
                     close()
-                    Task {
-                        for endpoint in chosen { await RemoteConnections.shared.disconnect(endpoint) }
-                        // Panels on a closed connection go home.
-                        let panels = panel.router.map { [$0.left, $0.right] } ?? [panel]
-                        for p in panels where p.model.remote.map({ chosen.contains($0.endpoint) }) == true {
-                            p.go(to: FileManager.default.homeDirectoryForCurrentUser)
-                        }
-                    }
+                    // Panels on a closed connection go home, in every window.
+                    Task { await ServerConnectionsUI.shared.disconnect(chosen) }
                 },
                 onCancel: close)
             let host = NSWindow(contentViewController: NSHostingController(rootView: sheet))

@@ -39,10 +39,10 @@ local test servers.
 
 **Independent Test**: quickstart Q3–Q6, Q9.
 
-- [ ] T009 [US2] Shared UI state: one `ConnectionPlaces` on the main actor and a disconnect helper (disconnect endpoints, forget places, every panel of every main window on them goes home) in Sources/AxolotlCommander/ServerConnectionsUI.swift
-- [ ] T010 [US2] `VolumeBar` renders `VolumeBarModel.items` (volume buttons as today, server buttons with network symbol, label, tooltip `protocol://user@host:port`), rebuilds on mount/unmount, `RemoteConnections.didChangeNotification` and `UserDefaults.didChangeNotification`, presses the item from `VolumeBarModel.pressed`, callbacks `onChooseVolume(URL)` / `onChooseServer(RemoteEndpoint)`, in Sources/AxolotlCommander/VolumeBar.swift
-- [ ] T011 [US2] Panel wiring: record `visit` in `modelChanged()` when `model.remote` is set; server click → activate panel + `go(to:)` the place; pass remote endpoint to `volumeBar.show`, in Sources/AxolotlCommander/PanelViewController.swift
-- [ ] T012 [US2] Disconnect dialog lists `openedEndpoints` and uses the shared disconnect helper, in Sources/AxolotlCommander/ConnectSheet.swift
+- [X] T009 [US2] Shared UI state: one `ConnectionPlaces` on the main actor and a disconnect helper (disconnect endpoints, forget places, every panel of every main window on them goes home) in Sources/AxolotlCommander/ServerConnectionsUI.swift
+- [X] T010 [US2] `VolumeBar` renders `VolumeBarModel.items` (volume buttons as today, server buttons with network symbol, label, tooltip `protocol://user@host:port`), rebuilds on mount/unmount, `RemoteConnections.didChangeNotification` and `UserDefaults.didChangeNotification`, presses the item from `VolumeBarModel.pressed`, callbacks `onChooseVolume(URL)` / `onChooseServer(RemoteEndpoint)`, in Sources/AxolotlCommander/VolumeBar.swift
+- [X] T011 [US2] Panel wiring: record `visit` in `modelChanged()` when `model.remote` is set; server click → activate panel + `go(to:)` the place; pass remote endpoint to `volumeBar.show`, in Sources/AxolotlCommander/PanelViewController.swift
+- [X] T012 [US2] Disconnect dialog lists `openedEndpoints` and uses the shared disconnect helper, in Sources/AxolotlCommander/ConnectSheet.swift
 
 **Checkpoint**: US1 + US2 = P1 complete; commit.
 
