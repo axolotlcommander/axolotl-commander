@@ -8143,6 +8143,26 @@
           }
         }
       }
+    },
+    "“%@” was changed on the server after you opened it.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ byl na serveru po otevření změněn."
+          }
+        }
+      }
+    },
+    "Uploading your copy replaces the newer version on the server. If you cancel, your copy is kept and offered again after your next change or the next launch.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nahráním vaší kopie se novější verze na serveru nahradí. Když akci zrušíte, kopie zůstane a nabídne se znovu po další změně nebo při příštím spuštění."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

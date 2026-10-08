@@ -68,13 +68,23 @@ final class ArchiveEdits {
     }
 
     /// F4 on a server file: the downloaded copy is edited and offered back to the server.
+    /// The file is stamped before it is downloaded, so a change in between counts as a change.
     func edit(_ remote: RemoteLocation) async throws {
-        try await edit(.server(remote.url), archiveStamp: nil) { folder in
+        try await edit(.server(remote.url), archiveStamp: nil, serverStamp: { try await Self.serverStamp(remote) }) { folder in
             try await ArchiveScratch.download(remote, into: folder)
         }
     }
 
+    private static func serverEntry(_ remote: RemoteLocation) async throws -> RemoteEntry? {
+        try await RemoteConnections.shared.perform(on: remote.endpoint) { try await $0.info(remote.path) }
+    }
+
+    private static func serverStamp(_ remote: RemoteLocation) async throws -> ServerFileStamp? {
+        try await serverEntry(remote).flatMap(ServerFileStamp.init)
+    }
+
     private func edit(_ target: PendingEdit.Target, archiveStamp: PersistentFileStamp?,
+                      serverStamp: () async throws -> ServerFileStamp? = { nil },
                       makeCopy: (URL) async throws -> URL) async throws {
         // Editing the same item again reuses its copy, so changes not yet saved stay.
         if let existing = store.edit(for: target), FileManager.default.fileExists(atPath: store.copyURL(existing).path) {
@@ -82,7 +92,8 @@ final class ArchiveEdits {
             return
         }
         if let stale = store.edit(for: target) { try? store.discard(stale.id) }
-        let edit = try await store.begin(target: target, archiveStamp: archiveStamp, makeCopy: makeCopy)
+        let stamp = try await serverStamp()
+        let edit = try await store.begin(target: target, archiveStamp: archiveStamp, serverStamp: stamp, makeCopy: makeCopy)
         try await Launcher.edit(store.copyURL(edit))
     }
 
@@ -134,9 +145,16 @@ final class ArchiveEdits {
                 guard let remote = RemoteURL.parse(url) else { throw RemoteError.invalidName(url.absoluteString) }
                 // The copy has the file's own name, so it replaces the file (complete upload first).
                 let folder = RemoteLocation(endpoint: remote.endpoint, path: RemotePath.parent(remote.path))
+                // Someone else may have saved the file meanwhile; their version is replaced only on request.
+                if ServerFileStamp.changed(expected: edit.serverStamp, now: try await Self.serverEntry(remote)),
+                   await !Self.confirmOverwrite(edit) {
+                    try? store.decline(edit.id)
+                    return false
+                }
                 _ = try await RemoteTransfer().upload([copy], to: folder, kind: .copy, progress: { _ in },
                                                       conflict: { _ in .overwrite })
-                try store.markSaved(edit.id, archiveStamp: nil)
+                let uploaded = try? await Self.serverStamp(remote)
+                try store.markSaved(edit.id, archiveStamp: nil, serverStamp: uploaded)
             }
             return true
         } catch {
@@ -151,6 +169,20 @@ final class ArchiveEdits {
             failure.runModal()
             return false
         }
+    }
+
+    /// Cancel is the default: the other version must not be lost to a stray Return.
+    private static func confirmOverwrite(_ edit: PendingEdit) async -> Bool {
+        let alert = NSAlert()
+        alert.alertStyle = .warning
+        alert.messageText = String(localized: "“\(edit.name)” was changed on the server after you opened it.")
+        alert.informativeText = String(localized: "Uploading your copy replaces the newer version on the server. If you cancel, your copy is kept and offered again after your next change or the next launch.")
+        let overwrite = alert.addButton(withTitle: String(localized: "Overwrite"))
+        alert.addButton(withTitle: String(localized: "Cancel"))
+        overwrite.keyEquivalent = ""
+        alert.buttons[1].keyEquivalent = "\r"
+        NSApp.activate()
+        return await OperationsController.present(alert, in: NSApp.mainWindow) == .alertFirstButtonReturn
     }
 
     /// When the app quits: copies with nothing unsaved go; the user is told where the kept ones are.
