@@ -870,11 +870,18 @@ final class PanelViewController: NSViewController {
         field.currentEditor()?.selectedRange = NSRange(location: 0, length: (base as NSString).length)
     }
 
-    private func endRename(commit: Bool, newName: String) {
+    /// `refocus` is false when editing ended because focus went elsewhere (a click on the other
+    /// panel, a toolbar button…): the focus then stays where the user put it.
+    private func endRename(commit: Bool, newName: String, refocus: Bool = true) {
         guard let (_, item) = renaming else { return }
         renaming = nil
-        view.window?.makeFirstResponder(tableView)
-        modelChanged()
+        if refocus {
+            view.window?.makeFirstResponder(tableView)
+            modelChanged()
+        } else {
+            // Not while the field editor is still being torn down.
+            DispatchQueue.main.async { [weak self] in self?.modelChanged() }
+        }
         if commit { router?.operations.rename(item.url, to: newName, in: self) }
     }
 
@@ -1004,7 +1011,15 @@ final class PanelViewController: NSViewController {
 
 extension PanelViewController: NSTextFieldDelegate {
     func controlTextDidEndEditing(_ obj: Notification) {
-        if (obj.object as? NSTextField) === pathField { pathBar.endEditing() }
+        guard let field = obj.object as? NSTextField else { return }
+        if field === pathField {
+            pathBar.endEditing()
+        } else if renaming != nil {
+            // Enter and Esc end the rename in doCommandBy; any other end of editing (focus moved
+            // away) keeps the typed name, as Finder does.
+            field.isEditable = false
+            endRename(commit: true, newName: field.stringValue, refocus: false)
+        }
     }
 
     func control(_ control: NSControl, textView: NSTextView, doCommandBy selector: Selector) -> Bool {
