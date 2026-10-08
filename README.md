@@ -39,10 +39,29 @@ Open Salamander.
 
 ## Built with AI — please read before use
 
-Most of this project is **"vibe-coded"**: the code was written by the AI assistant
-[Claude Code](https://claude.com/claude-code) by Anthropic. The maintainer decides what the
-program should do and how, tries it out and decides on changes, but not every line has had
-a detailed human review.
+This project is **AI-written and spec-driven**: the code is written by the AI assistant
+[Claude Code](https://claude.com/claude-code) by Anthropic, following specifications that the
+maintainer agrees on first. The maintainer decides what the program should do and how, tries it
+out and decides on changes, but not every line has had a detailed human review.
+
+The base program was built in the stages of [docs/PLAN.md](docs/PLAN.md); since then, a feature
+comes about like this:
+
+1. **Specification first.** Every feature starts as a specification in
+   [`specs/NNN-name/`](specs/) made with [Spec Kit](https://github.com/github/spec-kit): user
+   stories with priorities, acceptance scenarios that can be checked from the keyboard, edge
+   cases, what is out of scope, and every deviation from the reference program.
+2. **Maintainer approval.** Nothing is planned or coded until the maintainer has agreed on the
+   specification.
+3. **Plan, tasks, code and tests.** The AI writes the technical plan, the task list and the
+   implementation with automated tests, then checks the scenarios in a separate test copy of the
+   app, in temporary folders only.
+4. **The specification stays the source of truth.** Anything that changes during development is
+   first recorded in the specification (a dated *Clarifications* entry), so code and
+   specification never drift apart.
+
+Examples: [001-data-safety-gaps](specs/001-data-safety-gaps/spec.md),
+[002-function-key-bar](specs/002-function-key-bar/spec.md).
 
 What that means for you:
 

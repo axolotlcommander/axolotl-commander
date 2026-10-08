@@ -21,7 +21,7 @@ gh repo edit "$REPO" \
   --add-topic keyboard-driven --add-topic norton-commander \
   --add-topic total-commander-alternative --add-topic salamander --add-topic tandem-commander \
   --add-topic swift --add-topic appkit --add-topic sftp --add-topic ftp \
-  --add-topic archive-manager --add-topic native-app --add-topic gplv3 --add-topic vibe-coding
+  --add-topic archive-manager --add-topic native-app --add-topic gplv3 --add-topic spec-driven-development
 
 echo "== Private vulnerability reporting"
 gh api -X PUT "repos/$REPO/private-vulnerability-reporting" >/dev/null
