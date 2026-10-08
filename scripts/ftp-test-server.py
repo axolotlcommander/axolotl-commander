@@ -4,7 +4,7 @@
 """Minimal FTP server for Axolotl Commander tests and manual GUI testing (stdlib only).
 
     /usr/bin/python3 -I scripts/ftp-test-server.py --root DIR --user U --password P \
-        [--port 0] [--no-mlsd] [--anonymous] [--wire-encoding cp1250] \
+        [--port 0] [--no-mlsd] [--mlsd-follow-links] [--anonymous] [--wire-encoding cp1250] \
         [--tls-cert FILE --tls-key FILE [--implicit-tls]]
 
 --password-hex HEX gives the password as hex of its UTF-8 bytes instead (exact bytes;
@@ -20,6 +20,8 @@ Plain FTP by default. With --tls-cert and --tls-key it also speaks FTPS: explici
 PBSZ 0, PROT P/PROT C; PROT P wraps PASV/EPSV/PORT data connections in TLS) and, with
 --implicit-tls, implicit (the control connection is TLS from the first byte and data
 connections default to protection P; use --port 990 for the conventional port).
+With --mlsd-follow-links, MLSD and MLST describe what a symlink points to (a link to a
+folder shows as type=dir), as ProFTPD and Pure-FTPd do by default; LIST still shows links.
 Serves threaded sessions until killed.
 """
 
@@ -44,6 +46,7 @@ class Config:
     user = ""
     password = ""
     mlsd = True
+    mlsd_follow_links = False
     anonymous = False
     tls = None  # ssl.SSLContext (server side) or None
     implicit_tls = False
@@ -308,7 +311,7 @@ class Session(socketserver.StreamRequestHandler):
         if Config.tls is not None:
             feats = ["AUTH TLS", "PBSZ", "PROT"] + feats
         if Config.mlsd:
-            feats = ["MLST type*;size*;modify*;unix.mode*;perm*;", "MLSD"] + feats
+            feats = ["MLST type*;size*;modify*;unix.mode*;perm*;unique*;", "MLSD"] + feats
         self.reply("211-Features:")
         for f in feats:
             self.reply(" " + f)
@@ -418,7 +421,9 @@ class Session(socketserver.StreamRequestHandler):
         names = sorted(os.listdir(r))
         self.send_data([to_wire("".join(n + "\r\n" for n in names))])
 
-    def facts(self, name, st):
+    def facts(self, name, st, full):
+        if Config.mlsd_follow_links and stat.S_ISLNK(st.st_mode) and os.path.exists(full):
+            st = os.stat(full)
         m = st.st_mode
         if stat.S_ISDIR(m):
             t, perm = "dir", "elcmf"
@@ -429,7 +434,8 @@ class Session(socketserver.StreamRequestHandler):
         f = "type=%s;" % t
         if not stat.S_ISDIR(m):
             f += "size=%d;" % st.st_size
-        f += "modify=%s;unix.mode=%04o;perm=%s; %s" % (mlsd_time(st.st_mtime), m & 0o7777, perm, name)
+        f += "modify=%s;unix.mode=%04o;perm=%s;unique=%xU%x; %s" % (
+            mlsd_time(st.st_mtime), m & 0o7777, perm, st.st_dev, st.st_ino, name)
         return f
 
     def cmd_MLSD(self, arg):
@@ -437,7 +443,7 @@ class Session(socketserver.StreamRequestHandler):
         if r is None or not os.path.isdir(r):
             self.reply("550 No such directory")
             return
-        lines = [self.facts(n, st) for n, st, _ in self.entries(r, follow=True)]
+        lines = [self.facts(n, st, full) for n, st, full in self.entries(r, follow=True)]
         self.send_data([to_wire("".join(l + "\r\n" for l in lines))])
 
     def cmd_MLST(self, arg):
@@ -446,7 +452,7 @@ class Session(socketserver.StreamRequestHandler):
             self.reply("550 No such file or directory")
             return
         self.reply("250-Listing " + v)
-        self.reply(" " + self.facts(v, os.lstat(r)))
+        self.reply(" " + self.facts(v, os.lstat(r), r))
         self.reply("250 End")
 
     def regular_file(self, arg):
@@ -587,6 +593,8 @@ def main():
     pw.add_argument("--password-hex")
     ap.add_argument("--port", type=int, default=0)
     ap.add_argument("--no-mlsd", action="store_true")
+    ap.add_argument("--mlsd-follow-links", action="store_true",
+                    help="MLSD/MLST describe link targets (a link to a folder is type=dir)")
     ap.add_argument("--anonymous", action="store_true")
     ap.add_argument("--tls-cert", help="PEM certificate (chain) enabling FTPS; needs --tls-key")
     ap.add_argument("--tls-key", help="PEM private key for --tls-cert")
@@ -609,6 +617,7 @@ def main():
     else:
         Config.password = os.fsencode(a.password).decode("utf-8", "surrogateescape")
     Config.mlsd = not a.no_mlsd
+    Config.mlsd_follow_links = a.mlsd_follow_links
     Config.anonymous = a.anonymous
     Config.wire = codecs.lookup(a.wire_encoding).name
     if a.tls_cert:

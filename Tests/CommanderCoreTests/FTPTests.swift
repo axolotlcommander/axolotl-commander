@@ -222,7 +222,7 @@ private func noise(_ count: Int) -> Data {
             "type=cdir;modify=20240101000000; .",
             "type=pdir;modify=20240101000000; ..",
             "type=file;size=1234;modify=20240102101530;UNIX.mode=0644;perm=rwadf; report.txt",
-            "Type=dir;sizd=4096;modify=20240102101530.250;unix.mode=755;perm=elcmf; sub dir",
+            "Type=dir;sizd=4096;modify=20240102101530.250;unix.mode=755;perm=elcmf;Unique=801U2a; sub dir",
             "type=OS.unix=symlink;size=7;modify=20240102101530; link",
             "type=OS.unix=slink:/etc/hosts;modify=20240102101530; hosts",
             "type=file;size=3; name; with; semicolons ",
@@ -233,7 +233,8 @@ private func noise(_ count: Int) -> Data {
         #expect(e.map(\.name) == ["report.txt", "sub dir", "link", "hosts", "name; with; semicolons ", "tty"])
         #expect(e[0] == RemoteEntry(name: "report.txt", kind: .file, size: 1234,
                                     modificationDate: utcDate(2024, 1, 2, 10, 15, 30), permissions: 0o644))
-        #expect(e[1].kind == .directory && e[1].size == nil && e[1].permissions == 0o755)
+        #expect(e[1].kind == .directory && e[1].size == nil && e[1].permissions == 0o755 && e[1].uniqueID == "801U2a")
+        #expect(e[0].uniqueID == nil)
         #expect(e[1].modificationDate == utcDate(2024, 1, 2, 10, 15, 30).addingTimeInterval(0.25))
         #expect(e[2].kind == .symlink && e[2].linkTarget == nil && !e[2].targetIsDirectory)
         #expect(e[3].kind == .symlink && e[3].linkTarget == "/etc/hosts")
@@ -524,6 +525,47 @@ private func noise(_ count: Int) -> Data {
                 Issue.record("listed outside the root")
             } catch is RemoteError {}
             await c.close()
+        }
+    }
+
+    /// ProFTPD-style MLSD that reports a link to a folder as `type=dir`: recursive walks still
+    /// must not enter the linked folder (a delete would empty it) nor loop through a link back up.
+    @Test func walksDoNotEnterLinksListedAsFolders() async throws {
+        try await withServer(["--mlsd-follow-links"]) { port, srv, local in
+            let fm = FileManager.default
+            try fm.createDirectory(at: srv.appendingPathComponent("shared/uploads"), withIntermediateDirectories: true)
+            try Data("keep".utf8).write(to: srv.appendingPathComponent("shared/uploads/keep.txt"))
+            try fm.createDirectory(at: srv.appendingPathComponent("site/sub"), withIntermediateDirectories: true)
+            try Data("a".utf8).write(to: srv.appendingPathComponent("site/sub/a.txt"))
+            try fm.createSymbolicLink(atPath: srv.appendingPathComponent("site/uploads").path,
+                                      withDestinationPath: "../shared/uploads")
+            try fm.createSymbolicLink(atPath: srv.appendingPathComponent("site/sub/up").path, withDestinationPath: "..")
+            try fm.createSymbolicLink(atPath: srv.appendingPathComponent("tolink").path, withDestinationPath: "shared/uploads")
+
+            let c = try await login(port)
+            #expect(try await c.list("/site").first { $0.name == "uploads" }?.kind == .directory)
+            let uploads = try await c.walkList("/site").first { $0.name == "uploads" }
+            #expect(uploads?.kind == .symlink && uploads?.targetIsDirectory == true)
+            #expect(uploads?.linkTarget == "../shared/uploads")
+            #expect(try await c.walkInfo("/tolink")?.kind == .symlink)
+            #expect(try await c.walkInfo("/site")?.kind == .directory)
+            await c.close()
+
+            let connections = RemoteConnections()
+            connections.configure(connector: { _, _, _ in try await login(port) }, prompter: { _ in nil },
+                                  passwords: MemoryPasswordStore())
+            let site = RemoteLocation(endpoint: endpoint(port), path: "/site")
+            let tolink = RemoteLocation(endpoint: endpoint(port), path: "/tolink")
+            #expect(try await connections.totalSize(of: site) == 1)
+            let transfer = RemoteTransfer(connections: connections)
+            let report = try await transfer.download([site], to: local, kind: .copy, progress: { _ in },
+                                                     conflict: { _ in .cancel })
+            #expect(report.copied == 1)
+            #expect(report.skipped.map(\.lastPathComponent).sorted() == ["up", "uploads"])
+            try await transfer.delete([site, tolink], progress: { _ in })
+            #expect(fm.contents(atPath: srv.appendingPathComponent("shared/uploads/keep.txt").path) == Data("keep".utf8))
+            #expect(try fm.contentsOfDirectory(atPath: srv.path) == ["shared"])
+            await connections.disconnectAll()
         }
     }
 

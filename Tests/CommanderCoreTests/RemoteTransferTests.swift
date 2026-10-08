@@ -17,6 +17,9 @@ actor DirectoryFileSystem: RemoteFileSystem {
     var hangUploadsContaining: String?
     /// `replace(_:over:)` swaps atomically (like posix-rename) instead of answering "can't".
     var atomicReplace = false
+    /// Like a server whose listings follow links: a link to a folder is reported as a folder,
+    /// and folders carry `uniqueID` (device and inode of what they are).
+    var linksAsFolders = false
     /// Every changing call, in order: "upload P", "remove P", "rename A -> B", "replace A -> B".
     private(set) var log: [String] = []
     private var renameFailures: [(from: String?, to: String?, remaining: Int)] = []
@@ -29,6 +32,7 @@ actor DirectoryFileSystem: RemoteFileSystem {
     func failUploads(containing text: String?) { failUploadsContaining = text }
     func hangUploads(containing text: String?) { hangUploadsContaining = text }
     func setAtomicReplace(_ on: Bool) { atomicReplace = on }
+    func setLinksAsFolders(_ on: Bool) { linksAsFolders = on }
 
     /// The next `times` renames whose source and target contain the given texts (nil = any) fail.
     func failRename(from: String? = nil, to: String? = nil, times: Int = 1) {
@@ -60,6 +64,10 @@ actor DirectoryFileSystem: RemoteFileSystem {
         }
         var target = stat()
         let targetIsDir = kind == .symlink && stat(local(path), &target) == 0 && target.st_mode & S_IFMT == S_IFDIR
+        if linksAsFolders, kind == .directory || targetIsDir {
+            let real = kind == .directory ? st : target
+            return RemoteEntry(name: RemotePath.name(path), kind: .directory, uniqueID: "\(real.st_dev):\(real.st_ino)")
+        }
         return RemoteEntry(name: RemotePath.name(path), kind: kind, size: Int64(st.st_size),
                            modificationDate: Date(timeIntervalSince1970: TimeInterval(st.st_mtimespec.tv_sec)),
                            targetIsDirectory: targetIsDir)
@@ -278,6 +286,23 @@ private let noConflict: RemoteTransfer.ConflictHandler = { _ in
         try await s.transfer.delete([s.at("/d")], progress: { _ in })
         #expect(s.names(s.server).isEmpty)
         #expect(s.read("elsewhere/keep.txt", in: s.root) == "keep")
+    }
+
+    /// A server that lists a link back up as a folder with the same `uniqueID`: walks stop there.
+    @Test func linkBackUpListedAsFolderDoesNotLoop() async throws {
+        let s = try await Sandbox()
+        defer { s.remove() }
+        try s.write("x", "d/sub/x", in: s.server)
+        try FileManager.default.createSymbolicLink(atPath: s.server.appending(path: "d/sub/up").path, withDestinationPath: "..")
+        let fs = try #require(try await s.connections.session(for: s.endpoint) as? DirectoryFileSystem)
+        await fs.setLinksAsFolders(true)
+        #expect(try await s.connections.totalSize(of: s.at("/d")) == 1)
+        let report = try await s.transfer.download([s.at("/d")], to: s.local, kind: .copy, progress: { _ in },
+                                                   conflict: noConflict)
+        #expect(report.skipped.map(\.lastPathComponent) == ["up"])
+        #expect(s.names(s.local) == ["d", "d/sub", "d/sub/x"])
+        try await s.transfer.delete([s.at("/d")], progress: { _ in })
+        #expect(s.names(s.server).isEmpty)
     }
 
     @Test func serverToServer() async throws {

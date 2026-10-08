@@ -181,7 +181,7 @@ public struct RemoteTransfer: Sendable {
         var nodes: [RemoteNode] = []
         for source in sources {
             try Task.checkCancellation()
-            guard let entry = try await connections.perform(on: endpoint, { try await $0.info(source.path) }) else {
+            guard let entry = try await connections.perform(on: endpoint, { try await $0.walkInfo(source.path) }) else {
                 throw RemoteError.notFound(source.path)
             }
             nodes.append(try await scanRemote(entry, at: source.path, endpoint: endpoint))
@@ -445,14 +445,14 @@ public struct RemoteTransfer: Sendable {
         guard let endpoint = items.first?.endpoint else { return }
         var nodes: [RemoteNode] = []
         for item in items {
-            guard let entry = try await connections.perform(on: endpoint, { try await $0.info(item.path) }) else { continue }
+            guard let entry = try await connections.perform(on: endpoint, { try await $0.walkInfo(item.path) }) else { continue }
             nodes.append(try await scanRemote(entry, at: item.path, endpoint: endpoint, followLinks: false))
         }
         let meter = Meter(totalBytes: 0, totalItems: nodes.reduce(0) { $0 + $1.count }, progress: progress)
         func remove(_ node: RemoteNode) async throws {
             try Task.checkCancellation()
             meter.current(node.entry.name)
-            if node.entry.kind == .directory {
+            if node.kind == .directory {
                 for child in node.children { try await remove(child) }
                 try await connections.perform(on: endpoint) { try await $0.removeDirectory(node.path) }
             } else {
@@ -465,16 +465,25 @@ public struct RemoteTransfer: Sendable {
 
     // MARK: - Scanning
 
-    private func scanRemote(_ entry: RemoteEntry, at path: String, endpoint: RemoteEndpoint, followLinks: Bool = true)
-        async throws -> RemoteNode {
+    /// `ancestors`: `uniqueID`s of the folders above; a folder with one of them is a link back
+    /// up that the server listed as a folder, and is treated as a link to a folder.
+    private func scanRemote(_ entry: RemoteEntry, at path: String, endpoint: RemoteEndpoint, followLinks: Bool = true,
+                            ancestors: Set<String> = []) async throws -> RemoteNode {
+        var entry = entry
+        if entry.kind == .directory, let id = entry.uniqueID, ancestors.contains(id) {
+            entry.kind = .symlink
+            entry.targetIsDirectory = true
+        }
         switch entry.kind {
         case .directory:
             try Task.checkCancellation()
-            let entries = try await connections.perform(on: endpoint) { try await $0.list(path) }
+            let entries = try await connections.perform(on: endpoint) { try await $0.walkList(path) }
+            var below = ancestors
+            if let id = entry.uniqueID { below.insert(id) }
             var children: [RemoteNode] = []
             for child in entries.sorted(by: { $0.name < $1.name }) {
                 children.append(try await scanRemote(child, at: RemotePath.join(path, child.name), endpoint: endpoint,
-                                                     followLinks: followLinks))
+                                                     followLinks: followLinks, ancestors: below))
             }
             return RemoteNode(entry: entry, path: path, kind: .directory, children: children)
         case .symlink:
