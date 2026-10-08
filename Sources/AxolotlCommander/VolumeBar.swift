@@ -42,6 +42,7 @@ final class VolumeBar: NSView {
         super.init(frame: frame)
         stack.orientation = .horizontal
         stack.spacing = 2
+        stack.detachesHiddenViews = true
         stack.translatesAutoresizingMaskIntoConstraints = false
         addSubview(stack)
         NSLayoutConstraint.activate([
@@ -104,6 +105,23 @@ final class VolumeBar: NSView {
             stack.addArrangedSubview(button)
         }
         updateStates()
+        needsLayout = true
+    }
+
+    override func layout() {
+        super.layout()
+        fitItems()
+    }
+
+    /// A bar too narrow for every item hides items from the end, so volumes stay visible
+    /// longest (each stays reachable through the volume menu); the first item only truncates.
+    private func fitItems() {
+        var used: CGFloat = 0
+        for (index, view) in stack.arrangedSubviews.enumerated() {
+            used += (index > 0 ? stack.spacing : 0) + view.fittingSize.width
+            let hide = index > 0 && used > bounds.width
+            if view.isHidden != hide { view.isHidden = hide }
+        }
     }
 
     private func makeButton(for item: VolumeBarModel.Item) -> NSButton {

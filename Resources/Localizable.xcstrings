@@ -8183,6 +8183,66 @@
           }
         }
       }
+    },
+    "Network": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Síť"
+          }
+        }
+      }
+    },
+    "Servers": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Servery"
+          }
+        }
+      }
+    },
+    "Copy Address": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopírovat adresu"
+          }
+        }
+      }
+    },
+    "Disconnect %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odpojit %@"
+          }
+        }
+      }
+    },
+    "Volume bar shows:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lišta disků zobrazuje:"
+          }
+        }
+      }
+    },
+    "Server connections": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Připojené servery"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

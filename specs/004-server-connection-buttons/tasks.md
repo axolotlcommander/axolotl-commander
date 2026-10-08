@@ -72,9 +72,9 @@ local test servers.
 
 ## Phase 9: Polish & Cross-Cutting
 
-- [ ] T017 Overflow: descending visibility priorities from first to last item so a narrow bar drops items from the end (quickstart Q14), in Sources/AxolotlCommander/VolumeBar.swift
-- [ ] T018 [P] Czech translations for all new strings in Resources/Localizable.xcstrings (Home, Network, Servers, Copy Address, Disconnect, Disconnect %@, Volume bar shows:, Server connections) and a test that each new key has a cs entry in Tests/CommanderCoreTests/VolumeBarTests.swift
-- [ ] T019 [P] README (volume bar paragraph) and CHANGELOG (Unreleased → Added)
+- [X] T017 Overflow: descending visibility priorities from first to last item so a narrow bar drops items from the end (quickstart Q14), in Sources/AxolotlCommander/VolumeBar.swift
+- [X] T018 [P] Czech translations for all new strings in Resources/Localizable.xcstrings (Home, Network, Servers, Copy Address, Disconnect, Disconnect %@, Volume bar shows:, Server connections) and a test that each new key has a cs entry in Tests/CommanderCoreTests/VolumeBarTests.swift
+- [X] T019 [P] README (volume bar paragraph) and CHANGELOG (Unreleased → Added)
 - [ ] T020 GUI verification per quickstart.md Q1–Q16 in the test copy against the local test servers; record results at the end of this file
 - [ ] T021 Mark spec Status Implemented, all tasks [X]; merge to main through a pull request; `scripts/bundle.sh release` + `scripts/install.sh` (ask first if the app runs)
 

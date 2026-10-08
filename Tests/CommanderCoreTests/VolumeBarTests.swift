@@ -179,3 +179,22 @@ import Testing
         #expect(pressed("/tmp", root: nil, in: bar) == nil)
     }
 }
+
+/// The volume bar's texts have Czech translations in the String Catalog.
+@Suite struct VolumeBarTextsTests {
+    private let root = URL(fileURLWithPath: #filePath)
+        .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+
+    @Test func newTextsAreTranslated() throws {
+        let data = try Data(contentsOf: root.appending(path: "Resources/Localizable.xcstrings"))
+        let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        let strings = try #require(json?["strings"] as? [String: Any])
+        for key in ["Home", "iCloud Drive", "Network", "Servers", "Connect to Server…", "Open in Other Panel",
+                    "Copy Address", "Disconnect", "Disconnect %@", "Volume bar shows:", "Server connections"] {
+            let entry = strings[key] as? [String: Any]
+            let czech = (entry?["localizations"] as? [String: Any])?["cs"] as? [String: Any]
+            let value = (czech?["stringUnit"] as? [String: Any])?["value"] as? String
+            #expect(value?.isEmpty == false, "\(key): missing Czech translation")
+        }
+    }
+}
