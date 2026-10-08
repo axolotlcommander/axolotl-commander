@@ -13,7 +13,7 @@ scratch folder.
 
 ## Phase 1: Setup
 
-- [ ] T001 Add the commands `newSymbolicLink`, `newHardLink`, `editSymbolicLink`,
+- [X] T001 Add the commands `newSymbolicLink`, `newHardLink`, `editSymbolicLink`,
   `pasteAsSymbolicLink`, `goToLinkTarget` and `changeAttributes` to `Command`. Register them in
   `CommandRegistry` at the contract positions and with the contract chords:
   - ⌃⌘L for New Symbolic Link…;
@@ -23,12 +23,12 @@ scratch folder.
   - none for New Hard Link… and Edit Symbolic Link….
 
   File: Sources/CommanderCore/Command.swift
-- [ ] T002 [P] Add toolbar symbols for the six commands. None of them goes into the default set.
+- [X] T002 [P] Add toolbar symbols for the six commands. None of them goes into the default set.
   File: Sources/AxolotlCommander/MainToolbar.swift
 
 ## Phase 2: Foundational (core, blocks all stories)
 
-- [ ] T003 Write the core types and functions in
+- [X] T003 Write the core types and functions in
   Sources/CommanderCore/Operations/LinkOperations.swift:
   - `LinkKind`, `LinkError`, `LinkOutcome`;
   - `LinkPaths`: `relativePath`, `storedTarget` (a typed relative path is kept as typed, `~`
@@ -44,7 +44,7 @@ scratch folder.
     `lstat` check plus `rename`. The temporary link is always cleaned up;
   - `LinkTarget.resolve` (up to 32 steps, symlinks and aliases, missing target or loop) and
     `LinkTarget.isLink`.
-- [ ] T004 [P] Write tests in Tests/CommanderCoreTests/LinkTests.swift, all in temporary folders:
+- [X] T004 [P] Write tests in Tests/CommanderCoreTests/LinkTests.swift, all in temporary folders:
   - relative paths: sibling, deeper, upward, the same folder, `/`;
   - stored target: typed relative, absolute with and without relative, `~`;
   - symbolic link: created and dangling; a conflict (including a case-only difference) leaves the
@@ -55,7 +55,7 @@ scratch folder.
     temporary link left behind;
   - resolve: a chain of 3, a relative link, a link to a folder, a Finder alias (bookmark file),
     a missing target with its stored text, a loop.
-- [ ] T005 [P] Test that the new default chords are unique and that ⌃S, ⌃T, ⌃F2, ⌃⌘L and ⌃⌘V
+- [X] T005 [P] Test that the new default chords are unique and that ⌃S, ⌃T, ⌃F2, ⌃⌘L and ⌃⌘V
   map to the new commands. File: Tests/CommanderCoreTests/KeyMapTests.swift
 
 **Checkpoint**: `swift test` green; core API usable from the UI.
@@ -66,7 +66,7 @@ scratch folder.
 
 **Independent Test**: quickstart Q1–Q5.
 
-- [ ] T006 [US1] Build `LinkSheet` in Sources/AxolotlCommander/LinkSheet.swift as a SwiftUI view
+- [X] T006 [US1] Build `LinkSheet` in Sources/AxolotlCommander/LinkSheet.swift as a SwiftUI view
   with three modes (symbolic, hard, edit) and two layouts (one item, several items):
   - fields Target, Link name or Destination folder, and Relative path (UserDefaults
     `links.relativePath`);
@@ -75,7 +75,7 @@ scratch folder.
 
   Add `LinkSheet.present(...)` hosting it as a window sheet. The confirm handler throws and
   keeps the sheet open on inline errors.
-- [ ] T007 [US1] Wire the panel in Sources/AxolotlCommander/PanelViewController.swift:
+- [X] T007 [US1] Wire the panel in Sources/AxolotlCommander/PanelViewController.swift:
   - add the new commands to `handled`, `diskOnly` and `needTargets`, and refuse them for search
     results;
   - for `newSymbolicLink`: prefill from the other panel (or the active folder when the other
@@ -83,7 +83,7 @@ scratch folder.
   - ask before creating a link to a missing target (`OperationsController.present`);
   - create the link off the main thread, refresh both panels and focus the new link;
   - for several items, show one summary alert of the skipped ones.
-- [ ] T008 [US1] Add `describe` texts for the `LinkError` cases in
+- [X] T008 [US1] Add `describe` texts for the `LinkError` cases in
   Sources/AxolotlCommander/OperationsController.swift
 
 **Checkpoint**: commit.
@@ -92,7 +92,7 @@ scratch folder.
 
 **Independent Test**: quickstart Q6–Q9.
 
-- [ ] T009 [US2] Implement `goToLinkTarget` in Sources/AxolotlCommander/PanelViewController.swift:
+- [X] T009 [US2] Implement `goToLinkTarget` in Sources/AxolotlCommander/PanelViewController.swift:
   - enabled when the cursor item is a symlink or `LinkTarget.isLink`;
   - resolve off the main thread;
   - a folder target uses `go(to:)`, a file target uses `go(to: parent, focusing: name)`;
@@ -102,12 +102,12 @@ scratch folder.
 
 **Independent Test**: quickstart Q10.
 
-- [ ] T010 [US3] Implement `pasteAsSymbolicLink` in
+- [X] T010 [US3] Implement `pasteAsSymbolicLink` in
   Sources/AxolotlCommander/PanelViewController.swift:
   - enabled when the pasteboard has file URLs and the panel shows a local folder;
   - `makeLinks(.symbolic, …, relative: false)` into `model.location`;
   - refresh, put the cursor on the first created link, and show a summary of the skipped ones.
-- [ ] T011 [US3] Add entries to the context menu in
+- [X] T011 [US3] Add entries to the context menu in
   Sources/AxolotlCommander/PanelContextMenu.swift:
   - the item menu gets New Symbolic Link…, New Hard Link…, Edit Symbolic Link… (only on a
     symlink), Go to Link Target (only on a link) and Change Attributes…;
@@ -119,7 +119,7 @@ scratch folder.
 
 **Independent Test**: quickstart Q11.
 
-- [ ] T012 [US4] Create `AttributesSheet.show(_:in:onChange:)` in
+- [X] T012 [US4] Create `AttributesSheet.show(_:in:onChange:)` in
   Sources/AxolotlCommander/AttributesSheet.swift with a header, `AttributesEditView`, and
   Cancel/Apply. Share `PropertiesSheet.apply` (make it internal) in
   Sources/AxolotlCommander/PropertiesView.swift. Wire `changeAttributes` in
@@ -129,7 +129,7 @@ scratch folder.
 
 **Independent Test**: quickstart Q12–Q13.
 
-- [ ] T013 [US5] Wire `newHardLink` with `LinkSheet` in hard mode: a read-only target and no
+- [X] T013 [US5] Wire `newHardLink` with `LinkSheet` in hard mode: a read-only target and no
   Relative path. Errors appear inline for one item and in the summary for several. File:
   Sources/AxolotlCommander/PanelViewController.swift
 
@@ -137,7 +137,7 @@ scratch folder.
 
 **Independent Test**: quickstart Q14.
 
-- [ ] T014 [US6] Wire `editSymbolicLink` with `LinkSheet` in edit mode in
+- [X] T014 [US6] Wire `editSymbolicLink` with `LinkSheet` in edit mode in
   Sources/AxolotlCommander/PanelViewController.swift:
   - show the stored target, read with `destinationOfSymbolicLink`;
   - the Relative path toggle converts the target through `LinkPaths`;
@@ -146,9 +146,9 @@ scratch folder.
 
 ## Phase 9: Polish
 
-- [ ] T015 [P] Add en + cs texts for every new string (contract table and the sheet labels) in
+- [X] T015 [P] Add en + cs texts for every new string (contract table and the sheet labels) in
   Resources/Localizable.xcstrings
-- [ ] T016 [P] Update README.md (feature list) and CHANGELOG.md (Unreleased)
+- [X] T016 [P] Update README.md (feature list) and CHANGELOG.md (Unreleased)
 - [ ] T017 Build without warnings, run `swift test`, then run the GUI checks Q1–Q17 in the test
   copy. Record the results in the table below.
 - [ ] T018 Set the spec status to Implemented and record any deviation found during
