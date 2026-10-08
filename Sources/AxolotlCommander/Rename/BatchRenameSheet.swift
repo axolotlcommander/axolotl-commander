@@ -114,6 +114,15 @@ enum BatchRenameSheet {
         pending?.cancel()
     }
 
+    /// The plan for the options as they are now: the preview may still lag behind typing, so it
+    /// is recomputed first. nil when there is nothing valid to rename (the sheet then shows why).
+    func currentPlan() -> [RenamePlanEntry]? {
+        guard !isReading else { return nil }
+        pending?.cancel()
+        update()
+        return error == nil && renameCount > 0 ? plan : nil
+    }
+
     var renameCount: Int { plan.filter { $0.status == .rename }.count }
     var skipCount: Int { plan.filter { if case .skipped = $0.status { true } else { false } }.count }
 
@@ -249,7 +258,7 @@ private struct BatchRenameView: View {
                 }
                 Spacer()
                 Button("Cancel", role: .cancel) { done(nil) }.keyboardShortcut(.cancelAction)
-                Button("Rename") { done(model.plan) }.keyboardShortcut(.defaultAction)
+                Button("Rename") { if let plan = model.currentPlan() { done(plan) } }.keyboardShortcut(.defaultAction)
                     .disabled(model.isReading || model.error != nil || model.renameCount == 0)
             }
         }
