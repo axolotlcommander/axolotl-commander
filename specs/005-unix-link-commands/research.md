@@ -30,17 +30,26 @@ message, the system call gives atomicity.
 
 ## R3 — Relative and stored targets
 
-**Decision**: `LinkPaths.relativePath(from folder:, to target:)` works on the standardized paths
-as the panels show them (no symlink resolution): common leading components are dropped, each
-remaining folder component becomes `..`. Equal paths give `.`. `LinkPaths.storedTarget(typed:,
-linkFolder:, relative:)`: a typed relative path (not starting with `/` or `~`) is returned as
-typed; `~` is expanded; an absolute path is returned absolute or converted with
-`relativePath` when `relative` is on.
+**Decision**: the system follows `..` physically, from the real folder after any links in the
+path. Relative targets are therefore computed and read back from real folders.
 
-**Rationale**: FR-006 and FR-012 need deterministic, testable text; resolving symlinks would
-produce paths the user never saw (e.g. `/private/var` instead of `/var`).
+- `LinkPaths.relativePath(from:to:)` is pure path arithmetic on the given paths.
+- `storedTarget(typed:linkFolder:relative:)` handles the typed text:
+  - a typed relative path (not starting with `/` or `~`) is returned as typed;
+  - `~` is expanded;
+  - an absolute path is stored exactly as typed;
+  - with "Relative path" on, the path is made relative from the link's real folder
+    (`realpath`) to the target's real folder plus its name.
+- `absolute(_:linkFolder:)` uses the same real folders. It serves the existence check, the Edit
+  sheet's conversion and Go to Link Target.
 
-**Alternatives**: `ln -sr`-style resolution of both sides (surprising paths on macOS).
+**Rationale**: FR-006 and FR-012. The first version computed `..` as text from the panel's path.
+Its links were dangling when the panel's folder was reached through a link, e.g. `/tmp` →
+`/private/tmp` (found in the code review, regression test
+`relativeLinkInFolderReachedThroughALink`).
+
+**Alternatives**: purely textual paths (wrong links); resolving absolute targets too (would
+change what the user typed).
 
 ## R4 — Hard links
 
@@ -57,8 +66,9 @@ specific before any attempt.
 **Decision**: create the new link under a temporary hidden name in the same folder
 (`.<name>.axolotl-<random>`), then `renamex_np(temp, link, RENAME_SWAP)`. After the swap the
 temporary name holds the old item: when `lstat` shows it is a symbolic link it is unlinked;
-otherwise (the link was replaced by something else meanwhile) the swap is reversed, the
-temporary link removed and an error reported. When the volume does not support `RENAME_SWAP`
+otherwise (the link was replaced by something else meanwhile) the swap is reversed and the
+temporary link removed; if reversing fails, nothing is removed and the error names the
+temporary name holding the user's item. When the volume does not support `RENAME_SWAP`
 (`ENOTSUP`), the code checks `lstat` (must be a link) and uses `rename(2)`, which also replaces in
 one step. Any failure removes the temporary link.
 
@@ -71,10 +81,13 @@ link can ever be replaced, even in a race.
 
 **Decision**: `LinkTarget.resolve(_ url:)` follows up to 32 steps (the system's limit): a symbolic
 link → `readlink`, relative results resolved against the link's folder; a Finder alias →
-`URL(resolvingAliasFileAt:options: [.withoutUI, .withoutMounting])`. The final item must exist
+`URL(resolvingAliasFileAt:options: [.withoutUI, .withoutMounting])`. Relative targets are read from the
+link's real folder (R3). The final item must exist
 (`lstat`); its folder is then made real with `resolvingSymlinksInPath()`. Errors:
 `LinkError.targetMissing(stored:)` (with the text the first link holds) and `.loop`.
-`isAliasFile` is also true for symbolic links, so `isSymbolicLink` is checked first.
+`isAliasFile` is also true for symbolic links, so `isSymbolicLink` is checked first. Whether a
+row is an alias is read with the folder listing (`FileItem.isAlias`), so validating the menu
+never touches the disk on the main thread.
 
 **Rationale**: FR-018/FR-019; a manual loop can name the missing target and detect loops, which
 `resolvingSymlinksInPath` silently hides.

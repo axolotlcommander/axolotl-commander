@@ -38,10 +38,11 @@ public struct LinkOutcome: Sendable {
     }
 }
 
-/// Text of link targets. Paths are taken as written, never resolved through links (a panel's
-/// `/tmp` stays `/tmp`, not `/private/tmp`).
+/// Text of link targets. The system follows ".." physically (from the real folder, after any
+/// links in the path), so relative paths are computed and read back from real folders; an
+/// absolute target is stored exactly as typed.
 public enum LinkPaths {
-    /// `target` as seen from `folder`: `../shared/file`; "." when both are the same.
+    /// `target` as seen from `folder`, both taken as written: `../shared/file`; "." when equal.
     public static func relativePath(from folder: String, to target: String) -> String {
         let from = components(folder), to = components(target)
         var common = 0
@@ -50,21 +51,46 @@ public enum LinkPaths {
         return parts.isEmpty ? "." : parts.joined(separator: "/")
     }
 
-    /// The text a new symbolic link holds. A typed relative path stays as typed; `~` is expanded;
-    /// an absolute path is kept or made relative to `linkFolder`.
+    /// The text a new symbolic link in `linkFolder` holds. A typed relative path stays as typed;
+    /// `~` is expanded; an absolute path is kept as typed, or made relative from the real folders
+    /// of the link and the target.
     public static func storedTarget(typed: String, linkFolder: String, relative: Bool) -> String {
-        var text = typed
-        if text.hasPrefix("~") { text = (text as NSString).expandingTildeInPath }
-        guard text.hasPrefix("/") else { return text }
-        return relative ? relativePath(from: linkFolder, to: text) : normalized(text)
+        let text = expanded(typed)
+        guard text.hasPrefix("/"), relative else { return text }
+        return relativePath(from: realFolder(linkFolder), to: physical(text))
     }
 
-    public static func isRelative(_ stored: String) -> Bool { !stored.hasPrefix("/") }
+    public static func isRelative(_ stored: String) -> Bool { !expanded(stored).hasPrefix("/") }
 
-    /// The absolute path a stored target means for a link in `linkFolder`.
+    /// The absolute path a stored target means for a link in `linkFolder`, with the folders that
+    /// exist made real (so ".." means what the system makes of it).
     public static func absolute(_ stored: String, linkFolder: String) -> String {
-        if stored.hasPrefix("/") { return normalized(stored) }
-        return normalized(linkFolder + "/" + stored)
+        let text = expanded(stored)
+        return physical(text.hasPrefix("/") ? text : realFolder(linkFolder) + "/" + text)
+    }
+
+    /// `path` with its folder made real when that folder exists; otherwise only "." and ".."
+    /// applied as text.
+    static func physical(_ path: String) -> String {
+        let name = FSPath.name(path)
+        if name == "." || name == ".." || name == "/" { return realPath(path) ?? normalized(path) }
+        guard let folder = realPath(FSPath.parent(path)) else { return normalized(path) }
+        return FSPath.join(folder, name)
+    }
+
+    /// The folder itself made real (all links in it followed) when it exists.
+    static func realFolder(_ folder: String) -> String {
+        realPath(folder) ?? physical(folder)
+    }
+
+    private static func realPath(_ path: String) -> String? {
+        guard let resolved = realpath(path, nil) else { return nil }
+        defer { free(resolved) }
+        return String(cString: resolved)
+    }
+
+    private static func expanded(_ text: String) -> String {
+        text.hasPrefix("~") ? (text as NSString).expandingTildeInPath : text
     }
 
     /// Absolute path with "." and ".." applied and duplicate slashes removed.
@@ -159,7 +185,11 @@ extension FileOperations {
                 unlink(temp)
                 return
             }
-            renamex_np(temp, path, UInt32(RENAME_SWAP))
+            // Swap back; only when that worked is `temp` our new link again. Otherwise the user's
+            // item stays under the temporary name and the error says where.
+            guard renamex_np(temp, path, UInt32(RENAME_SWAP)) == 0 else {
+                throw OperationError.io(FSPath.errorText(errno, "Cannot restore", path) + " (\(temp))")
+            }
             unlink(temp)
             throw LinkError.notASymbolicLink(link)
         }
@@ -168,7 +198,8 @@ extension FileOperations {
             unlink(temp)
             throw creationError(err, "Cannot change link", path)
         }
-        // No swap on this volume: rename(2) still replaces in one step.
+        // No swap on this volume (some network and FAT volumes): rename(2) still replaces in one
+        // step. Only an item replacing the link between this check and the rename could be lost.
         guard Self.isSymbolicLink(path) else {
             unlink(temp)
             throw LinkError.notASymbolicLink(link)

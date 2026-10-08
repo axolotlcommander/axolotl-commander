@@ -86,10 +86,11 @@ extension PanelViewController {
         }
     }
 
-    /// Enables Go to Link Target: a symbolic link or a Finder alias under the cursor.
+    /// Enables Go to Link Target: a symbolic link or a Finder alias under the cursor (known from the
+    /// listing, so menu validation never touches the disk).
     var cursorIsLink: Bool {
         guard let item = model.cursorItem, !item.isParent else { return false }
-        return item.isSymlink || LinkTarget.isLink(item.url)
+        return item.isSymlink || item.isAlias
     }
 
     // MARK: Creating

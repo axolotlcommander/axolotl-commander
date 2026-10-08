@@ -143,6 +143,27 @@ struct LinkOperationsTests {
         }
     }
 
+    @Test func relativeLinkInFolderReachedThroughALink() async throws {
+        try await TestSandbox.with { root in
+            let fm = FileManager.default
+            let deep = root.appendingPathComponent("real/a/deep")
+            try fm.createDirectory(at: deep, withIntermediateDirectories: true)
+            let via = root.appendingPathComponent("via")
+            try fm.createSymbolicLink(atPath: via.path, withDestinationPath: deep.path)
+            let target = root.appendingPathComponent("t.txt")
+            try TestSandbox.write(target, "t")
+            let stored = LinkPaths.storedTarget(typed: target.path, linkFolder: via.path, relative: true)
+            #expect(stored == "../../../t.txt")
+            let link = try await FileOperations().makeSymbolicLink(at: via.path + "/link", storing: stored)
+            #expect(fm.fileExists(atPath: link.path))
+            #expect(LinkPaths.absolute(stored, linkFolder: via.path) == LinkPaths.physical(target.path))
+            #expect(try LinkTarget.resolve(link).path == target.path)
+            // As typed: an absolute target is stored exactly, a trailing slash too.
+            #expect(LinkPaths.storedTarget(typed: root.path + "/x/../t.txt/", linkFolder: via.path, relative: false)
+                == root.path + "/x/../t.txt/")
+        }
+    }
+
     @Test func retargetChangesOnlyTheLink() async throws {
         try await TestSandbox.with { root in
             let (a, b, file) = try setUp(root)

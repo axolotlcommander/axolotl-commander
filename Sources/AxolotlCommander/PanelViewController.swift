@@ -515,7 +515,7 @@ final class PanelViewController: NSViewController {
         case .pasteAsSymbolicLink: return model.results == nil && Self.pasteboardHasFiles
         case .editSymbolicLink:
             return model.results == nil && model.cursorItem.map { $0.isSymlink && !$0.isParent } == true
-        case .goToLinkTarget: return cursorIsLink
+        case .goToLinkTarget: return model.results == nil && cursorIsLink
         case .restoreSelection: return !model.previousSelection.isEmpty
         case .saveSelection: return !model.selectedItems.isEmpty
         case .loadSelection: return !Self.rememberedSelection.isEmpty

@@ -13,6 +13,8 @@ public struct FileItem: Identifiable, Hashable, Sendable {
     /// True for directories and for symlinks that resolve to directories.
     public let isDirectory: Bool
     public let isSymlink: Bool
+    /// A Finder alias file (not a symbolic link).
+    public let isAlias: Bool
     public let isPackage: Bool
     public let isHidden: Bool
     /// nil for directories.
@@ -27,6 +29,7 @@ public struct FileItem: Identifiable, Hashable, Sendable {
         isParent: Bool = false,
         isDirectory: Bool = false,
         isSymlink: Bool = false,
+        isAlias: Bool = false,
         isPackage: Bool = false,
         isHidden: Bool = false,
         size: Int64? = nil,
@@ -37,6 +40,7 @@ public struct FileItem: Identifiable, Hashable, Sendable {
         self.isParent = isParent
         self.isDirectory = isDirectory
         self.isSymlink = isSymlink
+        self.isAlias = isAlias
         self.isPackage = isPackage
         self.isHidden = isHidden
         self.size = size
