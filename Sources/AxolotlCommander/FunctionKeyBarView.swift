@@ -106,6 +106,11 @@ private final class FunctionKeyButton: NSButton {
     private var modifiers: KeyChord.Modifiers = []
     private var fitted: (width: CGFloat, enabled: Bool)?
 
+    override class var cellClass: AnyClass? {
+        get { FunctionKeyButtonCell.self }
+        set {}
+    }
+
     init(number: Int) {
         self.number = number
         super.init(frame: .zero)
@@ -197,5 +202,21 @@ private final class FunctionKeyButton: NSButton {
             ]))
         }
         return text
+    }
+}
+
+/// The recessed bezel with narrower side margins than the system's, so longer names fit.
+private final class FunctionKeyButtonCell: NSButtonCell {
+    private static let margin: CGFloat = 4
+
+    override var cellSize: NSSize {
+        NSSize(width: attributedTitle.size().width.rounded(.up) + 2 * Self.margin, height: super.cellSize.height)
+    }
+
+    override func drawTitle(_ title: NSAttributedString, withFrame frame: NSRect, in controlView: NSView) -> NSRect {
+        let bounds = controlView.bounds
+        let wide = NSRect(x: bounds.minX + Self.margin, y: frame.minY,
+                          width: max(bounds.width - 2 * Self.margin, 0), height: frame.height)
+        return super.drawTitle(title, withFrame: wide, in: controlView)
     }
 }
