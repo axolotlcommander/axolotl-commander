@@ -407,6 +407,27 @@ import Foundation
         try await m.go(to: zip.appendingPathComponent("docs/sub"))
         #expect(names(m) == ["..", "deep.bin"])
     }
+
+    @Test func otherPanelTarget() async throws {
+        let f = try Fixture()
+        try f.write("pack.zip", 1)
+        try FileManager.default.createDirectory(at: f.root.appendingPathComponent("App.app"), withIntermediateDirectories: true)
+        let m = PanelModel(location: f.root)
+        await m.refresh()
+        func target(_ name: String) -> (url: URL, focus: String?)? {
+            m.moveCursor(to: m.items.firstIndex { $0.name == name } ?? 0)
+            return m.otherPanelTarget
+        }
+        #expect(target("..") == nil)
+        // A folder (or an archive) opens; a file or a package is shown in its folder.
+        #expect(target("docs")?.url.lastPathComponent == "docs")
+        #expect(target("docs")?.focus == nil)
+        #expect(target("pack.zip")?.url.lastPathComponent == "pack.zip")
+        #expect(target("pack.zip")?.focus == nil)
+        #expect(target("a.txt")?.url.standardizedFileURL.path == f.root.standardizedFileURL.path)
+        #expect(target("a.txt")?.focus == "a.txt")
+        #expect(target("App.app")?.focus == "App.app")
+    }
 }
 
 @Suite struct DirectoryWatcherTests {
