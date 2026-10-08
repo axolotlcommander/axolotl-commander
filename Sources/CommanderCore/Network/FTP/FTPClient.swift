@@ -135,6 +135,24 @@ public actor FTPClient: RemoteFileSystem {
         return entries.first { $0.name == name }
     }
 
+    public func walkList(_ path: String) async throws -> [RemoteEntry] {
+        let path = try checked(path)
+        switch try await fetchListing(path) {
+        case .success(let entries): return try await revealingLinks(entries, in: path)
+        case .failure(let r): throw await failure(r, path: path)
+        }
+    }
+
+    public func walkInfo(_ path: String) async throws -> RemoteEntry? {
+        let path = try checked(path)
+        if path == "/" { return RemoteEntry(name: "/", kind: .directory) }
+        let parent = RemotePath.parent(path)
+        guard case .success(let entries) = try await fetchListing(parent) else { return nil }
+        let name = String(path[path.index(after: path.lastIndex(of: "/")!)...])
+        guard let entry = entries.first(where: { $0.name == name }) else { return nil }
+        return try await revealingLinks([entry], in: parent).first
+    }
+
     public func download(_ path: String, to local: URL, progress: @escaping @Sendable (Int64) -> Void) async throws {
         let path = try checked(path)
         let r = try await perform(
@@ -257,6 +275,35 @@ public actor FTPClient: RemoteFileSystem {
             last = r
         }
         return .failure(last!)
+    }
+
+    /// Many servers (ProFTPD by default, Pure-FTPd) follow links in MLSD and report a link to a
+    /// folder as `type=dir`, while LIST shows it as a link (`l…`). When `entries` came from MLSD
+    /// and contain folders, LIST of `path` is asked too, and a folder it shows as a link becomes
+    /// a link to a folder. When LIST fails or cannot tell (e.g. DOS format), entries stay as they are.
+    private func revealingLinks(_ entries: [RemoteEntry], in path: String) async throws -> [RemoteEntry] {
+        guard mlsdSupported, entries.contains(where: { $0.kind == .directory }) else { return entries }
+        let dirURL = try url(path, directory: true)
+        var links: [String: RemoteEntry] = [:]
+        for (i, cmd) in listCommands.enumerated() {
+            let r = try await perform(CurlRequest(url: dirURL, customRequest: cmd, output: .memory))
+            if r.ok {
+                if i > 0 { listCommands = Array(listCommands[i...]) }
+                for (entry, _) in FTPListParser.parseLISTReportingLatin1(r.body, names.encoding) where entry.kind == .symlink {
+                    links[entry.name] = entry
+                }
+                break
+            }
+            try rethrowFatal(r)
+        }
+        return entries.map { entry in
+            guard entry.kind == .directory, let link = links[entry.name] else { return entry }
+            var revealed = entry
+            revealed.kind = .symlink
+            revealed.linkTarget = link.linkTarget
+            revealed.targetIsDirectory = true
+            return revealed
+        }
     }
 
     private func listed(_ folder: String, _ entries: [(entry: RemoteEntry, latin1: Bool)]) -> [RemoteEntry] {

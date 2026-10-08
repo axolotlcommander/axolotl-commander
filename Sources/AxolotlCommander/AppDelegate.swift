@@ -34,19 +34,43 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         Task { await ArchiveEdits.shared.offerChanges() }
     }
 
-    /// Changed copies are offered back first; whatever stays unsaved is kept for the next launch.
+    /// A running file operation is stopped only after asking (quitting in the middle of a move
+    /// would leave it half done). Changed copies are offered back first; whatever stays unsaved
+    /// is kept for the next launch.
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         let edits = ArchiveEdits.shared
-        guard edits.hasChanges else {
+        let busy = NSApp.windows.compactMap { ($0.windowController as? MainWindowController)?.operations }
+            .filter(\.isBusy)
+        guard edits.hasChanges || !busy.isEmpty else {
             edits.finishForQuit()
             return .terminateNow
         }
         Task {
-            await edits.offerChanges()
+            if let first = busy.first {
+                guard await Self.confirmQuit(in: first.window) else {
+                    sender.reply(toApplicationShouldTerminate: false)
+                    return
+                }
+                for operations in busy { await operations.stopAll() }
+            }
+            if edits.hasChanges { await edits.offerChanges() }
             edits.finishForQuit()
             sender.reply(toApplicationShouldTerminate: true)
         }
         return .terminateLater
+    }
+
+    /// Cancel is the default: Return must not interrupt an operation by accident.
+    private static func confirmQuit(in window: NSWindow?) async -> Bool {
+        let alert = NSAlert()
+        alert.alertStyle = .warning
+        alert.messageText = String(localized: "A file operation is still running.")
+        alert.informativeText = String(localized: "Quitting stops it; items it has not finished stay as they are now.")
+        let quit = alert.addButton(withTitle: String(localized: "Stop and Quit"))
+        alert.addButton(withTitle: String(localized: "Cancel"))
+        quit.keyEquivalent = ""
+        alert.buttons[1].keyEquivalent = "\r"
+        return await OperationsController.present(alert, in: window) == .alertFirstButtonReturn
     }
 
     func applicationWillTerminate(_ notification: Notification) {

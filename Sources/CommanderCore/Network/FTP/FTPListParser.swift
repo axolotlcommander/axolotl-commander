@@ -56,6 +56,7 @@ public enum FTPListParser {
         var date: Date?
         var mode: UInt32?
         var target: String?
+        var unique: String?
         for fact in line[..<space].split(separator: ";") {
             guard let eq = fact.firstIndex(of: "=") else { continue }
             let key = fact[..<eq].lowercased()
@@ -84,12 +85,14 @@ public enum FTPListParser {
                 date = mlsdTime(value)
             case "unix.mode":
                 mode = UInt32(value, radix: 8).map { $0 & 0o7777 }
+            case "unique":
+                if !value.isEmpty { unique = String(value) }
             default:
                 break
             }
         }
         return RemoteEntry(name: name, kind: kind, size: size, modificationDate: date,
-                           permissions: mode, linkTarget: target)
+                           permissions: mode, linkTarget: target, uniqueID: unique)
     }
 
     /// `YYYYMMDDHHMMSS[.sss]` in UTC.

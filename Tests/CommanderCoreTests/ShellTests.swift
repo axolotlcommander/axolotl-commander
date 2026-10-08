@@ -15,6 +15,15 @@ import Foundation
         #expect(ShellQuote.quote("čaj") == "'čaj'")
         #expect(ShellQuote.quote("$x;y") == "'$x;y'")
     }
+
+    @Test func leadingExpansionCharacters() {
+        // zsh turns a leading `=ls` into `/bin/ls`; `~` expands to a home folder.
+        #expect(ShellQuote.quote("=ls") == "'=ls'")
+        #expect(ShellQuote.quote("=") == "'='")
+        #expect(ShellQuote.quote("a=b") == "a=b")
+        #expect(ShellQuote.quote("~") == "'~'")
+        #expect(ShellQuote.quote("~root") == "'~root'")
+    }
 }
 
 @Suite struct ShellWordsTests {
@@ -52,9 +61,20 @@ import Foundation
         #expect(Credentials.scrub("cd ftp://joe:p@ss@host/x") == "cd ftp://joe@host/x")
     }
 
+    @Test func curlUserOption() {
+        #expect(Credentials.scrub("curl -u joe:secret https://h/x") == "curl -u joe https://h/x")
+        #expect(Credentials.scrub("curl -s --user joe:se:cr -O https://h/x") == "curl -s --user joe -O https://h/x")
+        #expect(Credentials.scrub("curl -ujoe:secret ftp://h/") == "curl -ujoe ftp://h/")
+        #expect(Credentials.scrub("/usr/bin/curl -U px:pw --proxy-user p2:pw2 h")
+                == "/usr/bin/curl -U px --proxy-user p2 h")
+        #expect(Credentials.scrub("curl -u 'joe:secret' h") == "curl -u 'joe' h")
+        #expect(Credentials.scrub("curl -u \"joe:\" h") == "curl -u \"joe\" h")
+    }
+
     @Test func unchanged() {
         for s in ["git clone git@github.com:a/b", "scp f user@host:/p", "https://host/a:b@c",
-                  "plain text", "ftp://joe@host/x", "ls -la"] {
+                  "plain text", "ftp://joe@host/x", "ls -la", "docker run -u 1000:1000 img",
+                  "curl -u joe https://h/x", "git push -u origin a:b", "echo curl; sort -u a:b"] {
             #expect(Credentials.scrub(s) == s, "\(s)")
         }
     }
@@ -269,5 +289,27 @@ import Foundation
         #expect(FileProperties.octal(0o4755) == "4755")
         #expect(FileProperties.octal(0) == "0000")
         #expect(FileProperties.octal(0o644) == "0644")
+    }
+}
+
+@Suite struct PipeTailTests {
+    /// Far more than a pipe buffer holds: the program finishes only because the pipe is drained.
+    @Test(.timeLimit(.minutes(1))) func drainsWhileTheProgramRunsAndKeepsTheEnd() async throws {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/bin/sh")
+        process.arguments = ["-c", "head -c 300000 /dev/zero | tr '\\0' x >&2; printf END >&2; exit 3"]
+        process.standardOutput = FileHandle.nullDevice
+        let errors = Pipe()
+        process.standardError = errors
+        try process.run()
+        let tail = PipeTail.read(errors.fileHandleForReading, limit: 10)
+        let status: Int32 = await withCheckedContinuation { continuation in
+            DispatchQueue.global().async {
+                process.waitUntilExit()
+                continuation.resume(returning: process.terminationStatus)
+            }
+        }
+        #expect(status == 3)
+        #expect(String(decoding: await tail.value, as: UTF8.self) == "xxxxxxxEND")
     }
 }

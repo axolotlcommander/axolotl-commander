@@ -15,6 +15,10 @@ enum BatchRenameSheet {
     static func show(for panel: PanelViewController) {
         let targets = panel.targets().filter { !$0.isParent }
         guard !targets.isEmpty, let window = panel.view.window else { return }
+        guard panel.router?.operations.isBusy != true else {
+            NSSound.beep()
+            return
+        }
         var options = UserDefaults.standard.data(forKey: defaultsKey)
             .flatMap { try? JSONDecoder().decode(BatchRenameOptions.self, from: $0) } ?? BatchRenameOptions()
         // The counter restarts with every run; the mask and the rest are remembered.
@@ -112,6 +116,15 @@ enum BatchRenameSheet {
     func stop() {
         expansion?.cancel()
         pending?.cancel()
+    }
+
+    /// The plan for the options as they are now: the preview may still lag behind typing, so it
+    /// is recomputed first. nil when there is nothing valid to rename (the sheet then shows why).
+    func currentPlan() -> [RenamePlanEntry]? {
+        guard !isReading else { return nil }
+        pending?.cancel()
+        update()
+        return error == nil && renameCount > 0 ? plan : nil
     }
 
     var renameCount: Int { plan.filter { $0.status == .rename }.count }
@@ -249,7 +262,7 @@ private struct BatchRenameView: View {
                 }
                 Spacer()
                 Button("Cancel", role: .cancel) { done(nil) }.keyboardShortcut(.cancelAction)
-                Button("Rename") { done(model.plan) }.keyboardShortcut(.defaultAction)
+                Button("Rename") { if let plan = model.currentPlan() { done(plan) } }.keyboardShortcut(.defaultAction)
                     .disabled(model.isReading || model.error != nil || model.renameCount == 0)
             }
         }

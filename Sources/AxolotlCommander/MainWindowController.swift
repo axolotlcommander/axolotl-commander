@@ -222,6 +222,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
              .insertNameToCommandLine, .insertPathToCommandLine,
              .insertLeftPathToCommandLine, .insertRightPathToCommandLine,
              .toggleCommandLine, .toggleFunctionKeyBar: true
+        case .openInLeftPanel, .openInRightPanel: activePanel.model.otherPanelTarget != nil
         default: false
         }
     }
@@ -246,6 +247,12 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
             } else {
                 activePanel.go(to: other.model.location, focusing: other.model.cursorItem.flatMap { $0.isParent ? nil : $0.name })
             }
+        case .openInLeftPanel, .openInRightPanel:
+            // Always into the other panel; the arrow pointing at it also moves the focus there.
+            guard let target = activePanel.model.otherPanelTarget else { return }
+            let other = activeSide == .left ? right : left
+            other.go(to: target.url, focusing: target.focus)
+            if (command == .openInRightPanel) == (activeSide == .left) { activate(other.side) }
         case .leftVolumeMenu: activate(.left); left.perform(.leftVolumeMenu)
         case .rightVolumeMenu: activate(.right); right.perform(.rightVolumeMenu)
         case .focusCommandLine:

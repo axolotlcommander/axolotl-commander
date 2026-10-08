@@ -53,6 +53,9 @@ public struct RemoteEntry: Hashable, Sendable {
     public var linkTarget: String?
     /// For symlinks: true when the target is a directory (resolved by the client when cheap).
     public var targetIsDirectory: Bool
+    /// The server's identifier of the underlying object (FTP MLSD `unique` fact), when reported.
+    /// Equal for two names of the same folder, e.g. a folder and a link the server lists as a folder.
+    public var uniqueID: String?
 
     public init(
         name: String,
@@ -61,7 +64,8 @@ public struct RemoteEntry: Hashable, Sendable {
         modificationDate: Date? = nil,
         permissions: UInt32? = nil,
         linkTarget: String? = nil,
-        targetIsDirectory: Bool = false
+        targetIsDirectory: Bool = false,
+        uniqueID: String? = nil
     ) {
         self.name = name
         self.kind = kind
@@ -70,6 +74,7 @@ public struct RemoteEntry: Hashable, Sendable {
         self.permissions = permissions
         self.linkTarget = linkTarget
         self.targetIsDirectory = targetIsDirectory
+        self.uniqueID = uniqueID
     }
 
     /// Browsed like a folder (directories and symlinks to directories).
@@ -128,6 +133,12 @@ public protocol RemoteFileSystem: Actor {
     func list(_ path: String) async throws -> [RemoteEntry]
     /// The entry itself (symlinks not followed); nil when it does not exist.
     func info(_ path: String) async throws -> RemoteEntry?
+    /// `list` for recursive walks (delete, move, copy, size): a symlink is never reported as a
+    /// directory, so a walk does not enter a linked folder. Some FTP servers list a link to a
+    /// folder as a folder; this checks further where `list` cannot be trusted for that.
+    func walkList(_ path: String) async throws -> [RemoteEntry]
+    /// `info` with the same guarantee as `walkList`.
+    func walkInfo(_ path: String) async throws -> RemoteEntry?
     /// Writes the remote file into `local` (created or truncated). `progress` gets cumulative bytes.
     func download(_ path: String, to local: URL, progress: @escaping @Sendable (Int64) -> Void) async throws
     /// Creates or replaces the remote file with the contents of `local`.
@@ -148,6 +159,8 @@ public protocol RemoteFileSystem: Actor {
 
 extension RemoteFileSystem {
     public func replace(_ from: String, over to: String) async throws -> Bool { false }
+    public func walkList(_ path: String) async throws -> [RemoteEntry] { try await list(path) }
+    public func walkInfo(_ path: String) async throws -> RemoteEntry? { try await info(path) }
 }
 
 public enum RemotePath {

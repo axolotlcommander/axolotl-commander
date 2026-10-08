@@ -653,3 +653,89 @@ private func tarField(_ data: Data, _ offset: Int, _ length: Int) -> String {
         }
     }
 }
+
+// MARK: - Hard links
+
+/// Tar made by /usr/bin/tar from `a` (data) and `b`, `c` hard links to it, so `b` and `c`
+/// are stored as hard-link members naming `a`.
+private func makeHardLinkTar(_ root: URL, format: ArchiveFormat) throws -> URL {
+    let src = root.sub("src")
+    try write(src.sub("a"), noise(70_000))
+    #expect(link(src.sub("a").path, src.sub("b").path) == 0)
+    #expect(link(src.sub("a").path, src.sub("c").path) == 0)
+    let archive = root.sub("h." + format.preferredExtension)
+    try run("/usr/bin/tar", [format == .tarGzip ? "-czf" : "-cf", archive.path, "a", "b", "c"], in: src)
+    return archive
+}
+
+/// Member path -> hard-link target, read straight from the archive headers.
+private func hardLinks(_ archive: URL) throws -> [String: String] {
+    try withUTF8Locale {
+        let reader = try ArchiveReadHandle(path: archive.path)
+        var links: [String: String] = [:]
+        while let e = try reader.next() {
+            let info = RawEntryInfo(e)
+            if let link = info.hardlink { links[normalizeMemberPath(info.path)] = normalizeMemberPath(link) }
+            try reader.skip()
+        }
+        return links
+    }
+}
+
+private func inode(_ url: URL) -> ino_t? {
+    var st = stat()
+    return lstat(url.path, &st) == 0 ? st.st_ino : nil
+}
+
+@Test(arguments: [ArchiveFormat.tar, .tarGzip])
+func removingHardLinkTargetKeepsLinkData(format: ArchiveFormat) async throws {
+    try await withSandbox { root in
+        let archive = try makeHardLinkTar(root, format: format)
+        try #require(try hardLinks(archive) == ["b": "a", "c": "a"])
+
+        try await ArchiveWriter.update(archive, removing: ["a"], renaming: ["c": "d/c"], progress: noProgress)
+        // `b` now carries the data; the other link points to it.
+        #expect(try hardLinks(archive) == ["d/c": "b"])
+        let dest = root.sub("dest")
+        let report = try await extractAll(archive, to: dest)
+        #expect(report.skipped.isEmpty)
+        #expect(names(dest) == ["b", "d"])
+        #expect(read(dest.sub("b")) == noise(70_000))
+        #expect(read(dest.sub("d/c")) == noise(70_000))
+        #expect(inode(dest.sub("b")) == inode(dest.sub("d/c")))
+    }
+}
+
+@Test func replacingHardLinkTargetKeepsLinkData() async throws {
+    try await withSandbox { root in
+        let archive = try makeHardLinkTar(root, format: .tar)
+        let fresh = root.sub("fresh.txt")
+        try write(fresh, "fresh")
+
+        // Replacing `a` puts a new member in its place; the links keep the content they
+        // had (the old data of `a`) instead of following the replacement, which is
+        // appended after them and is a separate file.
+        try await ArchiveWriter.update(archive, adding: [.init(file: fresh, path: "a")], progress: noProgress)
+        #expect(try hardLinks(archive) == ["c": "b"])
+        let dest = root.sub("dest")
+        let report = try await extractAll(archive, to: dest)
+        #expect(report.skipped.isEmpty)
+        #expect(read(dest.sub("a")) == Data("fresh".utf8))
+        #expect(read(dest.sub("b")) == noise(70_000))
+        #expect(read(dest.sub("c")) == noise(70_000))
+        #expect(inode(dest.sub("b")) == inode(dest.sub("c")))
+        #expect(inode(dest.sub("a")) != inode(dest.sub("b")))
+    }
+}
+
+@Test func keptHardLinkTargetStaysLinked() async throws {
+    try await withSandbox { root in
+        let archive = try makeHardLinkTar(root, format: .tar)
+        try await ArchiveWriter.update(archive, removing: ["b"], renaming: ["a": "x/a"], progress: noProgress)
+        #expect(try hardLinks(archive) == ["c": "x/a"])
+        let dest = root.sub("dest")
+        _ = try await extractAll(archive, to: dest)
+        #expect(read(dest.sub("c")) == noise(70_000))
+        #expect(inode(dest.sub("x/a")) == inode(dest.sub("c")))
+    }
+}

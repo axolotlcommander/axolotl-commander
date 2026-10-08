@@ -159,4 +159,41 @@ import Darwin
             #expect(store.edit(for: .server(remote.url))?.id == edit.id)
         }
     }
+
+    @Test func serverStampIsKeptAndUpdatedOnSave() async throws {
+        try await TestSandbox.with("axo-edits") { dir in
+            let store = ArchiveEditStore(root: dir.child("Edits"))
+            let remote = RemoteLocation(endpoint: RemoteEndpoint(proto: .sftp, host: "example.test", user: "me"), path: "/home/me/x.txt")
+            let downloaded = ServerFileStamp(size: 1, modified: 1_000)
+            let edit = try await store.begin(target: .server(remote.url), archiveStamp: nil, serverStamp: downloaded) { folder in
+                try TestSandbox.write(folder.child("x.txt"), "x")
+                return folder.child("x.txt")
+            }
+            try modify(store, edit)
+            #expect(try ArchiveEditStore(root: store.root).loadPending().first?.serverStamp == downloaded)
+            let uploaded = ServerFileStamp(size: 12, modified: 2_000)
+            try store.markSaved(edit.id, archiveStamp: nil, serverStamp: uploaded)
+            #expect(ArchiveEditStore(root: store.root).all.first?.serverStamp == uploaded)
+        }
+    }
+
+    @Test func serverFileChangedSinceDownloadIsDetected() {
+        let date = Date(timeIntervalSince1970: 1_700_000_000)
+        let file = RemoteEntry(name: "x.txt", kind: .file, size: 10, modificationDate: date)
+        let stamp = ServerFileStamp(file)
+        #expect(stamp != nil)
+        #expect(!ServerFileStamp.changed(expected: stamp, now: file))
+        var resized = file
+        resized.size = 11
+        #expect(ServerFileStamp.changed(expected: stamp, now: resized))
+        var touched = file
+        touched.modificationDate = date.addingTimeInterval(1)
+        #expect(ServerFileStamp.changed(expected: stamp, now: touched))
+        // Removed, or replaced by a folder.
+        #expect(ServerFileStamp.changed(expected: stamp, now: nil))
+        #expect(ServerFileStamp.changed(expected: stamp, now: RemoteEntry(name: "x.txt", kind: .directory)))
+        // Nothing to compare with: an older edit, or a server that reports neither size nor time.
+        #expect(!ServerFileStamp.changed(expected: nil, now: resized))
+        #expect(ServerFileStamp(RemoteEntry(name: "x.txt", kind: .file)) == nil)
+    }
 }

@@ -39,6 +39,9 @@ public enum ArchiveWriter {
     /// a complete write and is left untouched on any error or cancellation.
     /// With `expecting`, an archive whose current stamp differs (changed, replaced, removed)
     /// is not touched: `ArchiveError.changedSinceRead`.
+    /// A kept hard link whose target is removed or replaced keeps its content: the first
+    /// such link becomes a regular member with the target's old data, and further links to
+    /// the same data point to it. It does not follow a replacement, which is appended later.
     @concurrent
     public static func update(
         _ archive: URL,
@@ -124,36 +127,65 @@ public enum ArchiveWriter {
         let format = reader.detectedFormat() ?? named
         guard format.isWritable else { throw ArchiveError.readOnly }
 
+        // A hard link names an earlier entry, which may be dropped (removed or replaced).
+        // `fates` holds the last old entry seen under each path; `owners` maps the index of
+        // an old entry holding data to the output member that now carries that data.
+        var fates: [String: EntryFate] = [:]
+        var owners: [Int: String] = [:]
+        var index = -1
+
         let temp = temporaryPath(for: target)
         do {
             let writer = try ArchiveWriteHandle(path: temp, format: format)
             let copier = Copier(progress: progress)
             while let e = current {
                 if Task.isCancelled { throw ArchiveError.cancelled }
+                index += 1
                 let info = RawEntryInfo(e)
                 let path = normalizeMemberPath(info.path)
+                let linked: EntryFate? = info.hardlink.flatMap { fates[normalizeMemberPath($0)] }
+                let dataIndex = info.hardlink == nil ? index : linked?.dataIndex
                 if let hit = removing.first(where: { memberPath(path, isAtOrBelow: $0) }) {
                     removeHits.insert(hit)
+                    fates[path] = EntryFate(kept: false, dataIndex: dataIndex)
                     try reader.skip()
                     current = try reader.next()
                     continue
                 }
                 let newPath = renamed(path)
                 if added.contains(newPath) || (newPath.isEmpty && !path.isEmpty) {
+                    fates[path] = EntryFate(kept: false, dataIndex: dataIndex)
                     try reader.skip()
                     current = try reader.next()
                     continue
                 }
                 if info.isEncrypted { throw ArchiveError.readOnly }
+                fates[path] = EntryFate(kept: true, dataIndex: dataIndex)
 
                 let entry = ArchiveEntryHandle(cloning: e)
                 if newPath != path {
                     archive_entry_set_pathname_utf8(entry.e, memberName(newPath, isDirectory: info.isDirectory, format: format))
                 }
+                if info.hardlink == nil && !info.isDirectory && !info.isSymlink {
+                    owners[index] = newPath
+                }
                 if let link = info.hardlink {
-                    let old = normalizeMemberPath(link)
-                    let new = renamed(old)
-                    if new != old { archive_entry_set_hardlink_utf8(entry.e, new) }
+                    if let linked, !linked.kept, let data = linked.dataIndex {
+                        // The named entry is gone: link to the member that carries its data
+                        // now, or make this link that member (the old data, read again).
+                        if let owner = owners[data] {
+                            archive_entry_set_hardlink_utf8(entry.e, owner)
+                        } else {
+                            try materialize(entry, from: target, entryAt: data, to: writer, copier: copier)
+                            owners[data] = newPath
+                            current = try reader.next()
+                            continue
+                        }
+                    } else {
+                        let old = normalizeMemberPath(link)
+                        let new = renamed(old)
+                        if new != old { archive_entry_set_hardlink_utf8(entry.e, new) }
+                    }
                 }
                 try writer.header(entry.e)
                 if !info.isDirectory && !info.isSymlink {
@@ -177,6 +209,39 @@ public enum ArchiveWriter {
             unlink(temp)
             throw error
         }
+    }
+
+    /// What `updateArchive` did with an old entry.
+    private struct EntryFate {
+        var kept: Bool
+        /// Old entry holding the data: this one, or the start of its hard-link chain;
+        /// nil when the chain names an entry that is not in the archive.
+        var dataIndex: Int?
+    }
+
+    /// Writes the hard link `entry` as a regular member carrying the data of old entry
+    /// number `index`, read again from the original archive at `path`.
+    private static func materialize(
+        _ entry: ArchiveEntryHandle,
+        from path: String,
+        entryAt index: Int,
+        to writer: ArchiveWriteHandle,
+        copier: Copier
+    ) throws {
+        let source = try ArchiveReadHandle(path: path)
+        var e = try source.next()
+        for _ in 0..<index {
+            if Task.isCancelled { throw ArchiveError.cancelled }
+            try source.skip()
+            e = try source.next()
+        }
+        guard let e else { throw ArchiveError.library("Cannot read archive") }
+        archive_entry_set_hardlink_utf8(entry.e, nil)
+        archive_entry_set_filetype(entry.e, UInt32(AE_IFREG))
+        archive_entry_set_size(entry.e, archive_entry_size(e))
+        try writer.header(entry.e)
+        try copier.copyData(from: source, to: writer)
+        try writer.finishEntry()
     }
 
     /// Hidden temporary file in the same directory as `path`.

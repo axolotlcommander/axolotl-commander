@@ -73,7 +73,10 @@ struct TransferSheet: View {
 final class OperationsController {
     let operations = FileOperations()
     unowned let windowController: MainWindowController
-    var isBusy = false
+    /// Operations started by `perform` that have not finished. Rename runs queued behind each
+    /// other (undo, redo) overlap here, so a finishing one must not clear the busy state of the next.
+    private(set) var running: [OperationState] = []
+    var isBusy: Bool { !running.isEmpty }
 
     init(windowController: MainWindowController) {
         self.windowController = windowController
@@ -353,7 +356,7 @@ final class OperationsController {
     // MARK: Running
 
     func perform(_ state: OperationState, _ body: @escaping () async throws -> Void) {
-        isBusy = true
+        running.append(state)
         let host = NSWindow(contentViewController: NSHostingController(rootView: ProgressSheet(state: state)))
         // Show the sheet only for operations that take a noticeable time.
         let showTimer = Task {
@@ -374,9 +377,16 @@ final class OperationsController {
             }
             showTimer.cancel()
             if host.sheetParent != nil { window?.endSheet(host) }
-            isBusy = false
+            running.removeAll { $0 === state }
             await windowController.refreshPanels()
         }
+    }
+
+    /// Cancels the running operations and waits until they have stopped (and cleaned up after themselves).
+    func stopAll() async {
+        let states = running
+        for state in states { state.task?.cancel() }
+        for state in states { await state.task?.value }
     }
 
     func inform(_ title: String, _ text: String) async {

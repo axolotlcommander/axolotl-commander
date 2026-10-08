@@ -143,15 +143,19 @@ public actor RemoteConnections {
         }
     }
 
-    /// Sum of file sizes below a folder; symlinks are not followed.
+    /// Sum of file sizes below a folder; symlinks are not followed, and a folder the server
+    /// reports under the same `uniqueID` as one already counted is not entered again.
     public func totalSize(of folder: RemoteLocation) async throws -> Int64 {
         var total: Int64 = 0
         var stack = [folder.path]
+        var seen = Set<String>()
         while let dir = stack.popLast() {
             try Task.checkCancellation()
-            for entry in try await perform(on: folder.endpoint, { try await $0.list(dir) }) {
+            for entry in try await perform(on: folder.endpoint, { try await $0.walkList(dir) }) {
                 switch entry.kind {
-                case .directory: stack.append(RemotePath.join(dir, entry.name))
+                case .directory:
+                    if let id = entry.uniqueID, !seen.insert(id).inserted { break }
+                    stack.append(RemotePath.join(dir, entry.name))
                 case .file: total += entry.size ?? 0
                 case .symlink, .other: break
                 }

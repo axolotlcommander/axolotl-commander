@@ -212,9 +212,11 @@ final class TransferRun {
             for child in node.children where !deleteSource(child) { ok = false }
             return rmdir(node.path) == 0 && ok
         case .file, .symlink:
-            // Identity must still match the planned entry before deleting.
+            // Identity must still match the planned entry before deleting, and size and
+            // modification time too: a file written to meanwhile has data the copy lacks.
             guard case .exists(let st) = FileProbe.probe(node.path, followingLinks: false),
-                  let id = st.identity, id == node.identity
+                  let id = st.identity, id == node.identity, let planned = node.stat,
+                  st.size == planned.size, st.modificationDate == planned.modificationDate
             else { return false }
             return unlink(node.path) == 0
         case .unsupported:

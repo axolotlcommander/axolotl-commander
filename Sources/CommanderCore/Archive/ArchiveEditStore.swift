@@ -25,6 +25,34 @@ public struct FileStamp: Codable, Sendable, Equatable {
     }
 }
 
+/// Size and modification time of a server file as the server reports them; tells whether
+/// someone changed the file after it was downloaded for editing.
+public struct ServerFileStamp: Codable, Sendable, Equatable {
+    public var size: Int64?
+    /// Milliseconds since 1970 (servers report whole seconds at best).
+    public var modified: Int64?
+
+    public init(size: Int64?, modified: Int64?) {
+        self.size = size
+        self.modified = modified
+    }
+
+    /// nil when the server reports neither size nor time: then nothing can be compared.
+    public init?(_ entry: RemoteEntry) {
+        let modified = entry.modificationDate.map { Int64(($0.timeIntervalSince1970 * 1000).rounded()) }
+        guard entry.size != nil || modified != nil else { return nil }
+        self.init(size: entry.size, modified: modified)
+    }
+
+    /// True when the file `now` (nil = gone) is not the one stamped by `expected`. Without a
+    /// stamp (an older edit, or a server that reports nothing) the file counts as unchanged.
+    public static func changed(expected: ServerFileStamp?, now: RemoteEntry?) -> Bool {
+        guard let expected else { return false }
+        guard let now, now.kind == .file else { return true }
+        return ServerFileStamp(now) != expected
+    }
+}
+
 /// A copy of an archive member (or a server file) opened for editing, waiting to go back.
 public struct PendingEdit: Codable, Sendable, Equatable, Identifiable {
     public enum Target: Codable, Sendable, Equatable {
@@ -42,6 +70,8 @@ public struct PendingEdit: Codable, Sendable, Equatable, Identifiable {
     public var baseline: FileStamp?
     /// The archive as it was when the member was taken out (or last saved into); nil for servers.
     public var archiveStamp: PersistentFileStamp?
+    /// The server file as it was when downloaded (or last uploaded); nil for archives.
+    public var serverStamp: ServerFileStamp? = nil
     /// The user chose "Not Now": keep the copy and offer it again on the next launch.
     public var declined: Bool
 
@@ -114,6 +144,7 @@ public final class ArchiveEditStore: Sendable {
     nonisolated(nonsending) public func begin(
         target: PendingEdit.Target,
         archiveStamp: PersistentFileStamp?,
+        serverStamp: ServerFileStamp? = nil,
         makeCopy: nonisolated(nonsending) (_ folder: URL) async throws -> URL
     ) async throws -> PendingEdit {
         let id = UUID()
@@ -126,7 +157,8 @@ public final class ArchiveEditStore: Sendable {
                 throw CocoaError(.fileNoSuchFile, userInfo: [NSURLErrorKey: copy])
             }
             let edit = PendingEdit(id: id, target: target, copyRelPath: String(copy.path.dropFirst(base.count)),
-                                   baseline: FileStamp(copy), archiveStamp: archiveStamp, declined: false)
+                                   baseline: FileStamp(copy), archiveStamp: archiveStamp, serverStamp: serverStamp,
+                                   declined: false)
             try change { $0.append(edit) }
             return edit
         } catch {
@@ -135,13 +167,14 @@ public final class ArchiveEditStore: Sendable {
         }
     }
 
-    /// The copy went back: its current state becomes the baseline, and the archive's new stamp
-    /// is what later saves expect.
-    public func markSaved(_ id: UUID, archiveStamp: PersistentFileStamp?) throws {
+    /// The copy went back: its current state becomes the baseline, and the archive's (or the
+    /// server file's) new stamp is what later saves expect.
+    public func markSaved(_ id: UUID, archiveStamp: PersistentFileStamp?, serverStamp: ServerFileStamp? = nil) throws {
         try change { list in
             guard let i = list.firstIndex(where: { $0.id == id }) else { return }
             list[i].baseline = FileStamp(copyURL(list[i]))
             list[i].archiveStamp = archiveStamp
+            list[i].serverStamp = serverStamp
             list[i].declined = false
         }
     }

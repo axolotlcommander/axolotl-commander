@@ -277,6 +277,17 @@ public final class PanelModel {
         return item
     }
 
+    /// Where the other panel goes for the cursor item (⌃⇧← / ⌃⇧→): into a folder or an archive
+    /// on disk, otherwise to the folder holding the item with the item focused. nil on "..".
+    public var otherPanelTarget: (url: URL, focus: String?)? {
+        guard let item = cursorItem, !item.isParent else { return nil }
+        if item.isDirectory, !item.isPackage { return (item.url, nil) }
+        if !item.isDirectory, archive == nil, remote == nil, ArchiveFormat.detect(fileName: item.name) != nil {
+            return (item.url, nil)
+        }
+        return (item.url.deletingLastPathComponent(), item.url.lastPathComponent)
+    }
+
     public func goParent() async throws {
         if results != nil { return try await go(to: location) }
         guard location.path != "/" else { return }

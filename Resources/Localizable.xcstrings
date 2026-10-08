@@ -8113,6 +8113,76 @@
           }
         }
       }
+    },
+    "A file operation is still running.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ještě probíhá operace se soubory."
+          }
+        }
+      }
+    },
+    "Quitting stops it; items it has not finished stay as they are now.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ukončení ji zastaví; položky, které nedokončila, zůstanou v současném stavu."
+          }
+        }
+      }
+    },
+    "Stop and Quit": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zastavit a ukončit"
+          }
+        }
+      }
+    },
+    "“%@” was changed on the server after you opened it.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ byl na serveru po otevření změněn."
+          }
+        }
+      }
+    },
+    "Uploading your copy replaces the newer version on the server. If you cancel, your copy is kept and offered again after your next change or the next launch.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nahráním vaší kopie se novější verze na serveru nahradí. Když akci zrušíte, kopie zůstane a nabídne se znovu po další změně nebo při příštím spuštění."
+          }
+        }
+      }
+    },
+    "The properties could not be read.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vlastnosti se nepodařilo načíst."
+          }
+        }
+      }
+    },
+    "The attributes could not be changed.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atributy se nepodařilo změnit."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

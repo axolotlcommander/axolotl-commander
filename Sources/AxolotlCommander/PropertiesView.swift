@@ -144,8 +144,8 @@ enum PropertiesSheet {
         do {
             items = try urls.map(FileProperties.load)
         } catch {
-            NSSound.beep()
             log.error("properties: \(error.localizedDescription, privacy: .public)")
+            Task { await showError(String(localized: "The properties could not be read."), error, in: window) }
             return
         }
         guard !items.isEmpty else { return }
@@ -168,6 +168,7 @@ enum PropertiesSheet {
                 try await AttributeEditor.apply(change, to: urls)
             }.value
         } catch {
+            await showError(String(localized: "The attributes could not be changed."), error, in: window)
             return
         }
         onChange?()
@@ -178,5 +179,12 @@ enum PropertiesSheet {
         alert.informativeText = lines.joined(separator: "\n")
             + (report.failures.count > 20 ? "\n" + String(localized: "…and \(report.failures.count - 20) more") : "")
         await alert.beginSheetModal(for: window)
+    }
+
+    private static func showError(_ title: String, _ error: any Error, in window: NSWindow) async {
+        let alert = NSAlert()
+        alert.messageText = title
+        alert.informativeText = OperationsController.describe(error)
+        _ = await OperationsController.present(alert, in: window)
     }
 }

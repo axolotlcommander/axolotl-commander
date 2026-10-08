@@ -82,8 +82,10 @@ final class PanelViewController: NSViewController {
     private var shiftMarkState: Bool?
     /// Items shown by Quick Look (see QuickLook.swift).
     var previewURLs: [URL] = []
-    // Brief grid reload bookkeeping: a cursor move only redraws the cursor.
-    private var briefCount = -1
+    // Brief grid reload bookkeeping: a cursor move only redraws the cursor. The items are kept
+    // whole so a re-sort or rename (same count) reloads too; an unchanged array shares its
+    // storage, so the comparison is cheap on cursor moves.
+    private var briefItems: [FileItem]?
     private var briefLocation: URL?
     private var briefSelection: Set<String> = []
     private var briefSizes = 0
@@ -126,8 +128,8 @@ final class PanelViewController: NSViewController {
         for column in Column.allCases {
             let tc = NSTableColumn(identifier: column.identifier)
             tc.title = column.title
-            tc.width = column.width
-            tc.minWidth = 40
+            tc.minWidth = column.minWidth
+            tc.width = max(column.width, column.minWidth)
             tc.resizingMask = column == .name ? [.autoresizingMask, .userResizingMask] : .userResizingMask
             if column.isNumeric { tc.headerCell.alignment = .right }
             tableView.addTableColumn(tc)
@@ -257,9 +259,9 @@ final class PanelViewController: NSViewController {
         // A reload would end in-place rename editing; the rename refreshes afterwards.
         guard renaming == nil else { return }
         if viewMode == .brief {
-            if briefCount != model.items.count || briefLocation != model.location || briefSelection != model.selection
+            if briefItems != model.items || briefLocation != model.location || briefSelection != model.selection
                 || briefSizes != model.directorySizes.count {
-                briefCount = model.items.count
+                briefItems = model.items
                 briefLocation = model.location
                 briefSelection = model.selection
                 briefSizes = model.directorySizes.count
@@ -870,11 +872,18 @@ final class PanelViewController: NSViewController {
         field.currentEditor()?.selectedRange = NSRange(location: 0, length: (base as NSString).length)
     }
 
-    private func endRename(commit: Bool, newName: String) {
+    /// `refocus` is false when editing ended because focus went elsewhere (a click on the other
+    /// panel, a toolbar button…): the focus then stays where the user put it.
+    private func endRename(commit: Bool, newName: String, refocus: Bool = true) {
         guard let (_, item) = renaming else { return }
         renaming = nil
-        view.window?.makeFirstResponder(tableView)
-        modelChanged()
+        if refocus {
+            view.window?.makeFirstResponder(tableView)
+            modelChanged()
+        } else {
+            // Not while the field editor is still being torn down.
+            DispatchQueue.main.async { [weak self] in self?.modelChanged() }
+        }
         if commit { router?.operations.rename(item.url, to: newName, in: self) }
     }
 
@@ -1004,7 +1013,15 @@ final class PanelViewController: NSViewController {
 
 extension PanelViewController: NSTextFieldDelegate {
     func controlTextDidEndEditing(_ obj: Notification) {
-        if (obj.object as? NSTextField) === pathField { pathBar.endEditing() }
+        guard let field = obj.object as? NSTextField else { return }
+        if field === pathField {
+            pathBar.endEditing()
+        } else if renaming != nil {
+            // Enter and Esc end the rename in doCommandBy; any other end of editing (focus moved
+            // away) keeps the typed name, as Finder does.
+            field.isEditable = false
+            endRename(commit: true, newName: field.stringValue, refocus: false)
+        }
     }
 
     func control(_ control: NSControl, textView: NSTextView, doCommandBy selector: Selector) -> Bool {
@@ -1053,6 +1070,31 @@ private enum Column: String, CaseIterable {
         case .date: 130
         }
     }
+    /// The Date column always fits a date, also in bold (marked rows): middle-truncated dates mislead.
+    var minWidth: CGFloat {
+        self == .date ? Self.dateWidth : 40
+    }
+
+    /// The widest date the current locale writes, measured in the bold font, plus the cell's insets.
+    private static let dateWidth: CGFloat = {
+        let font = NSFont.boldSystemFont(ofSize: NSFont.systemFontSize)
+        var widest: CGFloat = 0
+        let calendar = Calendar.current
+        // Two-digit months, days, hours and minutes with various digits; morning and afternoon.
+        for month in [1, 10, 11, 12] {
+            for day in [8, 18, 28, 30] {
+                for hour in [0, 8, 10, 20, 22, 23] {
+                    for minute in [8, 48, 58] {
+                        let parts = DateComponents(year: 2088, month: month, day: day, hour: hour, minute: minute)
+                        guard let date = calendar.date(from: parts) else { continue }
+                        widest = max(widest, (Format.date(date) as NSString).size(withAttributes: [.font: font]).width)
+                    }
+                }
+            }
+        }
+        return ceil(widest) + 12
+    }()
+
     var isNumeric: Bool { self == .size || self == .date }
     var sortField: SortField {
         switch self {
