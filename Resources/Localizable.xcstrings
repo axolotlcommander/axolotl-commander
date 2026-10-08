@@ -575,13 +575,13 @@
         }
       }
     },
-    "About iCommander": {
+    "About Axolotl Commander": {
       "extractionState": "manual",
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "O aplikaci iCommander"
+            "value": "O aplikaci Axolotl Commander"
           }
         }
       }
@@ -2967,12 +2967,12 @@
         }
       }
     },
-    "Hide iCommander": {
+    "Hide Axolotl Commander": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Skrýt iCommander"
+            "value": "Skrýt Axolotl Commander"
           }
         }
       }
@@ -4804,13 +4804,13 @@
         }
       }
     },
-    "Quit iCommander": {
+    "Quit Axolotl Commander": {
       "extractionState": "manual",
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ukončit iCommander"
+            "value": "Ukončit Axolotl Commander"
           }
         }
       }
@@ -7143,13 +7143,13 @@
         }
       }
     },
-    "iCommander Help": {
+    "Axolotl Commander Help": {
       "extractionState": "manual",
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nápověda iCommander"
+            "value": "Nápověda k aplikaci Axolotl Commander"
           }
         }
       }

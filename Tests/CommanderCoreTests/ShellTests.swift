@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright (C) 2026 The iCommander Authors
+// Copyright (C) 2026 The Axolotl Commander Authors
 
 import Testing
 import Foundation
@@ -188,7 +188,7 @@ import Foundation
 @Suite struct FilePropertiesTests {
     func withTempDir(_ body: (URL) throws -> Void) throws {
         let dir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("icommander-shell-\(UUID().uuidString)")
+            .appendingPathComponent("axolotl-shell-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: false)
         defer { try? FileManager.default.removeItem(at: dir) }
         try body(dir)

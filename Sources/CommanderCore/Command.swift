@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright (C) 2026 The iCommander Authors
+// Copyright (C) 2026 The Axolotl Commander Authors
 
 /// Every user-facing command. Menu, key map and enablement all derive from
 /// `CommandRegistry`, so a command is declared exactly once.
@@ -146,9 +146,9 @@ public enum CommandRegistry {
         func f(_ n: Int, _ mods: K.Modifiers = []) -> K { K(.function(n), mods) }
         func ch(_ char: Character, _ mods: K.Modifiers) -> K { K(.character(char), mods) }
 
-        add(.about, "About iCommander", .app, scope: .app)
+        add(.about, "About Axolotl Commander", .app, scope: .app)
         add(.settings, "Settings…", .app, [ch(",", m)], scope: .app, sep: true)
-        add(.quit, "Quit iCommander", .app, [ch("q", m)], scope: .app, sep: true)
+        add(.quit, "Quit Axolotl Commander", .app, [ch("q", m)], scope: .app, sep: true)
 
         add(.view, "View", .file, [f(3)])
         add(.quickLook, "Quick Look", .file, [ch("y", m), f(3, o)])
@@ -231,7 +231,7 @@ public enum CommandRegistry {
 
         add(.configureKeys, "Keyboard Shortcuts…", .options, scope: .app)
 
-        add(.help, "iCommander Help", .help, [f(1)], scope: .app)
+        add(.help, "Axolotl Commander Help", .help, [f(1)], scope: .app)
 
         add(.open, "Open", nil, [K(.enter), K(.numEnter), K(.down, m), K(.pageDown, c)])
         add(.contextMenu, "Show Context Menu", nil, [f(10, s)])

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright (C) 2026 The iCommander Authors
+// Copyright (C) 2026 The Axolotl Commander Authors
 
 import Testing
 import Foundation
@@ -10,7 +10,7 @@ import Foundation
 
 private func withSearchDir(_ body: (URL) async throws -> Void) async throws {
     let root = FileManager.default.temporaryDirectory
-        .appendingPathComponent("iCommanderSearch-\(UUID().uuidString)", isDirectory: true)
+        .appendingPathComponent("AxolotlSearch-\(UUID().uuidString)", isDirectory: true)
     try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
     defer { try? FileManager.default.removeItem(at: root) }
     try await body(root)
@@ -498,7 +498,7 @@ private func contentSearch(_ root: URL, _ q: SearchCriteria.ContentQuery,
     }
 
     @Test func matchAcrossChunkBoundaries() throws {
-        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("iCommanderChunk-\(UUID().uuidString)")
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("AxolotlChunk-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: dir) }
         let needle = "červený-klíč"
@@ -518,7 +518,7 @@ private func contentSearch(_ root: URL, _ q: SearchCriteria.ContentQuery,
     }
 
     @Test func wholeWordsAcrossChunkBoundaries() throws {
-        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("iCommanderChunk-\(UUID().uuidString)")
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("AxolotlChunk-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: dir) }
         let path = dir.appendingPathComponent("f.txt")
@@ -536,7 +536,7 @@ private func contentSearch(_ root: URL, _ q: SearchCriteria.ContentQuery,
     }
 
     @Test func utf16MatchAcrossChunkBoundaries() throws {
-        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("iCommanderChunk-\(UUID().uuidString)")
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("AxolotlChunk-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: dir) }
         let path = dir.appendingPathComponent("f.txt")

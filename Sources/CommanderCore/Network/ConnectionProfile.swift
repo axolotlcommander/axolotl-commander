@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright (C) 2026 The iCommander Authors
+// Copyright (C) 2026 The Axolotl Commander Authors
 
 public import Foundation
 import Security
@@ -87,8 +87,8 @@ public struct KeychainPasswordStore: PasswordStore {
         if status == errSecItemNotFound {
             var item = query
             item[kSecValueData as String] = data
-            item[kSecAttrLabel as String] = "\(RemoteURL.displayName(endpoint)) (iCommander)"
-            item[kSecAttrDescription as String] = "iCommander"
+            item[kSecAttrLabel as String] = "\(RemoteURL.displayName(endpoint)) (Axolotl Commander)"
+            item[kSecAttrDescription as String] = "Axolotl Commander"
             let added = SecItemAdd(item as CFDictionary, nil)
             guard added == errSecSuccess else { throw KeychainError(status: added) }
         } else if status != errSecSuccess {

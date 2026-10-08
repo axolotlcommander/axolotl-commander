@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright (C) 2026 The iCommander Authors
+// Copyright (C) 2026 The Axolotl Commander Authors
 
 public import Foundation
 internal import CArchive
@@ -170,7 +170,7 @@ public enum ArchiveWriter {
     /// Hidden temporary file in the same directory as `path`.
     private static func temporaryPath(for path: String) -> String {
         let url = URL(filePath: path)
-        return url.deletingLastPathComponent().path + "/.\(url.lastPathComponent).icommander-\(UUID().uuidString).tmp"
+        return url.deletingLastPathComponent().path + "/.\(url.lastPathComponent).axolotl-\(UUID().uuidString).tmp"
     }
 
     /// Zip marks directory entries with a trailing "/".

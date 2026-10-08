@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright (C) 2026 The iCommander Authors
+// Copyright (C) 2026 The Axolotl Commander Authors
 
 /// How the letters of one part of a name are rewritten.
 public enum CaseStyle: String, CaseIterable, Codable, Sendable {

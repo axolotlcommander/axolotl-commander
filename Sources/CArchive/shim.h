@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright (C) 2026 The iCommander Authors
+// Copyright (C) 2026 The Axolotl Commander Authors
 
 // Minimal declarations from libarchive 3.7 (archive.h, archive_entry.h).
 // macOS ships /usr/lib/libarchive.2.dylib but no headers.

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright (C) 2026 The iCommander Authors
+// Copyright (C) 2026 The Axolotl Commander Authors
 
 public import Foundation
 import Darwin
@@ -93,7 +93,7 @@ final class SFTPProcess: Sendable {
     let frames: AsyncStream<Data>
     private let stdinFD: Int32
     private let state = ProcessState()
-    private let writeQueue = DispatchQueue(label: "icommander.sftp.write")
+    private let writeQueue = DispatchQueue(label: "axolotl.sftp.write")
 
     private init(pid: pid_t, executableName: String, stdinFD: Int32, frames: AsyncStream<Data>) {
         self.pid = pid

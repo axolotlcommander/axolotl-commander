@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright (C) 2026 The iCommander Authors
+// Copyright (C) 2026 The Axolotl Commander Authors
 
 internal import CCurl
 import Foundation
@@ -98,7 +98,7 @@ private final class TransferState: @unchecked Sendable {
 }
 
 final class CurlSession: @unchecked Sendable {
-    private let queue = DispatchQueue(label: "icommander.FTP", qos: .userInitiated)
+    private let queue = DispatchQueue(label: "axolotl.FTP", qos: .userInitiated)
     private var handle: UnsafeMutableRawPointer?  // confined to `queue`
 
     init() {

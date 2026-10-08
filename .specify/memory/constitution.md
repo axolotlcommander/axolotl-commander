@@ -7,7 +7,7 @@ Sync Impact Report
 - Odložené: žádné
 -->
 
-# Ústava iCommanderu
+# Ústava Axolotl Commanderu
 
 Ústava platí pro veškerou práci ve Spec Kitu (`/speckit-*`) i mimo něj. Provozní detaily
 (cesty, skripty, testovací aplikace) jsou v `CLAUDE.md`, plán etap v `docs/PLAN.md`,

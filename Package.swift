@@ -1,6 +1,6 @@
 // swift-tools-version:6.2
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright (C) 2026 The iCommander Authors
+// Copyright (C) 2026 The Axolotl Commander Authors
 import PackageDescription
 
 let strict: [SwiftSetting] = [
@@ -10,11 +10,11 @@ let strict: [SwiftSetting] = [
 ]
 
 let package = Package(
-    name: "iCommander",
+    name: "AxolotlCommander",
     defaultLocalization: "en",
     platforms: [.macOS(.v15)],
     products: [
-        .executable(name: "iCommander", targets: ["iCommander"]),
+        .executable(name: "AxolotlCommander", targets: ["AxolotlCommander"]),
     ],
     dependencies: [
         .package(url: "https://github.com/swiftlang/swift-markdown.git", from: "0.7.0"),
@@ -28,7 +28,7 @@ let package = Package(
             swiftSettings: strict
         ),
         .executableTarget(
-            name: "iCommander",
+            name: "AxolotlCommander",
             dependencies: ["CommanderCore"],
             swiftSettings: strict + [.defaultIsolation(MainActor.self)]
         ),

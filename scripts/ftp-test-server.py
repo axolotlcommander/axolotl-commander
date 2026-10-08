@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright (C) 2026 The iCommander Authors
-"""Minimal FTP server for iCommander tests and manual GUI testing (stdlib only).
+# Copyright (C) 2026 The Axolotl Commander Authors
+"""Minimal FTP server for Axolotl Commander tests and manual GUI testing (stdlib only).
 
     /usr/bin/python3 -I scripts/ftp-test-server.py --root DIR --user U --password P \
         [--port 0] [--no-mlsd] [--anonymous] [--wire-encoding cp1250] \
@@ -111,7 +111,7 @@ class Session(socketserver.StreamRequestHandler):
         self.wfile.flush()
 
     def handle(self):
-        self.reply("220 iCommander test FTP server")
+        self.reply("220 Axolotl Commander test FTP server")
         while True:
             try:
                 raw = self.rfile.readline()

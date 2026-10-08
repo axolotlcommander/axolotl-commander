@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright (C) 2026 The iCommander Authors
+// Copyright (C) 2026 The Axolotl Commander Authors
 
 import Testing
 import Foundation
@@ -12,7 +12,7 @@ import Foundation
         let root: URL
         init() throws {
             root = FileManager.default.temporaryDirectory
-                .appendingPathComponent("iCommanderTests-\(UUID().uuidString)", isDirectory: true)
+                .appendingPathComponent("AxolotlTests-\(UUID().uuidString)", isDirectory: true)
             let fm = FileManager.default
             try fm.createDirectory(at: root.appendingPathComponent("docs/sub"), withIntermediateDirectories: true)
             try fm.createDirectory(at: root.appendingPathComponent("Photos"), withIntermediateDirectories: true)
@@ -410,7 +410,7 @@ import Foundation
 
 @Suite struct DirectoryWatcherTests {
     @Test func reportsChangesDebounced() async throws {
-        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("iCommanderWatch-\(UUID().uuidString)")
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("AxolotlWatch-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: dir) }
         let count = LockedCounter()

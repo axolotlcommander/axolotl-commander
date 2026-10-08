@@ -1,4 +1,4 @@
-# iCommander — nativní macOS port Tandem Commanderu
+# Axolotl Commander — nativní macOS port Tandem Commanderu
 
 Vzor chování: `../tandemcommander` (Windows, WinAPI). Analýza portu: `../tandemcommander/docs/macos-port/`.
 Plán etap a stav práce: `docs/PLAN.md` a `docs/STATE.md`.
@@ -29,12 +29,12 @@ Principy: `.specify/memory/constitution.md`. Nové funkce přes Spec Kit (`/spec
   který test sám vytvoří a uklidí. GUI test operací: oba panely nejdřív přesměrovat do
   takového testovacího adresáře, teprve pak posílat F5/F6/F8/F2…
 - GUI testy mimo testovací adresář smí jen číst (procházet, vybírat, řadit).
-- Mazání vlastních artefaktů (`build/`, `~/Applications/iCommander.app`) je v pořádku.
+- Mazání vlastních artefaktů (`build/`, `~/Applications/Axolotl Commander.app`) je v pořádku.
 
 ## Licence a čistota implementace (závazné)
 
 - Projekt je `GPL-3.0-or-later`. Každý nový zdrojový soubor začíná hlavičkou
-  `// SPDX-License-Identifier: GPL-3.0-or-later` + `// Copyright (C) 2026 The iCommander Authors`.
+  `// SPDX-License-Identifier: GPL-3.0-or-later` + `// Copyright (C) 2026 The Axolotl Commander Authors`.
 - Vzorem je **chování**: nápověda (`../tandemcommander/help/`), `docs/macos-port/`, `specs/`
   a spuštěný program. **C++ zdrojáky vzoru (`../tandemcommander/src/**/*.cpp|h|rc`) nečíst
   ani necitovat** — ani v subagentech. Výjimka jen na výslovný pokyn uživatele, a pak zapsat
@@ -45,9 +45,9 @@ Principy: `.specify/memory/constitution.md`. Nové funkce přes Spec Kit (`/spec
 ## Technologie
 
 - Swift + AppKit, Swift Package Manager (`swift build`, `swift test`), bez Xcode projektu.
-- Spuštění: `swift run iCommander` nebo `scripts/bundle.sh` → `build/iCommander.app`.
+- Spuštění: `swift run AxolotlCommander` nebo `scripts/bundle.sh` → `build/Axolotl Commander.app`.
 - Jádro (`Sources/CommanderCore`) bez AppKitu → testovatelné `swift test`.
-- UI (`Sources/iCommander`) AppKit.
+- UI (`Sources/AxolotlCommander`) AppKit.
 
 ## Konvence
 

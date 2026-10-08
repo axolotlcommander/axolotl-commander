@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright (C) 2026 The iCommander Authors
+// Copyright (C) 2026 The Axolotl Commander Authors
 
 import Foundation
 import Darwin
@@ -12,8 +12,8 @@ import Synchronization
 // server → "1<answer bytes>" or "0" (cancelled), then closes.
 
 public enum Askpass {
-    static let socketVariable = "ICOMMANDER_ASKPASS"
-    static let tokenVariable = "ICOMMANDER_ASKPASS_TOKEN"
+    static let socketVariable = "AXOLOTL_ASKPASS"
+    static let tokenVariable = "AXOLOTL_ASKPASS_TOKEN"
 
     /// When launched by ssh as SSH_ASKPASS: answers the prompt and returns the exit status;
     /// nil when this is a normal launch.
@@ -85,7 +85,7 @@ final class AskpassServer: Sendable {
         _ = fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_NONBLOCK)
 
         let token = token, path = socketPath, dir = directory
-        let source = DispatchSource.makeReadSource(fileDescriptor: fd, queue: DispatchQueue(label: "icommander.askpass"))
+        let source = DispatchSource.makeReadSource(fileDescriptor: fd, queue: DispatchQueue(label: "axolotl.askpass"))
         source.setEventHandler {
             while true {
                 let client = accept(fd, nil, nil)

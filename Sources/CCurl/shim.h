@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright (C) 2026 The iCommander Authors
+// Copyright (C) 2026 The Axolotl Commander Authors
 
 // System libcurl (the macOS SDK ships the headers) plus typed wrappers for the
 // variadic curl_easy_setopt / curl_easy_getinfo, which Swift cannot call.

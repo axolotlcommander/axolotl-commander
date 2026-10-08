@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright (C) 2026 The iCommander Authors
+// Copyright (C) 2026 The Axolotl Commander Authors
 
 import Testing
 import Foundation
@@ -9,7 +9,7 @@ import Foundation
 
 private func tempDir() throws -> URL {
     let url = FileManager.default.temporaryDirectory
-        .appendingPathComponent("iCommanderWindowTests-\(UUID().uuidString)", isDirectory: true)
+        .appendingPathComponent("AxolotlWindowTests-\(UUID().uuidString)", isDirectory: true)
     try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
     return url
 }

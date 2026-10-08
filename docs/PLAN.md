@@ -11,13 +11,13 @@ Pojistky do testů: `../tandemcommander/docs/macos-port/05-pravidla.md`.
 |---|---|---|
 | Build | SwiftPM (`Package.swift`), `scripts/bundle.sh` → `.app` | Bez `.xcodeproj`, vše textové, build/test z terminálu |
 | `CommanderCore` | Čistý Swift, bez AppKitu | Model panelu, výběr, řazení, masky, pravidla jmen/cest/identity, operace. Pokryto `swift test` |
-| `iCommander` | AppKit | Okno, panely (`NSTableView`), menu, dialogy |
+| `AxolotlCommander` | AppKit | Okno, panely (`NSTableView`), menu, dialogy |
 | Příkazy | `Command` enum + `CommandRegistry` (titulek, menu, výchozí zkratka, `isImplemented`) | Menu, šedé položky, zkratky i přemapování (etapa 11) z jednoho zdroje |
 | Klávesy | `KeyChord` → `Command` přes `KeyMap` v jádru | Testovatelné bez UI; F-klávesy zachytí okno dřív než systém |
 | Zdroj souborů | protokol `FileSource` (`LocalFileSource` teď, `ArchiveFileSource`/`RemoteFileSource` později) | Panel nezná, odkud položky jsou |
 | Výpis | `FileManager` s předanými resource keys (interně `getattrlistbulk`) na pozadí; vlastní `getattrlistbulk` jen pokud měření ukáže potřebu | Jednodušší, stejně rychlé pro běžné adresáře |
 | Identita | `URLResourceKey.fileResourceIdentifierKey` + volume UUID, fallback `stat` (dev, ino) | Pravidlo „identita, ne text cesty" |
-| Nastavení | plist v `~/Library/Application Support/iCommander/` | — |
+| Nastavení | plist v `~/Library/Application Support/Axolotl Commander/` | — |
 
 ## Etapy
 

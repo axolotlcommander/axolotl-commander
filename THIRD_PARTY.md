@@ -8,6 +8,6 @@
 | libcurl | FTP | curl (MIT-like) | systémová knihovna macOS (nedodává se) |
 | OpenSSH (`ssh`, `sftp`) | SFTP | BSD | systémové nástroje macOS (nedodávají se) |
 
-Apache-2.0 je slučitelná s GPL-3.0 (ne s GPL-2.0-only), proto iCommander používá
+Apache-2.0 je slučitelná s GPL-3.0 (ne s GPL-2.0-only), proto Axolotl Commander používá
 GPL-3.0-or-later. Systémové knihovny a nástroje macOS spadají pod výjimku GPL pro
 „System Libraries“.

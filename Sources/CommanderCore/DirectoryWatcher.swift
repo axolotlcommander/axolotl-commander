@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright (C) 2026 The iCommander Authors
+// Copyright (C) 2026 The Axolotl Commander Authors
 
 public import Foundation
 import Synchronization
@@ -7,7 +7,7 @@ import Synchronization
 /// Watches one directory for entries being added, removed or renamed and
 /// reports a debounced change notification (~150 ms) on a background queue.
 public final class DirectoryWatcher: @unchecked Sendable {
-    private let queue = DispatchQueue(label: "icommander.DirectoryWatcher", qos: .utility)
+    private let queue = DispatchQueue(label: "axolotl.DirectoryWatcher", qos: .utility)
     private let source: any DispatchSourceFileSystemObject
     private let onChange: @Sendable () -> Void
     private let cancelled = Mutex(false)
