@@ -105,15 +105,15 @@ příběhu `swift build` bez varování, `swift test` zelené, commit `[Spec 001
 
 ### Tests
 
-- [ ] T026 [US4] `Tests/CommanderCoreTests/DeletePlanTests.swift` (nový) přes `FileOperations(options:)` s `trashAvailable` (fake podle podsložky sandboxu) a `trashItem` (přesun do `sandbox/Trash`, selhání na N-té položce): (a) `planDelete` rozdělí `toTrash`/`permanent`; (b) selhání na 2. položce → `TrashReport.trashed` = 1., `failed` = 2., `notAttempted` = zbytek, nic trvale smazáno; (c) vše úspěšné → `failed == nil`
+- [X] T026 [US4] `Tests/CommanderCoreTests/DeletePlanTests.swift` (nový) přes `FileOperations(options:)` s `trashAvailable` (fake podle podsložky sandboxu) a `trashItem` (přesun do `sandbox/Trash`, selhání na N-té položce): (a) `planDelete` rozdělí `toTrash`/`permanent`; (b) selhání na 2. položce → `TrashReport.trashed` = 1., `failed` = 2., `notAttempted` = zbytek, nic trvale smazáno; (c) vše úspěšné → `failed == nil`
 
 ### Implementation
 
-- [ ] T027 [US4] Nový `Sources/CommanderCore/Operations/TrashSupport.swift`: `isAvailable(_ url: URL) -> Bool` přes `FileManager.default.url(for: .trashDirectory, in: .userDomainMask, appropriateFor: url, create: false)` (chyba → false)
-- [ ] T028 [US4] V `Sources/CommanderCore/FileOperations.swift`: do `Options` (`:12-17`) přidat `trashAvailable: @Sendable (URL) -> Bool` (výchozí `TrashSupport.isAvailable`) a `trashItem: @Sendable (URL) throws -> URL` (výchozí `FileManager.trashItem`); přidat `planDelete(_:) -> DeletePlan`; `trash(_:)` (`:53-67`) změnit na `async -> TrashReport` (žádné vyhození uprostřed)
-- [ ] T029 [US4] V `Sources/AxolotlCommander/OperationsController.swift:163-196` (F8): `planDelete` → je-li `permanent` neprázdné, jeden kritický dotaz se seznamem („Tyto položky se smažou trvale, nelze vrátit“), tlačítka „Smazat trvale“ / „Zrušit“ (výchozí Zrušit) → `trash(toTrash)` → trvalé smazání `permanent` jen když `failed == nil` → report (co je v Koši, co zůstalo)
-- [ ] T030 [P] [US4] Upravit volajícího `Sources/AxolotlCommander/Find/FindWindowController.swift:624` na nové API (stejný tok dotazu jako T029, sdílená funkce v `OperationsController`)
-- [ ] T031 [US4] Texty dotazu a reportu do `Resources/Localizable.xcstrings` (cs)
+- [X] T027 [US4] Nový `Sources/CommanderCore/Operations/TrashSupport.swift`: `isAvailable(_ url: URL) -> Bool` přes `FileManager.default.url(for: .trashDirectory, in: .userDomainMask, appropriateFor: url, create: false)` (chyba → false)
+- [X] T028 [US4] V `Sources/CommanderCore/FileOperations.swift`: do `Options` (`:12-17`) přidat `trashAvailable: @Sendable (URL) -> Bool` (výchozí `TrashSupport.isAvailable`) a `trashItem: @Sendable (URL) throws -> URL` (výchozí `FileManager.trashItem`); přidat `planDelete(_:) -> DeletePlan`; `trash(_:)` (`:53-67`) změnit na `async -> TrashReport` (žádné vyhození uprostřed)
+- [X] T029 [US4] V `Sources/AxolotlCommander/OperationsController.swift:163-196` (F8): `planDelete` → je-li `permanent` neprázdné, jeden kritický dotaz se seznamem („Tyto položky se smažou trvale, nelze vrátit“), tlačítka „Smazat trvale“ / „Zrušit“ (výchozí Zrušit) → `trash(toTrash)` → trvalé smazání `permanent` jen když `failed == nil` → report (co je v Koši, co zůstalo)
+- [X] T030 [P] [US4] Upravit volajícího `Sources/AxolotlCommander/Find/FindWindowController.swift:624` na nové API (stejný tok dotazu jako T029, sdílená funkce v `OperationsController`)
+- [X] T031 [US4] Texty dotazu a reportu do `Resources/Localizable.xcstrings` (cs)
 
 **Checkpoint**: zelené → commit.
 

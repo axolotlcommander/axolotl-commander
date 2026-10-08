@@ -612,17 +612,15 @@ final class FindWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
     private func trash() async {
         let chosen = targets
         guard let window, !chosen.isEmpty else { return }
-        let names = chosen.count == 1 ? "“\(chosen[0].name)”" : String(localized: "\(chosen.count) items")
-        let alert = NSAlert()
-        alert.alertStyle = .warning
-        alert.messageText = String(localized: "Move \(names) to the Trash?")
-        alert.informativeText = String(localized: "You can put them back from the Trash.")
-        alert.addButton(withTitle: String(localized: "Move to Trash"))
-        alert.addButton(withTitle: String(localized: "Cancel"))
-        guard await alert.beginSheetModal(for: window) == .alertFirstButtonReturn else { return }
+        let operations = FileOperations()
+        // Same rules as F8 in a panel: a volume without a Trash means one explicit question first.
+        let plan = await operations.planDelete(chosen.map(\.url))
+        guard await OperationsController.confirmTrash(plan, in: window) else { return }
         do {
-            _ = try await FileOperations().trash(chosen.map(\.url))
-            remove(chosen)
+            let outcome = try await OperationsController.runTrash(plan, with: operations, progress: { _ in })
+            let gone = Set(outcome.removed)
+            remove(chosen.filter { gone.contains($0.url) })
+            if let text = OperationsController.describe(outcome) { alert(text) }
         } catch {
             self.alert(OperationsController.describe(error))
         }

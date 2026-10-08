@@ -7653,6 +7653,126 @@
           }
         }
       }
+    },
+    "Not everything was deleted": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nesmazalo se všechno"
+          }
+        }
+      }
+    },
+    "You can’t delete %@ there; they stay where they are.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ tam smazat nemůžete; zůstanou na místě."
+          }
+        }
+      }
+    },
+    "Nothing can be deleted.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nic nelze smazat."
+          }
+        }
+      }
+    },
+    "Some items can’t be moved to the Trash.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Některé položky nejde přesunout do Koše."
+          }
+        }
+      }
+    },
+    "These items are on a volume without a Trash. They will be deleted immediately; this can’t be undone:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tyto položky jsou na svazku bez Koše. Smažou se okamžitě a nepůjde to vrátit:"
+          }
+        }
+      }
+    },
+    "The other %@ will be moved to the Trash.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ostatní (%@) se přesunou do Koše."
+          }
+        }
+      }
+    },
+    "Moved to the Trash: %@.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přesunuto do Koše: %@."
+          }
+        }
+      }
+    },
+    "“%@” could not be moved to the Trash: %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ se nepodařilo přesunout do Koše: %@"
+          }
+        }
+      }
+    },
+    "Left as they were: %@.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zůstalo beze změny: %@."
+          }
+        }
+      }
+    },
+    "Nothing was deleted permanently.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nic se trvale nesmazalo."
+          }
+        }
+      }
+    },
+    "The items were copied into the archive; the originals were left where they were.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Položky se zkopírovaly do archivu; originály zůstaly na místě."
+          }
+        }
+      }
+    },
+    "Delete Permanently": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Smazat trvale"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

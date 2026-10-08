@@ -388,7 +388,16 @@ extension OperationsController {
                                                    progress: { _ in })
                     await ArchiveCatalog.shared.invalidate(source.archive)
                 } else if !done.isEmpty {
-                    _ = try await operations.trash(done)
+                    // The originals go to the Trash; on a volume without one only after asking.
+                    let plan = await operations.planDelete(done)
+                    let go = plan.toTrash.count == done.count ? true : await Self.confirmTrash(plan, in: self.window)
+                    if go {
+                        let outcome = try await Self.runTrash(plan, with: operations, progress: { _ in })
+                        if let text = Self.describe(outcome) { await self.inform(String(localized: "Not everything was deleted"), text) }
+                    } else {
+                        await self.inform(String(localized: "Some sources were kept"),
+                                          String(localized: "The items were copied into the archive; the originals were left where they were."))
+                    }
                 }
             }
             panel.model.deselectAll()

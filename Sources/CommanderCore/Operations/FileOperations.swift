@@ -14,6 +14,11 @@ public actor FileOperations {
         var cloneAllowed = true
         /// Treat every move as cross-volume (copy, then delete).
         var forceCopyMove = false
+        /// Does the volume of this item have a Trash? nil = ask the system (once per volume);
+        /// tests answer per item without asking it.
+        var trashAvailable: (@Sendable (URL) -> Bool)?
+        /// Moves one item to the Trash; tests move it into their sandbox instead.
+        var trashItem: @Sendable (URL) throws -> URL = TrashSupport.moveToTrash
     }
 
     let options: Options
@@ -49,21 +54,52 @@ public actor FileOperations {
 
     // MARK: Delete
 
-    /// Moves items to the Trash; returns their URLs in the Trash.
-    public func trash(_ urls: [URL]) async throws -> [URL] {
-        for url in urls { _ = try existingStat(url) }
-        var result: [URL] = []
+    /// Splits items into those that can go to the Trash and those on volumes without one.
+    /// Changes nothing; each volume is asked once.
+    public func planDelete(_ urls: [URL]) -> DeletePlan {
+        var plan = DeletePlan(toTrash: [], permanent: [])
+        var known: [Int64: Bool] = [:]
         for url in urls {
-            if Task.isCancelled { throw OperationError.cancelled }
-            var trashed: NSURL?
-            do {
-                try FileManager.default.trashItem(at: url, resultingItemURL: &trashed)
-            } catch {
-                throw OperationError.io("Cannot move \(url.path) to Trash: \(error.localizedDescription)")
+            let device: Int64? = if case .exists(let st) = FileProbe.probe(url.path, followingLinks: false) { st.device } else { nil }
+            let available: Bool
+            if let custom = options.trashAvailable {
+                available = custom(url)
+            } else if let device, let cached = known[device] {
+                available = cached
+            } else {
+                available = TrashSupport.isAvailable(url)
+                if let device { known[device] = available }
             }
-            result.append((trashed as URL?) ?? url)
+            if available {
+                plan.toTrash.append(url)
+            } else if access(FSPath.parent(url.path), W_OK | X_OK) != 0 {
+                plan.unremovable.append(url)
+            } else {
+                plan.permanent.append(url)
+            }
         }
-        return result
+        return plan
+    }
+
+    /// Moves items to the Trash one by one; never throws half-way: the report says what went,
+    /// which item failed and why, and what was not attempted after it.
+    public func trash(_ urls: [URL]) async -> TrashReport {
+        var report = TrashReport()
+        for (i, url) in urls.enumerated() {
+            if Task.isCancelled {
+                report.notAttempted = Array(urls[i...])
+                return report
+            }
+            do {
+                _ = try existingStat(url)
+                report.trashed.append((url, try options.trashItem(url)))
+            } catch {
+                report.failed = (url, error)
+                report.notAttempted = Array(urls[(i + 1)...])
+                return report
+            }
+        }
+        return report
     }
 
     /// Deletes items recursively without following symlinks.

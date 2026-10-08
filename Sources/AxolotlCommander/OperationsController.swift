@@ -167,6 +167,7 @@ final class OperationsController {
             return deleteInArchive(urls, archive: archive)
         }
         if RemoteURL.isRemote(urls[0]) { return deleteOnServer(urls) }
+        if !permanently { return moveToTrash(urls) }
         Task {
             let names = Self.describe(urls)
             let alert = NSAlert()
@@ -184,13 +185,114 @@ final class OperationsController {
             guard let window, await alert.beginSheetModal(for: window) == .alertFirstButtonReturn else { return }
             let state = OperationState(title: permanently ? String(localized: "Deleting…") : String(localized: "Moving to Trash…"))
             perform(state) { [operations] in
-                if permanently {
-                    try await operations.deletePermanently(urls, progress: { p in Task { @MainActor in state.progress = p } })
-                } else {
-                    _ = try await operations.trash(urls)
-                }
+                try await operations.deletePermanently(urls, progress: { p in Task { @MainActor in state.progress = p } })
             }
         }
+    }
+
+    // MARK: Trash
+
+    /// F8: to the Trash. Items on a volume without a Trash are deleted permanently only after
+    /// one explicit question that says so; it comes before anything changes.
+    func moveToTrash(_ urls: [URL]) {
+        Task {
+            let plan = await operations.planDelete(urls)
+            guard await Self.confirmTrash(plan, in: window) else { return }
+            let state = OperationState(title: String(localized: "Moving to Trash…"))
+            perform(state) { [operations] in
+                let outcome = try await Self.runTrash(plan, with: operations) { p in Task { @MainActor in state.progress = p } }
+                if let text = Self.describe(outcome) { await self.inform(String(localized: "Not everything was deleted"), text) }
+            }
+        }
+    }
+
+    /// What a delete through `runTrash` did.
+    struct TrashOutcome {
+        let plan: DeletePlan
+        let report: TrashReport
+        /// The permanent part ran (only when everything else went to the Trash).
+        let deletedPermanently: Bool
+
+        /// Items that are gone (in the Trash or deleted).
+        var removed: [URL] { report.trashed.map(\.original) + (deletedPermanently ? plan.permanent : []) }
+    }
+
+    /// Asks before moving `plan` to the Trash. With items that would be deleted permanently,
+    /// the question lists them and Cancel is the default button. false = do nothing.
+    static func confirmTrash(_ plan: DeletePlan, in window: NSWindow?) async -> Bool {
+        let alert = NSAlert()
+        let stay = plan.unremovable.isEmpty ? "" : "\n\n" + String(localized: "You can’t delete \(describe(plan.unremovable)) there; they stay where they are.")
+        if plan.permanent.isEmpty {
+            guard !plan.toTrash.isEmpty else {
+                alert.messageText = String(localized: "Nothing can be deleted.")
+                alert.informativeText = stay.trimmingCharacters(in: .whitespacesAndNewlines)
+                _ = await present(alert, in: window)
+                return false
+            }
+            alert.alertStyle = .warning
+            alert.messageText = String(localized: "Move \(describe(plan.toTrash)) to the Trash?")
+            alert.informativeText = String(localized: "You can put them back from the Trash.") + stay
+            alert.addButton(withTitle: String(localized: "Move to Trash"))
+            alert.addButton(withTitle: String(localized: "Cancel"))
+            return await present(alert, in: window) == .alertFirstButtonReturn
+        }
+        alert.alertStyle = .critical
+        alert.messageText = plan.toTrash.isEmpty
+            ? String(localized: "Delete \(describe(plan.permanent)) immediately?")
+            : String(localized: "Some items can’t be moved to the Trash.")
+        let listed = plan.permanent.prefix(8).map { "• " + $0.lastPathComponent }.joined(separator: "\n")
+            + (plan.permanent.count > 8 ? "\n…" : "")
+        var text = String(localized: "These items are on a volume without a Trash. They will be deleted immediately; this can’t be undone:")
+            + "\n" + listed
+        if !plan.toTrash.isEmpty {
+            text += "\n\n" + String(localized: "The other \(describe(plan.toTrash)) will be moved to the Trash.")
+        }
+        alert.informativeText = text + stay
+        let delete = alert.addButton(withTitle: String(localized: "Delete Permanently"))
+        delete.hasDestructiveAction = true
+        alert.addButton(withTitle: String(localized: "Cancel"))
+        // Return must not delete by accident: Cancel is the default.
+        delete.keyEquivalent = ""
+        alert.buttons[1].keyEquivalent = "\r"
+        return await present(alert, in: window) == .alertFirstButtonReturn
+    }
+
+    /// Trash first; the permanent part only when every Trash move worked.
+    static func runTrash(_ plan: DeletePlan, with operations: FileOperations,
+                         progress: @escaping @Sendable (OperationProgress) -> Void) async throws -> TrashOutcome {
+        let report = await operations.trash(plan.toTrash)
+        guard report.isComplete, !plan.permanent.isEmpty else {
+            return TrashOutcome(plan: plan, report: report, deletedPermanently: false)
+        }
+        try await operations.deletePermanently(plan.permanent, progress: progress)
+        return TrashOutcome(plan: plan, report: report, deletedPermanently: true)
+    }
+
+    /// nil when everything planned was done.
+    static func describe(_ outcome: TrashOutcome) -> String? {
+        let report = outcome.report
+        guard !report.isComplete || !outcome.plan.unremovable.isEmpty else { return nil }
+        var lines: [String] = []
+        if !report.trashed.isEmpty {
+            lines.append(String(localized: "Moved to the Trash: \(describe(report.trashed.map(\.original))).", comment: "after a failed F8"))
+        }
+        if let failed = report.failed {
+            lines.append(String(localized: "“\(failed.url.lastPathComponent)” could not be moved to the Trash: \(describe(failed.error))"))
+        }
+        let left = report.notAttempted + (outcome.deletedPermanently ? [] : outcome.plan.permanent) + outcome.plan.unremovable
+        if !left.isEmpty {
+            lines.append(String(localized: "Left as they were: \(describe(left))."))
+        }
+        if !outcome.plan.permanent.isEmpty, !outcome.deletedPermanently {
+            lines.append(String(localized: "Nothing was deleted permanently."))
+        }
+        return lines.joined(separator: "\n")
+    }
+
+    /// As a sheet when the window is free, otherwise app-modal (e.g. over the progress sheet).
+    private static func present(_ alert: NSAlert, in window: NSWindow?) async -> NSApplication.ModalResponse {
+        if let window, window.attachedSheet == nil { return await alert.beginSheetModal(for: window) }
+        return alert.runModal()
     }
 
     // MARK: Folder, rename
