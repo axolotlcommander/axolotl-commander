@@ -20,3 +20,8 @@ First public release of the source code: a two-panel file manager (stages 0–11
   new tab, right-click for more; ⌘L (Edit Path) types a path; long paths collapse into "…";
   the text field stays available in Settings → Appearance
   ([003-breadcrumb-path-bar](specs/003-breadcrumb-path-bar/spec.md)).
+- The macOS prompts for folder access (Desktop, Documents, Downloads, disks, cloud storage)
+  explain why a file manager needs it, in English and Czech.
+- Releases can be signed with a stable project certificate (`scripts/make-signing-cert.sh`), so
+  folder access granted by users survives updates even without an Apple Developer ID; local
+  builds are signed with the developer's "Apple Development" certificate when there is one.

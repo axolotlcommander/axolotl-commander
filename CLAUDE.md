@@ -13,7 +13,8 @@ Private instructions for your own machine belong in `CLAUDE.local.md` (listed in
 
 - **Everything committed to git is in English**: code, comments, documentation, specs, plans,
   tasks, commit messages, PR descriptions and issue templates. The only exception is
-  localized UI text in `Resources/Localizable.xcstrings` (English source + translations).
+  localized UI text in the String Catalogs `Resources/Localizable.xcstrings` and
+  `Resources/InfoPlist.xcstrings` (English source + translations).
 - **Talk to each contributor in their own language.** Discussion, questions, summaries and
   reports go in the language the contributor writes in; whatever ends up in git is written
   in English.

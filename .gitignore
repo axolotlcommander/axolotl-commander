@@ -11,3 +11,7 @@ CLAUDE.local.md
 docs/STATE.md
 docs/AUDIT.md
 docs/publish/
+
+# Signing certificates (scripts/make-signing-cert.sh writes outside the repository)
+*.p12
+axolotl-signing/

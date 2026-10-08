@@ -2,7 +2,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2026 The Axolotl Commander Authors
 # Builds Axolotl Commander.app into build/. Usage: scripts/bundle.sh [debug|release]
-# Environment: VERSION (e.g. 0.2.0), BUILD_NUMBER, UNIVERSAL=1 (Apple silicon + Intel).
+# Environment: VERSION (e.g. 0.2.0), BUILD_NUMBER, UNIVERSAL=1 (Apple silicon + Intel),
+# SIGN_IDENTITY (code signing identity; see the end of this script).
 set -eu
 CONFIG="${1:-debug}"
 VERSION="${VERSION:-0.1.0}"
@@ -23,8 +24,10 @@ cp Resources/AppIcon.icns Resources/Credits.html "$APP/Contents/Resources/"
 # GPL: the license and notices travel with every copy of the program
 cp LICENSE NOTICE AUTHORS THIRD_PARTY.md "$APP/Contents/Resources/"
 for b in "$BIN"/*.bundle; do [ -e "$b" ] && cp -R "$b" "$APP/Contents/Resources/"; done
-# String Catalog -> en.lproj / cs.lproj (Localizable.strings[dict]); strings load from Bundle.main
+# String Catalogs -> en.lproj / cs.lproj (Localizable.strings[dict], InfoPlist.strings); strings load
+# from Bundle.main, InfoPlist.strings localizes the Info.plist texts below (folder access prompts)
 xcrun xcstringstool compile Resources/Localizable.xcstrings --output-directory "$APP/Contents/Resources"
+xcrun xcstringstool compile Resources/InfoPlist.xcstrings --output-directory "$APP/Contents/Resources"
 mkdir -p "$APP/Contents/Resources/en.lproj"
 cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
@@ -44,7 +47,28 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>NSHighResolutionCapable</key><true/>
   <key>CFBundleDevelopmentRegion</key><string>en</string>
   <key>CFBundleLocalizations</key><array><string>en</string><string>cs</string></array>
+  <!-- Folder access prompts: the same English texts as Resources/InfoPlist.xcstrings (translations there) -->
+  <key>NSDesktopFolderUsageDescription</key><string>Axolotl Commander shows and manages the files on your Desktop when you open it in a panel.</string>
+  <key>NSDocumentsFolderUsageDescription</key><string>Axolotl Commander shows and manages the files in Documents when you open the folder in a panel.</string>
+  <key>NSDownloadsFolderUsageDescription</key><string>Axolotl Commander shows and manages the files in Downloads when you open the folder in a panel.</string>
+  <key>NSRemovableVolumesUsageDescription</key><string>Axolotl Commander shows and manages the files on external disks when you open them in a panel.</string>
+  <key>NSNetworkVolumesUsageDescription</key><string>Axolotl Commander shows and manages the files on network volumes when you open them in a panel.</string>
+  <key>NSFileProviderDomainUsageDescription</key><string>Axolotl Commander shows and manages the files of cloud storage (such as iCloud Drive) when you open it in a panel.</string>
 </dict></plist>
 PLIST
-codesign --force --sign - "$APP" >/dev/null 2>&1 || true
+# Signing. macOS remembers granted folder access (Downloads, Documents, disks…) per signature: an
+# ad-hoc signature changes with every build, so access would be asked for again after each one.
+# SIGN_IDENTITY wins; otherwise a local build uses the first "Apple Development" identity in the
+# keychain (any free Apple ID in Xcode has one); without one it falls back to ad hoc. CI signs
+# releases itself (.github/workflows/release.yml).
+IDENTITY="${SIGN_IDENTITY:-}"
+if [ -z "$IDENTITY" ] && [ "${CI:-}" != true ]; then
+  IDENTITY="$(security find-identity -v -p codesigning 2>/dev/null \
+    | awk '/"Apple Development: / { print $2; exit }')"
+fi
+if [ -n "$IDENTITY" ] && codesign --force --sign "$IDENTITY" "$APP" >/dev/null 2>&1; then
+  :
+else
+  codesign --force --sign - "$APP" >/dev/null 2>&1 || true
+fi
 echo "$APP"

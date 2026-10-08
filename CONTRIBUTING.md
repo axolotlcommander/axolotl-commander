@@ -78,7 +78,8 @@ code.
   // Copyright (C) 2026 The Axolotl Commander Authors
   ```
 
-- New UI strings go into `Resources/Localizable.xcstrings` (English is the source, Czech a translation).
+- New UI strings go into `Resources/Localizable.xcstrings` (English is the source, Czech a translation);
+  texts of the Info.plist (folder access prompts) into `Resources/InfoPlist.xcstrings`.
 - A command that is not finished yet stays grayed out in the menu; it must not crash.
 - Commit message format: `[Area] short description` in English
   (e.g. `[Archive] Refuse moving an archive into itself`). Work on a feature from a spec uses

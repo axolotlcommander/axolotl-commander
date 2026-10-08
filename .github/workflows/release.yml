@@ -3,13 +3,18 @@
 # Pushing a tag vX.Y.Z builds a universal (Apple silicon + Intel) Axolotl Commander.app and
 # attaches it to a draft GitHub release as .zip and .dmg with SHA-256 checksums.
 #
-# Signing and notarization run only when these repository secrets exist (Apple Developer ID):
-#   MACOS_CERTIFICATE_P12      base64 of the "Developer ID Application" certificate (.p12)
+# Signing runs when these repository secrets exist, notarization when the NOTARY_* ones exist too:
+#   MACOS_CERTIFICATE_P12      base64 of the signing certificate (.p12): an Apple "Developer ID
+#                              Application" certificate, or the project's self-signed one
+#                              (scripts/make-signing-cert.sh)
 #   MACOS_CERTIFICATE_PASSWORD password of the .p12
-#   MACOS_SIGNING_IDENTITY     e.g. "Developer ID Application: Name (TEAMID)"
-#   NOTARY_KEY_P8              base64 of an App Store Connect API key (.p8)
+#   MACOS_SIGNING_IDENTITY     e.g. "Developer ID Application: Name (TEAMID)" or
+#                              "Axolotl Commander Release Signing"
+#   NOTARY_KEY_P8              base64 of an App Store Connect API key (.p8) (Developer ID only)
 #   NOTARY_KEY_ID, NOTARY_ISSUER_ID
-# Without them the app is only ad-hoc signed; users must allow it in System Settings once.
+# Without notarization users must allow the app in System Settings once per download; the
+# release notes then start with the steps (.github/release-install.md). A stable certificate
+# keeps the folder access users granted across updates; without one the app is ad-hoc signed.
 name: Release
 
 on:
@@ -59,7 +64,9 @@ jobs:
           security import "$RUNNER_TEMP/cert.p12" -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN"
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
           security list-keychains -d user -s "$KEYCHAIN" $(security list-keychains -d user | tr -d '"')
-          codesign --force --deep --options runtime --timestamp --sign "$IDENTITY" "$APP"
+          # Notarization needs a secure timestamp; a self-signed certificate is signed without one.
+          if [ "$HAS_NOTARY" = true ]; then TIMESTAMP=--timestamp; else TIMESTAMP=--timestamp=none; fi
+          codesign --force --deep --options runtime "$TIMESTAMP" --sign "$IDENTITY" "$APP"
           codesign --verify --strict --verbose=2 "$APP"
           rm "$RUNNER_TEMP/cert.p12"
 
@@ -92,5 +99,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" dist/* --draft --generate-notes \
+          # Builds that are not notarized start their notes with the installation steps.
+          NOTES=()
+          if [ "$HAS_NOTARY" != true ] || [ "$HAS_CERT" != true ]; then NOTES=(--notes-file .github/release-install.md); fi
+          gh release create "$GITHUB_REF_NAME" dist/* --draft --generate-notes "${NOTES[@]}" \
             --title "Axolotl Commander $VERSION"

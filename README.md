@@ -103,8 +103,10 @@ What that means for you:
 2. Drag **Axolotl Commander** into the **Applications** folder.
 3. **First launch:** until the releases are signed with an Apple Developer ID, macOS blocks
    the app with a message that it cannot be verified. Click *Done*, then go to *System
-   Settings → Privacy & Security* and click *Open Anyway* next to Axolotl Commander. This is
-   needed only once.
+   Settings → Privacy & Security* and click *Open Anyway* next to Axolotl Commander (or run
+   `xattr -dr com.apple.quarantine "/Applications/Axolotl Commander.app"`). This is needed once
+   for every downloaded version. Folder access you granted stays across updates, because the
+   releases are signed with the same project certificate.
 
 Checksums of the downloads are in `SHA256SUMS.txt` attached to each release.
 
@@ -156,10 +158,13 @@ to the plain text field.
 
 All commands and their shortcuts are in the menus.
 
-**Permissions.** The first time you open the Desktop, Documents, Downloads, or a network or
-removable volume, macOS asks whether to allow access. For folders protected by the system
-(such as `~/Library/Mail`) you can add the app to *Privacy & Security → Full Disk Access*,
-but it is not required.
+**Permissions.** The first time you open the Desktop, Documents, Downloads, iCloud Drive, or a
+network or removable volume, macOS asks whether to allow access, once per place. For folders
+protected by the system (such as `~/Library/Mail`) you can add the app to *Privacy & Security →
+Full Disk Access*, but it is not required. If you build the app yourself, `scripts/bundle.sh`
+signs it with your "Apple Development" certificate when you have one (a free Apple ID in Xcode
+is enough), so macOS keeps the granted access across rebuilds; without it the build is ad-hoc
+signed and macOS asks again after every build.
 
 **Uninstalling.** Delete the app and, if you like, the settings in
 `~/Library/Preferences/cz.acidek.axolotlcommander.plist` and the folder

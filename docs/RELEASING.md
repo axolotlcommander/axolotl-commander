@@ -24,8 +24,27 @@ Versions follow [Semantic Versioning](https://semver.org/): before 1.0, `0.MINOR
 ## Signing and notarization
 
 Without an Apple Developer ID signature the app works, but macOS blocks it after download
-("cannot verify the developer") and the user has to allow it once: open it, then
-*System Settings → Privacy & Security → Open Anyway*.
+("cannot verify the developer") and the user has to allow it once per download: open it, then
+*System Settings → Privacy & Security → Open Anyway*. The draft release notes of such a build
+start with these steps ([.github/release-install.md](../.github/release-install.md)).
+
+### Without a Developer ID: the project's own certificate
+
+macOS remembers the folder access users granted (Downloads, Documents, disks…) per signing
+certificate. An ad-hoc signed release would make every user grant it again after each update, so
+releases are signed with a stable self-signed certificate:
+
+1. Once, on your Mac: `scripts/make-signing-cert.sh` (creates `~/axolotl-signing/`).
+2. Add the secrets `MACOS_CERTIFICATE_P12`, `MACOS_CERTIFICATE_PASSWORD` and
+   `MACOS_SIGNING_IDENTITY` (`Axolotl Commander Release Signing`) as the script prints them.
+   Leave the `NOTARY_*` secrets unset.
+3. **Back up `~/axolotl-signing/` and keep it private.** Releases signed with another certificate
+   make all users grant folder access again. Never commit it.
+
+The first tag after adding the secrets also checks the signing step on the runner; if it fails,
+the draft release is not created and the log of the *Sign* step says why.
+
+### With a Developer ID
 
 With an [Apple Developer Program](https://developer.apple.com/programs/) account (99 USD per year)
 the workflow signs and notarizes the app automatically; just add the repository secrets

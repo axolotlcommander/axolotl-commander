@@ -1,0 +1,108 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "NSDesktopFolderUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Axolotl Commander shows and manages the files on your Desktop when you open it in a panel."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Axolotl Commander zobrazuje a spravuje soubory na Ploše, když ji otevřete v panelu."
+          }
+        }
+      }
+    },
+    "NSDocumentsFolderUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Axolotl Commander shows and manages the files in Documents when you open the folder in a panel."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Axolotl Commander zobrazuje a spravuje soubory v Dokumentech, když složku otevřete v panelu."
+          }
+        }
+      }
+    },
+    "NSDownloadsFolderUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Axolotl Commander shows and manages the files in Downloads when you open the folder in a panel."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Axolotl Commander zobrazuje a spravuje soubory ve Stažených souborech, když složku otevřete v panelu."
+          }
+        }
+      }
+    },
+    "NSFileProviderDomainUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Axolotl Commander shows and manages the files of cloud storage (such as iCloud Drive) when you open it in a panel."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Axolotl Commander zobrazuje a spravuje soubory v cloudových úložištích (například iCloud Drive), když je otevřete v panelu."
+          }
+        }
+      }
+    },
+    "NSNetworkVolumesUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Axolotl Commander shows and manages the files on network volumes when you open them in a panel."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Axolotl Commander zobrazuje a spravuje soubory na síťových svazcích, když je otevřete v panelu."
+          }
+        }
+      }
+    },
+    "NSRemovableVolumesUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Axolotl Commander shows and manages the files on external disks when you open them in a panel."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Axolotl Commander zobrazuje a spravuje soubory na externích discích, když je otevřete v panelu."
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}
