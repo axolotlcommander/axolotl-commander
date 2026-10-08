@@ -970,12 +970,25 @@ final class PanelViewController: NSViewController {
                 menu.addItem(placeItem(url.lastPathComponent, url, icon: NSImage(systemSymbolName: symbol, accessibilityDescription: nil)))
             }
         }
-        let iCloud = home.appending(path: "Library/Mobile Documents/com~apple~CloudDocs", directoryHint: .isDirectory)
-        if fm.fileExists(atPath: iCloud.path) {
+        if let iCloud = VolumeBar.iCloudDrive {
             menu.addItem(placeItem(String(localized: "iCloud Drive"), iCloud, icon: NSImage(systemSymbolName: "icloud", accessibilityDescription: nil)))
         }
         menu.addItem(placeItem(String(localized: "Network Volumes"), URL(filePath: "/Volumes", directoryHint: .isDirectory),
                                icon: NSImage(systemSymbolName: "network", accessibilityDescription: nil)))
+        // Open server connections, as the volume bar shows them (also those its width hides).
+        let connections = ServerConnectionsUI.shared
+        if !connections.opened.isEmpty {
+            menu.addItem(.separator())
+            menu.addItem(.sectionHeader(title: String(localized: "Servers")))
+            for endpoint in connections.opened {
+                let item = actionItem(connections.label(for: endpoint)) { [weak self] in self?.openServer(endpoint) }
+                let icon = NSImage(systemSymbolName: "network", accessibilityDescription: nil)
+                icon?.size = NSSize(width: 16, height: 16)
+                item.image = icon
+                item.toolTip = connections.address(of: endpoint)
+                menu.addItem(item)
+            }
+        }
         menu.popUp(positioning: nil, at: NSPoint(x: 0, y: pathBar.bounds.height + 2), in: pathBar)
     }
 

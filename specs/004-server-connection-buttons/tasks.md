@@ -56,7 +56,7 @@ local test servers.
 
 **Independent Test**: quickstart Q10.
 
-- [ ] T014 [US4] "Servers" section in the volume menu (⌥F1/⌥F2) with `openedEndpoints` and labels, omitted when empty; choosing = server click, in Sources/AxolotlCommander/PanelViewController.swift
+- [X] T014 [US4] "Servers" section in the volume menu (⌥F1/⌥F2) with `openedEndpoints` and labels, omitted when empty; choosing = server click, in Sources/AxolotlCommander/PanelViewController.swift
 
 ## Phase 7: User Story 5 — iCloud Drive and Network (P2)
 
