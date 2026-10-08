@@ -16,3 +16,7 @@ First public release of the source code: a two-panel file manager (stages 0–11
   ([002-function-key-bar](specs/002-function-key-bar/spec.md)).
 - Settings → Keyboard shows whether F1–F12 need `fn` and opens System Settings; a one-time
   notice on launch explains it.
+- Clickable breadcrumb path bar above each panel: click a folder to go there, ⌘-click for a
+  new tab, right-click for more; ⌘L (Edit Path) types a path; long paths collapse into "…";
+  the text field stays available in Settings → Appearance
+  ([003-breadcrumb-path-bar](specs/003-breadcrumb-path-bar/spec.md)).

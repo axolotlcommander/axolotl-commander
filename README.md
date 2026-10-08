@@ -137,6 +137,11 @@ can be hidden in the View menu. Clashes with system shortcuts (Mission Control,
 Spotlight) can be resolved in the app's settings (⌘,) under *Keyboard*, where every command
 can be remapped.
 
+**Path bar.** Above each panel the current folder is shown as breadcrumbs: click any part to go
+there, ⌘-click to open it in a new tab, right-click for more (other panel, copy path, hot path,
+Finder). To type a path, press ⌘L or click right of the path. Settings → Appearance switches back
+to the plain text field.
+
 | Key | Command | Key | Command |
 |---|---|---|---|
 | Tab | switch panel | F7 | new folder |
