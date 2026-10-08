@@ -20,6 +20,8 @@ actor DirectoryFileSystem: RemoteFileSystem {
     /// Like a server whose listings follow links: a link to a folder is reported as a folder,
     /// and folders carry `uniqueID` (device and inode of what they are).
     var linksAsFolders = false
+    /// Called with the path after each download (e.g. to change the server meanwhile).
+    var afterDownload: (@Sendable (String) -> Void)?
     /// Every changing call, in order: "upload P", "remove P", "rename A -> B", "replace A -> B".
     private(set) var log: [String] = []
     private var renameFailures: [(from: String?, to: String?, remaining: Int)] = []
@@ -33,6 +35,7 @@ actor DirectoryFileSystem: RemoteFileSystem {
     func hangUploads(containing text: String?) { hangUploadsContaining = text }
     func setAtomicReplace(_ on: Bool) { atomicReplace = on }
     func setLinksAsFolders(_ on: Bool) { linksAsFolders = on }
+    func onDownload(_ hook: (@Sendable (String) -> Void)?) { afterDownload = hook }
 
     /// The next `times` renames whose source and target contain the given texts (nil = any) fail.
     func failRename(from: String? = nil, to: String? = nil, times: Int = 1) {
@@ -77,6 +80,7 @@ actor DirectoryFileSystem: RemoteFileSystem {
         guard let data = FileManager.default.contents(atPath: self.local(path)) else { throw RemoteError.notFound(path) }
         try data.write(to: local)
         progress(Int64(data.count))
+        afterDownload?(path)
     }
 
     func upload(_ local: URL, to path: String, progress: @escaping @Sendable (Int64) -> Void) async throws {
@@ -323,6 +327,32 @@ private let noConflict: RemoteTransfer.ConflictHandler = { _ in
         #expect(report.keptSources.isEmpty)
         #expect(s.names(s.server2) == ["d", "d/a.txt"])
         #expect(s.names(s.server) == ["target", "target/b.txt"])
+    }
+
+    /// A move between servers removes only what it copied: whatever appeared or changed on the
+    /// source server meanwhile stays, and so do the folders holding it.
+    @Test func serverToServerMoveKeepsWhatChangedMeanwhile() async throws {
+        let s = try await Sandbox()
+        defer { s.remove() }
+        try s.write("a", "d/a.txt", in: s.server)
+        try s.write("b", "d/b.txt", in: s.server)
+        try s.write("c", "d/done/c.txt", in: s.server)
+        try s.write("e", "e.txt", in: s.server)
+        let one = try #require(try await s.connections.session(for: s.endpoint) as? DirectoryFileSystem)
+        let server = s.server
+        await one.onDownload { path in
+            guard path == "/d/b.txt" else { return }
+            try? s.write("new", "d/new.txt", in: server)
+            try? s.write("late", "d/later/late.txt", in: server)
+            try? s.write("a changed", "d/a.txt", in: server)
+        }
+        let report = try await s.transfer.transfer([s.at("/d"), s.at("/e.txt")], to: s.at("/", s.endpoint2), kind: .move,
+                                                   scratch: s.scratch, progress: { _ in }, conflict: noConflict)
+        #expect(report.keptSources == [s.at("/d").url])
+        #expect(s.names(s.server) == ["d", "d/a.txt", "d/later", "d/later/late.txt", "d/new.txt"])
+        #expect(s.read("d/a.txt", in: s.server) == "a changed")
+        #expect(s.names(s.server2) == ["d", "d/a.txt", "d/b.txt", "d/done", "d/done/c.txt", "e.txt"])
+        #expect(s.read("d/a.txt", in: s.server2) == "a")
     }
 
     @Test func progressReachesTotal() async throws {

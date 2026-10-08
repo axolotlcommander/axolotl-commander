@@ -178,6 +178,13 @@ public struct RemoteTransfer: Sendable {
         conflict: @escaping ConflictHandler
     ) async throws -> TransferReport {
         guard let endpoint = sources.first?.endpoint else { return TransferReport(copied: 0, skipped: [], keptSources: []) }
+        let nodes = try await scanSources(sources, endpoint: endpoint)
+        return try await download(nodes, from: endpoint, to: directory, kind: kind, nameMask: nameMask,
+                                  progress: progress, conflict: conflict)
+    }
+
+    /// The items to copy, scanned on the server; throws `.notFound` for a missing one.
+    private func scanSources(_ sources: [RemoteLocation], endpoint: RemoteEndpoint) async throws -> [RemoteNode] {
         var nodes: [RemoteNode] = []
         for source in sources {
             try Task.checkCancellation()
@@ -186,6 +193,18 @@ public struct RemoteTransfer: Sendable {
             }
             nodes.append(try await scanRemote(entry, at: source.path, endpoint: endpoint))
         }
+        return nodes
+    }
+
+    private func download(
+        _ nodes: [RemoteNode],
+        from endpoint: RemoteEndpoint,
+        to directory: URL,
+        kind: TransferKind,
+        nameMask: String,
+        progress: @escaping Progress,
+        conflict: @escaping ConflictHandler
+    ) async throws -> TransferReport {
         let meter = Meter(totalBytes: nodes.reduce(0) { $0 + $1.bytes }, totalItems: nodes.reduce(0) { $0 + $1.count }, progress: progress)
         var run = Run(conflict: conflict)
         let root = directory.standardizedFileURL.path
@@ -335,7 +354,8 @@ public struct RemoteTransfer: Sendable {
         if from == directory.endpoint, kind == .move {
             return try await renameOnServer(sources, into: target, conflict: conflict)
         }
-        let down = try await download(sources, to: scratch, kind: .copy, progress: { p in
+        let nodes = try await scanSources(sources, endpoint: from)
+        let down = try await download(nodes, from: from, to: scratch, kind: .copy, nameMask: "*.*", progress: { p in
             progress(OperationProgress(totalBytes: p.totalBytes * 2, doneBytes: p.doneBytes, totalItems: p.totalItems,
                                        doneItems: p.doneItems, currentName: p.currentName))
         }, conflict: { _ in .skip })  // the scratch folder starts empty: a clash means names that differ
@@ -353,12 +373,53 @@ public struct RemoteTransfer: Sendable {
         var kept: [URL] = []
         if kind == .move {
             if skipped.isEmpty, down.keptSources.isEmpty {
-                try await delete(sources, progress: { _ in })
+                kept = try await removeCopied(nodes, endpoint: from)
             } else {
                 kept = sources.map(\.url)
             }
         }
         return TransferReport(copied: up.copied, skipped: skipped, keptSources: kept)
+    }
+
+    /// After a move copied the scanned `nodes`, removes exactly them: a file only while the
+    /// server still lists it as scanned (same kind, size and time), a folder only once empty, so
+    /// anything added or changed meanwhile stays. Returns the items of which something remained.
+    private func removeCopied(_ nodes: [RemoteNode], endpoint: RemoteEndpoint) async throws -> [URL] {
+        func unchanged(_ now: RemoteEntry?, _ node: RemoteNode) -> Bool {
+            guard let now, now.kind == node.entry.kind else { return false }
+            return node.kind == .directory
+                || (now.size == node.entry.size && now.modificationDate == node.entry.modificationDate)
+        }
+        /// True when the node and everything below it went.
+        func remove(_ node: RemoteNode, now: RemoteEntry?) async throws -> Bool {
+            try Task.checkCancellation()
+            guard unchanged(now, node) else { return false }
+            do {
+                switch node.kind {
+                case .directory:
+                    let listing = try await connections.perform(on: endpoint) { try await $0.walkList(node.path) }
+                    let byName = Dictionary(listing.map { ($0.name, $0) }, uniquingKeysWith: { a, _ in a })
+                    var all = true
+                    for child in node.children where try await !remove(child, now: byName[child.entry.name]) { all = false }
+                    guard all else { return false }
+                    try await connections.perform(on: endpoint) { try await $0.removeDirectory(node.path) }
+                case .file:
+                    try await connections.perform(on: endpoint) { try await $0.removeFile(node.path) }
+                case .directoryLink, .unsupported:
+                    return false
+                }
+            } catch {
+                if error is CancellationError || (error as? RemoteError) == .cancelled { throw error }
+                return false
+            }
+            return true
+        }
+        var kept: [URL] = []
+        for node in nodes {
+            let now = try await connections.perform(on: endpoint) { try await $0.walkInfo(node.path) }
+            if try await !remove(node, now: now) { kept.append(RemoteURL.make(endpoint, path: node.path)) }
+        }
+        return kept
     }
 
     private func renameOnServer(_ sources: [RemoteLocation], into target: RemoteLocation, conflict: @escaping ConflictHandler)
