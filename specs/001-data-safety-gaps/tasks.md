@@ -158,11 +158,11 @@ příběhu `swift build` bez varování, `swift test` zelené, commit `[Spec 001
 
 ### Tests
 
-- [ ] T037 [US7] Testy v `Tests/CommanderCoreTests/OperationsTests.swift`: dva hard linky, `rename(a, to: "b.txt")` → `.alreadyExists`, oba záznamy existují; stávající `caseOnlyRename` (`:319`) dál zelený; NFC→NFD téhož záznamu projde
+- [X] T037 [US7] Testy v `Tests/CommanderCoreTests/OperationsTests.swift`: dva hard linky, `rename(a, to: "b.txt")` → `.alreadyExists`, oba záznamy existují; stávající `caseOnlyRename` (`:319`) dál zelený; NFC→NFD téhož záznamu projde
 
 ### Implementation
 
-- [ ] T038 [US7] V `Sources/CommanderCore/FileOperations.swift` `rename` (`:153-180`): při shodné identitě a `linkCount > 1` projít výpis rodiče — existuje-li jiný záznam (jiné `unicodeScalars` než zdrojové jméno), který svazek považuje za stejný jako nové jméno (`rules.same`) nebo se shoduje přesně → `.alreadyExists`
+- [X] T038 [US7] V `Sources/CommanderCore/FileOperations.swift` `rename` (`:153-180`): při shodné identitě a `linkCount > 1` projít výpis rodiče — existuje-li jiný záznam (jiné `unicodeScalars` než zdrojové jméno), který svazek považuje za stejný jako nové jméno (`rules.same`) nebo se shoduje přesně → `.alreadyExists`
 
 **Checkpoint**: zelené → commit.
 

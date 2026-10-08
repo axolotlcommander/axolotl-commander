@@ -510,3 +510,41 @@ private func move(_ sources: [URL], to dest: URL, ops: FileOperations = FileOper
         }
     }
 }
+
+/// Renaming onto another hard link of the same file is a conflict, not a silent no-op;
+/// changing only the spelling of the same entry still works (FR-023–024).
+@Suite struct HardLinkRenameTests {
+    @Test func renameOntoOtherHardLinkIsAlreadyExists() async throws {
+        try await withSandbox { root in
+            try write(root.sub("a.txt"), "x")
+            #expect(link(root.sub("a.txt").path, root.sub("b.txt").path) == 0)
+            let ops = FileOperations()
+            let e = await caught { try await ops.rename(root.sub("a.txt"), to: "b.txt") }
+            #expect(e == .alreadyExists(root.sub("b.txt")))
+            #expect(names(root) == ["a.txt", "b.txt"])
+            // In any letter case of the other link, too.
+            let upper = await caught { try await ops.rename(root.sub("a.txt"), to: "B.TXT") }
+            #expect(upper == .alreadyExists(root.sub("b.txt")))
+            #expect(names(root) == ["a.txt", "b.txt"])
+        }
+    }
+
+    @Test func spellingChangeOfHardLinkedEntryStillWorks() async throws {
+        try await withSandbox { root in
+            try write(root.sub("Zprava.txt"), "x")
+            #expect(link(root.sub("Zprava.txt").path, root.sub("jinde.txt").path) == 0)
+            let ops = FileOperations()
+            let renamed = try await ops.rename(root.sub("Zprava.txt"), to: "zprava.txt")
+            #expect(renamed.lastPathComponent == "zprava.txt")
+            #expect(names(root) == ["jinde.txt", "zprava.txt"])
+
+            // NFC → NFD of the same entry.
+            let nfc = "\u{E9}.txt", nfd = "e\u{301}.txt"
+            try write(root.sub(nfc), "y")
+            #expect(link(root.sub(nfc).path, root.sub("dalsi.txt").path) == 0)
+            _ = try await ops.rename(root.sub(nfc), to: nfd)
+            let stored = names(root).first { $0.hasSuffix("\u{301}.txt") || $0 == nfc }
+            #expect(stored.map { Array($0.unicodeScalars) } == Array(nfd.unicodeScalars))
+        }
+    }
+}

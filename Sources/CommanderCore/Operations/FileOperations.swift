@@ -204,7 +204,13 @@ public actor FileOperations {
                   let a = est.identity, let b = sourceStat.identity
             else { throw OperationError.identityUnknown(FSPath.url(existing)) }
             guard a == b else { throw OperationError.alreadyExists(FSPath.url(existing)) }
-            // Same object under another spelling: plain rename(2) changes the stored name.
+            // Another hard link of the same file is another entry: rename(2) onto it would
+            // succeed and do nothing, so it is a conflict like any existing name.
+            if sourceStat.linkCount > 1, let other = otherEntry(in: parent, named: newName, besides: FSPath.name(source),
+                                                                 rules: lookup.rules) {
+                throw OperationError.alreadyExists(FSPath.url(FSPath.join(parent, other)))
+            }
+            // Same entry under another spelling: plain rename(2) changes the stored name.
             if Darwin.rename(source, target) != 0 {
                 throw OperationError.io(FSPath.errorText(errno, "Cannot rename", source))
             }
@@ -217,6 +223,14 @@ public actor FileOperations {
     }
 
     // MARK: Helpers
+
+    /// A stored name in `dir`, other than the entry `besides` (compared by code units), that
+    /// the volume treats as the same name as `name`.
+    private func otherEntry(in dir: String, named name: String, besides: String, rules: NameRules) -> String? {
+        let key = rules.key(name)
+        let entries = (try? FileManager.default.contentsOfDirectory(atPath: dir)) ?? []
+        return entries.first { !$0.unicodeScalars.elementsEqual(besides.unicodeScalars) && rules.key($0) == key }
+    }
 
     private func existingStat(_ url: URL) throws -> FileStat {
         switch FileProbe.probe(url.path, followingLinks: false) {
