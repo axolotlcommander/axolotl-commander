@@ -28,6 +28,9 @@ found while reading the current code (`CommandRegistry`, `KeyMaps`, `MainWindowC
   "Delete", "Apply Remembered Selection" → "Apply Selection", "Show Context Menu" → "Menu",
   "Volume…" (left/right) → "Left"/"Right" volume. Short titles are translated in
   `Resources/Localizable.xcstrings` like the full titles (looked up by their English text).
+- **Bar titles**: where the menu title is not clear without its menu (both volume menus are
+  "Volume…" under Left/Right), the core gives a bar title (`CommandRegistry.barTitle(_:)`:
+  "Left Volume", "Right Volume"); found in the GUI check.
 - **Rationale**: Matches the spec assumption ("short names come with the command
   definitions"). Keeping English keys in the core follows the existing localization pattern.
 - **Alternatives considered**: Automatic abbreviation (rejected: unreadable in Czech); a

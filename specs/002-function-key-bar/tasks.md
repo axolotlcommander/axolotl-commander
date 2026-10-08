@@ -55,7 +55,7 @@ green, commit `[Spec 002] USn …`.
 - [X] T011 [US1] In `Sources/AxolotlCommander/MainWindowController.swift`: create the bar, add it with its own separator below the command line in `container(...)` (`[split, separator, commandLine, separator, bar]`, width constraints, hugging `.required`), fill it with `FunctionKeyBar.slots(in: KeyMaps.panel, modifiers: [])`, refresh on `KeyMaps.didChange`
 - [X] T012 [US1] `performFromBar(_:)` in `MainWindowController.swift`: guard `canPerformIgnoringFocus`, then the same routing as `perform` (app → `AppDelegate`, window commands → `performHere`, else active panel) without changing the first responder; wire `bar.onClick`
 - [X] T013 [US1] Validate bar buttons on `NSWindow.didUpdateNotification` of the main window with `canPerformIgnoringFocus` in `MainWindowController.swift`
-- [ ] T014 [US1] Build, `swift test`, GUI Q1–Q4, Q7, Q8, Q14 in the test copy (both panels in a scratch folder); commit `[Spec 002] US1 Function key bar`
+- [X] T014 [US1] Build, `swift test`, GUI Q1–Q4, Q7, Q8, Q14 in the test copy (both panels in a scratch folder); commit `[Spec 002] US1 Function key bar`
 
 **Checkpoint**: The bar works for the plain set.
 
@@ -70,7 +70,7 @@ green, commit `[Spec 002] USn …`.
 - [X] T015 [US2] Add `KeyChord.Modifiers(flags: NSEvent.ModifierFlags)` (only ⇧⌃⌥⌘; ignores `.function`, Caps Lock, numeric pad) in `Sources/AxolotlCommander/KeyChord+AppKit.swift` and use it in `KeyChord(event:)`
 - [X] T016 [US2] In `MainWindowController.swift`: local monitor for `.flagsChanged` (events of this window only) → recompute slots when the modifier set changes; `windowDidBecomeKey`/`windowDidResignKey` re-read `NSEvent.modifierFlags` (resign → plain set); remove the monitor in `deinit` like `keyMonitor`
 - [X] T017 [US2] Ctrl-click in `FunctionKeyBarView.swift`: override `menu(for:)` on the bar and its buttons so a ⌃-left-click is an ordinary click and only `.rightMouseDown` opens the context menu (menu itself in T021)
-- [ ] T018 [US2] Build, `swift test`, GUI Q5, Q6 (⌃⇧/⌃⌥ sets checked by holding the modifiers and reading AX labels); commit `[Spec 002] US2 Modifier sets in the function key bar`
+- [X] T018 [US2] Build, `swift test`, GUI Q5, Q6 (⌃⇧/⌃⌥ sets checked by holding the modifiers and reading AX labels); commit `[Spec 002] US2 Modifier sets in the function key bar`
 
 ---
 
@@ -85,7 +85,7 @@ green, commit `[Spec 002] USn …`.
 - [X] T021 [US3] Bar context menu with "Hide Function Key Bar" in `FunctionKeyBarView.swift` (calls back to set `showFunctionKeyBar = false`)
 - [X] T022 [US3] `.focusCommandLine` and the four `insert…ToCommandLine` commands set `showCommandLine = true` and apply it before doing their work, both from keys (`interceptKey`, `performHere`) and from the bar, in `MainWindowController.swift`
 - [X] T023 [P] [US3] Settings → General: two toggles "Show command line" and "Show function key bar" bound with `@AppStorage` (default `true`) in `Sources/AxolotlCommander/SettingsView.swift`; Czech translations
-- [ ] T024 [US3] Build, `swift test`, GUI Q9–Q11 (including quit + relaunch of the test copy); commit `[Spec 002] US3 Hide the function key bar and the command line`
+- [X] T024 [US3] Build, `swift test`, GUI Q9–Q11 (including quit + relaunch of the test copy); commit `[Spec 002] US3 Hide the function key bar and the command line`
 
 ---
 
@@ -100,15 +100,15 @@ green, commit `[Spec 002] USn …`.
 - [X] T027 [US4] Create `Sources/AxolotlCommander/FunctionKeys.swift`: `FunctionKeys.areStandard` (read-only `CFPreferencesAppSynchronize` + `CFPreferencesCopyAppValue("com.apple.keyboard.fnState", kCFPreferencesAnyApplication)`, missing = false), `openKeyboardSettings()` (`x-apple.systempreferences:com.apple.Keyboard-Settings.extension`), `showNoticeIfNeeded(in: NSWindow)` (state JSON in UserDefaults `functionKeyNotice`; `NSAlert` sheet: message + where to switch it, buttons "Open Keyboard Settings" (default), "Don't Show Again", "Close" (Esc); record shown; own wording, Czech translations)
 - [X] T028 [US4] Call `FunctionKeys.showNoticeIfNeeded` on the next run-loop turn after `controller.showWindow` in `Sources/AxolotlCommander/AppDelegate.swift`
 - [X] T029 [US4] Settings → Keyboard: a line above the table "Function keys act as standard function keys." / "Function keys control brightness, volume and media; hold fn or change the system setting." + button "Open Keyboard Settings"; state re-read on appear and on `NSApplication.didBecomeActiveNotification` in `Sources/AxolotlCommander/KeyboardSettings.swift`; Czech translations
-- [ ] T030 [US4] Build, `swift test`, GUI Q12, Q13 (`defaults read -g com.apple.keyboard.fnState` unchanged before/after; do not change the system setting); commit `[Spec 002] US4 Function key help`
+- [X] T030 [US4] Build, `swift test`, GUI Q12, Q13 (`defaults read -g com.apple.keyboard.fnState` unchanged before/after; do not change the system setting); commit `[Spec 002] US4 Function key help`
 
 ---
 
 ## Phase 7: Polish & Cross-Cutting
 
-- [ ] T031 [P] Update `README.md` (Getting started: the function key bar, hiding it and the command line) and `CHANGELOG.md` (Unreleased: Added)
-- [ ] T032 Full check: `swift build` without warnings, `swift test` green < 10 s, quickstart Q1–Q14 all passed in the test copy; clean up the scratch folder and the test copy's defaults
-- [ ] T033 Mark the spec Status "Implemented", update local `docs/STATE.md`; commit `[Spec 002] Done`
+- [X] T031 [P] Update `README.md` (Getting started: the function key bar, hiding it and the command line) and `CHANGELOG.md` (Unreleased: Added)
+- [X] T032 Full check: `swift build` without warnings, `swift test` green < 10 s, quickstart Q1–Q14 all passed in the test copy; clean up the scratch folder and the test copy's defaults
+- [X] T033 Mark the spec Status "Implemented", update local `docs/STATE.md`; commit `[Spec 002] Done`
 
 ---
 
@@ -129,3 +129,10 @@ green, commit `[Spec 002] USn …`.
 2. Add US2 (modifier sets) — completes the reference behavior.
 3. Add US3 (hiding) and US4 (fn help).
 4. Polish, full quickstart, done.
+
+## GUI verification (2026-10-08, test copy, scratch folder)
+
+Q1–Q13 passed (Q8 at 600 pt: key numbers only, full name in the tooltip; Q13 without opening
+System Settings; `com.apple.keyboard.fnState` unchanged). Q14 (dark mode) not run: the system
+appearance was not switched on the maintainer's machine; the bar uses system label colors only.
+Found and fixed: ⌥F1/⌥F2 both read "Volume" → bar titles "Left Volume"/"Right Volume".

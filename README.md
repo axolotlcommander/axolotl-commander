@@ -111,7 +111,10 @@ build. `UNIVERSAL=1 scripts/bundle.sh release` builds the app for both architect
 
 **Function keys.** On a Mac, F1–F12 control brightness, volume and so on by default. Either
 hold `fn`, or turn on *System Settings → Keyboard → Keyboard Shortcuts → Function Keys → Use
-F1, F2, etc. keys as standard function keys*. Clashes with system shortcuts (Mission Control,
+F1, F2, etc. keys as standard function keys* (Settings → Keyboard in the app shows the current
+state and opens that page). The bar at the bottom of the window shows what F1–F12 do and runs
+them with a click; hold ⇧, ⌃, ⌥ or ⌘ to see the other commands. The bar and the command line
+can be hidden in the View menu. Clashes with system shortcuts (Mission Control,
 Spotlight) can be resolved in the app's settings (⌘,) under *Keyboard*, where every command
 can be remapped.
 

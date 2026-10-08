@@ -138,8 +138,9 @@ private final class FunctionKeyButton: NSButton {
         if let command {
             let spec = CommandRegistry.spec(command)
             let chord = KeyChord(.function(number), modifiers)
-            toolTip = "\(spec.localizedTitle) (\(chord.description))"
-            setAccessibilityLabel("\(key), \(spec.localizedTitle)")
+            let name = CommandRegistry.barTitle(command) == nil ? spec.localizedTitle : spec.barTitle
+            toolTip = "\(name) (\(chord.description))"
+            setAccessibilityLabel("\(key), \(name)")
         } else {
             toolTip = nil
             setAccessibilityLabel(key)

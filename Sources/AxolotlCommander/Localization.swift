@@ -11,8 +11,11 @@ extension CommandSpec {
         Bundle.main.localizedString(forKey: title, value: title, table: nil)
     }
 
-    /// The name on a function key button: the title without a trailing "…".
+    /// The name on a function key button: its own bar title, or the title without a trailing "…".
     var barTitle: String {
+        if let own = CommandRegistry.barTitle(command) {
+            return Bundle.main.localizedString(forKey: own, value: own, table: nil)
+        }
         let title = localizedTitle
         return title.hasSuffix("…") ? String(title.dropLast()) : title
     }

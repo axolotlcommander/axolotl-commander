@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-08
 
-**Status**: Draft
+**Status**: Implemented
 
 **Input**: User description: "Function key bar and hideable command line for the main window. Users
 coming from Windows two-panel file managers (Tandem Commander, Total Commander, Salamander) expect a

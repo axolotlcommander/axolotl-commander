@@ -3580,6 +3580,16 @@
         }
       }
     },
+    "Left Volume": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Levý svazek"
+          }
+        }
+      }
+    },
     "Left: %@ (%@ bytes)": {
       "localizations": {
         "cs": {
@@ -5267,6 +5277,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pravý"
+          }
+        }
+      }
+    },
+    "Right Volume": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pravý svazek"
           }
         }
       }

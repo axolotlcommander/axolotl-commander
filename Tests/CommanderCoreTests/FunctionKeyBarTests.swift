@@ -62,7 +62,7 @@ import Testing
     @Test func shortTitlesAreShorter() {
         for command in Command.allCases {
             guard let short = CommandRegistry.shortTitle(command) else { continue }
-            var title = CommandRegistry.spec(command).title
+            var title = CommandRegistry.barTitle(command) ?? CommandRegistry.spec(command).title
             if title.hasSuffix("…") { title.removeLast() }
             #expect(short.count < title.count, "\(command): \(short) vs \(title)")
         }
@@ -81,6 +81,7 @@ import Testing
             return (cs?["stringUnit"] as? [String: Any])?["value"] as? String
         }
         var keys = Set(Command.allCases.compactMap(CommandRegistry.shortTitle))
+        keys.formUnion(Command.allCases.compactMap(CommandRegistry.barTitle))
         keys.formUnion(factoryFunctionKeyCommands.map { CommandRegistry.spec($0).title })
         keys.formUnion([Command.toggleCommandLine, .toggleFunctionKeyBar].map { CommandRegistry.spec($0).title })
         for key in keys.sorted() {
