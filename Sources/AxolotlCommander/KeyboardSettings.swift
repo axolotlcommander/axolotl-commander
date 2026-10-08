@@ -23,6 +23,7 @@ struct KeyboardSettings: View {
     @State private var bindings = KeyMaps.bindings
     @State private var recorder = ChordRecorder()
     @State private var conflict: (chord: KeyChord, others: [Command])?
+    @State private var standardFunctionKeys = FunctionKeys.areStandard
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -37,6 +38,7 @@ struct KeyboardSettings: View {
                 Spacer()
                 TextField("Search", text: $search, prompt: Text("Search commands or keys")).frame(width: 220)
             }
+            functionKeyState
             Table(rows, selection: $selection) {
                 TableColumn("Command") { row in
                     Text(row.title).fontWeight(row.customized ? .semibold : .regular)
@@ -52,6 +54,11 @@ struct KeyboardSettings: View {
         }
         .padding()
         .onDisappear { stopRecording() }
+        // Re-read when coming back from System Settings.
+        .onAppear { standardFunctionKeys = FunctionKeys.areStandard }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            standardFunctionKeys = FunctionKeys.areStandard
+        }
         .onChange(of: selection) { stopRecording() }
     }
 
@@ -85,6 +92,21 @@ struct KeyboardSettings: View {
         case .options: String(localized: "Options")
         case .window: String(localized: "Window")
         case .help: String(localized: "Help")
+        }
+    }
+
+    /// Whether F1–F12 need fn on this Mac; the system setting is only shown, never changed here.
+    private var functionKeyState: some View {
+        HStack(spacing: 8) {
+            Image(systemName: standardFunctionKeys ? "checkmark.circle" : "info.circle")
+                .foregroundStyle(standardFunctionKeys ? Color.green : Color.secondary)
+            Text(standardFunctionKeys
+                 ? String(localized: "F1–F12 work as standard function keys.")
+                 : String(localized: "F1–F12 control brightness, volume and media; hold fn for commands, or change it in System Settings."))
+                .font(.callout)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer()
+            Button("Open Keyboard Settings") { FunctionKeys.openKeyboardSettings() }
         }
     }
 

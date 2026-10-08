@@ -9,6 +9,8 @@ enum SettingsTab: String { case general, viewer, appearance, hotPaths, userMenu,
 struct SettingsView: View {
     @AppStorage(Launcher.terminalDefaultsKey) private var terminal = "com.apple.Terminal"
     @AppStorage("settings.tab") private var tab = SettingsTab.general.rawValue
+    @AppStorage(MainWindowController.showCommandLineKey) private var showCommandLine = true
+    @AppStorage(MainWindowController.showFunctionKeyBarKey) private var showFunctionKeyBar = true
 
     var body: some View {
         TabView(selection: $tab) {
@@ -18,6 +20,12 @@ struct SettingsView: View {
                 }
                 Text("Used by Open Terminal Here (⌃/) and by commands typed in the command line.")
                     .font(.caption).foregroundStyle(.secondary)
+                Section {
+                    Toggle("Show command line", isOn: $showCommandLine)
+                    Toggle("Show function key bar", isOn: $showFunctionKeyBar)
+                    Text("Also in the View menu. The bar shows what F1–F12 do; hold ⇧, ⌃, ⌥ or ⌘ to see the other commands.")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
             }
             .padding()
             .tabItem { Label("General", systemImage: "gearshape") }

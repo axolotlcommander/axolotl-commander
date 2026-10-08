@@ -4,6 +4,17 @@
 import AppKit
 import CommanderCore
 
+extension KeyChord.Modifiers {
+    /// ⇧⌃⌥⌘ of `flags`; `fn`, Caps Lock and the numeric-pad flag are not modifiers of a chord.
+    init(flags: NSEvent.ModifierFlags) {
+        self = []
+        if flags.contains(.control) { insert(.control) }
+        if flags.contains(.option) { insert(.option) }
+        if flags.contains(.shift) { insert(.shift) }
+        if flags.contains(.command) { insert(.command) }
+    }
+}
+
 extension KeyChord {
     /// Translates a key-down event. Characters for chords with ⌘ or ⌃ are read
     /// through the Command-key layout so shortcuts survive non-US layouts
@@ -11,11 +22,7 @@ extension KeyChord {
     init?(event: NSEvent) {
         guard event.type == .keyDown else { return nil }
         let flags = event.modifierFlags
-        var mods: Modifiers = []
-        if flags.contains(.control) { mods.insert(.control) }
-        if flags.contains(.option) { mods.insert(.option) }
-        if flags.contains(.shift) { mods.insert(.shift) }
-        if flags.contains(.command) { mods.insert(.command) }
+        let mods = Modifiers(flags: flags)
 
         guard let raw = event.charactersIgnoringModifiers?.unicodeScalars.first else { return nil }
         let numpad = flags.contains(.numericPad)

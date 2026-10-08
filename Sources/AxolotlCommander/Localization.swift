@@ -10,6 +10,18 @@ extension CommandSpec {
     var localizedTitle: String {
         Bundle.main.localizedString(forKey: title, value: title, table: nil)
     }
+
+    /// The name on a function key button: the title without a trailing "…".
+    var barTitle: String {
+        let title = localizedTitle
+        return title.hasSuffix("…") ? String(title.dropLast()) : title
+    }
+
+    /// The short name for a narrow function key button, or `barTitle` when there is none.
+    var localizedShortTitle: String {
+        guard let short = CommandRegistry.shortTitle(command) else { return barTitle }
+        return Bundle.main.localizedString(forKey: short, value: short, table: nil)
+    }
 }
 
 extension ServerEncoding {

@@ -21,6 +21,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         controller.showWindow(nil)
         mainWindow = controller
         NSApp.activate()
+        if let window = controller.window {
+            DispatchQueue.main.async { FunctionKeys.showNoticeIfNeeded(in: window) }
+        }
         Task { await ArchiveEdits.shared.offerPendingFromLastTime() }
     }
 

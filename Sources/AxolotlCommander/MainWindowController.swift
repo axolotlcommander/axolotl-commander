@@ -17,7 +17,13 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
     private(set) var activeSide: PanelSide = .left
     private(set) lazy var operations = OperationsController(windowController: self)
     let commandLine = CommandLineBar()
+    let functionKeyBar = FunctionKeyBarView()
+    private let commandLineSeparator = NSBox()
+    private let functionKeyBarSeparator = NSBox()
     private var keyMonitor: Any?
+    private var flagsMonitor: Any?
+    /// Modifiers whose commands the function key bar shows (held while the window is key).
+    private var barModifiers: KeyChord.Modifiers = []
     private let split = PanelSplitViewController()
     /// The panel shown alone (⌃F11), or nil when both are visible.
     private(set) var maximizedSide: PanelSide?
@@ -47,7 +53,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
             item.canCollapse = true
             split.addSplitViewItem(item)
         }
-        window.contentViewController = Self.container(split: split, commandLine: commandLine)
+        window.contentViewController = container()
         window.setContentSize(NSSize(width: 1100, height: 700))
         window.center()
         window.setFrameAutosaveName("MainWindow")
@@ -56,14 +62,36 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         window.toolbarStyle = .unifiedCompact
         commandLine.onExecute = { [weak self] line in self?.execute(line) }
         commandLine.onLeave = { [weak self] in self.map { $0.activate($0.activeSide) } }
+        functionKeyBar.onClick = { [weak self] command in self?.performFromBar(command) }
+        functionKeyBar.onHide = { UserDefaults.standard.set(false, forKey: Self.showFunctionKeyBarKey) }
+        applyChromeSettings()
+        refreshFunctionKeyBar()
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard let self, event.window === self.window else { return event }
             return self.interceptKey(event) ? nil : event
+        }
+        flagsMonitor = NSEvent.addLocalMonitorForEvents(matching: .flagsChanged) { [weak self] event in
+            if let self, event.window === self.window { self.showFunctionKeys(for: KeyChord.Modifiers(flags: event.modifierFlags)) }
+            return event
         }
         let center = NotificationCenter.default
         observers.append(center.addObserver(forName: NSSplitView.didResizeSubviewsNotification, object: split.splitView,
                                             queue: .main) { [weak self] _ in
             MainActor.assumeIsolated { self?.layoutChanged() }
+        })
+        observers.append(center.addObserver(forName: KeyMaps.didChange, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated {
+                self?.refreshFunctionKeyBar()
+                self?.functionKeyBar.reload()
+            }
+        })
+        observers.append(center.addObserver(forName: UserDefaults.didChangeNotification, object: nil,
+                                            queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.applyChromeSettings() }
+        })
+        observers.append(center.addObserver(forName: NSWindow.didUpdateNotification, object: window,
+                                            queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.validateFunctionKeyBar() }
         })
         observers.append(center.addObserver(forName: NSApplication.willTerminateNotification, object: nil,
                                             queue: .main) { [weak self] _ in
@@ -76,29 +104,28 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         if let maximized = layout.maximized { setMaximized(maximized == .left ? .left : .right) }
     }
 
-    /// Panels on top, the command line across the whole window below them.
-    private static func container(split: NSSplitViewController, commandLine: CommandLineBar) -> NSViewController {
+    /// Panels on top, then the command line and the function key bar across the whole window.
+    private func container() -> NSViewController {
         let container = NSViewController()
         container.view = NSView()
         container.addChild(split)
-        let separator = NSBox()
-        separator.boxType = .separator
-        let stack = NSStackView(views: [split.view, separator, commandLine])
+        commandLineSeparator.boxType = .separator
+        functionKeyBarSeparator.boxType = .separator
+        let views: [NSView] = [split.view, commandLineSeparator, commandLine, functionKeyBarSeparator, functionKeyBar]
+        let stack = NSStackView(views: views)
         stack.orientation = .vertical
         stack.spacing = 0
         stack.translatesAutoresizingMaskIntoConstraints = false
         split.view.setContentHuggingPriority(.defaultLow, for: .vertical)
         commandLine.setContentHuggingPriority(.required, for: .vertical)
+        functionKeyBar.setContentHuggingPriority(.required, for: .vertical)
         container.view.addSubview(stack)
         NSLayoutConstraint.activate([
             stack.leadingAnchor.constraint(equalTo: container.view.leadingAnchor),
             stack.trailingAnchor.constraint(equalTo: container.view.trailingAnchor),
             stack.topAnchor.constraint(equalTo: container.view.topAnchor),
             stack.bottomAnchor.constraint(equalTo: container.view.bottomAnchor),
-            split.view.widthAnchor.constraint(equalTo: stack.widthAnchor),
-            separator.widthAnchor.constraint(equalTo: stack.widthAnchor),
-            commandLine.widthAnchor.constraint(equalTo: stack.widthAnchor),
-        ])
+        ] + views.map { $0.widthAnchor.constraint(equalTo: stack.widthAnchor) })
         return container
     }
 
@@ -144,8 +171,13 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         window?.firstResponder === activePanel.listView
     }
 
+    /// Window commands that work while the command line edits too.
+    private static let focusIndependent: Set<Command> = [.toggleCommandLine, .toggleFunctionKeyBar]
+
     func canPerform(_ command: Command) -> Bool {
-        if CommandRegistry.spec(command).scope == .panel, !panelHasFocus { return false }
+        if CommandRegistry.spec(command).scope == .panel, !panelHasFocus, !Self.focusIndependent.contains(command) {
+            return false
+        }
         return canPerformIgnoringFocus(command)
     }
 
@@ -163,6 +195,17 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
             log.debug("command \(command.rawValue) not available")
             return
         }
+        route(command)
+    }
+
+    /// A function key button: runs the command for the active panel like its key would, but without
+    /// requiring or moving keyboard focus (the command line may keep editing).
+    func performFromBar(_ command: Command) {
+        guard canPerformIgnoringFocus(command) else { return }
+        route(command)
+    }
+
+    private func route(_ command: Command) {
         if CommandRegistry.spec(command).scope == .app {
             (NSApp.delegate as? AppDelegate)?.perform(command)
         } else if canPerformHere(command) {
@@ -177,12 +220,14 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         case .switchPanel, .leftVolumeMenu, .rightVolumeMenu, .focusCommandLine, .maximizePanel, .comparePanels,
              .swapPanels, .sameFolderAsOther,
              .insertNameToCommandLine, .insertPathToCommandLine,
-             .insertLeftPathToCommandLine, .insertRightPathToCommandLine: true
+             .insertLeftPathToCommandLine, .insertRightPathToCommandLine,
+             .toggleCommandLine, .toggleFunctionKeyBar: true
         default: false
         }
     }
 
     private func performHere(_ command: Command) {
+        if Self.commandLineCommands.contains(command) { showCommandLine() }
         switch command {
         case .switchPanel: activate(activeSide == .left ? .right : .left)
         case .maximizePanel: setMaximized(maximizedSide == nil ? activeSide : nil)
@@ -210,7 +255,76 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         case .insertPathToCommandLine: insertPath(of: activePanel)
         case .insertLeftPathToCommandLine: insertPath(of: left)
         case .insertRightPathToCommandLine: insertPath(of: right)
+        case .toggleCommandLine:
+            UserDefaults.standard.set(commandLine.isHidden, forKey: Self.showCommandLineKey)
+        case .toggleFunctionKeyBar:
+            UserDefaults.standard.set(functionKeyBar.isHidden, forKey: Self.showFunctionKeyBarKey)
         default: break
+        }
+    }
+
+    // MARK: Function key bar
+
+    private func refreshFunctionKeyBar() {
+        functionKeyBar.update(slots: FunctionKeyBar.slots(in: KeyMaps.panel, modifiers: barModifiers),
+                              modifiers: barModifiers)
+        validateFunctionKeyBar()
+    }
+
+    /// The bar follows the held modifiers (⌥ → Pack, Unpack…), only while the window is key.
+    private func showFunctionKeys(for modifiers: KeyChord.Modifiers) {
+        let shown = window?.isKeyWindow == true ? modifiers : []
+        guard shown != barModifiers else { return }
+        barModifiers = shown
+        refreshFunctionKeyBar()
+    }
+
+    // The real state when focus comes or goes, so the bar never stays on a modifier set after ⌘Tab.
+    func windowDidBecomeKey(_ notification: Notification) {
+        showFunctionKeys(for: KeyChord.Modifiers(flags: NSEvent.modifierFlags))
+    }
+
+    func windowDidResignKey(_ notification: Notification) { showFunctionKeys(for: []) }
+
+    private func validateFunctionKeyBar() {
+        guard !functionKeyBar.isHidden else { return }
+        functionKeyBar.validate { [unowned self] in canPerformIgnoringFocus($0) }
+    }
+
+    // MARK: Command line and function key bar visibility
+
+    static let showCommandLineKey = "showCommandLine"
+    static let showFunctionKeyBarKey = "showFunctionKeyBar"
+
+    /// Commands that work with the command line; they show it first when it is hidden.
+    private static let commandLineCommands: Set<Command> = [
+        .focusCommandLine, .insertNameToCommandLine, .insertPathToCommandLine,
+        .insertLeftPathToCommandLine, .insertRightPathToCommandLine,
+    ]
+
+    /// Both are shown unless the user turned them off (View menu, Settings, the bar's menu).
+    private static func isShown(_ key: String) -> Bool {
+        UserDefaults.standard.object(forKey: key) as? Bool ?? true
+    }
+
+    private func showCommandLine() {
+        guard commandLine.isHidden else { return }
+        UserDefaults.standard.set(true, forKey: Self.showCommandLineKey)
+        applyChromeSettings()
+    }
+
+    private func applyChromeSettings() {
+        let showCommandLine = Self.isShown(Self.showCommandLineKey)
+        if commandLine.isHidden == showCommandLine {
+            if !showCommandLine, commandLine.isEditing { activate(activeSide) }
+            commandLine.isHidden = !showCommandLine
+            commandLineSeparator.isHidden = !showCommandLine
+        }
+        let showBar = Self.isShown(Self.showFunctionKeyBarKey)
+        if functionKeyBar.isHidden == showBar {
+            functionKeyBar.isHidden = !showBar
+            functionKeyBarSeparator.isHidden = !showBar
+            validateFunctionKeyBar()
         }
     }
 
@@ -297,6 +411,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         if commandLine.isEditing { return handleCommandLineKey(event) }
         guard panelHasFocus, let chord = KeyChord(event: event),
               KeyMaps.panel.command(for: chord) == .focusCommandLine else { return false }
+        showCommandLine()
         commandLine.focus()
         return true
     }
@@ -374,6 +489,8 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         if command == .toggleHidden { menuItem.state = activePanel.showsHidden ? .on : .off }
         if command == .viewModeDetailed { menuItem.state = activePanel.viewMode == .detailed ? .on : .off }
         if command == .viewModeBrief { menuItem.state = activePanel.viewMode == .brief ? .on : .off }
+        if command == .toggleCommandLine { menuItem.state = commandLine.isHidden ? .off : .on }
+        if command == .toggleFunctionKeyBar { menuItem.state = functionKeyBar.isHidden ? .off : .on }
         let sortFields: [Command: SortField] = [.sortByName: .name, .sortByExtension: .ext, .sortByDate: .date, .sortBySize: .size]
         if let field = sortFields[command] { menuItem.state = activePanel.model.sort.field == field ? .on : .off }
         if command == .maximizePanel { menuItem.title = maximizedSide == nil ? CommandRegistry.spec(.maximizePanel).localizedTitle

@@ -717,6 +717,16 @@
         }
       }
     },
+    "Also in the View menu. The bar shows what F1–F12 do; hold ⇧, ⌃, ⌥ or ⌘ to see the other commands.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Také v menu Zobrazení. Lišta ukazuje, co dělají klávesy F1–F12; podržením ⇧, ⌃, ⌥ nebo ⌘ uvidíte další příkazy."
+          }
+        }
+      }
+    },
     "Anonymous": {
       "localizations": {
         "cs": {
@@ -1061,6 +1071,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kapacita"
+          }
+        }
+      }
+    },
+    "Case": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Písmena"
           }
         }
       }
@@ -1938,6 +1958,16 @@
         }
       }
     },
+    "Don't Show Again": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Příště nezobrazovat"
+          }
+        }
+      }
+    },
     "Done": {
       "localizations": {
         "cs": {
@@ -2227,12 +2257,42 @@
         }
       }
     },
+    "F1–F12 control brightness, volume and media; hold fn for commands, or change it in System Settings.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "F1–F12 ovládají jas, hlasitost a média; pro příkazy podržte fn, nebo to změňte v Nastavení systému."
+          }
+        }
+      }
+    },
+    "F1–F12 work as standard function keys.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "F1–F12 fungují jako standardní funkční klávesy."
+          }
+        }
+      }
+    },
     "F9 shows these items. A command runs its program with the arguments; variables such as $(FullName) are filled with the files of the active panel.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Tyto položky zobrazíte klávesou F9. Příkaz spustí svůj program s argumenty; proměnné jako $(FullName) se doplní soubory z aktivního panelu."
+          }
+        }
+      }
+    },
+    "Finder": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finder"
           }
         }
       }
@@ -2674,6 +2734,26 @@
         }
       }
     },
+    "Function Key Bar": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lišta funkčních kláves"
+          }
+        }
+      }
+    },
+    "Function keys need the fn key": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Funkční klávesy potřebují klávesu fn"
+          }
+        }
+      }
+    },
     "General": {
       "localizations": {
         "cs": {
@@ -2696,6 +2776,16 @@
       }
     },
     "Go": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přejít"
+          }
+        }
+      }
+    },
+    "Go to": {
       "localizations": {
         "cs": {
           "stringUnit": {
@@ -2973,6 +3063,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Skrýt Axolotl Commander"
+          }
+        }
+      }
+    },
+    "Hide Function Key Bar": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skrýt lištu funkčních kláves"
           }
         }
       }
@@ -3571,12 +3671,32 @@
         }
       }
     },
+    "Look": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Náhled"
+          }
+        }
+      }
+    },
     "Look in:": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Hledat v:"
+          }
+        }
+      }
+    },
+    "Map": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mapa"
           }
         }
       }
@@ -3607,6 +3727,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Rozlišovat velikost písmen"
+          }
+        }
+      }
+    },
+    "Maximize": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maximalizovat"
           }
         }
       }
@@ -4312,6 +4442,16 @@
         }
       }
     },
+    "On this Mac, F1–F12 control brightness, volume and media, so commands like F5 Copy work only while you hold fn. To use them directly, turn on \"Use F1, F2, etc. keys as standard function keys\" in System Settings → Keyboard → Keyboard Shortcuts → Function Keys. The buttons at the bottom of the window work either way.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Na tomto Macu ovládají klávesy F1–F12 jas, hlasitost a média, takže příkazy jako F5 Kopírovat fungují jen s podrženou klávesou fn. Chcete-li je používat přímo, zapněte „Používat klávesy F1, F2 atd. jako standardní funkční klávesy“ v Nastavení systému → Klávesnice → Klávesové zkratky → Funkční klávesy. Tlačítka dole v okně fungují v obou případech."
+          }
+        }
+      }
+    },
     "One character of the original name": {
       "localizations": {
         "cs": {
@@ -4339,6 +4479,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Otevřít"
+          }
+        }
+      }
+    },
+    "Open Keyboard Settings": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otevřít nastavení klávesnice"
           }
         }
       }
@@ -4913,6 +5063,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Znovu načíst"
+          }
+        }
+      }
+    },
+    "Remember": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapamatovat"
           }
         }
       }
@@ -5618,6 +5778,26 @@
         }
       }
     },
+    "Show Command Line": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zobrazit příkazový řádek"
+          }
+        }
+      }
+    },
+    "Show command line": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zobrazit příkazový řádek"
+          }
+        }
+      }
+    },
     "Show Context Menu": {
       "extractionState": "manual",
       "localizations": {
@@ -5636,6 +5816,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zobrazit jen rozdíly"
+          }
+        }
+      }
+    },
+    "Show Function Key Bar": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zobrazit lištu funkčních kláves"
+          }
+        }
+      }
+    },
+    "Show function key bar": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zobrazit lištu funkčních kláves"
           }
         }
       }
@@ -5729,6 +5929,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Velikost: %@ (%@ bajtů)"
+          }
+        }
+      }
+    },
+    "Sizes": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Velikosti"
           }
         }
       }
@@ -6460,6 +6670,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Přepnout výběr a velikost"
+          }
+        }
+      }
+    },
+    "Trash": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koš"
           }
         }
       }
