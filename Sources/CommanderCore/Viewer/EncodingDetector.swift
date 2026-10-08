@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 The iCommander Authors
+
 public import Foundation
 
 public enum EncodingSource: String, Sendable { case bom, validUTF8, utf16Heuristic, legacyHeuristic, fallback, manual }

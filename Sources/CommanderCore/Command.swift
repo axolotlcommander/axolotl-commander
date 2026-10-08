@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 The iCommander Authors
+
 /// Every user-facing command. Menu, key map and enablement all derive from
 /// `CommandRegistry`, so a command is declared exactly once.
 public enum Command: String, CaseIterable, Hashable, Sendable {

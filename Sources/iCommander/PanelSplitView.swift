@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 The iCommander Authors
+
 import AppKit
 
 /// Split between the two panels. Double-clicking the divider makes both panels equally wide,

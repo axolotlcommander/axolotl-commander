@@ -1,0 +1,24 @@
+iCommander
+Copyright (C) 2026 The iCommander Authors (see AUTHORS)
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version. It is distributed WITHOUT ANY WARRANTY; see the file LICENSE.
+
+Origin
+------
+iCommander is a native macOS reimplementation of the behavior of Tandem
+Commander (https://github.com/tandemcommander/tandemcommander), which derives
+from Open Salamander (https://github.com/OpenSalamander/salamander), both
+licensed under the GNU General Public License version 2 or (at your option)
+any later version. The keyboard layout, commands, dialogs and behavior follow
+those programs and their user manual; parts of the design were studied in
+their source code. No source files were copied. Because Tandem Commander and
+Open Salamander permit "any later version", this work is distributed under
+GPL-3.0-or-later.
+
+"Salamander", "Open Salamander" and "Tandem Commander" are names of those
+projects; iCommander is not affiliated with or endorsed by their authors.
+
+Third-party software: see THIRD_PARTY.md.

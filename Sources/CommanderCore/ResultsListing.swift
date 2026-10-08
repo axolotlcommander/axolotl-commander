@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 The iCommander Authors
+
 public import Foundation
 
 /// A panel listing of files from several folders (find results shown in a panel).

@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 The iCommander Authors
+
 public enum HexFormat {
     public static let bytesPerLine = 16
     private static let digits = Array("0123456789ABCDEF".utf8)

@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026 The iCommander Authors
 """Minimal FTP server for iCommander tests and manual GUI testing (stdlib only).
 
     /usr/bin/python3 -I scripts/ftp-test-server.py --root DIR --user U --password P \

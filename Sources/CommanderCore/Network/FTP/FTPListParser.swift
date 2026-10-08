@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 The iCommander Authors
+
 public import Foundation
 
 /// Parses FTP directory listings: MLSD facts (RFC 3659), Unix `ls -l` and DOS/IIS LIST output.

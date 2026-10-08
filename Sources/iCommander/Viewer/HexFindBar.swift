@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 The iCommander Authors
+
 import AppKit
 
 /// Find bar of the hex mode: text (in the current encoding) or hex bytes.

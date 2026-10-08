@@ -1,4 +1,6 @@
 #!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026 The iCommander Authors
 # Builds a release bundle, installs it to ~/Applications and puts an alias on the Desktop.
 set -eu
 cd "$(dirname "$0")/.."

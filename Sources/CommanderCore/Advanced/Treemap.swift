@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 The iCommander Authors
+
 /// Axis-aligned rectangle; own type so the core stays free of CoreGraphics.
 /// Coordinates are plain numbers; "top" below means the smaller `y`.
 public struct TreemapRect: Sendable, Equatable {

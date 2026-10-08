@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 The iCommander Authors
+
 // Renders the app icon: two commander panels on a rounded macOS-style tile.
 // Usage: swift scripts/make-icon.swift <output.png>
 import AppKit

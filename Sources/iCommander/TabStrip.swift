@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 The iCommander Authors
+
 import AppKit
 
 /// Tabs of one panel. Hidden while the panel has a single tab, like Finder and Safari.

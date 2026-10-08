@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 The iCommander Authors
+
 public import Foundation
 
 /// How a server encodes file names (Salamander's FTP "Encoding" option). Legacy servers send

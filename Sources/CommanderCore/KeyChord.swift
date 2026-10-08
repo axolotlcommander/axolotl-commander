@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 The iCommander Authors
+
 /// A key plus modifiers, independent of AppKit so the key map is testable.
 public struct KeyChord: Hashable, CustomStringConvertible, Sendable, Codable {
     public struct Modifiers: OptionSet, Hashable, Sendable {

@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 The iCommander Authors
+
 /// Text helpers for user-entered paths (no filesystem access).
 enum PathText {
     /// Removes trailing slashes, except that "/" stays "/".

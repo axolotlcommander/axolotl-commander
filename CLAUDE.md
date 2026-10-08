@@ -2,6 +2,8 @@
 
 Vzor chování: `../tandemcommander` (Windows, WinAPI). Analýza portu: `../tandemcommander/docs/macos-port/`.
 Plán etap a stav práce: `docs/PLAN.md` a `docs/STATE.md`.
+Principy: `.specify/memory/constitution.md`. Nové funkce přes Spec Kit (`/speckit-specify` →
+`/speckit-plan` → `/speckit-tasks` → `/speckit-implement`), specifikace v `specs/NNN-nazev/`.
 
 ## Šetření tokenů a kontextu (závazné)
 
@@ -28,6 +30,17 @@ Plán etap a stav práce: `docs/PLAN.md` a `docs/STATE.md`.
   takového testovacího adresáře, teprve pak posílat F5/F6/F8/F2…
 - GUI testy mimo testovací adresář smí jen číst (procházet, vybírat, řadit).
 - Mazání vlastních artefaktů (`build/`, `~/Applications/iCommander.app`) je v pořádku.
+
+## Licence a čistota implementace (závazné)
+
+- Projekt je `GPL-3.0-or-later`. Každý nový zdrojový soubor začíná hlavičkou
+  `// SPDX-License-Identifier: GPL-3.0-or-later` + `// Copyright (C) 2026 The iCommander Authors`.
+- Vzorem je **chování**: nápověda (`../tandemcommander/help/`), `docs/macos-port/`, `specs/`
+  a spuštěný program. **C++ zdrojáky vzoru (`../tandemcommander/src/**/*.cpp|h|rc`) nečíst
+  ani necitovat** — ani v subagentech. Výjimka jen na výslovný pokyn uživatele, a pak zapsat
+  do `NOTICE`, co se odkud převzalo.
+- Texty nápovědy a dialogů nepřebírat doslovně; psát vlastní formulace.
+- Nová závislost jen s licencí slučitelnou s GPL-3.0; zapsat do `THIRD_PARTY.md`.
 
 ## Technologie
 

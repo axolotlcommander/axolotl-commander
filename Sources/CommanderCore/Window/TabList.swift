@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 The iCommander Authors
+
 import Foundation
 
 /// The tabs of one panel. Never empty; the last tab cannot be closed.

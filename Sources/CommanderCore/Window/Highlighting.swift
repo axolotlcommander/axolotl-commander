@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 The iCommander Authors
+
 public import Foundation
 
 /// Semantic colors; the UI maps them to `NSColor.systemX`, which adapts to light and dark mode.
