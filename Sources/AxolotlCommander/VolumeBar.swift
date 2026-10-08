@@ -314,6 +314,14 @@ private final class ServerButton: BarButton {
         if event.trackingArea === hoverArea { eject.isHidden = true }
     }
 
+    // The accessory bar bezel sizes the button without asking the cell's `cellSize`, so the
+    // room for the eject symbol is added here.
+    override var intrinsicContentSize: NSSize {
+        var size = super.intrinsicContentSize
+        size.width += ServerButtonCell.ejectWidth
+        return size
+    }
+
     @objc private func ejectClicked() { onEject?() }
 
     override func accessibilityChildren() -> [Any]? {
@@ -324,12 +332,6 @@ private final class ServerButton: BarButton {
 /// Leaves room at the trailing edge for the eject symbol, so it never covers the name.
 private final class ServerButtonCell: NSButtonCell {
     static let ejectWidth: CGFloat = 14
-
-    override var cellSize: NSSize {
-        var size = super.cellSize
-        size.width += Self.ejectWidth
-        return size
-    }
 
     override func drawInterior(withFrame cellFrame: NSRect, in controlView: NSView) {
         var frame = cellFrame
