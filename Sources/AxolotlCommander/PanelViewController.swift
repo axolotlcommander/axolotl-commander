@@ -128,8 +128,8 @@ final class PanelViewController: NSViewController {
         for column in Column.allCases {
             let tc = NSTableColumn(identifier: column.identifier)
             tc.title = column.title
-            tc.width = column.width
-            tc.minWidth = 40
+            tc.minWidth = column.minWidth
+            tc.width = max(column.width, column.minWidth)
             tc.resizingMask = column == .name ? [.autoresizingMask, .userResizingMask] : .userResizingMask
             if column.isNumeric { tc.headerCell.alignment = .right }
             tableView.addTableColumn(tc)
@@ -1070,6 +1070,31 @@ private enum Column: String, CaseIterable {
         case .date: 130
         }
     }
+    /// The Date column always fits a date, also in bold (marked rows): middle-truncated dates mislead.
+    var minWidth: CGFloat {
+        self == .date ? Self.dateWidth : 40
+    }
+
+    /// The widest date the current locale writes, measured in the bold font, plus the cell's insets.
+    private static let dateWidth: CGFloat = {
+        let font = NSFont.boldSystemFont(ofSize: NSFont.systemFontSize)
+        var widest: CGFloat = 0
+        let calendar = Calendar.current
+        // Two-digit months, days, hours and minutes with various digits; morning and afternoon.
+        for month in [1, 10, 11, 12] {
+            for day in [8, 18, 28, 30] {
+                for hour in [0, 8, 10, 20, 22, 23] {
+                    for minute in [8, 48, 58] {
+                        let parts = DateComponents(year: 2088, month: month, day: day, hour: hour, minute: minute)
+                        guard let date = calendar.date(from: parts) else { continue }
+                        widest = max(widest, (Format.date(date) as NSString).size(withAttributes: [.font: font]).width)
+                    }
+                }
+            }
+        }
+        return ceil(widest) + 12
+    }()
+
     var isNumeric: Bool { self == .size || self == .date }
     var sortField: SortField {
         switch self {
