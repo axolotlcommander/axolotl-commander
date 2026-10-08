@@ -66,6 +66,7 @@ struct LinkSheetView: View {
                         Text(model.target).textSelection(.enabled).lineLimit(3).truncationMode(.middle)
                     } else {
                         TextField("Target:", text: $model.target).labelsHidden().accessibilityLabel(Text("Target"))
+                            .onSubmit(onConfirm)
                     }
                 }
                 GridRow {
@@ -74,7 +75,7 @@ struct LinkSheetView: View {
                         Text(model.destination).textSelection(.enabled).lineLimit(3).truncationMode(.middle)
                     } else {
                         TextField(destinationLabel, text: $model.destination).labelsHidden()
-                            .accessibilityLabel(Text(destinationLabel))
+                            .accessibilityLabel(Text(destinationLabel)).onSubmit(onConfirm)
                     }
                 }
                 if model.mode != .hard {
