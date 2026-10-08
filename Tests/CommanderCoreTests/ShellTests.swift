@@ -15,6 +15,15 @@ import Foundation
         #expect(ShellQuote.quote("čaj") == "'čaj'")
         #expect(ShellQuote.quote("$x;y") == "'$x;y'")
     }
+
+    @Test func leadingExpansionCharacters() {
+        // zsh turns a leading `=ls` into `/bin/ls`; `~` expands to a home folder.
+        #expect(ShellQuote.quote("=ls") == "'=ls'")
+        #expect(ShellQuote.quote("=") == "'='")
+        #expect(ShellQuote.quote("a=b") == "a=b")
+        #expect(ShellQuote.quote("~") == "'~'")
+        #expect(ShellQuote.quote("~root") == "'~root'")
+    }
 }
 
 @Suite struct ShellWordsTests {

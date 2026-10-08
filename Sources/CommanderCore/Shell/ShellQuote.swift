@@ -8,10 +8,11 @@ public enum ShellQuote {
     private static let safe: Set<Character> = Set(
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_./+:@%,=-")
 
-    /// Unchanged when non-empty and made only of `[A-Za-z0-9_./+:@%,=-]` (non-ASCII letters are
-    /// NOT safe). Otherwise wrapped in single quotes with `'` written as `'\''`. Empty → `''`.
+    /// Unchanged when non-empty, made only of `[A-Za-z0-9_./+:@%,=-]` (non-ASCII letters are
+    /// NOT safe) and not starting with `=` (zsh expands a leading `=word` to a command path).
+    /// Otherwise wrapped in single quotes with `'` written as `'\''`. Empty → `''`.
     public static func quote(_ s: String) -> String {
-        if !s.isEmpty && s.allSatisfy({ safe.contains($0) }) { return s }
+        if !s.isEmpty && !s.hasPrefix("=") && s.allSatisfy({ safe.contains($0) }) { return s }
         return "'" + s.replacingOccurrences(of: "'", with: "'\\''") + "'"
     }
 }
