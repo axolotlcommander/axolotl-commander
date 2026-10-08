@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-08
 
-**Status**: Draft
+**Status**: Implemented
 
 **Input**: User description: "Clickable breadcrumb path bar for file panels. Users coming from
 Commander One / Finder and from Windows two-panel managers expect to jump to any parent folder

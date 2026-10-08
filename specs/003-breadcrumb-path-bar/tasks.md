@@ -72,8 +72,8 @@ follow quickstart.md in the test copy only.
 
 - [X] T019 [P] Czech translations for all new strings in Resources/Localizable.xcstrings (test that each new key has a cs entry in Tests/CommanderCoreTests/BreadcrumbsTests.swift)
 - [X] T020 [P] README (path bar paragraph) and CHANGELOG (Unreleased → Added)
-- [ ] T021 GUI verification per quickstart.md Q1–Q15 in the test copy; record results at the end of this file
-- [ ] T022 Mark spec Status Implemented, all tasks [X]; merge to main; `scripts/bundle.sh release` + `scripts/install.sh` (ask first if the app runs)
+- [X] T021 GUI verification per quickstart.md Q1–Q15 in the test copy; record results at the end of this file
+- [X] T022 Mark spec Status Implemented, all tasks [X]; merge to main; `scripts/bundle.sh release` + `scripts/install.sh` (ask first if the app runs)
 
 ## Dependencies
 
@@ -90,3 +90,30 @@ follow quickstart.md in the test copy only.
 
 MVP = Phases 1–4 (US1 + US2): the default bar navigates and typing a path still works. Then US3,
 US4, US5, each committed on its own, then polish and GUI verification.
+
+## GUI Verification (T021, 2026-10-08)
+
+Test copy `iCmdTest.app`, panels in a scratch folder (`a/b/c`, ten-level `deep/…`, `pack.zip`).
+
+| Scenario | Result |
+|---|---|
+| Q1 default breadcrumbs, icons, collapsed "…", active tint | Pass |
+| Q2 click an ancestor: folder shown, cursor on the child, focus in the list; Back returns | Pass |
+| Q3 click the current folder | Pass (nothing happens) |
+| Q4 click a segment of the inactive panel | Pass (panel activated and navigated) |
+| Q5 ⌘L, type a path, Enter | Pass |
+| Q6 ⌘L, nonexistent path, Enter | Pass (status "folder does not exist", breadcrumbs back, focus in list) |
+| Q7 ⌘L, Esc | Pass |
+| Q8 click right of the last segment | Pass (field with the path selected) |
+| Q9 segment menu: Open in Other Panel, Open in New Tab, Set as Hot Path 3 | Pass; Copy Path not clicked in the GUI (it would overwrite the user's clipboard), same code as Copy Path as Text |
+| Q10 ⌘-click in the active and the inactive panel | Pass (new tab at that folder) |
+| Q11 "…" menu lists the hidden folders with icons; choosing one goes there | Pass |
+| Q12 archive: segments, archive segment = archive root, leaving puts the cursor on the archive | Pass |
+| Q13 search results trail | Covered by unit tests (title segment, root trail); not clicked in the GUI |
+| Q14 Settings: Text field / Breadcrumbs at once, survives relaunch; icons off/on at once | Pass |
+| Q15 accessibility: group "Path" with segment buttons, "…" = "Hidden folders" | Pass |
+| Q16 dark mode | Not checked (system appearance not switched); system colors only |
+
+Found and fixed during the check (19e8d82): a modal mouse-tracking loop that could freeze the
+app on a lost mouse-up; the trail of a restored archive tab; archive detection with "/tmp" vs
+"/private/tmp"; folder icons inside archives; cursor on the child for Open in Other Panel / New Tab.
