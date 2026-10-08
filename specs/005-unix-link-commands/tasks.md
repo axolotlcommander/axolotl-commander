@@ -149,9 +149,9 @@ scratch folder.
 - [X] T015 [P] Add en + cs texts for every new string (contract table and the sheet labels) in
   Resources/Localizable.xcstrings
 - [X] T016 [P] Update README.md (feature list) and CHANGELOG.md (Unreleased)
-- [ ] T017 Build without warnings, run `swift test`, then run the GUI checks Q1–Q17 in the test
+- [X] T017 Build without warnings, run `swift test`, then run the GUI checks Q1–Q17 in the test
   copy. Record the results in the table below.
-- [ ] T018 Set the spec status to Implemented and record any deviation found during
+- [X] T018 Set the spec status to Implemented and record any deviation found during
   implementation in spec.md Clarifications.
 
 ## Dependencies
@@ -165,3 +165,22 @@ scratch folder.
 
 | # | Result | Note |
 |---|---|---|
+| Q1 | Pass | ⌃⌘L + Return: absolute link in the other panel, cursor on it |
+| Q2 | Pass | `rel.txt -> ../a/file.txt`; "Relative path" remembered |
+| Q3 | Pass | Inline "already exists", sheet stays, existing link unchanged |
+| Q4 | Pass | Three items: `dir`, `other.txt` created, `file.txt` skipped, one summary |
+| Q5 | Pass | Question for a missing target; Cancel returns to the sheet, Create makes the dangling link |
+| Q6 | Pass | ⌃T on a file link: target folder, cursor on the file; ⌘[ returns |
+| Q7 | Pass | Folder link opens the real folder |
+| Q8 | Pass | Chain of three links reaches the file |
+| Q9 | Pass | Broken link: message names `../a/missing`, panel stays |
+| Q10 | Pass | ⌘C + ⌃⌘V: two absolute links; ⌃S again: both skipped, one summary |
+| Q11 | Pass | ⌃F2 + owner Execute + Return: `-rwxr--r--`; ⌃F2 + change + Esc: unchanged |
+| Q12 | Pass | Hard link `hard.txt`: same inode, link count 2 |
+| Q13 | Pass | Hard link to a folder: inline "Folders cannot have hard links", nothing created |
+| Q14 | Pass | Edit: checkbox converts relative ↔ absolute; retarget to `../a/other.txt`, both files unchanged, no temporary link left |
+| Q15 | Pass | Disabled on ".." / ordinary file (edit, go to target) / inside a ZIP; clipboard with text only not checked (the user's clipboard was not touched again) |
+| Q16 | Pass | Keyboard Shortcuts lists the commands with ⌃⌘L, ⌃⌘V ⌃S, ⌃T; toolbar items not checked in Customize Toolbar |
+| Q17 | Pass | Scratch folder after each step: only the expected links and the Q11 mode change |
+
+Found and fixed during the GUI check: the sheet's text fields did not use the sheet's width.

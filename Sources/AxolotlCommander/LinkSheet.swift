@@ -65,7 +65,7 @@ struct LinkSheetView: View {
                     } else if model.mode == .hard {
                         Text(model.target).textSelection(.enabled).lineLimit(3).truncationMode(.middle)
                     } else {
-                        TextField("Target:", text: $model.target).labelsHidden().accessibilityLabel(Text("Target"))
+                        TextField("Target:", text: $model.target).labelsHidden().frame(minWidth: 380, maxWidth: .infinity).accessibilityLabel(Text("Target"))
                             .onSubmit(onConfirm)
                     }
                 }
@@ -74,7 +74,7 @@ struct LinkSheetView: View {
                     if model.mode == .edit {
                         Text(model.destination).textSelection(.enabled).lineLimit(3).truncationMode(.middle)
                     } else {
-                        TextField(destinationLabel, text: $model.destination).labelsHidden()
+                        TextField(destinationLabel, text: $model.destination).labelsHidden().frame(minWidth: 380, maxWidth: .infinity)
                             .accessibilityLabel(Text(destinationLabel)).onSubmit(onConfirm)
                     }
                 }

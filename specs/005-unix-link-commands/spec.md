@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-08
 
-**Status**: Draft
+**Status**: Implemented
 
 **Input**: User description: "The menus should have at least a command to create a symbolic link,
 and the other Unix-specific things a file manager must have. Find out what we should have, write
@@ -27,6 +27,12 @@ scope.
   this feature? → A: Yes (User Story 3).
 - Q: Changing owner and group? → A: Out of scope: it needs administrator rights and the app does
   not elevate privileges.
+- Q: Is a relative target computed from the folder path as the panel shows it? → A: No, from the
+  real folders, because the system follows ".." physically; a panel folder reached through a link
+  otherwise gets dangling links. Absolute targets are stored exactly as typed (FR-006, FR-012).
+  Recorded during implementation (code review).
+- Q: Is Go to Link Target available in search results? → A: No, as FR-017 says ("in a local
+  folder"); the alias state comes from the folder listing. Recorded during implementation.
 
 ## User Scenarios & Testing *(mandatory)*
 
