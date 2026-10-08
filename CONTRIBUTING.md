@@ -63,7 +63,7 @@ Projekt je nová implementace **chování** vzoru, ne převod jeho kódu.
 
 ## Konvence
 
-- Kód, identifikátory a komentáře anglicky; dokumentace česky.
+- Kód, identifikátory, komentáře a specifikace (`specs/`) anglicky; ostatní dokumentace česky.
 - Každý nový zdrojový soubor začíná hlavičkou:
 
   ```swift

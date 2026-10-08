@@ -46,6 +46,8 @@ Soukromé pokyny pro vlastní stroj patří do `CLAUDE.local.md` (je v `.gitigno
 
 ## Konvence
 
-- Kód a identifikátory anglicky, dokumentace česky.
+- Kód a identifikátory anglicky, specifikace (`specs/`) anglicky, ostatní dokumentace česky.
+- Nová funkce: nejdřív diskuse v chatu (česky), po odsouhlasení shrnutí ji agent zapíše
+  přes `/speckit-specify` anglicky; specifikace `001-…` zůstává česky.
 - Commit zprávy: `[Etapa N] stručný popis` (mimo etapy `[Oblast] popis`).
 - Nehotový příkaz v menu zůstává šedý (disabled), nepadá.
