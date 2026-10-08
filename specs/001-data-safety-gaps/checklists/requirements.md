@@ -33,5 +33,5 @@
 
 - Terms such as symlink, hard link, NFC/NFD, Trash, and F5/F8 are file-manager concepts the user
   knows, not implementation details.
-- Specific files and functions of the code (from `docs/AUDIT.md`) belong in `plan.md`, not here.
+- Specific files and functions of the code (from the internal audit `docs/AUDIT.md`, not published) belong in `plan.md`, not here.
 - Validation: 1 iteration, everything passed.

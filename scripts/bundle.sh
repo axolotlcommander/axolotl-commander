@@ -22,7 +22,7 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN/AxolotlCommander" "$APP/Contents/MacOS/"
 cp Resources/AppIcon.icns Resources/Credits.html "$APP/Contents/Resources/"
 # GPL: the license and notices travel with every copy of the program
-cp LICENSE NOTICE AUTHORS THIRD_PARTY.md "$APP/Contents/Resources/"
+cp LICENSE NOTICE AUTHORS THIRD_PARTY.md THIRD_PARTY_LICENSES.txt "$APP/Contents/Resources/"
 for b in "$BIN"/*.bundle; do [ -e "$b" ] && cp -R "$b" "$APP/Contents/Resources/"; done
 # String Catalogs -> en.lproj / cs.lproj (Localizable.strings[dict], InfoPlist.strings); strings load
 # from Bundle.main, InfoPlist.strings localizes the Info.plist texts below (folder access prompts)

@@ -6,7 +6,7 @@
 
 **Status**: Draft
 
-**Input**: User description: "Data safety: close the gaps D1–D8 from the audit in docs/AUDIT.md against the reference program's rules (05-pravidla.md, Tandem specs 062, 092, 103, 105, 106, 107, 112, 119) and add the missing tests for the safeguards."
+**Input**: User description: "Data safety: close the gaps D1–D8 from the audit in docs/AUDIT.md (internal, not published) against the reference program's rules (05-pravidla.md, Tandem specs 062, 092, 103, 105, 106, 107, 112, 119) and add the missing tests for the safeguards."
 
 Reference: `../tandemcommander/docs/macos-port/05-pravidla.md` (sections File identity, Overwrite,
 Move and link, Archive) and the feature records 062, 092, 103, 105, 106, 107, 112, 119 in

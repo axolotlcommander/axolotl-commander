@@ -5,6 +5,10 @@ This plan adopts it and adjusts the architecture so that later stages do not req
 Keys and behavior: `../tandemcommander/docs/macos-port/02-ovladani.md`.
 Safeguards for tests: `../tandemcommander/docs/macos-port/05-pravidla.md`.
 
+The port analysis under `../tandemcommander/docs/macos-port/` is the maintainer's local working
+notes and is not published; the stage specs in `docs/specs/` and the feature specs in `specs/`
+restate every rule they rely on.
+
 ## Architecture (differences from the analysis)
 
 | Layer | Choice | Why |

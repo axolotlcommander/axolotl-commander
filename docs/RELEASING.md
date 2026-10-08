@@ -14,8 +14,9 @@ only marks the version with a tag and publishes the draft release.
    git push origin v0.1.0
    ```
 
-4. The workflow runs the tests, builds a universal app (Apple silicon + Intel) with the version from the tag,
-   optionally signs and notarizes it, packages `Axolotl-Commander-0.1.0.zip` and `.dmg`
+4. The workflow checks that the tag has the form `vX.Y.Z`, is on `main` and that the signing secrets
+   are set (see below), runs the tests, builds a universal app (Apple silicon + Intel) with the
+   version from the tag, signs it (and notarizes it with a Developer ID), packages `Axolotl-Commander-0.1.0.zip` and `.dmg`
    with `SHA256SUMS.txt`, and creates a **draft** release with automatic notes from pull requests.
 5. On GitHub, under *Releases*, review the draft, add notes, and click *Publish release*.
 
@@ -32,7 +33,8 @@ start with these steps ([.github/release-install.md](../.github/release-install.
 
 macOS remembers the folder access users granted (Downloads, Documents, disks…) per signing
 certificate. An ad-hoc signed release would make every user grant it again after each update, so
-releases are signed with a stable self-signed certificate:
+releases are signed with a stable self-signed certificate (the workflow refuses to release without
+the signing secrets):
 
 1. Once, on your Mac: `scripts/make-signing-cert.sh` (creates `~/axolotl-signing/`).
 2. Add the secrets `MACOS_CERTIFICATE_P12`, `MACOS_CERTIFICATE_PASSWORD` and

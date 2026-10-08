@@ -30,7 +30,7 @@ details (paths, scripts, test app) are in `CLAUDE.md`, the stage plan in `docs/P
 ### II. Faithful reference behavior
 
 - Keys, commands, dialogs and the results of operations match Tandem Commander / Open
-  Salamander (help in `../tandemcommander/help/`, `../tandemcommander/docs/macos-port/`).
+  Salamander (help in `../tandemcommander/help/`, `../tandemcommander/docs/macos-port/`, local notes that are not published).
 - A deviation is allowed only where macOS has a strong convention (⌘ shortcuts, Trash, volumes
   instead of drive letters, menu bar) or where the system intercepts the key; every deviation
   is recorded in the spec.

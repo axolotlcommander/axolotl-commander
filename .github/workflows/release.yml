@@ -14,7 +14,7 @@
 #   NOTARY_KEY_ID, NOTARY_ISSUER_ID
 # Without notarization users must allow the app in System Settings once per download; the
 # release notes then start with the steps (.github/release-install.md). A stable certificate
-# keeps the folder access users granted across updates; without one the app is ad-hoc signed.
+# keeps the folder access users granted across updates, so a release without one is refused.
 name: Release
 
 on:
@@ -34,9 +34,26 @@ jobs:
       HAS_NOTARY: ${{ secrets.NOTARY_KEY_P8 != '' }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Version from tag
         run: |
+          if ! [[ "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Release tags look like v1.2.3, not $GITHUB_REF_NAME."
+            exit 1
+          fi
+          git fetch --quiet origin main
+          if ! git merge-base --is-ancestor HEAD origin/main; then
+            echo "::error::The tagged commit is not on main."
+            exit 1
+          fi
+          # Every release is signed with the same certificate, so users keep the folder access
+          # they granted across updates (see docs/RELEASING.md).
+          if [ "$HAS_CERT" != true ]; then
+            echo "::error::The MACOS_CERTIFICATE_* secrets are not set; releases must be signed."
+            exit 1
+          fi
           VERSION="${GITHUB_REF_NAME#v}"
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
           echo "BUILD_NUMBER=${{ github.run_number }}" >> "$GITHUB_ENV"

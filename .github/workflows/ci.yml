@@ -27,6 +27,7 @@ jobs:
 
       - name: Build (no warnings in our code)
         run: |
+          set -o pipefail
           swift build --build-tests 2>&1 | tee build.log
           if grep -E "^$GITHUB_WORKSPACE/(Sources|Tests)/.*: warning:" build.log; then
             echo "::error::The build has warnings; fix them before merging."

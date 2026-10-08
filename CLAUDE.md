@@ -2,7 +2,7 @@
 
 Reference behavior: [Tandem Commander](https://github.com/tandemcommander/tandemcommander)
 (Windows, WinAPI), cloned next to this repository as `../tandemcommander`. Port analysis:
-`../tandemcommander/docs/macos-port/`.
+`../tandemcommander/docs/macos-port/` (local notes, not published).
 Stage plan: `docs/PLAN.md`.
 Principles: `.specify/memory/constitution.md`. New features go through Spec Kit
 (`/speckit-specify` → `/speckit-plan` → `/speckit-tasks` → `/speckit-implement`), specs in
