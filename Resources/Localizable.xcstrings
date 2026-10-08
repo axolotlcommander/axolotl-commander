@@ -7543,6 +7543,16 @@
           }
         }
       }
+    },
+    "“%@” could not be replaced on the server. Both versions are complete: the new one is “%@”, the old one is “%@”.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ se na serveru nepodařilo nahradit. Obě verze jsou celé: nová je „%@“, původní „%@“."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

@@ -582,6 +582,18 @@ public actor SFTPClient: RemoteFileSystem {
         try Self.expectOK(try await send(.rename) { $0.string(from); $0.string(to) }, from)
     }
 
+    /// posix-rename@openssh.com renames over an existing file atomically (rename(2) on the server).
+    public func replace(_ from: String, over to: String) async throws -> Bool {
+        guard extensions["posix-rename@openssh.com"] != nil else { return false }
+        let r = try await send(.extended) {
+            $0.string("posix-rename@openssh.com")
+            $0.string(from)
+            $0.string(to)
+        }
+        try Self.expectOK(r, from)
+        return true
+    }
+
     public func close() async {
         isConnected = false
         failPending()

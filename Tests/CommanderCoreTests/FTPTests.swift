@@ -463,6 +463,20 @@ private func noise(_ count: Int) -> Data {
         }
     }
 
+    @Test func replaceRefusedByServerChangesNothing() async throws {
+        try await withServer { port, srv, _ in
+            let c = try await login(port)
+            try Data("new".utf8).write(to: srv.appendingPathComponent("tmp"))
+            try Data("old".utf8).write(to: srv.appendingPathComponent("target"))
+            // The test server answers 553 to RNTO onto an existing name.
+            #expect(try await c.replace("/tmp", over: "/target") == false)
+            #expect(FileManager.default.contents(atPath: srv.path + "/target") == Data("old".utf8))
+            #expect(FileManager.default.contents(atPath: srv.path + "/tmp") == Data("new".utf8))
+            await expectRemote(.notFound("/ghost")) { _ = try await c.replace("/ghost", over: "/target") }
+            await c.close()
+        }
+    }
+
     @Test func rootConfinement() async throws {
         try await withServer { port, srv, _ in
             try FileManager.default.createSymbolicLink(atPath: srv.appendingPathComponent("out").path,

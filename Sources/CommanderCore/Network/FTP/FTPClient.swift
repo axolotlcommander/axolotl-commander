@@ -198,6 +198,19 @@ public actor FTPClient: RemoteFileSystem {
         guard r.ok else { throw await failure(r, path: from) }
     }
 
+    /// RNFR/RNTO without the existence check: many servers rename over an existing file
+    /// (rename(2)); others refuse RNTO, which changes nothing.
+    public func replace(_ from: String, over to: String) async throws -> Bool {
+        let from = try checked(from), to = try checked(to)
+        guard from != to else { return true }
+        let r = try await command([raw("RNFR", from), raw("RNTO", to)])
+        if r.ok { return try await info(from) == nil }
+        try rethrowFatal(r)
+        if try await info(from) == nil { throw RemoteError.notFound(from) }
+        guard isServerReply(r) else { throw await failure(r, path: from) }
+        return false
+    }
+
     public func close() async {
         guard connected else { return }
         connected = false

@@ -129,12 +129,19 @@ public struct RemoteTransfer: Sendable {
                     throw error
                 }
                 do {
-                    try await connections.perform(on: endpoint) { [replace] fs in
-                        if replace { try await fs.removeFile(finalPath) }
-                        try await fs.rename(temp, to: finalPath)
+                    if replace {
+                        try await placeReplacing(temp: temp, final: finalPath, endpoint: endpoint)
+                    } else {
+                        try await connections.perform(on: endpoint) { try await $0.rename(temp, to: finalPath) }
                     }
                 } catch {
-                    try? await connections.perform(on: endpoint) { try await $0.removeFile(temp) }
+                    // replaceIncomplete: the new file stays under its temporary name; the error says where.
+                    if case RemoteError.replaceIncomplete = error { throw error }
+                    await Task { [connections] in
+                        try? await connections.perform(on: endpoint) { fs in
+                            if try await fs.info(temp) != nil { try await fs.removeFile(temp) }
+                        }
+                    }.value
                     throw error
                 }
                 run.remoteListings[dir]?[finalName] = RemoteEntry(name: finalName, kind: .file, size: node.size)
@@ -374,12 +381,60 @@ public struct RemoteTransfer: Sendable {
                     run.keep(source.url)
                     continue
                 }
-                try await connections.perform(on: endpoint) { try await $0.removeFile(dest) }
+                try await placeReplacing(temp: source.path, final: dest, endpoint: endpoint)
+            } else {
+                try await connections.perform(on: endpoint) { try await $0.rename(source.path, to: dest) }
             }
-            try await connections.perform(on: endpoint) { try await $0.rename(source.path, to: dest) }
             run.copied += 1
         }
         return run.report
+    }
+
+    // MARK: - Replacing
+
+    /// Gives the complete file `temp` the name `final`, replacing the file there, so that a
+    /// complete version always exists under a known name: an atomic swap when the server has
+    /// one; otherwise the old file is renamed aside, the new one takes its name (on failure the
+    /// old one is put back), and only then the old one is removed.
+    ///
+    /// Runs in its own task: cancelling the operation does not stop it half-way. Each step is
+    /// a separate `perform`, so a reconnect never repeats a step that already happened; after
+    /// a failed step the server state is checked before going on.
+    ///
+    /// Throws: any error before the swap (nothing changed, `temp` still there); the swap's
+    /// error after the old file was restored; `.replaceIncomplete` when it couldn't be.
+    func placeReplacing(temp: String, final: String, endpoint: RemoteEndpoint) async throws {
+        try await Task { [connections] in
+            func exists(_ path: String) async -> Bool? {
+                do { return try await connections.perform(on: endpoint) { try await $0.info(path) } != nil } catch { return nil }
+            }
+            if try await connections.perform(on: endpoint, { try await $0.replace(temp, over: final) }) { return }
+
+            let backup = RemotePath.join(RemotePath.parent(final),
+                                         ".\(RemotePath.name(final)).axo-old-\(UUID().uuidString.prefix(8))")
+            do {
+                try await connections.perform(on: endpoint) { try await $0.rename(final, to: backup) }
+            } catch {
+                // A dropped reply may hide a rename that happened; go on only when it did.
+                guard await exists(final) == false, await exists(backup) == true else { throw error }
+            }
+            do {
+                try await connections.perform(on: endpoint) { try await $0.rename(temp, to: final) }
+            } catch {
+                if await exists(temp) == false, await exists(final) == true {
+                    // It did happen.
+                } else {
+                    do {
+                        try await connections.perform(on: endpoint) { try await $0.rename(backup, to: final) }
+                    } catch {
+                        throw RemoteError.replaceIncomplete(target: final, newAt: temp, oldAt: backup)
+                    }
+                    throw error
+                }
+            }
+            // The new version is in place; a backup that can't be removed is only clutter.
+            try? await connections.perform(on: endpoint) { try await $0.removeFile(backup) }
+        }.value
     }
 
     // MARK: - Delete

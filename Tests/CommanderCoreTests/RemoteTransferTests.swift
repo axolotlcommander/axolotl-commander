@@ -13,6 +13,13 @@ actor DirectoryFileSystem: RemoteFileSystem {
     var isConnected = true
     /// Uploads to a name containing this fail half-way.
     var failUploadsContaining: String?
+    /// Uploads to a name containing this write half the data and then wait until cancelled.
+    var hangUploadsContaining: String?
+    /// `replace(_:over:)` swaps atomically (like posix-rename) instead of answering "can't".
+    var atomicReplace = false
+    /// Every changing call, in order: "upload P", "remove P", "rename A -> B", "replace A -> B".
+    private(set) var log: [String] = []
+    private var renameFailures: [(from: String?, to: String?, remaining: Int)] = []
 
     init(endpoint: RemoteEndpoint, root: URL) {
         self.endpoint = endpoint
@@ -20,6 +27,16 @@ actor DirectoryFileSystem: RemoteFileSystem {
     }
 
     func failUploads(containing text: String?) { failUploadsContaining = text }
+    func hangUploads(containing text: String?) { hangUploadsContaining = text }
+    func setAtomicReplace(_ on: Bool) { atomicReplace = on }
+
+    /// The next `times` renames whose source and target contain the given texts (nil = any) fail.
+    func failRename(from: String? = nil, to: String? = nil, times: Int = 1) {
+        renameFailures.append((from, to, times))
+    }
+
+    /// Log entries of one kind ("upload", "remove", "rename", "replace").
+    func calls(_ kind: String) -> [String] { log.filter { $0.hasPrefix(kind + " ") } }
 
     private func local(_ path: String) -> String { root + RemotePath.normalize(path) }
 
@@ -55,7 +72,13 @@ actor DirectoryFileSystem: RemoteFileSystem {
     }
 
     func upload(_ local: URL, to path: String, progress: @escaping @Sendable (Int64) -> Void) async throws {
+        log.append("upload \(path)")
         let data = try Data(contentsOf: local)
+        if let hang = hangUploadsContaining, path.contains(hang) {
+            try data.prefix(data.count / 2).write(to: URL(filePath: self.local(path)))
+            progress(Int64(data.count / 2))
+            do { try await Task.sleep(for: .seconds(60)) } catch { throw RemoteError.cancelled }
+        }
         if let fail = failUploadsContaining, path.contains(fail) {
             try data.prefix(data.count / 2).write(to: URL(filePath: self.local(path)))
             throw RemoteError.server("disk full")
@@ -69,6 +92,7 @@ actor DirectoryFileSystem: RemoteFileSystem {
     }
 
     func removeFile(_ path: String) async throws {
+        log.append("remove \(path)")
         guard unlink(local(path)) == 0 else { throw RemoteError.notFound(path) }
     }
 
@@ -77,7 +101,21 @@ actor DirectoryFileSystem: RemoteFileSystem {
     }
 
     func rename(_ from: String, to: String) async throws {
+        log.append("rename \(from) -> \(to)")
+        if let i = renameFailures.firstIndex(where: { f in
+            f.remaining > 0 && (f.from.map { from.contains($0) } ?? true) && (f.to.map { to.contains($0) } ?? true)
+        }) {
+            renameFailures[i].remaining -= 1
+            throw RemoteError.server("rename refused")
+        }
         guard renamex_np(local(from), local(to), UInt32(RENAME_EXCL)) == 0 else { throw RemoteError.alreadyExists(to) }
+    }
+
+    func replace(_ from: String, over to: String) async throws -> Bool {
+        guard atomicReplace else { return false }
+        log.append("replace \(from) -> \(to)")
+        guard Darwin.rename(local(from), local(to)) == 0 else { throw RemoteError.server("replace failed") }
+        return true
     }
 
     func close() async { isConnected = false }
@@ -273,5 +311,150 @@ private let noConflict: RemoteTransfer.ConflictHandler = { _ in
         let final = try #require(last.all.last)
         #expect(final.doneBytes == 1000 && final.totalBytes == 1000)
         #expect(final.doneItems == 2 && final.totalItems == 2)
+    }
+}
+
+/// Overwriting on a server: at every moment a complete version exists under a known name (FR-001–004).
+@Suite struct RemoteOverwriteTests {
+    private let overwrite: RemoteTransfer.ConflictHandler = { _ in .overwrite }
+
+    private func server(_ s: Sandbox) async throws -> DirectoryFileSystem {
+        try #require(try await s.connections.session(for: s.endpoint) as? DirectoryFileSystem)
+    }
+
+    private func upload(_ s: Sandbox) async throws {
+        _ = try await s.transfer.upload([s.local.appending(path: "one.txt")], to: s.at("/"), kind: .copy,
+                                        progress: { _ in }, conflict: overwrite)
+    }
+
+    private func prepare() async throws -> Sandbox {
+        let s = try await Sandbox()
+        try s.write("new1", "one.txt", in: s.local)
+        try s.write("old1", "one.txt", in: s.server)
+        return s
+    }
+
+    @Test func atomicReplaceNeverRemovesTarget() async throws {
+        let s = try await prepare()
+        defer { s.remove() }
+        let fs = try await server(s)
+        await fs.setAtomicReplace(true)
+        try await upload(s)
+        #expect(s.read("one.txt", in: s.server) == "new1")
+        #expect(s.names(s.server) == ["one.txt"])
+        #expect(await fs.calls("remove").isEmpty)
+        #expect(await fs.calls("replace").count == 1)
+    }
+
+    @Test func withoutAtomicReplaceOldVersionIsKeptAsideUntilNewIsInPlace() async throws {
+        let s = try await prepare()
+        defer { s.remove() }
+        let fs = try await server(s)
+        try await upload(s)
+        #expect(s.read("one.txt", in: s.server) == "new1")
+        #expect(s.names(s.server) == ["one.txt"])
+        // The target is never removed; only the backup goes, after the new file took its name.
+        let log = await fs.log
+        #expect(!log.contains("remove /one.txt"))
+        let toBackup = try #require(log.firstIndex { $0.hasPrefix("rename /one.txt -> /.one.txt.axo-old-") })
+        let toFinal = try #require(log.firstIndex { $0.hasPrefix("rename /.one.txt.icmd-") && $0.hasSuffix("-> /one.txt") })
+        let cleanup = try #require(log.firstIndex { $0.hasPrefix("remove /.one.txt.axo-old-") })
+        #expect(toBackup < toFinal && toFinal < cleanup)
+    }
+
+    @Test func failedSwapRestoresOldVersion() async throws {
+        let s = try await prepare()
+        defer { s.remove() }
+        let fs = try await server(s)
+        await fs.failRename(from: ".icmd-", to: "/one.txt")
+        await #expect(throws: RemoteError.server("rename refused")) { try await upload(s) }
+        #expect(s.read("one.txt", in: s.server) == "old1")
+        #expect(s.names(s.server) == ["one.txt"])  // neither temp nor backup left
+        #expect(!(await fs.log).contains("remove /one.txt"))
+    }
+
+    @Test func failedSwapAndRestoreReportsWhereBothVersionsAre() async throws {
+        let s = try await prepare()
+        defer { s.remove() }
+        let fs = try await server(s)
+        await fs.failRename(from: ".icmd-", to: "/one.txt")
+        await fs.failRename(from: ".axo-old-", to: "/one.txt")
+        do {
+            try await upload(s)
+            Issue.record("expected replaceIncomplete")
+        } catch RemoteError.replaceIncomplete(let target, let newAt, let oldAt) {
+            #expect(target == "/one.txt")
+            #expect(s.read(String(newAt.dropFirst()), in: s.server) == "new1")
+            #expect(s.read(String(oldAt.dropFirst()), in: s.server) == "old1")
+            #expect(s.names(s.server).count == 2)
+        }
+    }
+
+    @Test func failedUploadLeavesTargetAndNoTemp() async throws {
+        let s = try await prepare()
+        defer { s.remove() }
+        let fs = try await server(s)
+        await fs.failUploads(containing: "one.txt")
+        await #expect(throws: RemoteError.server("disk full")) { try await upload(s) }
+        #expect(s.read("one.txt", in: s.server) == "old1")
+        #expect(s.names(s.server) == ["one.txt"])
+        #expect(await fs.calls("rename").isEmpty)
+    }
+
+    @Test func cancelledUploadLeavesTargetAndNoTemp() async throws {
+        let s = try await prepare()
+        defer { s.remove() }
+        let fs = try await server(s)
+        await fs.hangUploads(containing: "one.txt")
+        let task = Task { try await upload(s) }
+        for _ in 0..<500 where await fs.calls("upload").isEmpty { try await Task.sleep(for: .milliseconds(10)) }
+        try await Task.sleep(for: .milliseconds(50))
+        task.cancel()
+        await #expect(throws: (any Error).self) { try await task.value }
+        #expect(s.read("one.txt", in: s.server) == "old1")
+        #expect(s.names(s.server) == ["one.txt"])
+    }
+
+    @Test func moveOnServerReplacesWithoutRemovingTarget() async throws {
+        let s = try await Sandbox()
+        defer { s.remove() }
+        try s.write("A", "a.txt", in: s.server)
+        try s.write("old", "target/a.txt", in: s.server)
+        let fs = try await server(s)
+        _ = try await s.transfer.transfer([s.at("/a.txt")], to: s.at("/target"), kind: .move, scratch: s.scratch,
+                                          progress: { _ in }, conflict: overwrite)
+        #expect(s.names(s.server) == ["target", "target/a.txt"])
+        #expect(s.read("target/a.txt", in: s.server) == "A")
+        #expect(!(await fs.log).contains("remove /target/a.txt"))
+    }
+
+    @Test func failedMoveOnServerKeepsBothFiles() async throws {
+        let s = try await Sandbox()
+        defer { s.remove() }
+        try s.write("A", "a.txt", in: s.server)
+        try s.write("old", "target/a.txt", in: s.server)
+        let fs = try await server(s)
+        await fs.failRename(from: "/a.txt", to: "/target/a.txt")
+        await #expect(throws: RemoteError.server("rename refused")) {
+            _ = try await s.transfer.transfer([s.at("/a.txt")], to: s.at("/target"), kind: .move, scratch: s.scratch,
+                                              progress: { _ in }, conflict: overwrite)
+        }
+        #expect(s.names(s.server) == ["a.txt", "target", "target/a.txt"])
+        #expect(s.read("a.txt", in: s.server) == "A")
+        #expect(s.read("target/a.txt", in: s.server) == "old")
+    }
+
+    @Test func atomicMoveOnServer() async throws {
+        let s = try await Sandbox()
+        defer { s.remove() }
+        try s.write("A", "a.txt", in: s.server)
+        try s.write("old", "target/a.txt", in: s.server)
+        let fs = try await server(s)
+        await fs.setAtomicReplace(true)
+        _ = try await s.transfer.transfer([s.at("/a.txt")], to: s.at("/target"), kind: .move, scratch: s.scratch,
+                                          progress: { _ in }, conflict: overwrite)
+        #expect(s.names(s.server) == ["target", "target/a.txt"])
+        #expect(s.read("target/a.txt", in: s.server) == "A")
+        #expect(await fs.calls("remove").isEmpty)
     }
 }

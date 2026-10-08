@@ -43,19 +43,19 @@ příběhu `swift build` bez varování, `swift test` zelené, commit `[Spec 001
 
 ### Tests (nejdřív, musí selhat)
 
-- [ ] T006 [US1] Rozšířit fake `DirectoryFileSystem` v `Tests/CommanderCoreTests/RemoteTransferTests.swift:10-84` o přepínač `atomicReplace` (replace přes `rename(2)`), injekci chyb `failRename(from:to:times:)` a log volání
-- [ ] T007 [US1] Testy v `Tests/CommanderCoreTests/RemoteTransferTests.swift`: (a) atomický přepis — v logu není `removeFile(final)`; (b) bez atomického replace selže `temp→final` → cíl má starý obsah, temp ani záloha nezůstanou; (c) selže výměna i obnova zálohy → `RemoteError.replaceIncomplete` nese `newAt`/`oldAt` a obsahy na nich sedí; (d) selhání nahrávání v půlce (`failUploads`) → starý obsah, žádný temp; (e) zrušení během nahrávání → totéž; (f) `renameOnServer` s přepisem — stejné invarianty
-- [ ] T008 [P] [US1] Test v `Tests/CommanderCoreTests/SFTPTests.swift` proti lokálnímu `/usr/libexec/sftp-server` (vzor `SFTPTests.swift:22-37`): `replace(_:over:)` vrátí `true` a přepíše cíl
-- [ ] T009 [P] [US1] Test v `Tests/CommanderCoreTests/FTPTests.swift` proti `scripts/ftp-test-server.py` (RNTO na existující → 553): `replace` vrátí `false`, oba soubory beze změny
+- [X] T006 [US1] Rozšířit fake `DirectoryFileSystem` v `Tests/CommanderCoreTests/RemoteTransferTests.swift:10-84` o přepínač `atomicReplace` (replace přes `rename(2)`), injekci chyb `failRename(from:to:times:)` a log volání
+- [X] T007 [US1] Testy v `Tests/CommanderCoreTests/RemoteTransferTests.swift`: (a) atomický přepis — v logu není `removeFile(final)`; (b) bez atomického replace selže `temp→final` → cíl má starý obsah, temp ani záloha nezůstanou; (c) selže výměna i obnova zálohy → `RemoteError.replaceIncomplete` nese `newAt`/`oldAt` a obsahy na nich sedí; (d) selhání nahrávání v půlce (`failUploads`) → starý obsah, žádný temp; (e) zrušení během nahrávání → totéž; (f) `renameOnServer` s přepisem — stejné invarianty
+- [X] T008 [P] [US1] Test v `Tests/CommanderCoreTests/SFTPTests.swift` proti lokálnímu `/usr/libexec/sftp-server` (vzor `SFTPTests.swift:22-37`): `replace(_:over:)` vrátí `true` a přepíše cíl
+- [X] T009 [P] [US1] Test v `Tests/CommanderCoreTests/FTPTests.swift` proti `scripts/ftp-test-server.py` (RNTO na existující → 553): `replace` vrátí `false`, oba soubory beze změny
 
 ### Implementation
 
-- [ ] T010 [US1] V `Sources/CommanderCore/Network/RemoteFileSystem.swift:113-133` přidat do protokolu `func replace(_ from: String, over to: String) async throws -> Bool` s výchozí implementací v extension vracející `false`; do `RemoteError` (`:79-94`) přidat `case replaceIncomplete(target: String, newAt: String, oldAt: String)` s popisem
-- [ ] T011 [P] [US1] V `Sources/CommanderCore/Network/SFTP/SFTPClient.swift` implementovat `replace` přes extended request `posix-rename@openssh.com` (když je v `extensions`, `:57`/`:146`; vzor `:149`), jinak `false`
-- [ ] T012 [P] [US1] V `Sources/CommanderCore/Network/FTP/FTPClient.swift` implementovat `replace`: RNFR/RNTO bez předkontroly z `:193-199`; úspěch + `info(from) == nil` → `true`; odpověď 5xx → `false`
-- [ ] T013 [US1] V `Sources/CommanderCore/Network/RemoteTransfer.swift` přidat privátní `placeReplacing(temp:final:endpoint:)` podle research R1 (replace → `final→".\(name).axo-old-<uuid>"` → `temp→final` s obnovou zálohy → smazat zálohu, selhání = upozornění); každý krok samostatný `connections.perform`, celé v odpojeném `Task` (zrušení nepřeruší výměnu)
-- [ ] T014 [US1] Nahradit `RemoteTransfer.swift:131-138` (upload s přepisem) a `:377-379` (`renameOnServer` s přepisem) voláním `placeReplacing`
-- [ ] T015 [US1] Doplnit text `RemoteError.replaceIncomplete` do `OperationsController.describe` (`Sources/AxolotlCommander/OperationsController.swift:296`) a do `Resources/Localizable.xcstrings` (cs)
+- [X] T010 [US1] V `Sources/CommanderCore/Network/RemoteFileSystem.swift:113-133` přidat do protokolu `func replace(_ from: String, over to: String) async throws -> Bool` s výchozí implementací v extension vracející `false`; do `RemoteError` (`:79-94`) přidat `case replaceIncomplete(target: String, newAt: String, oldAt: String)` s popisem
+- [X] T011 [P] [US1] V `Sources/CommanderCore/Network/SFTP/SFTPClient.swift` implementovat `replace` přes extended request `posix-rename@openssh.com` (když je v `extensions`, `:57`/`:146`; vzor `:149`), jinak `false`
+- [X] T012 [P] [US1] V `Sources/CommanderCore/Network/FTP/FTPClient.swift` implementovat `replace`: RNFR/RNTO bez předkontroly z `:193-199`; úspěch + `info(from) == nil` → `true`; odpověď 5xx → `false`
+- [X] T013 [US1] V `Sources/CommanderCore/Network/RemoteTransfer.swift` přidat privátní `placeReplacing(temp:final:endpoint:)` podle research R1 (replace → `final→".\(name).axo-old-<uuid>"` → `temp→final` s obnovou zálohy → smazat zálohu, selhání = upozornění); každý krok samostatný `connections.perform`, celé v odpojeném `Task` (zrušení nepřeruší výměnu)
+- [X] T014 [US1] Nahradit `RemoteTransfer.swift:131-138` (upload s přepisem) a `:377-379` (`renameOnServer` s přepisem) voláním `placeReplacing`
+- [X] T015 [US1] Doplnit text `RemoteError.replaceIncomplete` do `OperationsController.describe` (`Sources/AxolotlCommander/OperationsController.swift:296`) a do `Resources/Localizable.xcstrings` (cs)
 
 **Checkpoint**: `swift test --filter RemoteTransferTests|SFTPTests|FTPTests` zelené → commit.
 

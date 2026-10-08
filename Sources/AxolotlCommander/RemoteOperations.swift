@@ -17,6 +17,8 @@ extension RemoteError {
         case .server(let message): String(localized: "The server reported an error: \(message)")
         case .disconnected: String(localized: "The connection to the server was lost.")
         case .cancelled: String(localized: "Cancelled.")
+        case .replaceIncomplete(let target, let newAt, let oldAt):
+            String(localized: "“\(RemotePath.name(target))” could not be replaced on the server. Both versions are complete: the new one is “\(newAt)”, the old one is “\(oldAt)”.")
         }
     }
 }

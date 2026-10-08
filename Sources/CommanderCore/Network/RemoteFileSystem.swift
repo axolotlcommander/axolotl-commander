@@ -92,6 +92,9 @@ public enum RemoteError: Error, Equatable, Sendable {
     /// The connection dropped after it was established.
     case disconnected
     case cancelled
+    /// Replacing `target` failed half-way and the old version could not be put back: the new
+    /// version is at `newAt`, the old one at `oldAt` (both complete).
+    case replaceIncomplete(target: String, newAt: String, oldAt: String)
 }
 
 /// A question asked while connecting; the answer nil means the user cancelled.
@@ -128,9 +131,16 @@ public protocol RemoteFileSystem: Actor {
     func removeDirectory(_ path: String) async throws
     /// Fails with `.alreadyExists` when `to` exists.
     func rename(_ from: String, to: String) async throws
+    /// Puts `from` in place of the existing file `to` in one step, so `to` never goes missing.
+    /// false = the server can't do that and nothing was changed.
+    func replace(_ from: String, over to: String) async throws -> Bool
     /// True until the session ends (closed, dropped).
     var isConnected: Bool { get }
     func close() async
+}
+
+extension RemoteFileSystem {
+    public func replace(_ from: String, over to: String) async throws -> Bool { false }
 }
 
 public enum RemotePath {

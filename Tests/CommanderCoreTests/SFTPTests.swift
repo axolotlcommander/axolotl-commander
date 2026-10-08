@@ -330,6 +330,17 @@ private func connectFailure(_ script: String) async -> (any Error)? {
         }
     }
 
+    @Test func replaceSwapsOverExistingFile() async throws {
+        try await withServer { client, root, base in
+            try Data("new".utf8).write(to: root.appendingPathComponent("tmp"))
+            try Data("old".utf8).write(to: root.appendingPathComponent("target"))
+            #expect(await client.extensions["posix-rename@openssh.com"] != nil)
+            #expect(try await client.replace(base + "/tmp", over: base + "/target"))
+            #expect(FileManager.default.contents(atPath: root.path + "/target") == Data("new".utf8))
+            #expect(!FileManager.default.fileExists(atPath: root.path + "/tmp"))
+        }
+    }
+
     @Test func missingDownloadIsNotFound() async throws {
         try await withServer { client, root, base in
             let local = root.appendingPathComponent("out.bin")
