@@ -26,7 +26,7 @@ public enum Command: String, CaseIterable, Hashable, Sendable {
     case toggleCommandLine, toggleFunctionKeyBar
 
     // Go (active panel)
-    case goBack, goForward, goParent, goRoot, goHome, changeDirectory
+    case goBack, goForward, goParent, goRoot, goHome, changeDirectory, editPath
     case hotPaths, workingDirectories
     case newTab, closeTab, nextTab, previousTab
 
@@ -210,6 +210,7 @@ public enum CommandRegistry {
         add(.goRoot, "Volume Root", .go, [ch("\\", c), K(.backspace, c)])
         add(.goHome, "Home", .go, [ch("h", [m, s])])
         add(.changeDirectory, "Go to Folder…", .go, [f(7, s), ch("g", [m, s])], sep: true)
+        add(.editPath, "Edit Path", .go, [ch("l", m)])
         add(.hotPaths, "Hot Paths…", .go, [f(9, s)])
         add(.workingDirectories, "Working Directories…", .go, [f(12, o), f(12, [c, o])])
         add(.newTab, "New Tab", .go, [ch("t", [c, s])], sep: true)
