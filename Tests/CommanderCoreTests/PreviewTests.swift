@@ -311,6 +311,77 @@ private func writePNG(_ url: URL, width: Int = 8, height: Int = 4) throws {
     }
 }
 
+/// "Save As" over an existing file keeps what the user set on it (FR-020–022).
+@Suite struct SafeWriteMetadataTests {
+    private static let xattrName = "cz.acidek.axolotl.test"
+
+    private func setXattr(_ url: URL, _ value: String) {
+        let data = Array(value.utf8)
+        #expect(setxattr(url.path, Self.xattrName, data, data.count, 0, XATTR_NOFOLLOW) == 0)
+    }
+
+    private func xattr(_ url: URL) -> String? {
+        var buffer = [UInt8](repeating: 0, count: 256)
+        let n = getxattr(url.path, Self.xattrName, &buffer, buffer.count, 0, 0)
+        return n < 0 ? nil : String(decoding: buffer.prefix(n), as: UTF8.self)
+    }
+
+    private func tags(_ url: URL) -> [String] {
+        var url = url
+        url.removeAllCachedResourceValues()
+        return (try? url.resourceValues(forKeys: [.tagNamesKey]))?.tagNames ?? []
+    }
+
+    private func tag(_ url: URL, _ names: [String]) throws {
+        try (url as NSURL).setResourceValue(names, forKey: .tagNamesKey)
+    }
+
+    @Test(arguments: [false, true])
+    func tagsAndExtendedAttributesSurvive(throughLink: Bool) throws {
+        let dir = try Scratch()
+        defer { dir.remove() }
+        let file = dir.url.appending(path: "zpráva.txt")
+        try Data("old".utf8).write(to: file)
+        try tag(file, ["Červená"])
+        setXattr(file, "kept")
+        let target: URL
+        if throughLink {
+            target = dir.url.appending(path: "odkaz.txt")
+            try FileManager.default.createSymbolicLink(at: target, withDestinationURL: file)
+        } else {
+            target = file
+        }
+        try SafeFileWriter.write(to: target) { try Data("new".utf8).write(to: $0) }
+        #expect(try String(contentsOf: file, encoding: .utf8) == "new")
+        #expect(tags(file) == ["Červená"])
+        #expect(xattr(file) == "kept")
+        if throughLink {
+            #expect(try FileManager.default.destinationOfSymbolicLink(atPath: target.path) == file.path)
+            #expect(dir.names() == ["odkaz.txt", "zpráva.txt"])
+        } else {
+            #expect(dir.names() == ["zpráva.txt"])
+        }
+    }
+
+    @Test func failureThroughLinkLeavesTargetAndNoTemp() throws {
+        let dir = try Scratch()
+        defer { dir.remove() }
+        let file = dir.url.appending(path: "a.txt"), link = dir.url.appending(path: "l.txt")
+        try Data("old".utf8).write(to: file)
+        try FileManager.default.createSymbolicLink(at: link, withDestinationURL: file)
+        struct Broken: Error {}
+        #expect(throws: Broken.self) {
+            try SafeFileWriter.write(to: link) { temp in
+                try Data("half".utf8).write(to: temp)
+                throw Broken()
+            }
+        }
+        #expect(try String(contentsOf: file, encoding: .utf8) == "old")
+        #expect(dir.names().allSatisfy { !$0.hasPrefix(FileCopy.tempPrefix) })
+        #expect(dir.names() == ["a.txt", "l.txt"])
+    }
+}
+
 @Suite struct ImageExportTests {
     @Test func pngToJPEGOverExistingFile() throws {
         let dir = try Scratch()

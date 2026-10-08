@@ -142,11 +142,11 @@ příběhu `swift build` bez varování, `swift test` zelené, commit `[Spec 001
 
 ### Tests
 
-- [ ] T035 [P] [US6] Testy `SafeFileWriter` v `Tests/CommanderCoreTests/PreviewTests.swift` (vedle `:258-312`): štítky (`URLResourceValues.tagNames`) a vlastní xattr zachovány na cíli i za symlinkem; `produce` vyhodí → cíl beze změny a ve složce není soubor s `FileCopy.tempPrefix`
+- [X] T035 [P] [US6] Testy `SafeFileWriter` v `Tests/CommanderCoreTests/PreviewTests.swift` (vedle `:258-312`): štítky (`URLResourceValues.tagNames`) a vlastní xattr zachovány na cíli i za symlinkem; `produce` vyhodí → cíl beze změny a ve složce není soubor s `FileCopy.tempPrefix`
 
 ### Implementation
 
-- [ ] T036 [US6] V `Sources/AxolotlCommander/Viewer/ViewerWindowController.swift:863` nahradit `payload.write(to:options:.atomic)` voláním `try SafeFileWriter.write(to: url) { try payload.write(to: $0) }`
+- [X] T036 [US6] V `Sources/AxolotlCommander/Viewer/ViewerWindowController.swift:863` nahradit `payload.write(to:options:.atomic)` voláním `try SafeFileWriter.write(to: url) { try payload.write(to: $0) }`
 
 **Checkpoint**: zelené → commit.
 

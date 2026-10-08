@@ -860,7 +860,9 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         panel.nameFieldStringValue = sequence.current.lastPathComponent
         guard await panel.beginSheetModal(for: window) == .OK, let url = panel.url else { return }
         do {
-            try payload.write(to: url, options: .atomic)
+            // Like a picture save: a symlinked target keeps its link, an existing file its
+            // permissions, tags and other attributes; on an error it stays as it was.
+            try SafeFileWriter.write(to: url) { try payload.write(to: $0) }
         } catch {
             let alert = NSAlert(error: error)
             await alert.beginSheetModal(for: window)
