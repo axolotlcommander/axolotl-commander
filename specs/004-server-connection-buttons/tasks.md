@@ -62,7 +62,7 @@ local test servers.
 
 **Independent Test**: quickstart Q11–Q12.
 
-- [ ] T015 [US5] Home, iCloud Drive and Network buttons (symbols `house`, `icloud`, `network`); Network pops up a menu: mounted network volumes, servers, "Connect to Server…" (existing command for that panel), empty groups omitted, in Sources/AxolotlCommander/VolumeBar.swift and Sources/AxolotlCommander/PanelViewController.swift
+- [X] T015 [US5] Home, iCloud Drive and Network buttons (symbols `house`, `icloud`, `network`); Network pops up a menu: mounted network volumes, servers, "Connect to Server…" (existing command for that panel), empty groups omitted, in Sources/AxolotlCommander/VolumeBar.swift and Sources/AxolotlCommander/PanelViewController.swift
 
 ## Phase 8: User Story 6 — Choose what the volume bar shows (P2)
 

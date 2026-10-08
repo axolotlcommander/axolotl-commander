@@ -182,6 +182,11 @@ final class PanelViewController: NSViewController {
             guard let self else { return }
             copyText([RemoteURL.displayText(ServerConnectionsUI.shared.place(for: endpoint, panel: self))])
         }
+        volumeBar.onConnectToServer = { [weak self] in
+            guard let self else { return }
+            router?.activate(side)
+            ConnectSheet.show(for: self)
+        }
         volumeBar.onDisconnectServer = { endpoint in
             Task { await ServerConnectionsUI.shared.disconnect([endpoint]) }
         }
