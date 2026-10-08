@@ -61,9 +61,20 @@ import Foundation
         #expect(Credentials.scrub("cd ftp://joe:p@ss@host/x") == "cd ftp://joe@host/x")
     }
 
+    @Test func curlUserOption() {
+        #expect(Credentials.scrub("curl -u joe:secret https://h/x") == "curl -u joe https://h/x")
+        #expect(Credentials.scrub("curl -s --user joe:se:cr -O https://h/x") == "curl -s --user joe -O https://h/x")
+        #expect(Credentials.scrub("curl -ujoe:secret ftp://h/") == "curl -ujoe ftp://h/")
+        #expect(Credentials.scrub("/usr/bin/curl -U px:pw --proxy-user p2:pw2 h")
+                == "/usr/bin/curl -U px --proxy-user p2 h")
+        #expect(Credentials.scrub("curl -u 'joe:secret' h") == "curl -u 'joe' h")
+        #expect(Credentials.scrub("curl -u \"joe:\" h") == "curl -u \"joe\" h")
+    }
+
     @Test func unchanged() {
         for s in ["git clone git@github.com:a/b", "scp f user@host:/p", "https://host/a:b@c",
-                  "plain text", "ftp://joe@host/x", "ls -la"] {
+                  "plain text", "ftp://joe@host/x", "ls -la", "docker run -u 1000:1000 img",
+                  "curl -u joe https://h/x", "git push -u origin a:b", "echo curl; sort -u a:b"] {
             #expect(Credentials.scrub(s) == s, "\(s)")
         }
     }
