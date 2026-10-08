@@ -6,7 +6,7 @@
 public enum LinkKind: Sendable { case symbolic, hard }
 
 public enum LinkError: Error, Equatable {
-    case folderNotAllowed(URL), symbolicLinkNotAllowed(URL), differentVolume(URL)
+    case folderNotAllowed(URL), symbolicLinkNotAllowed(URL), notARegularFile(URL), differentVolume(URL)
     case notASymbolicLink(URL), targetMissing(stored: String), loop(URL)
 }
 

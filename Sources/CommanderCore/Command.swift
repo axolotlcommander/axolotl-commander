@@ -11,9 +11,10 @@ public enum Command: String, CaseIterable, Hashable, Sendable {
     case view, quickLook, edit, viewWith, editWith, newFile, copy, move, makeDirectory
     case delete, deletePermanently, rename, properties, pack, unpack
     case changeCase, batchRename
+    case newSymbolicLink, newHardLink, editSymbolicLink, changeAttributes
 
     // Edit
-    case copyFiles, pasteFiles, moveFilesHere, copyFullPath, copyName
+    case copyFiles, pasteFiles, moveFilesHere, pasteAsSymbolicLink, copyFullPath, copyName
     case selectByMask, deselectByMask, invertByMask
     case selectAll, deselectAll, selectSameExtension, deselectSameExtension
     case invertAll, restoreSelection, saveSelection, loadSelection
@@ -34,7 +35,7 @@ public enum Command: String, CaseIterable, Hashable, Sendable {
     case leftVolumeMenu, rightVolumeMenu
 
     // Commands
-    case find, occupiedSpace, openTerminal, revealInFinder, userMenu, volumeInfo
+    case find, occupiedSpace, openTerminal, revealInFinder, goToLinkTarget, userMenu, volumeInfo
     case connectToServer, disconnect, compareFiles
     case calculateChecksums, verifyChecksums
 
@@ -160,11 +161,15 @@ public enum CommandRegistry {
         add(.copy, "Copy…", .file, [f(5)], sep: true)
         add(.move, "Move…", .file, [f(6)])
         add(.makeDirectory, "New Folder…", .file, [f(7), ch("n", [m, s])])
+        add(.newSymbolicLink, "New Symbolic Link…", .file, [ch("l", [c, m])])
+        add(.newHardLink, "New Hard Link…", .file)
+        add(.editSymbolicLink, "Edit Symbolic Link…", .file)
         add(.rename, "Rename", .file, [f(2)])
         add(.delete, "Move to Trash", .file, [f(8), K(.forwardDelete), K(.backspace, m)], sep: true)
         add(.deletePermanently, "Delete Immediately…", .file,
             [f(8, s), K(.forwardDelete, s), K(.backspace, [m, o])])
         add(.properties, "Get Info", .file, [ch("i", m)], sep: true)
+        add(.changeAttributes, "Change Attributes…", .file, [f(2, c)])
         add(.changeCase, "Change Case…", .file, [f(7, c)])
         add(.batchRename, "Batch Rename…", .file, [ch("m", c)])
         add(.pack, "Pack…", .file, [f(5, o), f(5, [c, o])], sep: true)
@@ -173,6 +178,7 @@ public enum CommandRegistry {
         add(.copyFiles, "Copy Files", .edit, [ch("c", m), K(.insert, c)])
         add(.pasteFiles, "Paste Files", .edit, [ch("v", m), K(.insert, s)])
         add(.moveFilesHere, "Move Files Here", .edit, [ch("v", [m, o])])
+        add(.pasteAsSymbolicLink, "Paste as Symbolic Link", .edit, [ch("v", [c, m]), ch("s", c)])
         add(.copyFullPath, "Copy Path as Text", .edit, [ch("c", [m, o]), K(.insert, [c, o])])
         add(.copyName, "Copy Name as Text", .edit, [K(.insert, [c, o, s])])
         add(.selectByMask, "Select…", .edit, [K(.numPlus), ch("=", c)], sep: true)
@@ -229,6 +235,7 @@ public enum CommandRegistry {
         add(.verifyChecksums, "Verify Checksums…", .commands, [ch("v", [c, s])])
         add(.openTerminal, "Open Terminal Here", .commands, [ch("/", c), K(.numSlash)], sep: true)
         add(.revealInFinder, "Show in Finder", .commands, [f(3, s)])
+        add(.goToLinkTarget, "Go to Link Target", .commands, [ch("t", c)])
         add(.userMenu, "User Menu…", .commands, [f(9)], sep: true)
         add(.connectToServer, "Connect to Server…", .commands, [ch("k", m), ch("f", [c, s])], sep: true)
         add(.disconnect, "Disconnect…", .commands, [f(12)])

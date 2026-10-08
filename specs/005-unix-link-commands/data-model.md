@@ -10,6 +10,7 @@
 |---|---|---|
 | `folderNotAllowed(URL)` | Hard link to a folder or package | FR-010 |
 | `symbolicLinkNotAllowed(URL)` | Hard link to a symbolic link | FR-010 |
+| `notARegularFile(URL)` | Hard link to a pipe, socket or device | FR-010 |
 | `differentVolume(URL)` | Hard link destination on another volume | FR-010 |
 | `notASymbolicLink(URL)` | Edit target is not (or no longer) a symbolic link | FR-011, FR-013 |
 | `targetMissing(stored: String)` | Go to Link Target: the final item does not exist | FR-019 |

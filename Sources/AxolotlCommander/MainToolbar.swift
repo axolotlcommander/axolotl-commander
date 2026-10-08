@@ -28,6 +28,9 @@ enum MainToolbar {
         .filter: "line.3.horizontal.decrease.circle", .changeDirectory: "arrow.right.circle",
         .copy: "doc.on.doc", .move: "arrow.right.doc.on.clipboard", .delete: "trash",
         .connectToServer: "network", .disconnect: "eject",
+        .newSymbolicLink: "link.badge.plus", .newHardLink: "link", .editSymbolicLink: "pencil.line",
+        .pasteAsSymbolicLink: "doc.on.clipboard", .goToLinkTarget: "arrowshape.turn.up.right",
+        .changeAttributes: "lock.doc",
     ]
 
     static func make(delegate: any NSToolbarDelegate) -> NSToolbar {
