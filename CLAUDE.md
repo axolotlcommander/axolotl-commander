@@ -77,5 +77,6 @@ commit are enough.
 ## Conventions
 
 - Commit messages: `[Area] short description` (e.g. `[Archive] Refuse moving an archive into
-  itself`); work from a spec: `[Spec NNN] …`; plan stages: `[Stage N] …`.
+  itself`); work from a spec: `[Spec NNN] …`; plan stages: `[Stage N] …`. The subject line
+  has at most 72 characters; details go into the body after a blank line.
 - An unfinished menu command stays grayed out (disabled) and never crashes.

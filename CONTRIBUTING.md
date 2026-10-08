@@ -82,7 +82,8 @@ code.
 - A command that is not finished yet stays grayed out in the menu; it must not crash.
 - Commit message format: `[Area] short description` in English
   (e.g. `[Archive] Refuse moving an archive into itself`). Work on a feature from a spec uses
-  `[Spec NNN] ...` (e.g. `[Spec 001] ...`).
+  `[Spec NNN] ...` (e.g. `[Spec 001] ...`). Keep the subject line at 72 characters or less
+  and put the details in the body, after a blank line.
 
 ## Pull requests
 
