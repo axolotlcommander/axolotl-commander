@@ -115,11 +115,29 @@ private func withServer(
     } catch is ServerFailed where fixedPort != nil {
         return  // fixed port busy: skipped
     }
-    defer {
-        process.terminate()
-        process.waitUntilExit()
+    do {
+        try await body(port, srv, local)
+    } catch {
+        await stop(process)
+        throw error
     }
-    try await body(port, srv, local)
+    await stop(process)
+}
+
+/// Terminates the server and waits until it has exited. Polls `isRunning` instead of calling
+/// `waitUntilExit()`, which spins the run loop of the calling thread and occasionally never
+/// returned on a concurrency thread although the server had already exited. Bounded: after
+/// 5 s the server is killed, and after 5 more s the wait gives up.
+private func stop(_ process: Process) async {
+    process.terminate()
+    for attempt in 0..<2 {
+        if attempt == 1 && process.isRunning { kill(process.processIdentifier, SIGKILL) }
+        let deadline = ContinuousClock.now + .seconds(5)
+        while process.isRunning && ContinuousClock.now < deadline {
+            try? await Task.sleep(for: .milliseconds(20))
+        }
+        if !process.isRunning { return }
+    }
 }
 
 private func endpoint(_ port: Int, user: String? = user, proto: RemoteProtocol = .ftp) -> RemoteEndpoint {
