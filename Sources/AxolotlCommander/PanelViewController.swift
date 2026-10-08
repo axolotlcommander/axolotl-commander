@@ -82,8 +82,10 @@ final class PanelViewController: NSViewController {
     private var shiftMarkState: Bool?
     /// Items shown by Quick Look (see QuickLook.swift).
     var previewURLs: [URL] = []
-    // Brief grid reload bookkeeping: a cursor move only redraws the cursor.
-    private var briefCount = -1
+    // Brief grid reload bookkeeping: a cursor move only redraws the cursor. The items are kept
+    // whole so a re-sort or rename (same count) reloads too; an unchanged array shares its
+    // storage, so the comparison is cheap on cursor moves.
+    private var briefItems: [FileItem]?
     private var briefLocation: URL?
     private var briefSelection: Set<String> = []
     private var briefSizes = 0
@@ -257,9 +259,9 @@ final class PanelViewController: NSViewController {
         // A reload would end in-place rename editing; the rename refreshes afterwards.
         guard renaming == nil else { return }
         if viewMode == .brief {
-            if briefCount != model.items.count || briefLocation != model.location || briefSelection != model.selection
+            if briefItems != model.items || briefLocation != model.location || briefSelection != model.selection
                 || briefSizes != model.directorySizes.count {
-                briefCount = model.items.count
+                briefItems = model.items
                 briefLocation = model.location
                 briefSelection = model.selection
                 briefSizes = model.directorySizes.count
