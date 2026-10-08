@@ -234,6 +234,8 @@ final class TransferRun {
             case .unknown: throw OperationError.identityUnknown(FSPath.url(existing))
             case .exists(let st): existingStat = st
             }
+            // On a volume without reliable ids an existing target may be the source itself.
+            if kind == .move && !plan.identityReliable { throw OperationError.identityUnknown(FSPath.url(existing)) }
             guard let sourceID = node.identity, let targetID = existingStat.identity else {
                 throw OperationError.identityUnknown(FSPath.url(existing))
             }

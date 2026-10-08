@@ -436,3 +436,77 @@ private func move(_ sources: [URL], to dest: URL, ops: FileOperations = FileOper
         }
     }
 }
+
+/// On a volume whose file ids can't be trusted (FAT, SMB, …), an existing target might be the
+/// source itself, so a move onto it is refused; copies and moves to free names go ahead (FR-017–019).
+@Suite struct UnreliableIdentityTests {
+    private let fat = FileOperations(options: .init(volumeTraits: { _ in VolumeTraits(identityReliable: false, uuid: nil) }))
+    private let fatForcedCopy = FileOperations(options: .init(forceCopyMove: true,
+                                                              volumeTraits: { _ in VolumeTraits(identityReliable: false, uuid: nil) }))
+
+    @Test func moveOntoExistingNameIsRefused() async throws {
+        try await withSandbox { root in
+            let src = root.sub("src"), dst = root.sub("dst")
+            try mkdirs(src); try mkdirs(dst)
+            try write(src.sub("a.txt"), "new")
+            try write(dst.sub("a.txt"), "old")
+            for ops in [fat, fatForcedCopy] {
+                let e = await caught { try await move([src.sub("a.txt")], to: dst, ops: ops, conflict: { _ in .overwrite }) }
+                #expect(e == .identityUnknown(dst.sub("a.txt")))
+                #expect(read(src.sub("a.txt")) == "new")
+                #expect(read(dst.sub("a.txt")) == "old")
+            }
+        }
+    }
+
+    @Test func moveIntoFolderWithExistingChildIsRefused() async throws {
+        try await withSandbox { root in
+            let src = root.sub("src"), dst = root.sub("dst")
+            try mkdirs(src.sub("d")); try mkdirs(dst.sub("d"))
+            try write(src.sub("d/x.txt"), "new")
+            try write(dst.sub("d/x.txt"), "old")
+            let e = await caught { try await move([src.sub("d")], to: dst, ops: fatForcedCopy, conflict: { _ in .overwrite }) }
+            #expect(e == .identityUnknown(dst.sub("d")))
+            #expect(tree(src) == ["d", "d/x.txt"])
+            #expect(read(dst.sub("d/x.txt")) == "old")
+        }
+    }
+
+    @Test func moveToFreeNameGoesAhead() async throws {
+        try await withSandbox { root in
+            let src = root.sub("src"), dst = root.sub("dst")
+            try mkdirs(src); try mkdirs(dst)
+            try write(src.sub("a.txt"), "a")
+            for ops in [fat, fatForcedCopy] {
+                _ = try await move([src.sub("a.txt")], to: dst, ops: ops)
+                #expect(names(src).isEmpty)
+                #expect(read(dst.sub("a.txt")) == "a")
+                _ = try await move([dst.sub("a.txt")], to: src, ops: ops)
+            }
+        }
+    }
+
+    @Test func copyOverExistingNameGoesAhead() async throws {
+        try await withSandbox { root in
+            let src = root.sub("src"), dst = root.sub("dst")
+            try mkdirs(src); try mkdirs(dst)
+            try write(src.sub("a.txt"), "new")
+            try write(dst.sub("a.txt"), "old")
+            _ = try await copy([src.sub("a.txt")], to: dst, ops: fat, conflict: { _ in .overwrite })
+            #expect(read(src.sub("a.txt")) == "new")
+            #expect(read(dst.sub("a.txt")) == "new")
+        }
+    }
+
+    @Test func reliableVolumeStillMovesOverExisting() async throws {
+        try await withSandbox { root in
+            let src = root.sub("src"), dst = root.sub("dst")
+            try mkdirs(src); try mkdirs(dst)
+            try write(src.sub("a.txt"), "new")
+            try write(dst.sub("a.txt"), "old")
+            _ = try await move([src.sub("a.txt")], to: dst, conflict: { _ in .overwrite })
+            #expect(names(src).isEmpty)
+            #expect(read(dst.sub("a.txt")) == "new")
+        }
+    }
+}

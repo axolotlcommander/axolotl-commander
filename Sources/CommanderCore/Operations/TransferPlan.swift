@@ -135,9 +135,14 @@ enum TransferPlanner {
         let destination: String
         let destinationStat: FileStat
         let nodes: [PlanNode]
+        /// Source and destination volumes have trustworthy file ids. When false, an existing
+        /// target can't be told apart from the source, so a move onto it is refused.
+        var identityReliable = true
     }
 
-    static func plan(_ request: TransferRequest, lookup: DirectoryLookup) throws(OperationError) -> Plan {
+    /// `traits` tells what each volume promises about file ids (asked once per volume).
+    static func plan(_ request: TransferRequest, lookup: DirectoryLookup,
+                     traits: (URL) -> VolumeTraits = VolumeTraits.of) throws(OperationError) -> Plan {
         let destURL = request.destinationDirectory
         let dest = destURL.path
         let destStat: FileStat
@@ -150,6 +155,9 @@ enum TransferPlanner {
         try NameCheck.validate(path: dest)
 
         let ancestors = ancestorIdentities(of: dest)
+        let reliable = identityReliable(of: [destURL] + request.sources.map { $0.deletingLastPathComponent() }, traits: traits)
+        // A move removes the source: over an existing target that might be the same file, refuse.
+        let removesSource = request.kind == .move
         var nodes: [PlanNode] = []
         for source in request.sources {
             let path = source.path
@@ -170,22 +178,45 @@ enum TransferPlanner {
             if request.kind == .move && node.identity == nil { throw .identityUnknown(source) }
 
             if let existing = try lookup.existing(in: dest, named: node.targetName) {
+                if removesSource && !reliable { throw .identityUnknown(FSPath.url(existing)) }
                 guard case .exists(let est) = FileProbe.probe(existing, followingLinks: false),
                       let existingID = est.identity, let sourceID = node.identity
                 else { throw .identityUnknown(FSPath.url(existing)) }
                 if existingID == sourceID { throw .sameFile(source) }
                 let merge = node.kind == .directory && est.isDirectory
-                try validateNested(node, target: merge ? existing : target, targetExists: merge)
+                try validateNested(node, target: merge ? existing : target, targetExists: merge,
+                                   refuseExisting: removesSource && !reliable)
             } else {
-                try validateNested(node, target: target, targetExists: false)
+                try validateNested(node, target: target, targetExists: false, refuseExisting: false)
             }
             nodes.append(node)
         }
-        return Plan(destination: dest, destinationStat: destStat, nodes: nodes)
+        return Plan(destination: dest, destinationStat: destStat, nodes: nodes, identityReliable: reliable)
+    }
+
+    /// All the volumes holding `urls` have reliable file ids; each volume is asked once.
+    static func identityReliable(of urls: [URL], traits: (URL) -> VolumeTraits) -> Bool {
+        var known: [Int64: Bool] = [:]
+        for url in urls {
+            guard case .exists(let st) = FileProbe.probe(url.path, followingLinks: true) else {
+                if !traits(url).identityReliable { return false }
+                continue
+            }
+            if let cached = known[st.device] {
+                if !cached { return false }
+                continue
+            }
+            let reliable = traits(url).identityReliable
+            known[st.device] = reliable
+            if !reliable { return false }
+        }
+        return true
     }
 
     /// Path lengths of every target, and identity of targets inside a merged directory.
-    private static func validateNested(_ node: PlanNode, target: String, targetExists: Bool) throws(OperationError) {
+    /// `refuseExisting`: any existing target is refused (a move on a volume without reliable ids).
+    private static func validateNested(_ node: PlanNode, target: String, targetExists: Bool,
+                                       refuseExisting: Bool) throws(OperationError) {
         for child in node.children {
             let childTarget = FSPath.join(target, child.targetName)
             try NameCheck.validate(path: childTarget)
@@ -195,6 +226,7 @@ enum TransferPlanner {
                 case .missing: break
                 case .unknown: throw .identityUnknown(FSPath.url(childTarget))
                 case .exists(let est):
+                    if refuseExisting { throw .identityUnknown(FSPath.url(childTarget)) }
                     guard let a = est.identity, let b = child.identity else {
                         throw .identityUnknown(FSPath.url(childTarget))
                     }
@@ -202,7 +234,7 @@ enum TransferPlanner {
                     childExists = est.isDirectory && child.kind == .directory
                 }
             }
-            try validateNested(child, target: childTarget, targetExists: childExists)
+            try validateNested(child, target: childTarget, targetExists: childExists, refuseExisting: refuseExisting)
         }
     }
 

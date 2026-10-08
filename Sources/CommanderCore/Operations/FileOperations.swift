@@ -17,6 +17,9 @@ public actor FileOperations {
         /// Does the volume of this item have a Trash? nil = ask the system (once per volume);
         /// tests answer per item without asking it.
         var trashAvailable: (@Sendable (URL) -> Bool)?
+        /// What a volume promises about file ids. nil = ask the system (`VolumeTraits.of`);
+        /// tests pretend a volume is FAT/SMB-like.
+        var volumeTraits: (@Sendable (URL) -> VolumeTraits)?
         /// Moves one item to the Trash; tests move it into their sandbox instead.
         var trashItem: @Sendable (URL) throws -> URL = TrashSupport.moveToTrash
     }
@@ -41,7 +44,7 @@ public actor FileOperations {
     ) async throws -> TransferReport {
         do {
             let lookup = DirectoryLookup(rules: NameRules.forVolume(containing: request.destinationDirectory))
-            let plan = try TransferPlanner.plan(request, lookup: lookup)
+            let plan = try TransferPlanner.plan(request, lookup: lookup, traits: options.volumeTraits ?? VolumeTraits.of)
             let run = TransferRun(
                 kind: request.kind, plan: plan, lookup: lookup, options: options,
                 progress: progress, conflict: conflict

@@ -125,12 +125,12 @@ příběhu `swift build` bez varování, `swift test` zelené, commit `[Spec 001
 
 ### Tests
 
-- [ ] T032 [US5] Testy v `Tests/CommanderCoreTests/OperationsTests.swift` přes `Options.volumeTraits` (fake nereliable pro sandbox): (a) přesun na existující jméno → `.identityUnknown`, zdroj i cíl beze změny; (b) přesun na neexistující jméno → projde; (c) kopie na existující jméno s přepisem → projde (nemaže zdroj)
+- [X] T032 [US5] Testy v `Tests/CommanderCoreTests/OperationsTests.swift` přes `Options.volumeTraits` (fake nereliable pro sandbox): (a) přesun na existující jméno → `.identityUnknown`, zdroj i cíl beze změny; (b) přesun na neexistující jméno → projde; (c) kopie na existující jméno s přepisem → projde (nemaže zdroj)
 
 ### Implementation
 
-- [ ] T033 [US5] Do `FileOperations.Options` přidat `volumeTraits: @Sendable (URL) -> VolumeTraits` (výchozí `VolumeTraits.of`, cache podle `st_dev` po dobu jedné operace) a předat do `TransferPlanner`/`TransferRun`
-- [ ] T034 [US5] V `Sources/CommanderCore/Operations/TransferPlan.swift:166-177` a `validateNested` (`:197-201`) a v `Sources/CommanderCore/Operations/TransferRun.swift` `resolve` (`:237-239`): existující cíl + operace mazající zdroj + `!identityReliable` (zdroje nebo cíle) → `.identityUnknown(existing)`
+- [X] T033 [US5] Do `FileOperations.Options` přidat `volumeTraits: @Sendable (URL) -> VolumeTraits` (výchozí `VolumeTraits.of`, cache podle `st_dev` po dobu jedné operace) a předat do `TransferPlanner`/`TransferRun`
+- [X] T034 [US5] V `Sources/CommanderCore/Operations/TransferPlan.swift:166-177` a `validateNested` (`:197-201`) a v `Sources/CommanderCore/Operations/TransferRun.swift` `resolve` (`:237-239`): existující cíl + operace mazající zdroj + `!identityReliable` (zdroje nebo cíle) → `.identityUnknown(existing)`
 
 **Checkpoint**: zelené → commit.
 
