@@ -337,11 +337,7 @@ final class PanelViewController: NSViewController {
     // MARK: Keys
 
     func handleKey(_ event: NSEvent) -> Bool {
-        guard let chord = KeyChord(event: event) else {
-            log.debug("unmapped key code \(event.keyCode)")
-            return false
-        }
-        log.debug("key \(chord.description, privacy: .public)")
+        guard let chord = KeyChord(event: event) else { return false }
         if chord.key == .escape, chord.modifiers.isEmpty, quickSearch == nil, isSizing {
             sizeTask?.cancel()
             return true
@@ -868,7 +864,6 @@ final class PanelViewController: NSViewController {
         field.delegate = self
         tableView.editColumn(columnIndex, row: row, with: nil, select: false)
         if field.currentEditor() == nil { view.window?.makeFirstResponder(field) }
-        log.debug("rename begin editor=\(field.currentEditor() != nil)")
         // Finder selects the base name only, so typing keeps the extension.
         let base = item.isDirectory && !item.isPackage ? name
             : model.results == nil ? item.baseName : (name as NSString).deletingPathExtension

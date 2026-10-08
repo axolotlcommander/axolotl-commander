@@ -149,7 +149,7 @@ final class OperationsController {
         for title in buttons { alert.addButton(withTitle: title) }
         alert.buttons.last?.keyEquivalent = "\u{1b}"
         guard let window else { return .cancel }
-        let response = await alert.beginSheetModal(for: window)
+        let response = await Self.present(alert, in: window)
         switch response.rawValue - NSApplication.ModalResponse.alertFirstButtonReturn.rawValue {
         case 0: return .overwrite
         case 1: return .overwriteAll
@@ -290,7 +290,9 @@ final class OperationsController {
     }
 
     /// As a sheet when the window is free, otherwise app-modal (e.g. over the progress sheet).
-    private static func present(_ alert: NSAlert, in window: NSWindow?) async -> NSApplication.ModalResponse {
+    /// Questions asked while an operation runs must use this: a second sheet waits behind the
+    /// progress sheet, which closes only when the operation (waiting for the answer) ends.
+    static func present(_ alert: NSAlert, in window: NSWindow?) async -> NSApplication.ModalResponse {
         if let window, window.attachedSheet == nil { return await alert.beginSheetModal(for: window) }
         return alert.runModal()
     }
@@ -381,7 +383,7 @@ final class OperationsController {
         let alert = NSAlert()
         alert.messageText = title
         alert.informativeText = text
-        if let window { _ = await alert.beginSheetModal(for: window) }
+        if let window { _ = await Self.present(alert, in: window) }
     }
 
     func report(_ error: any Error) {

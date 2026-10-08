@@ -157,7 +157,7 @@ private struct ChangeCaseView: View {
         self.done = done
     }
 
-    private let example = "Můj Dokument-final.Txt"
+    private let example = "My Résumé-final.Txt"
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {

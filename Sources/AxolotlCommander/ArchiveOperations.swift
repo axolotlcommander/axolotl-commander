@@ -414,7 +414,7 @@ extension OperationsController {
         alert.addButton(withTitle: String(localized: "Cancel"))
         alert.buttons.last?.keyEquivalent = "\u{1b}"
         guard let window else { return .cancel }
-        switch await alert.beginSheetModal(for: window) {
+        switch await Self.present(alert, in: window) {
         case .alertFirstButtonReturn: return .overwrite
         case .alertSecondButtonReturn: return .skip
         default: return .cancel
