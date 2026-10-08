@@ -14,6 +14,11 @@
   <img src="https://img.shields.io/badge/macOS-15%2B-lightgrey.svg" alt="macOS 15+">
 </p>
 
+<p align="center">
+  <img src="docs/images/screenshot.png" width="900"
+       alt="Axolotl Commander: two panels with breadcrumb path bars, tabs, marked files, highlighted file types and the function key bar">
+</p>
+
 ## Why
 
 For years I used Salamander on Windows: two panels, everything from the keyboard, a quick
