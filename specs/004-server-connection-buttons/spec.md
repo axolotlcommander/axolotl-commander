@@ -1,4 +1,4 @@
-# Feature Specification: Server Connections in the Toolbar and the Volume Bar
+# Feature Specification: Server Connections, iCloud Drive and Network in the Volume Bar
 
 **Feature Branch**: `004-server-connection-buttons`
 
@@ -9,7 +9,22 @@
 **Input**: User description: "Server connections in the toolbar and the volume bar. An open
 SFTP/FTP/FTPS connection is easy to see and to return to with one click, as in Commander One, and
 connecting is one click away. Today a connection stays open after the panel leaves the server,
-but nothing in the window shows it; connecting is only ⌘K or the menu."
+but nothing in the window shows it; connecting is only ⌘K or the menu." Extended during the
+specification: iCloud Drive and Network buttons in the volume bar, as in Commander One, and a
+setting for what the volume bar shows (see Clarifications).
+
+## Clarifications
+
+### Session 2026-10-08
+
+- Q: Should the volume bar also offer iCloud Drive and Network, as Commander One does, and can
+  the user choose what it shows? → A: Yes, both are added to this feature (User Stories 5 and 6).
+- Q: What does the Network button do, given that the app has no network neighbourhood browser?
+  → A: It opens a menu with the network volumes mounted in macOS, the live server connections
+  and "Connect to Server…" (⌘K).
+- Q: What can be turned off? → A: Settings → Appearance lists Home (off by default), iCloud
+  Drive, Network and Server connections (all on by default); volumes are always shown. Hiding the
+  whole volume bar is not part of this feature.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -58,7 +73,7 @@ show a button for the server; clicking it in the left panel shows the same subfo
 
 1. **Given** no server connection, **When** the user connects the left panel to the test server
    `127.0.0.1`, **Then** both panels' volume bars show a new button "127.0.0.1" with a network
-   symbol after the volume buttons, and the left panel's button is pressed.
+   symbol at the end of the bar, and the left panel's button is pressed.
 2. **Given** the left panel was in `/data/sub` on the server and then went to a local folder,
    **When** the user clicks the server button in the left panel's volume bar, **Then** the left
    panel shows `/data/sub` on the server, and Back returns to the local folder.
@@ -137,6 +152,72 @@ panel.
 
 ---
 
+### User Story 5 - iCloud Drive and Network in the volume bar (Priority: P2)
+
+Next to the volumes, the volume bar shows "iCloud Drive" (for users who have iCloud Drive set up)
+and "Network", as Commander One does. iCloud Drive opens the iCloud Drive folder in the panel.
+Network opens a menu with the network volumes mounted in macOS, the open server connections and
+"Connect to Server…".
+
+**Why this priority**: iCloud Drive is a frequent destination that today is reachable only
+through the volume menu; Network gathers everything network-related in one place. The core
+feature (server buttons) works without it.
+
+**Independent Test**: In the test copy of the app on a Mac with iCloud Drive, click "iCloud
+Drive" in the left volume bar; the left panel shows the iCloud Drive folder (read only, nothing is
+changed). Click "Network"; a menu lists mounted network volumes (if any), open server connections
+(if any) and "Connect to Server…"; choosing "Connect to Server…" opens the dialog for that panel.
+
+**Acceptance Scenarios**:
+
+1. **Given** iCloud Drive is set up, **When** the main window opens, **Then** the volume bars show
+   "iCloud Drive" (cloud symbol) and "Network" (network symbol) after the volume buttons and
+   before the server buttons.
+2. **Given** iCloud Drive is not set up on the Mac, **When** the window opens, **Then** there is
+   no "iCloud Drive" button.
+3. **Given** the left panel shows a folder inside iCloud Drive, **When** the user looks at the
+   left volume bar, **Then** "iCloud Drive" is pressed and "Macintosh HD" is not.
+4. **Given** the user clicks "iCloud Drive", **When** the panel changes, **Then** it shows the top
+   of iCloud Drive, the change is in Back/Forward history and the panel becomes active with focus
+   in its file list.
+5. **Given** the user clicks "Network", **When** the menu opens, **Then** it lists the mounted
+   network volumes (each opens its root in that panel), then the live server connections (each
+   does what its server button does), then "Connect to Server…" (opens the dialog for that
+   panel); empty groups are left out.
+
+---
+
+### User Story 6 - Choose what the volume bar shows (Priority: P2)
+
+In Settings → Appearance, the user chooses which extra items the volume bar shows: Home, iCloud
+Drive, Network and Server connections. Volumes are always shown. The choice applies to both
+panels of every window at once and is remembered.
+
+**Why this priority**: Different users want a different bar; a narrow window benefits from a
+shorter one. The defaults already match the common case.
+
+**Independent Test**: In the test copy of the app, open Settings → Appearance, turn off "Network"
+and turn on "Home"; both volume bars at once drop the Network button and show a Home button;
+after quitting and relaunching the choice is kept.
+
+**Acceptance Scenarios**:
+
+1. **Given** a fresh installation, **When** the user opens Settings → Appearance, **Then** a
+   "Volume bar shows:" group lists Home (off), iCloud Drive (on), Network (on) and Server
+   connections (on).
+2. **Given** the user turns an item off or on, **When** the checkbox changes, **Then** both
+   panels' volume bars in every window update immediately.
+3. **Given** "Server connections" is off and a connection is open, **When** the user looks at the
+   volume bar, **Then** no server button is shown, and the connection is still listed in the
+   volume menu's "Servers" section and in the Network menu.
+4. **Given** "Home" is on, **When** the user clicks the Home button (house symbol), **Then** the
+   panel shows the home folder; the Home button is pressed only while the panel is exactly in the
+   home folder.
+5. **Given** the user changed the choices, **When** the app is quit and launched again, **Then**
+   the same items are shown.
+
+---
+
 ### Edge Cases
 
 - **Connecting in progress**: a connection that is still being opened (login, host key question)
@@ -154,6 +235,14 @@ panel.
 - **Several windows**: every main window shows the same set of server buttons, and a connection
   closed from one window disappears from all.
 - **Disconnect from the F12 dialog**: buttons of the closed connections disappear at once.
+- **Order of items**: volumes, then Home, iCloud Drive, Network (each when shown), then server
+  buttons; when the bar is too narrow, items are hidden from the end, so volumes stay visible
+  longest.
+- **iCloud Drive set up or removed while the app runs**: the button appears or disappears the next
+  time the volume bar is rebuilt (a volume is mounted or unmounted, a setting changes, or the app
+  starts).
+- **Network with nothing to show**: when there are no mounted network volumes and no live
+  connections, the Network menu contains only "Connect to Server…".
 - **Pressed state**: a panel that shows search results or an archive located on the server
   presses the server button only when its location is on that server.
 
@@ -173,8 +262,8 @@ panel.
 
 **Server buttons in the volume bar**
 
-- **FR-005**: The volume bar above each panel MUST show one button per live server connection,
-  after the volume buttons, in the order the connections were opened.
+- **FR-005**: When shown (FR-028), the volume bar above each panel MUST show one button per live
+  server connection, at the end of the bar (FR-031), in the order the connections were opened.
 - **FR-006**: A server button MUST show a network symbol and a label: the host name; when two live
   connections would get the same label, `user@host`; when still equal, `user@host:port`; when
   still equal (different protocols), the label starts with the protocol (`sftp://…`).
@@ -215,6 +304,34 @@ panel.
   the live connections with the same labels, symbol and order as the buttons; choosing one MUST
   do what FR-009 and FR-010 describe. The section MUST be omitted when there are no connections.
 
+**iCloud Drive, Network and Home**
+
+- **FR-024**: When iCloud Drive is set up on the Mac and shown (FR-028), the volume bar MUST show
+  an "iCloud Drive" button (cloud symbol) after the volume and Home buttons; clicking it MUST take the panel
+  to the top of iCloud Drive, recorded in history, and activate the panel as FR-010 describes.
+- **FR-025**: The "iCloud Drive" button MUST be pressed while the panel's location is inside
+  iCloud Drive; the volume containing iCloud Drive MUST then not be pressed.
+- **FR-026**: When shown (FR-028), the volume bar MUST show a "Network" button (network symbol)
+  after "iCloud Drive"; clicking it MUST open a menu with, in this order and each group only when
+  not empty: the network volumes mounted in macOS (choosing one opens its root in that panel), the
+  live server connections (choosing one does what FR-009 and FR-010 describe), and "Connect to
+  Server…" (opens the Connect to Server dialog for that panel).
+- **FR-027**: When shown (FR-028), the volume bar MUST show a "Home" button (house symbol) before
+  "iCloud Drive"; clicking it MUST take the panel to the home folder; it MUST be pressed only while
+  the panel is exactly in the home folder.
+
+**Volume bar settings**
+
+- **FR-028**: Settings → Appearance MUST offer a "Volume bar shows:" group with four checkboxes:
+  Home (off by default), iCloud Drive, Network and Server connections (on by default). Volumes are
+  always shown.
+- **FR-029**: A change MUST apply immediately to both panels of every main window and MUST be
+  remembered across launches.
+- **FR-030**: Turning "Server connections" off MUST only hide the server buttons; connections stay
+  open and remain listed in the volume menu (FR-019) and the Network menu (FR-026).
+- **FR-031**: Items MUST appear in this order: volumes, Home, iCloud Drive, Network, server
+  buttons; when the bar is too narrow, items MUST be hidden from the end.
+
 **General**
 
 - **FR-020**: Passwords MUST never appear in labels, tooltips, menus, copied addresses or
@@ -235,6 +352,10 @@ panel.
 - **D-003 (FR-013, FR-014)**: The reference closes connections only in the Disconnect dialog
   (F12). Here a connection can also be closed from its button (eject symbol or menu); the F12
   dialog stays.
+- **D-005 (FR-024–FR-031)**: The reference's drive bar shows drives, Documents and Network; here
+  the Mac volume bar shows volumes plus optional Home, iCloud Drive, Network and server buttons,
+  chosen in Settings. The Network button opens a menu (mounted network volumes, live connections,
+  Connect to Server…) instead of a network neighbourhood browser.
 - **D-004 (FR-001)**: The reference has its own toolbar buttons; here the Mac toolbar gets
   "Connect to Server" by default and "Disconnect" as an optional item.
 
@@ -244,6 +365,8 @@ panel.
   by the app until the user disconnects; shared by all panels and windows.
 - **Last folder of a connection**: per panel and overall, the most recent folder visited on the
   connection; kept while the app runs, never stored on disk.
+- **Volume bar settings**: four remembered choices (Home, iCloud Drive, Network, Server
+  connections) with the defaults of FR-028.
 - **Server button**: the volume-bar representation of a live connection: label, tooltip, pressed
   state, eject symbol and menu.
 
@@ -261,7 +384,11 @@ panel.
   closes, in both panels of every window; a user never sees a stale button.
 - **SC-005**: No password appears anywhere in the window, menus or clipboard as a result of this
   feature (verified with a password-protected test server).
-- **SC-006**: No server button action changes any file or folder (verified by GUI tests against
+- **SC-007**: With default settings on a Mac with iCloud Drive, the volume bar shows the volumes,
+  iCloud Drive, Network and every live connection, and a user reaches iCloud Drive with one click.
+- **SC-008**: A change in "Volume bar shows:" is visible in every volume bar within the same moment
+  and survives a relaunch in 100 % of tested cases.
+- **SC-006**: No volume bar action changes any file or folder (verified by GUI tests against
   the local test servers only).
 
 ## Assumptions
@@ -271,8 +398,13 @@ panel.
 - The app has a single user today, so no migration of customized toolbars is needed.
 - The volume bar keeps its current layout rules; server buttons follow the volume buttons and
   use the same button style.
+- iCloud Drive is the folder macOS uses for it in the user's Library; it counts as set up when that
+  folder exists. Opening it only browses; downloading or evicting cloud files is unchanged.
+- Network volumes are the volumes macOS reports as network volumes (SMB, AFP, NFS); they keep
+  their own volume buttons as today and are additionally listed in the Network menu.
 - "Last folder" is remembered only while the app runs; after a relaunch it starts empty.
-- Out of scope: saved servers that are not connected (from ⌘K) in the volume bar; dropping files
+- Out of scope: a network neighbourhood browser (finding SMB shares on the local network); hiding
+  the whole volume bar; saved servers that are not connected (from ⌘K) in the volume bar; dropping files
   onto a server button; free or used space of a server; server buttons in the Find, Compare,
   Viewer or Disk Map windows; changes to how connections are opened, authenticated or kept alive.
 - Verification follows the project rules: unit tests for labels, ordering and last-folder logic
