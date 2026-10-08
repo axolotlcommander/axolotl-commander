@@ -2,7 +2,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2026 The Axolotl Commander Authors
 #
-# Regenerates Resources/AppIcon.icns and docs/images/icon.png from scripts/make-icon.swift.
+# Regenerates Resources/AppIcon.icns, docs/images/icon.png and docs/images/avatar.png (GitHub
+# organization picture) from scripts/make-icon.swift.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 WORK="$(mktemp -d)"
@@ -17,4 +18,6 @@ done
 iconutil -c icns "$SET" -o Resources/AppIcon.icns
 mkdir -p docs/images
 sips -z 256 256 "$WORK/icon-1024.png" --out docs/images/icon.png >/dev/null
-echo "Resources/AppIcon.icns, docs/images/icon.png"
+swift scripts/make-icon.swift "$WORK/avatar-1024.png" avatar
+sips -z 500 500 "$WORK/avatar-1024.png" --out docs/images/avatar.png >/dev/null
+echo "Resources/AppIcon.icns, docs/images/icon.png, docs/images/avatar.png"

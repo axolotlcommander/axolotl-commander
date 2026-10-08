@@ -4,14 +4,17 @@
 // Renders the app icon: the outline of an axolotl seen from above (head with three gill
 // fronds per side, body, four legs, curved tail) drawn as one continuous line on a rounded
 // macOS-style tile whose two halves hint at the two commander panels.
-// Usage: swift scripts/make-icon.swift <output.png>
+// Usage: swift scripts/make-icon.swift <output.png> [avatar]
 // (scripts/make-icon.sh turns it into Resources/AppIcon.icns and docs/images/icon.png).
+// With `avatar`, the tile fills the whole square edge to edge (no corners, no shadow), for
+// the GitHub organization picture, which GitHub crops itself.
 import AppKit
 
 let size: CGFloat = 1024
 let image = NSImage(size: NSSize(width: size, height: size))
 image.lockFocus()
 let ctx = NSGraphicsContext.current!.cgContext
+let avatar = CommandLine.arguments.dropFirst(2).first == "avatar"
 
 func rgb(_ r: CGFloat, _ g: CGFloat, _ b: CGFloat, _ a: CGFloat = 1) -> CGColor {
     CGColor(srgbRed: r / 255, green: g / 255, blue: b / 255, alpha: a)
@@ -23,7 +26,13 @@ let lineWidth: CGFloat = 17
 // MARK: Background: tile with a lighter left ("active") and a darker right panel
 
 let tile = CGRect(x: 100, y: 100, width: 824, height: 824)
-let tilePath = CGPath(roundedRect: tile, cornerWidth: 185, cornerHeight: 185, transform: nil)
+let tilePath = CGPath(roundedRect: tile, cornerWidth: avatar ? 0 : 185, cornerHeight: avatar ? 0 : 185, transform: nil)
+if avatar {
+    // Map the tile onto the whole canvas.
+    let k = size / tile.width
+    ctx.scaleBy(x: k, y: k)
+    ctx.translateBy(x: -tile.minX, y: -tile.minY)
+}
 
 func drawBackground() {
     let left = CGGradient(colorsSpace: nil, colors: [rgb(16, 46, 62), rgb(28, 88, 104)] as CFArray, locations: nil)!
@@ -38,12 +47,14 @@ func drawBackground() {
     ctx.restoreGState()
 }
 
-ctx.saveGState()
-ctx.setShadow(offset: CGSize(width: 0, height: -12), blur: 28, color: rgb(0, 0, 0, 0.35))
-ctx.addPath(tilePath)
-ctx.setFillColor(rgb(16, 46, 62))
-ctx.fillPath()
-ctx.restoreGState()
+if !avatar {
+    ctx.saveGState()
+    ctx.setShadow(offset: CGSize(width: 0, height: -12), blur: 28, color: rgb(0, 0, 0, 0.35))
+    ctx.addPath(tilePath)
+    ctx.setFillColor(rgb(16, 46, 62))
+    ctx.fillPath()
+    ctx.restoreGState()
+}
 
 ctx.saveGState()
 ctx.addPath(tilePath)
