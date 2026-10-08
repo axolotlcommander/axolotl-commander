@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Otázky a nápady / Questions and ideas
+    url: https://github.com/ACiDekCZ/axolotl-commander/discussions
+    about: Na otázky a diskusi použijte Discussions. / Please use Discussions for questions.
+  - name: Bezpečnostní chyba / Security vulnerability
+    url: https://github.com/ACiDekCZ/axolotl-commander/security/advisories/new
+    about: Bezpečnostní chyby hlaste soukromě, ne veřejným issue. / Report privately, not as a public issue.

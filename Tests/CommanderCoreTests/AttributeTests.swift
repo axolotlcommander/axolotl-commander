@@ -43,8 +43,10 @@ private func makeFile(_ url: URL, mode: mode_t = 0o644) throws {
     #expect(chmod(url.path, mode) == 0)
 }
 
+/// Explicit mode: libarchive briefly sets the process umask to 0 while other tests extract.
 private func makeDir(_ url: URL) throws {
     try FileManager.default.createDirectory(at: url, withIntermediateDirectories: false)
+    #expect(chmod(url.path, 0o755) == 0)
 }
 
 private func st(_ url: URL) -> stat {

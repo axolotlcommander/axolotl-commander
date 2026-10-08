@@ -1,0 +1,40 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: Build and test
+    # Swift 6.2 needs Xcode 26.
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Toolchain
+        run: swift --version
+
+      - name: Build (no warnings in our code)
+        run: |
+          swift build --build-tests 2>&1 | tee build.log
+          if grep -E "^$GITHUB_WORKSPACE/(Sources|Tests)/.*: warning:" build.log; then
+            echo "::error::The build has warnings; fix them before merging."
+            exit 1
+          fi
+
+      - name: Test
+        run: swift test --skip-build
+
+      - name: App bundle
+        run: scripts/bundle.sh

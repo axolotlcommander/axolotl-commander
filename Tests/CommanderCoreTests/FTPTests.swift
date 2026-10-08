@@ -495,6 +495,8 @@ private func noise(_ count: Int) -> Data {
     @Test func listFallbackWithoutMLSD() async throws {
         try await withServer(["--no-mlsd"]) { port, srv, _ in
             try Data("12345".utf8).write(to: srv.appendingPathComponent("soubor s mezerou.txt"))
+            // Explicit mode: libarchive briefly sets the process umask to 0 while other tests extract.
+            chmod(srv.appendingPathComponent("soubor s mezerou.txt").path, 0o644)
             try Data().write(to: srv.appendingPathComponent(".skrytý"))
             try FileManager.default.createDirectory(at: srv.appendingPathComponent("adresář"),
                                                     withIntermediateDirectories: false)
