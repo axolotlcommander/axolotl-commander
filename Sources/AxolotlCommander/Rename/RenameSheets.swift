@@ -8,10 +8,21 @@ import SwiftUI
 /// Shared by Change Case and Batch Rename: runs a plan with the progress sheet, then says which
 /// names were skipped or failed. A run that renamed something can be undone (Edit ▸ Undo Rename, ⌘Z).
 enum RenameRunner {
-    static func run(_ plan: [RenamePlanEntry], title: String, in panel: PanelViewController) {
-        execute(title: title, in: panel, plan: { plan }) { outcome in
+    /// Refused (with a beep) while another operation runs in the window. `plan` is made inside the
+    /// operation, so nothing else can start while it is being built.
+    static func run(title: String, in panel: PanelViewController, plan: @escaping () async -> [RenamePlanEntry]) {
+        guard let operations = panel.router?.operations else { return }
+        guard !operations.isBusy else {
+            NSSound.beep()
+            return
+        }
+        execute(title: title, in: panel, plan: plan) { outcome in
             registerUndo(of: Batch(outcome.renamed), in: panel)
         }
+    }
+
+    static func run(_ plan: [RenamePlanEntry], title: String, in panel: PanelViewController) {
+        run(title: title, in: panel, plan: { plan })
     }
 
     /// The renames of one run; the inverse registered by undo/redo is filled in once that run is done.
@@ -114,6 +125,10 @@ enum ChangeCaseSheet {
     static func show(for panel: PanelViewController) {
         let targets = panel.targets()
         guard !targets.isEmpty, let window = panel.view.window else { return }
+        guard panel.router?.operations.isBusy != true else {
+            NSSound.beep()
+            return
+        }
         let saved = UserDefaults.standard.data(forKey: defaultsKey).flatMap { try? JSONDecoder().decode(CaseChange.self, from: $0) }
         var sheet: NSWindow?
         let view = ChangeCaseView(count: targets.count, hasFolders: targets.contains { $0.isDirectory },
@@ -128,17 +143,17 @@ enum ChangeCaseSheet {
         window.beginSheet(host, completionHandler: nil)
     }
 
+    /// The plan (which may read whole folder trees) is built as part of the operation.
     private static func apply(_ change: CaseChange, recursive: Bool, to targets: [FileItem], in panel: PanelViewController) {
-        Task {
-            let urls = targets.map(\.url)
-            let plan = await Task.detached(priority: .userInitiated) {
+        let urls = targets.map(\.url)
+        RenameRunner.run(title: String(localized: "Changing case…"), in: panel) {
+            await Task.detached(priority: .userInitiated) {
                 let items = RenameExecutor.expand(urls, recursive: recursive).map {
                     RenameItem(url: $0.url, isDirectory: $0.isDirectory,
                                newName: change.apply(to: $0.url.lastPathComponent, isDirectory: $0.isDirectory))
                 }
                 return RenamePlanner.plan(items)
             }.value
-            RenameRunner.run(plan, title: String(localized: "Changing case…"), in: panel)
         }
     }
 }
