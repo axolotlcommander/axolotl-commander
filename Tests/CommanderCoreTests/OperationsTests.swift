@@ -226,6 +226,33 @@ private func move(_ sources: [URL], to dest: URL, ops: FileOperations = FileOper
         }
     }
 
+    @Test func crossVolumeMoveKeepsFileWrittenDuringCopy() async throws {
+        try await withSandbox { root in
+            let src = root.sub("src"), dst = root.sub("dst")
+            try mkdirs(src.sub("folder")); try mkdirs(dst)
+            try write(src.sub("folder/a.txt"), "a")
+            try write(src.sub("folder/log.txt"), "abc")
+            let grown = Mutex(false)
+            let log = src.sub("folder/log.txt").path
+            // Another program appends to log.txt while it is being moved.
+            let progress: @Sendable (OperationProgress) -> Void = { p in
+                guard p.currentName == "log.txt", !grown.withLock({ let was = $0; $0 = true; return was }) else { return }
+                let fd = open(log, O_WRONLY | O_APPEND)
+                _ = "+more".withCString { Darwin.write(fd, $0, 5) }
+                close(fd)
+            }
+            let report = try await FileOperations(options: .init(forceCopyMove: true)).transfer(
+                TransferRequest(kind: .move, sources: [src.sub("folder")], destinationDirectory: dst),
+                progress: progress, conflict: noConflict)
+            #expect(grown.withLock { $0 })
+            #expect(report.keptSources == [src.sub("folder")])
+            #expect(read(src.sub("folder/log.txt")) == "abc+more")
+            #expect(names(src.sub("folder")) == ["log.txt"])
+            #expect(read(dst.sub("folder/a.txt")) == "a")
+            #expect(read(dst.sub("folder/log.txt"))?.hasPrefix("abc") == true)
+        }
+    }
+
     @Test func sameVolumeMoveRenames() async throws {
         try await withSandbox { root in
             let src = root.sub("src"), dst = root.sub("dst")
