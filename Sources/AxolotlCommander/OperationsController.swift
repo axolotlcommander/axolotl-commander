@@ -408,7 +408,8 @@ final class OperationsController {
     }
 
     static func describe(_ error: any Error) -> String {
-        switch error as? OperationError {
+        if let error = error as? LinkError { return describe(error) }
+        return switch error as? OperationError {
         case .sameFile(let url)?: String(localized: "“\(url.lastPathComponent)” would be copied onto itself.")
         case .intoItself(let url)?: String(localized: "“\(url.lastPathComponent)” can’t be copied or moved into itself.")
         case .identityUnknown(let url)?: String(localized: "Can’t verify that “\(url.lastPathComponent)” is a different file; nothing was removed.")
@@ -419,6 +420,18 @@ final class OperationsController {
         case .io(let message)?: message
         case .cancelled?: String(localized: "Cancelled.")
         case nil: Format.error(error)
+        }
+    }
+
+    static func describe(_ error: LinkError) -> String {
+        switch error {
+        case .folderNotAllowed(let url): String(localized: "“\(url.lastPathComponent)” is a folder. Folders cannot have hard links.")
+        case .symbolicLinkNotAllowed(let url): String(localized: "“\(url.lastPathComponent)” is a symbolic link. A hard link cannot point to a symbolic link.")
+        case .notARegularFile(let url): String(localized: "“\(url.lastPathComponent)” is not a regular file. Hard links can only be created to files.")
+        case .differentVolume(let url): String(localized: "Hard links must be on the same volume as the file “\(url.lastPathComponent)”.")
+        case .notASymbolicLink(let url): String(localized: "“\(url.lastPathComponent)” is not a symbolic link.")
+        case .targetMissing(let stored): String(localized: "The link target “\(stored)” does not exist.")
+        case .loop(let url): String(localized: "The link “\(url.lastPathComponent)” could not be resolved (too many levels of links).")
         }
     }
 }

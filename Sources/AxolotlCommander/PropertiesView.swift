@@ -161,7 +161,7 @@ enum PropertiesSheet {
         window.beginSheet(host, completionHandler: nil)
     }
 
-    private static func apply(_ change: AttributeChange, to urls: [URL], in window: NSWindow, onChange: (() -> Void)?) async {
+    static func apply(_ change: AttributeChange, to urls: [URL], in window: NSWindow, onChange: (() -> Void)?) async {
         let report: AttributeReport
         do {
             report = try await Task.detached(priority: .userInitiated) {

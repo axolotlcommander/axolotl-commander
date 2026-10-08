@@ -78,8 +78,15 @@ extension PanelViewController {
         menu.addItem(.separator())
         for command: Command in [.copy, .move, .rename, .delete] { menu.addItem(MainMenuBuilder.commandItem(command)) }
         menu.addItem(.separator())
-        for command: Command in [.properties, .pack, .copyFiles, .copyFullPath] {
+        for command: Command in [.properties, .changeAttributes, .pack, .copyFiles, .copyFullPath] {
             menu.addItem(MainMenuBuilder.commandItem(command))
+        }
+        if local {
+            menu.addItem(.separator())
+            var links: [Command] = [.newSymbolicLink, .newHardLink]
+            if items.count == 1, items[0].isSymlink { links.append(.editSymbolicLink) }
+            if cursorIsLink { links.append(.goToLinkTarget) }
+            for command in links { menu.addItem(MainMenuBuilder.commandItem(command)) }
         }
         menu.addItem(.separator())
         menu.addItem(MainMenuBuilder.commandItem(.revealInFinder))
@@ -92,7 +99,9 @@ extension PanelViewController {
 
     private func folderMenu() -> NSMenu {
         let menu = NSMenu()
-        for command: Command in [.makeDirectory, .newFile, .pasteFiles] { menu.addItem(MainMenuBuilder.commandItem(command)) }
+        for command: Command in [.makeDirectory, .newFile, .pasteFiles, .pasteAsSymbolicLink] {
+            menu.addItem(MainMenuBuilder.commandItem(command))
+        }
         menu.addItem(.separator())
         let sort = NSMenuItem(title: String(localized: "Sort By"), action: nil, keyEquivalent: "")
         sort.submenu = NSMenu()
