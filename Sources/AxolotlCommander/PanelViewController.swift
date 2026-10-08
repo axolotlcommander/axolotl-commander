@@ -481,17 +481,19 @@ final class PanelViewController: NSViewController {
         .find, .pack, .unpack, .connectToServer, .disconnect, .compareFiles,
         .changeCase, .batchRename, .calculateChecksums, .verifyChecksums, .occupiedSpace, .userMenu,
         .contextMenu, .moveFilesHere, .invertAll, .restoreSelection, .saveSelection, .loadSelection, .volumeInfo,
+        .newSymbolicLink, .newHardLink, .editSymbolicLink, .pasteAsSymbolicLink, .goToLinkTarget, .changeAttributes,
     ]
 
     private static let needTargets: Set<Command> = [
         .copy, .move, .delete, .deletePermanently, .rename, .copyFiles, .view, .quickLook, .viewWith, .editWith,
-        .changeCase, .batchRename, .calculateChecksums,
+        .changeCase, .batchRename, .calculateChecksums, .newSymbolicLink, .newHardLink, .changeAttributes,
     ]
 
     /// Work on files on disk only: not inside archives, not on servers.
     private static let diskOnly: Set<Command> = [
         .changeCase, .batchRename, .calculateChecksums, .verifyChecksums, .occupiedSpace, .moveFilesHere, .volumeInfo,
-        .viewWith, .editWith,
+        .viewWith, .editWith, .newSymbolicLink, .newHardLink, .editSymbolicLink, .pasteAsSymbolicLink,
+        .goToLinkTarget, .changeAttributes,
     ]
 
     func canPerform(_ command: Command) -> Bool {
@@ -509,6 +511,11 @@ final class PanelViewController: NSViewController {
         case .makeDirectory, .newFile: return model.results == nil
         case .pasteFiles: return model.results == nil && Self.pasteboardHasFilesOrPath
         case .moveFilesHere: return model.results == nil && Self.pasteboardHasFiles
+        case .newSymbolicLink, .newHardLink, .changeAttributes: return model.results == nil
+        case .pasteAsSymbolicLink: return model.results == nil && Self.pasteboardHasFiles
+        case .editSymbolicLink:
+            return model.results == nil && model.cursorItem.map { $0.isSymlink && !$0.isParent } == true
+        case .goToLinkTarget: return model.results == nil && cursorIsLink
         case .restoreSelection: return !model.previousSelection.isEmpty
         case .saveSelection: return !model.selectedItems.isEmpty
         case .loadSelection: return !Self.rememberedSelection.isEmpty
@@ -613,6 +620,15 @@ final class PanelViewController: NSViewController {
         case .copyFiles: copyFilesToPasteboard()
         case .pasteFiles: pasteFromPasteboard()
         case .moveFilesHere: pasteFromPasteboard(move: true)
+        case .pasteAsSymbolicLink: pasteAsSymbolicLinks()
+        case .newSymbolicLink: newLink(.symbolic)
+        case .newHardLink: newLink(.hard)
+        case .editSymbolicLink: editSymbolicLink()
+        case .goToLinkTarget: goToLinkTarget()
+        case .changeAttributes:
+            AttributesSheet.show(targets().map(\.url), in: view.window) { [weak self] in
+                Task { await self?.router?.refreshPanels() }
+            }
         case .contextMenu: showContextMenu()
         case .view: openViewer()
         case .find: if let router { FindWindowController.show(from: router) }

@@ -30,6 +30,11 @@ import Testing
         (KeyChord(.function(3), .control), .sortByName),
         (KeyChord(.left, [.control, .option]), .goBack),
         (KeyChord(.function(1), [.control, .option]), .leftVolumeMenu),
+        (KeyChord(.function(2), .control), .changeAttributes),
+        (KeyChord(.character("t"), .control), .goToLinkTarget),
+        (KeyChord(.character("s"), .control), .pasteAsSymbolicLink),
+        (KeyChord(.character("v"), [.control, .command]), .pasteAsSymbolicLink),
+        (KeyChord(.character("l"), [.control, .command]), .newSymbolicLink),
     ])
     func windowsBindingsSurvive(chord: KeyChord, command: Command) {
         #expect(KeyMap.standard.command(for: chord) == command)

@@ -32,7 +32,7 @@ public struct LocalFileSource: FileSource {
 
         let keys: [URLResourceKey] = [
             .isDirectoryKey, .isSymbolicLinkKey, .isPackageKey, .isHiddenKey,
-            .fileSizeKey, .contentModificationDateKey,
+            .fileSizeKey, .contentModificationDateKey, .isAliasFileKey,
         ]
         let urls = try fm.contentsOfDirectory(
             at: directory,
@@ -58,6 +58,8 @@ public struct LocalFileSource: FileSource {
                 name: name,
                 isDirectory: isDirectory,
                 isSymlink: isSymlink,
+                // `isAliasFile` is also true for symbolic links.
+                isAlias: !isSymlink && !isDirectory && (values?.isAliasFile ?? false),
                 isPackage: isDirectory && (values?.isPackage ?? false),
                 isHidden: hidden,
                 size: isDirectory ? nil : values?.fileSize.map(Int64.init),

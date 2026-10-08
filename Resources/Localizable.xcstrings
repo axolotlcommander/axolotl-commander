@@ -8243,6 +8243,296 @@
           }
         }
       }
+    },
+    "New Symbolic Link…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nový symbolický odkaz…"
+          }
+        }
+      }
+    },
+    "New Hard Link…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nový pevný odkaz…"
+          }
+        }
+      }
+    },
+    "Edit Symbolic Link…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upravit symbolický odkaz…"
+          }
+        }
+      }
+    },
+    "Change Attributes…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Změnit atributy…"
+          }
+        }
+      }
+    },
+    "Paste as Symbolic Link": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vložit jako symbolický odkaz"
+          }
+        }
+      }
+    },
+    "Go to Link Target": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přejít na cíl odkazu"
+          }
+        }
+      }
+    },
+    "New Symbolic Link": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nový symbolický odkaz"
+          }
+        }
+      }
+    },
+    "New Hard Link": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nový pevný odkaz"
+          }
+        }
+      }
+    },
+    "Edit Symbolic Link": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upravit symbolický odkaz"
+          }
+        }
+      }
+    },
+    "Change Attributes": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Změnit atributy"
+          }
+        }
+      }
+    },
+    "Target:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cíl:"
+          }
+        }
+      }
+    },
+    "Target": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cíl"
+          }
+        }
+      }
+    },
+    "Link:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odkaz:"
+          }
+        }
+      }
+    },
+    "Link name:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Název odkazu:"
+          }
+        }
+      }
+    },
+    "Create links in:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vytvořit odkazy ve složce:"
+          }
+        }
+      }
+    },
+    "Relative path": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Relativní cesta"
+          }
+        }
+      }
+    },
+    "Create": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vytvořit"
+          }
+        }
+      }
+    },
+    "“%@” is a folder. Folders cannot have hard links.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ je složka. Složky nemohou mít pevné odkazy."
+          }
+        }
+      }
+    },
+    "“%@” is a symbolic link. A hard link cannot point to a symbolic link.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ je symbolický odkaz. Pevný odkaz nemůže ukazovat na symbolický odkaz."
+          }
+        }
+      }
+    },
+    "“%@” is not a regular file. Hard links can only be created to files.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ není běžný soubor. Pevné odkazy lze vytvářet jen k souborům."
+          }
+        }
+      }
+    },
+    "Hard links must be on the same volume as the file “%@”.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pevný odkaz musí být na stejném svazku jako soubor „%@“."
+          }
+        }
+      }
+    },
+    "“%@” is not a symbolic link.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ není symbolický odkaz."
+          }
+        }
+      }
+    },
+    "The link target “%@” does not exist.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cíl odkazu „%@“ neexistuje."
+          }
+        }
+      }
+    },
+    "The link “%@” could not be resolved (too many levels of links).": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odkaz „%@“ nelze rozvinout (příliš mnoho úrovní odkazů)."
+          }
+        }
+      }
+    },
+    "The folder “%@” does not exist.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Složka „%@“ neexistuje."
+          }
+        }
+      }
+    },
+    "Links can only be created in folders on this Mac.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odkazy lze vytvářet jen ve složkách na tomto Macu."
+          }
+        }
+      }
+    },
+    "The target does not exist. Create the link anyway?": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cíl neexistuje. Vytvořit odkaz přesto?"
+          }
+        }
+      }
+    },
+    "Some links were not created.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Některé odkazy nebyly vytvořeny."
+          }
+        }
+      }
+    },
+    "The attributes could not be read.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atributy se nepodařilo načíst."
+          }
+        }
+      }
     }
   },
   "version": "1.0"
