@@ -12,6 +12,8 @@ final class VolumeBar: NSView {
     /// A volume, Home, iCloud Drive or a network volume from the Network menu.
     var onChoose: ((URL) -> Void)?
     var onChooseServer: ((RemoteEndpoint) -> Void)?
+    /// The Network button: the panel shows the Network folder (its right-click keeps the quick menu).
+    var onChooseNetwork: (() -> Void)?
     var onOpenServerInOtherPanel: ((RemoteEndpoint) -> Void)?
     var onCopyServerAddress: ((RemoteEndpoint) -> Void)?
     var onDisconnectServer: ((RemoteEndpoint) -> Void)?
@@ -23,6 +25,8 @@ final class VolumeBar: NSView {
     /// The shown location, its server and (for a local one) the mount point containing it.
     private var location: URL?
     private var remote: RemoteEndpoint?
+    /// The panel shows the Network folder.
+    private var network = false
     private var volumeRoot: URL?
     private var workspaceObservers: [any NSObjectProtocol] = []
     private var observers: [any NSObjectProtocol] = []
@@ -81,7 +85,8 @@ final class VolumeBar: NSView {
         guard location != self.location else { return }
         self.location = location
         remote = RemoteURL.parse(location)?.endpoint
-        volumeRoot = remote == nil ? Volumes.root(of: location) : nil
+        network = NetworkPlaces.isNetwork(location)
+        volumeRoot = remote == nil && !network ? Volumes.root(of: location) : nil
         updateStates()
     }
 
@@ -180,7 +185,7 @@ final class VolumeBar: NSView {
 
     private func updateStates() {
         let pressed = VolumeBarModel.pressed(local: remote == nil ? location : nil, remote: remote,
-                                             volumeRoot: volumeRoot, items: items)
+                                             volumeRoot: volumeRoot, items: items, network: network)
         for case let button as NSButton in stack.arrangedSubviews {
             button.state = button.tag == pressed ? .on : .off
         }
@@ -192,9 +197,7 @@ final class VolumeBar: NSView {
         switch items[sender.tag] {
         case .volume(let volume): onChoose?(volume.url)
         case .home(let url), .iCloud(let url): onChoose?(url)
-        case .network:
-            guard let menu = networkMenu() else { return }
-            menu.popUp(positioning: nil, at: NSPoint(x: 0, y: sender.isFlipped ? sender.bounds.height + 2 : -2), in: sender)
+        case .network: onChooseNetwork?()
         case .server(let endpoint, _): onChooseServer?(endpoint)
         }
     }

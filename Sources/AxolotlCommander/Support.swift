@@ -48,6 +48,13 @@ enum IconCache {
         if item.isParent {
             key = "#parent"
             make = { NSImage(systemSymbolName: "arrow.turn.left.up", accessibilityDescription: String(localized: "Parent folder"))! }
+        } else if NetworkPlaces.isNetwork(item.url) {
+            key = "#server"
+            make = { NSImage(systemSymbolName: "server.rack", accessibilityDescription: String(localized: "Server"))! }
+        } else if item.isDirectory, item.url.deletingLastPathComponent().path == "/Volumes" {
+            // Network volumes in the Network folder (and anything else listed from /Volumes).
+            key = item.url.path
+            make = { NSWorkspace.shared.icon(forFile: item.url.path) }
         } else if item.isPackage {
             key = item.url.path
             make = { NSWorkspace.shared.icon(forFile: item.url.path) }
@@ -93,6 +100,7 @@ enum TextPrompt {
 extension URL {
     /// File path for display and storage, without the trailing "/" a directory URL carries.
     var displayPath: String {
+        if NetworkPlaces.isNetwork(self) { return String(localized: "Network") }
         if let remote = RemoteURL.parse(self) { return RemoteURL.displayText(remote) }
         let path = path(percentEncoded: false)
         return path.count > 1 && path.hasSuffix("/") ? String(path.dropLast()) : path

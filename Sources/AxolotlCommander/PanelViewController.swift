@@ -72,6 +72,8 @@ final class PanelViewController: NSViewController {
     var tabs: TabList
 
     private var watcher: DirectoryWatcher?
+    /// Discovery and mount changes, which refresh the Network folder.
+    private var networkObservers: [any NSObjectProtocol] = []
     private var watchedURL: URL?
     private var syncingSelection = false
     private var sizeTask: Task<Void, Never>?
@@ -174,6 +176,12 @@ final class PanelViewController: NSViewController {
             go(to: url)
         }
         volumeBar.onChooseServer = { [weak self] endpoint in self?.openServer(endpoint) }
+        volumeBar.onChooseNetwork = { [weak self] in
+            guard let self else { return }
+            router?.activate(side)
+            go(to: NetworkPlaces.location)
+        }
+        observeNetwork()
         volumeBar.onOpenServerInOtherPanel = { [weak self] endpoint in
             guard let self else { return }
             router?.otherPanel(than: self).openServer(endpoint)
@@ -310,8 +318,8 @@ final class PanelViewController: NSViewController {
 
     /// Inside an archive the folder holding the archive is watched: rewriting it replaces the file.
     private func watchLocation() {
-        // Servers are not watched; ⌘R refreshes.
-        if model.remote != nil {
+        // Servers are not watched; ⌘R refreshes. The Network folder refreshes on discovery changes.
+        if model.remote != nil || model.isNetwork {
             watcher?.cancel()
             watcher = nil
             watchedURL = nil
@@ -337,6 +345,8 @@ final class PanelViewController: NSViewController {
         let s = model.summary
         if s.files + s.directories > 0 {
             statusField.stringValue = String(localized: "Selected \(s.files) files, \(s.directories) folders — \(Format.bytes(s.bytes))")
+        } else if let item = model.cursorItem, let service = NetworkPlaces.service(of: item.url) {
+            statusField.stringValue = String(localized: "\(service.name)   \(service.kind.rawValue.uppercased()) server")
         } else if let item = model.cursorItem, !item.isParent {
             let size = item.isDirectory ? (model.directorySizes[model.rules.key(item.name)].map(Format.bytes) ?? String(localized: "folder")) : Format.bytes(item.size ?? 0)
             statusField.stringValue = "\(item.name)   \(size)   \(item.modificationDate.map(Format.date) ?? "")"
@@ -489,6 +499,14 @@ final class PanelViewController: NSViewController {
         .changeCase, .batchRename, .calculateChecksums, .newSymbolicLink, .newHardLink, .changeAttributes,
     ]
 
+    /// What stays enabled while the panel shows the Network folder: moving around and looking.
+    private static let networkCommands: Set<Command> = [
+        .open, .goParent, .goHome, .goBack, .goForward, .changeDirectory, .editPath, .refresh,
+        .sortByName, .sortByExtension, .sortByDate, .sortBySize, .viewModeDetailed, .viewModeBrief, .filter,
+        .leftVolumeMenu, .rightVolumeMenu, .newTab, .closeTab, .nextTab, .previousTab, .hotPaths,
+        .connectToServer, .disconnect, .contextMenu,
+    ]
+
     /// Work on files on disk only: not inside archives, not on servers.
     private static let diskOnly: Set<Command> = [
         .changeCase, .batchRename, .calculateChecksums, .verifyChecksums, .occupiedSpace, .moveFilesHere, .volumeInfo,
@@ -497,6 +515,8 @@ final class PanelViewController: NSViewController {
     ]
 
     func canPerform(_ command: Command) -> Bool {
+        // The Network folder is not a folder on disk: only navigation (FR-011).
+        if model.isNetwork, !Self.networkCommands.contains(command), !Command.goHotPaths.contains(command) { return false }
         if command.hotPathSlot != nil { return true }
         guard Self.handled.contains(command) else { return false }
         if Self.needTargets.contains(command), targets().isEmpty { return false }
@@ -691,9 +711,9 @@ final class PanelViewController: NSViewController {
     }
 
     /// The folder on disk: the location, the folder holding the archive the panel is in,
-    /// or the home folder while the panel shows a server.
+    /// or the home folder while the panel shows a server or the Network folder.
     var diskFolder: URL {
-        if model.remote != nil { return FileManager.default.homeDirectoryForCurrentUser }
+        if model.remote != nil || model.isNetwork { return FileManager.default.homeDirectoryForCurrentUser }
         return model.archive?.archive.deletingLastPathComponent() ?? model.location
     }
 
@@ -826,6 +846,10 @@ final class PanelViewController: NSViewController {
 
     private func openCursor() async {
         guard let item = model.cursorItem else { return }
+        if let service = NetworkPlaces.service(of: item.url) {
+            NetworkPlacesUI.open(service, from: self)
+            return
+        }
         if item.isPackage {
             NSWorkspace.shared.open(item.url)
             return
@@ -972,6 +996,23 @@ final class PanelViewController: NSViewController {
         model.filter = trimmed.isEmpty || trimmed == "*.*" || trimmed == "*" ? nil : WildcardMask(trimmed)
     }
 
+    // MARK: Network folder
+
+    private func observeNetwork() {
+        let refresh: @Sendable (Notification) -> Void = { [weak self] _ in
+            MainActor.assumeIsolated {
+                guard let self, self.model.isNetwork else { return }
+                Task { await self.model.refresh() }
+            }
+        }
+        networkObservers.append(NotificationCenter.default.addObserver(
+            forName: NetworkDiscovery.didChangeNotification, object: nil, queue: .main, using: refresh))
+        let workspace = NSWorkspace.shared.notificationCenter
+        for name in [NSWorkspace.didMountNotification, NSWorkspace.didUnmountNotification] {
+            networkObservers.append(workspace.addObserver(forName: name, object: nil, queue: .main, using: refresh))
+        }
+    }
+
     // MARK: Volume menu
 
     private func showVolumeMenu() {
@@ -994,7 +1035,7 @@ final class PanelViewController: NSViewController {
         if let iCloud = VolumeBar.iCloudDrive {
             menu.addItem(placeItem(String(localized: "iCloud Drive"), iCloud, icon: NSImage(systemSymbolName: "icloud", accessibilityDescription: nil)))
         }
-        menu.addItem(placeItem(String(localized: "Network Volumes"), URL(filePath: "/Volumes", directoryHint: .isDirectory),
+        menu.addItem(placeItem(String(localized: "Network"), NetworkPlaces.location,
                                icon: NSImage(systemSymbolName: "network", accessibilityDescription: nil)))
         // Open server connections, as the volume bar shows them (also those its width hides).
         let connections = ServerConnectionsUI.shared
@@ -1196,7 +1237,8 @@ extension PanelViewController: NSTableViewDataSource, NSTableViewDelegate {
         case .name: return item.isParent ? ".." : item.baseName
         case .ext: return item.fileExtension
         case .size:
-            if item.isParent { return "" }
+            // Servers in the Network folder have no size.
+            if item.isParent || NetworkPlaces.isNetwork(item.url) { return "" }
             if item.isDirectory {
                 // A package is a file to the user: no <DIR>, its size once calculated (Space).
                 return model.directorySizes[model.rules.key(item.name)].map(Format.grouped) ?? (item.isPackage ? "—" : "<DIR>")
@@ -1209,7 +1251,8 @@ extension PanelViewController: NSTableViewDataSource, NSTableViewDelegate {
     // MARK: Drag & drop (shared rules in PanelDragDrop.swift)
 
     func tableView(_ tableView: NSTableView, pasteboardWriterForRow row: Int) -> (any NSPasteboardWriting)? {
-        guard row < model.items.count, !model.items[row].isParent else { return nil }
+        // Servers are not files, and dragging a whole network share is too easy a mistake.
+        guard row < model.items.count, !model.items[row].isParent, !model.isNetwork else { return nil }
         // Dragging a marked row drags the whole selection (written when the session begins).
         if model.isSelected(model.items[row]) { return nil }
         return dragItem(for: model.items[row])
@@ -1336,6 +1379,10 @@ extension PanelViewController {
         // The archive counts too: a restored tab learns that its location is an archive only after loading.
         if let source = trailSource, source == (model.location, model.results, model.archive) { return }
         trailSource = (model.location, model.results, model.archive)
+        if model.isNetwork {
+            pathBar.show(trail: [PathSegment(name: String(localized: "Network"), url: model.location, kind: .network)])
+            return
+        }
         pathBar.show(trail: Breadcrumbs.trail(
             location: model.location, results: model.results, archive: model.archive, remote: model.remote,
             volume: Self.volume(containing: model.location),

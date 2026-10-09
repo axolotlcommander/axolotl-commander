@@ -168,7 +168,7 @@ extension PanelViewController: NSCollectionViewDataSource {
         }
         briefView.onMenu = { [weak self] index in self?.contextMenu(at: index) }
         briefView.onDrag = { [weak self] index in
-            guard let self else { return [] }
+            guard let self, !model.isNetwork else { return [] }
             return draggedItems(from: index).map(dragItem(for:))
         }
         briefView.onValidateDrop = { [weak self] info, index in

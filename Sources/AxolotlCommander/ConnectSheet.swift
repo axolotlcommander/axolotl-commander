@@ -58,11 +58,14 @@ struct ConnectSheet: View {
     let onConnect: (_ profile: ConnectionProfile, _ password: String?, _ remember: Bool) -> Void
     let onCancel: () -> Void
 
-    init(onConnect: @escaping (ConnectionProfile, String?, Bool) -> Void, onCancel: @escaping () -> Void) {
+    /// `prefill`: a new connection with these values (e.g. a server from the Network folder) instead
+    /// of the first saved one.
+    init(prefill: Draft? = nil, onConnect: @escaping (ConnectionProfile, String?, Bool) -> Void,
+         onCancel: @escaping () -> Void) {
         let saved = AppSettings.shared.connections
         _profiles = State(initialValue: saved)
-        _selection = State(initialValue: saved.first?.id)
-        _draft = State(initialValue: saved.first.map(Draft.init) ?? Draft())
+        _selection = State(initialValue: prefill == nil ? saved.first?.id : nil)
+        _draft = State(initialValue: prefill ?? saved.first.map(Draft.init) ?? Draft())
         self.onConnect = onConnect
         self.onCancel = onCancel
     }
@@ -191,13 +194,14 @@ struct ConnectSheet: View {
     }
 
     @MainActor
-    static func show(for panel: PanelViewController) {
+    static func show(for panel: PanelViewController, prefill: Draft? = nil) {
         guard let window = panel.view.window else { return }
         var sheetWindow: NSWindow?
         let close = {
             if let sheetWindow { window.endSheet(sheetWindow) }
         }
         let sheet = ConnectSheet(
+            prefill: prefill,
             onConnect: { profile, password, remember in
                 close()
                 panel.connect(to: profile.location, password: password,

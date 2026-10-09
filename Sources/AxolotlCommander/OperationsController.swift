@@ -100,7 +100,8 @@ final class OperationsController {
         }
         let sheet = TransferSheet(
             title: kind == .copy ? String(localized: "Copy \(names) to:") : String(localized: "Move \(names) to:"),
-            destination: other.model.location.displayPath,
+            // The Network folder is no destination: offer the panel's own folder instead.
+            destination: (other.model.isNetwork ? panel : other).model.location.displayPath,
             mask: "*.*",
             onDone: { [weak self] path, mask in
                 close()
@@ -119,6 +120,9 @@ final class OperationsController {
     }
 
     private func run(_ kind: TransferKind, sources: [URL], destination: URL, mask: String, panel: PanelViewController) {
+        guard !NetworkPlaces.isNetwork(destination), !sources.contains(where: NetworkPlaces.isNetwork) else {
+            return report(OperationError.path(.notADirectory))
+        }
         if RemoteURL.isRemote(sources[0]) || RemoteURL.isRemote(destination) {
             return transferRemote(kind, sources: sources, destination: destination, mask: mask, panel: panel)
         }

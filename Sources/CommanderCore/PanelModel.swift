@@ -46,6 +46,8 @@ public final class PanelModel {
     public private(set) var archive: ArchivePath?
     /// Set while `location` is a folder on a server (`sftp://…`, `ftp://…`).
     public var remote: RemoteLocation? { results == nil ? RemoteURL.parse(location) : nil }
+    /// The panel shows the virtual Network folder (servers and network volumes, nothing on disk).
+    public var isNetwork: Bool { NetworkPlaces.isNetwork(location) }
 
     public var sort: SortSpec = .default {
         didSet { if !isRestoring, sort != oldValue { rebuild() } }
@@ -99,7 +101,7 @@ public final class PanelModel {
             }
             // Member names are case-sensitive: "A.txt" and "a.txt" are two members.
             let archive = results == nil ? ArchivePath.split(url) : nil
-            let caseSensitive = archive != nil || RemoteURL.isRemote(url)
+            let caseSensitive = archive != nil || RemoteURL.isRemote(url) || NetworkPlaces.isNetwork(url)
             return (raw, caseSensitive ? NameRules(caseSensitive: true) : NameRules.forVolume(containing: url), archive)
         } catch {
             lastError = error
@@ -290,11 +292,17 @@ public final class PanelModel {
 
     public func goParent() async throws {
         if results != nil { return try await go(to: location) }
+        // The Network folder has no parent: back where the panel came from.
+        if isNetwork {
+            if canGoBack { return try await goBack() }
+            return try await go(to: FileManager.default.homeDirectoryForCurrentUser)
+        }
         guard location.path != "/" else { return }
         try await go(to: location.deletingLastPathComponent(), focusing: location.lastPathComponent)
     }
 
     public func goRoot() async throws {
+        if isNetwork { return }
         if let remote { return try await go(to: RemoteURL.make(remote.endpoint, path: "/")) }
         try await go(to: Volumes.root(of: location))
     }

@@ -62,8 +62,10 @@ public enum VolumeBarModel {
 
     /// The item to show pressed: a server location presses its server; a local one presses
     /// iCloud Drive when inside it, Home when exactly the home folder, otherwise its volume
-    /// (`volumeRoot`, the mount point containing `local`).
-    public static func pressed(local: URL?, remote: RemoteEndpoint?, volumeRoot: URL?, items: [Item]) -> Int? {
+    /// (`volumeRoot`, the mount point containing `local`). The Network folder presses Network.
+    public static func pressed(local: URL?, remote: RemoteEndpoint?, volumeRoot: URL?, items: [Item],
+                               network: Bool = false) -> Int? {
+        if network { return items.firstIndex(of: .network) }
         if let remote {
             return items.firstIndex { if case .server(remote, _) = $0 { true } else { false } }
         }

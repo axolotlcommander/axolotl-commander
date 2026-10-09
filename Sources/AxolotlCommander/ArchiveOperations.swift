@@ -516,7 +516,8 @@ extension OperationsController {
     func pack(_ items: [FileItem], from panel: PanelViewController) {
         guard !isBusy, !items.isEmpty else { return }
         let other = windowController.otherPanel(than: panel)
-        let folder = other.model.archive == nil && other.model.results == nil ? other.model.location : panel.model.location
+        let folder = other.model.archive == nil && other.model.results == nil && !other.model.isNetwork
+            ? other.model.location : panel.model.location
         let base = items.count == 1 ? items[0].baseName : panel.model.location.lastPathComponent
         let initial = folder.appending(path: (base.isEmpty ? "Archive" : base) + ".zip").displayPath
         showTargetSheet(title: String(localized: "Pack \(Self.describe(items.map(\.url))) to:"), path: initial, showsFormat: true) { path in
@@ -549,7 +550,8 @@ extension OperationsController {
     func unpack(_ archives: [URL], from panel: PanelViewController) {
         guard !isBusy, !archives.isEmpty else { return }
         let other = windowController.otherPanel(than: panel)
-        let folder = other.model.archive == nil && other.model.results == nil ? other.model.location : panel.model.location
+        let folder = other.model.archive == nil && other.model.results == nil && !other.model.isNetwork
+            ? other.model.location : panel.model.location
         showTargetSheet(title: String(localized: "Unpack \(Self.describe(archives)) to:"), path: folder.displayPath, showsFormat: false) { path in
             let destination = try PathRules.resolve(path, relativeTo: panel.model.location)
             guard ArchivePath.split(destination) == nil else { throw ArchiveError.unsupportedFormat }

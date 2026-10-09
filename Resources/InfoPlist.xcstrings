@@ -69,6 +69,23 @@
         }
       }
     },
+    "NSLocalNetworkUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Axolotl Commander finds file servers on your local network to list them in the Network folder."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Axolotl Commander vyhledává souborové servery ve vaší místní síti, aby je zobrazil ve složce Síť."
+          }
+        }
+      }
+    },
     "NSNetworkVolumesUsageDescription": {
       "extractionState": "manual",
       "localizations": {

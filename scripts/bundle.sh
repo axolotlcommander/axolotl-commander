@@ -53,6 +53,8 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>NSDownloadsFolderUsageDescription</key><string>Axolotl Commander shows and manages the files in Downloads when you open the folder in a panel.</string>
   <key>NSRemovableVolumesUsageDescription</key><string>Axolotl Commander shows and manages the files on external disks when you open them in a panel.</string>
   <key>NSNetworkVolumesUsageDescription</key><string>Axolotl Commander shows and manages the files on network volumes when you open them in a panel.</string>
+  <key>NSLocalNetworkUsageDescription</key><string>Axolotl Commander finds file servers on your local network to list them in the Network folder.</string>
+  <key>NSBonjourServices</key><array><string>_smb._tcp</string><string>_afpovertcp._tcp</string><string>_sftp-ssh._tcp</string></array>
   <key>NSFileProviderDomainUsageDescription</key><string>Axolotl Commander shows and manages the files of cloud storage (such as iCloud Drive) when you open it in a panel.</string>
 </dict></plist>
 PLIST
