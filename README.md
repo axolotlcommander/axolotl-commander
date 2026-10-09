@@ -153,8 +153,12 @@ to the plain text field.
 
 **Volume bar.** Above the path bar sit the mounted volumes, then iCloud Drive, Network and a
 button for every open SFTP/FTP/FTPS connection. A server button returns the panel to the folder
-it left there; hover over it and click ⏏ to disconnect, or right-click for more. Network lists
-mounted network volumes, the open connections and Connect to Server… (also in the toolbar, ⌘K).
+it left there; hover over it and click ⏏ to disconnect, or right-click for more. Network shows
+the Network folder in the panel: the SMB, AFP and SFTP servers that announce themselves on the
+local network and the mounted network volumes. Enter on an SMB or AFP server asks for the login
+and the share in the macOS dialog and enters the mounted share; Enter on an SFTP server opens
+Connect to Server with its address. Right-click Network for a quick menu of mounted network
+volumes, open connections and Connect to Server… (also in the toolbar, ⌘K).
 Settings → Appearance chooses what the bar shows, including an optional Home button.
 
 | Key | Command | Key | Command |
@@ -171,7 +175,8 @@ Settings → Appearance chooses what the bar shows, including an optional Home b
 All commands and their shortcuts are in the menus.
 
 **Permissions.** The first time you open the Desktop, Documents, Downloads, iCloud Drive, or a
-network or removable volume, macOS asks whether to allow access, once per place. For folders
+network or removable volume, macOS asks whether to allow access, once per place. The Network
+folder needs access to the local network, which macOS asks for the first time it is shown. For folders
 protected by the system (such as `~/Library/Mail`) you can add the app to *Privacy & Security →
 Full Disk Access*, but it is not required. If you build the app yourself, `scripts/bundle.sh`
 signs it with your "Apple Development" certificate when you have one (a free Apple ID in Xcode

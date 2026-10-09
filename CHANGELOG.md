@@ -32,6 +32,11 @@ First public release of the source code: a two-panel file manager (stages 0–11
   (⌃T) follows symbolic links and Finder aliases. Existing items are never replaced. Change
   Attributes… (⌃F2) opens the permissions editor directly
   ([005-unix-link-commands](specs/005-unix-link-commands/spec.md)).
+- Network folder: the Network button in the volume bar (and Network in the volume menu) shows
+  the SMB, AFP and SFTP servers announced on the local network and the mounted network volumes
+  in the panel; Enter mounts an SMB/AFP share through the macOS dialog and enters it, or opens
+  Connect to Server for an SFTP server. The quick menu of the Network button moved to its
+  right-click ([006-network-places](specs/006-network-places/spec.md)).
 - The macOS prompts for folder access (Desktop, Documents, Downloads, disks, cloud storage)
   explain why a file manager needs it, in English and Czech.
 - Releases can be signed with a stable project certificate (`scripts/make-signing-cert.sh`), so
