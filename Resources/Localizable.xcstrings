@@ -8843,6 +8843,26 @@
           }
         }
       }
+    },
+    "Row %@ opens a quote that is never closed; the quote is read as text.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Řádek %@ otevírá uvozovku, která se nikde neuzavře; uvozovka se čte jako text."
+          }
+        }
+      }
+    },
+    "Row %@, malformed: unclosed quote": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Řádek %@, vadný: neuzavřená uvozovka"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

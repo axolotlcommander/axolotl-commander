@@ -386,13 +386,13 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         case .table?:
             markdownPreview.clear()
             imagePreview.clear()
-            window?.makeFirstResponder(tablePreview.keyView)
             let bom = EncodingDetector.bom(in: data)
             let skip = bom?.encoding == encoding ? bom?.length ?? 0 : 0
             let ext = sequence.current.pathExtension.lowercased()
             tablePreview.fontSize = fontSize
             tablePreview.show(data, encoding: encoding, contentStart: skip, preferTab: ext == "tsv" || ext == "tab",
                               token: loadToken, at: position)
+            tablePreview.focus()
             updateStatus()
         case .image?:
             markdownPreview.clear()

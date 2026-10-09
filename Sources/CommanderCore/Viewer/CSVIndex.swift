@@ -66,11 +66,13 @@ public struct CSVIndex: Sendable {
         return best
     }
 
-    /// File rows whose field count differs from the expected one, ascending.
+    /// File rows whose field count differs from the expected one, or that hold an unclosed quote, ascending.
     public func malformedRows(excludingFirst: Bool) -> [Int] {
         let expected = UInt32(expectedFields(excludingFirst: excludingFirst))
+        let unclosed = Set(unclosedQuotes.map(\.row))
         var rows: [Int] = []
-        for row in (excludingFirst ? 1 : 0)..<max(rowCount, excludingFirst ? 1 : 0) where fieldCounts[row] != expected {
+        for row in (excludingFirst ? 1 : 0)..<max(rowCount, excludingFirst ? 1 : 0)
+        where fieldCounts[row] != expected || (!unclosed.isEmpty && unclosed.contains(row)) {
             rows.append(row)
         }
         return rows

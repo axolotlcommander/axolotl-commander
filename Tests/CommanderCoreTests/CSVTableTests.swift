@@ -63,6 +63,7 @@ private func table(_ data: Data, _ d: CSVDialect) -> [[String]] {
         #expect(idx.rowCount == 4)
         #expect(idx.unclosedQuotes == [CSVUnclosedQuote(row: 1, offset: 6)])
         #expect(table(data, dialect()) == [["a", "b"], ["c", "\"d"], ["e", "f"], ["g", "h"]])
+        #expect(idx.malformedRows(excludingFirst: false) == [1])
     }
 
     @Test func byteOrderMark() {

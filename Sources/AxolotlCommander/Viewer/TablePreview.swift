@@ -33,6 +33,14 @@ final class CSVTableView: NSTableView {
     }
 }
 
+/// The line between the row numbers and the table (a separator box would pull the view to its own height).
+private final class DividerView: NSView {
+    override func draw(_ dirtyRect: NSRect) {
+        NSColor.separatorColor.setFill()
+        dirtyRect.fill()
+    }
+}
+
 /// The row numbers' scroll view: it follows the table and hands wheel scrolling to it.
 private final class GutterScrollView: NSScrollView {
     weak var target: NSScrollView?
@@ -137,8 +145,7 @@ final class TablePreview: NSView, NSTableViewDataSource, NSTableViewDelegate {
         gutterScroll.borderType = .noBorder
         gutterScroll.target = scroll
 
-        let divider = NSBox()
-        divider.boxType = .separator
+        let divider = DividerView()
         for view in [gutterScroll, divider, scroll] as [NSView] {
             view.translatesAutoresizingMaskIntoConstraints = false
             addSubview(view)
@@ -168,6 +175,12 @@ final class TablePreview: NSView, NSTableViewDataSource, NSTableViewDelegate {
 
     /// The view to focus for the viewer keys.
     var keyView: NSView { table }
+    private var wantsFocus = false
+
+    /// Focuses the table, or does so once it has columns.
+    func focus() {
+        wantsFocus = window?.makeFirstResponder(table) != true
+    }
 
     // MARK: Loading
 
@@ -248,6 +261,8 @@ final class TablePreview: NSView, NSTableViewDataSource, NSTableViewDelegate {
         malformed = []
         expectedFields = 0
         removeColumns()
+        // The sampled rows give the columns at once (and a table without columns takes no focus).
+        ensureColumns(sample.rows.map(\.count).max() ?? 0)
         updateRows()
         reloadTables()
         let data = data, dialect = dialect
@@ -264,6 +279,7 @@ final class TablePreview: NSView, NSTableViewDataSource, NSTableViewDelegate {
         let hadHeader = hasHeader
         index = snapshot
         ensureColumns(index.maxFields)
+        if wantsFocus, window?.makeFirstResponder(table) == true { wantsFocus = false }
         if hasHeader != hadHeader { refreshTitles() }
         recomputeMalformed()
         updateRows()
@@ -362,8 +378,11 @@ final class TablePreview: NSView, NSTableViewDataSource, NSTableViewDelegate {
     private func updateGutterWidth() {
         let last = max(index.rowCount, 1)
         let digits = CGFloat(String(last).count)
-        let digit = ("0" as NSString).size(withAttributes: [.font: NSFont.monospacedDigitSystemFont(ofSize: fontSize, weight: .regular)]).width
-        let width = ceil(digits * digit + (malformed.isEmpty ? 16 : 34))
+        let attributes: [NSAttributedString.Key: Any] = [.font: NSFont.monospacedDigitSystemFont(ofSize: fontSize, weight: .regular)]
+        let digit = ("0" as NSString).size(withAttributes: attributes).width
+        let marker = malformed.isEmpty ? 0 : ("⚠ " as NSString).size(withAttributes: attributes).width
+        // Digits with group separators, the marker and the cell's insets.
+        let width = ceil((digits + digits / 3) * digit + marker + 20)
         guard abs(gutterWidth.constant - width) > 0.5 else { return }
         gutterWidth.constant = width
         gutter.tableColumns.first?.width = width - gutter.intercellSpacing.width
@@ -419,8 +438,14 @@ final class TablePreview: NSView, NSTableViewDataSource, NSTableViewDelegate {
                 let count = Int(index.fieldCounts[row])
                 field.stringValue = "⚠ " + number
                 field.textColor = .systemOrange
-                field.toolTip = String(localized: "Row \(number) has \(count) fields; most rows have \(expectedFields).")
-                field.setAccessibilityLabel(String(localized: "Row \(number), malformed: \(count) of \(expectedFields) fields"))
+                if count == expectedFields {
+                    // Marked for its unclosed quote, not for its field count.
+                    field.toolTip = String(localized: "Row \(number) opens a quote that is never closed; the quote is read as text.")
+                    field.setAccessibilityLabel(String(localized: "Row \(number), malformed: unclosed quote"))
+                } else {
+                    field.toolTip = String(localized: "Row \(number) has \(count) fields; most rows have \(expectedFields).")
+                    field.setAccessibilityLabel(String(localized: "Row \(number), malformed: \(count) of \(expectedFields) fields"))
+                }
             } else {
                 field.stringValue = number
                 field.textColor = .secondaryLabelColor
