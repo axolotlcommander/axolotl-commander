@@ -64,7 +64,7 @@
   - no drop or drag.
 
   Record the results below.
-- [ ] T016 The maintainer checks mounting DISKSTATION and the SFTP prefill. Then set the spec
+- [X] T016 The maintainer checks mounting DISKSTATION and the SFTP prefill. Then set the spec
   status.
 
 ## GUI verification
@@ -79,3 +79,4 @@
 | 6 | Pass | Menus with the Network folder active: only navigation, sorting, view, tabs, volume menus, refresh, Connect to Server and window commands are enabled; Copy, Move, New Folder, Move to Trash, Rename, links, Pack, Get Info, Paste Files, Open Terminal Here and the rest are disabled. Compare Panels stays enabled (it compares the listed names and dates only). |
 | 7 | Pass | F5 in the other panel (Network folder on the left) prefills the other panel's own folder, not "Network". |
 | 8 | Pass | Dragging `f.txt` from the right panel onto the Network folder: the drop is refused, no dialog, nothing copied. Drag out of the Network folder not tried in the GUI (no rows while the NAS was silent); `pasteboardWriterForRow` and the Brief view's drag return nothing on the network location. |
+| 9 | Pass | 2026-10-09: the maintainer opened `DISKSTATION` from the Network folder in the test copy (macOS login/share dialog, then the panel entered the share). |

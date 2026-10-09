@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-09
 
-**Status**: Draft
+**Status**: Implemented
 
 **Input**: User description: "The Network button next to Macintosh HD should not open a menu for
 connecting; it should show the places on the network, as Commander One does (a 'Síť' folder with
