@@ -21,6 +21,11 @@ them.
   next (previous) matching cell: the remaining cells of the same row first, then the following
   (preceding) rows. Found in the maintainer's check of the first build; FR-019 and User Story 1,
   scenario 8 follow it.
+- Q: Do F3 and ⇧F3 work while the cursor is still in the find field (⌘F, type, Enter, F3, F3…)?
+  → A: Yes. The viewer's function keys work while any field of the viewer is being edited, in every
+  mode (FR-019a).
+- Q: How do the keys move in the table? → A: As in the file panels: ↑ ↓ Page Up/Down Home End move
+  the selection (⇧ extends it), ← → scroll by one column, and typing does not jump to rows (FR-018).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -259,10 +264,13 @@ Click the titles and check the order.
 
 - **FR-017**: The status bar MUST show the row count ("counting… N" while reading), the column
   count, the separator, the encoding and the malformed-row count (FR-021).
-- **FR-018**: The user MUST be able to select rows: click, ⇧-click, ⌘-click, arrow keys, Page
-  Up/Down, Home/End and ⌘A. ⌘C MUST copy the selected rows, without the header, as tab-separated
+- **FR-018**: The user MUST be able to select rows: click, ⇧-click, ⌘-click, ↑ ↓ Page Up/Down
+  Home End (each moving the selection as in the file panels, ⇧ extending it) and ⌘A. ← and →
+  MUST scroll sideways by one column. Typing letters MUST NOT select rows. ⌘C MUST copy the selected rows, without the header, as tab-separated
   text with one line per row. Fields that contain a tab, a quote or a line break MUST be quoted.
   With no selection, ⌘C copies nothing (the command is disabled).
+- **FR-019a**: While a field of the viewer (a find bar) is being edited, the viewer's function-key
+  commands (F3, ⇧F3, F7 and the others) MUST work as they do outside the field, in every mode.
 - **FR-019**: Edit → Find (⌘F/F7) MUST open the viewer's find bar for the table. Matches MUST
   ignore case and diacritics. Find Next/Previous (⌘G/F3, ⇧⌘G/⇧F3, Enter/⇧Enter in the find bar)
   MUST go to the next/previous matching cell in the displayed order: the remaining cells of the

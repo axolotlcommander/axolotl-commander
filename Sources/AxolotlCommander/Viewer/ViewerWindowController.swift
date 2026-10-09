@@ -142,6 +142,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
     /// Bumped for every load, so the table preview knows a file from a reload of it.
     private var loadToken = 0
     private var isTable: Bool { mode == .preview && previewKind == .table }
+    private var keyMonitor: Any?
     private let modeControl = NSSegmentedControl(labels: [String(localized: "Text"), String(localized: "Hex"),
                                                           String(localized: "Preview")],
                                                  trackingMode: .selectOne, target: nil, action: nil)
@@ -163,6 +164,10 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         super.init(window: window)
         window.delegate = self
         buildContent(in: window)
+        keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard let self, event.window === self.window else { return event }
+            return self.interceptFieldKey(event) ? nil : event
+        }
         if let last = Self.open.last?.window {
             window.setFrame(last.frame, display: false)
             window.setFrameTopLeftPoint(window.cascadeTopLeft(from: NSPoint(x: last.frame.minX, y: last.frame.maxY)))
@@ -587,6 +592,14 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
               !KeyMaps.menuHandles(chord, for: command, in: .viewer) else { return false }
         perform(command)
         return true
+    }
+
+    /// While a field edits (a find bar), the viewer's function keys still work: ⌘F, type, Enter,
+    /// then F3 / ⇧F3 for the next and previous match without leaving the field.
+    private func interceptFieldKey(_ event: NSEvent) -> Bool {
+        guard let editor = window?.firstResponder as? NSTextView, editor.isFieldEditor,
+              let chord = KeyChord(event: event), case .function = chord.key else { return false }
+        return handleKey(event)
     }
 
     func perform(_ command: Command) {
@@ -1029,6 +1042,8 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         markdownPreview.clear()
         imagePreview.clear()
         tablePreview.clear()
+        if let keyMonitor { NSEvent.removeMonitor(keyMonitor) }
+        keyMonitor = nil
         Self.open.removeAll { $0 === self }
     }
 }

@@ -35,10 +35,21 @@ The user-facing interface of the table preview. Keys are registered in `CommandR
 In table preview, Wrap Lines, Highlight Syntax, Zoom to Fit, Save Image As… and Load Images from
 the Internet are disabled.
 
-Inside the table:
+Inside the table (as in the file panels):
 - ↑ ↓ Page Up/Down Home End move the selection;
 - ⇧ with them extends it;
+- ← → scroll sideways by one column;
+- typing letters does nothing;
 - a click selects, and ⌘-click / ⇧-click extend.
+
+In the find field:
+- Enter / ⇧Enter find the next / previous match;
+- F3 / ⇧F3 do the same, so ⌘F, a query, Enter, F3, F3… never leaves the field;
+- the other function keys of the viewer work as outside the field;
+- Esc closes the find bar and returns to the table.
+
+Find Next / Previous go cell by cell: the rest of the current row first, then the following
+(preceding) rows, wrapping at the end.
 
 ## Column titles (mouse)
 

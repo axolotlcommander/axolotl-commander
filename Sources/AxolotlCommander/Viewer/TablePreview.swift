@@ -22,7 +22,53 @@ final class CSVTableView: NSTableView {
 
     override func keyDown(with event: NSEvent) {
         if onKey?(event) == true { return }
-        super.keyDown(with: event)
+        let flags = event.modifierFlags.intersection([.command, .option, .control])
+        guard flags.isEmpty else { return super.keyDown(with: event) }
+        let extend = event.modifierFlags.contains(.shift)
+        switch event.specialKey {
+        // Like the file panels: these move the selection, not only the view.
+        case .home?: moveSelection(to: 0, extend: extend)
+        case .end?: moveSelection(to: numberOfRows - 1, extend: extend)
+        case .pageUp?: moveSelection(to: max(selectedRow, 0) - pageRows, extend: extend)
+        case .pageDown?: moveSelection(to: max(selectedRow, 0) + pageRows, extend: extend)
+        case .leftArrow?: scrollColumns(by: -1)
+        case .rightArrow?: scrollColumns(by: 1)
+        default: super.keyDown(with: event)
+        }
+    }
+
+    private var pageRows: Int { max(rows(in: visibleRect).length - 1, 1) }
+
+    private func moveSelection(to row: Int, extend: Bool) {
+        guard numberOfRows > 0 else { return }
+        let target = min(max(row, 0), numberOfRows - 1)
+        let anchor = extend && selectedRow >= 0 ? selectionAnchor : target
+        let range = min(anchor, target)...max(anchor, target)
+        selectRowIndexes(IndexSet(integersIn: range), byExtendingSelection: false)
+        selectionAnchor = anchor
+        scrollRowToVisible(target)
+    }
+
+    /// Where a ⇧ selection started.
+    private var selectionAnchor = 0
+
+    override func selectRowIndexes(_ indexes: IndexSet, byExtendingSelection extend: Bool) {
+        super.selectRowIndexes(indexes, byExtendingSelection: extend)
+        if indexes.count == 1, let only = indexes.first { selectionAnchor = only }
+    }
+
+    /// ← and → scroll sideways by one column.
+    private func scrollColumns(by delta: Int) {
+        guard let clip = enclosingScrollView?.contentView, numberOfColumns > 0 else { return }
+        let visible = columnIndexes(in: visibleRect)
+        guard let first = visible.first else { return }
+        // A partly hidden first column counts as the current one when going left.
+        let firstRect = rect(ofColumn: first)
+        let current = delta < 0 && firstRect.minX < clip.bounds.minX - 0.5 ? first + 1 : first
+        let target = min(max(current + delta, 0), numberOfColumns - 1)
+        let maxX = max(bounds.width - clip.bounds.width, 0)
+        clip.scroll(to: NSPoint(x: min(rect(ofColumn: target).minX, maxX), y: clip.bounds.minY))
+        enclosingScrollView?.reflectScrolledClipView(clip)
     }
 
     @objc func copy(_ sender: Any?) { onCopy?() }
@@ -123,6 +169,8 @@ final class TablePreview: NSView, NSTableViewDataSource, NSTableViewDelegate {
             view.delegate = self
         }
         table.allowsMultipleSelection = true
+        // Typing does not jump to rows; letters are not commands in the viewer either.
+        table.allowsTypeSelect = false
         table.allowsColumnReordering = true
         table.allowsColumnResizing = true
         table.gridStyleMask = [.solidVerticalGridLineMask]
