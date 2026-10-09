@@ -8,32 +8,32 @@
 
 ## Phase 1: Foundational (core reading)
 
-- [ ] T001 Write `CSVSeparator` in Sources/CommanderCore/Viewer/CSVFormat.swift:
+- [X] T001 Write `CSVSeparator` in Sources/CommanderCore/Viewer/CSVFormat.swift:
   - the cases semicolon, comma, tab, bar, with their byte values.
-- [ ] T002 Write `CSVDialect` in Sources/CommanderCore/Viewer/CSVFormat.swift:
+- [X] T002 Write `CSVDialect` in Sources/CommanderCore/Viewer/CSVFormat.swift:
   - the separator, the encoding and `contentStart` (after the BOM);
   - a unit width of 2 for UTF-16.
-- [ ] T003 Write `CSVNumber.parse` in Sources/CommanderCore/Viewer/CSVFormat.swift:
+- [X] T003 Write `CSVNumber.parse` in Sources/CommanderCore/Viewer/CSVFormat.swift:
   - the pattern from FR-013, with a decimal comma only when the separator is not a comma.
-- [ ] T004 Write the row splitter `CSVRow.fields(in:from:to:dialect:literalQuoteAt:)` in
+- [X] T004 Write the row splitter `CSVRow.fields(in:from:to:dialect:literalQuoteAt:)` in
   Sources/CommanderCore/Viewer/CSVIndex.swift:
   - RFC 4180 rules (FR-004, FR-005);
   - decoding through `TextDecoding`;
   - 1- and 2-byte units.
-- [ ] T005 Write the indexer in Sources/CommanderCore/Viewer/CSVIndex.swift:
+- [X] T005 Write the indexer in Sources/CommanderCore/Viewer/CSVIndex.swift:
   - a scanner that records `rowStarts` and `fieldCounts`;
   - unclosed-quote recovery (R3);
   - `CSVIndex` snapshots with `maxFields` and `isComplete`;
   - `CSVIndexer.index(data:dialect:)` as a cancellable `AsyncThrowingStream`.
-- [ ] T006 Write `CSVSample.detect` in Sources/CommanderCore/Viewer/CSVFormat.swift:
+- [X] T006 Write `CSVSample.detect` in Sources/CommanderCore/Viewer/CSVFormat.swift:
   - the sample: 64 KiB or 1 000 rows;
   - separator scoring and the tie order (R4);
   - numeric columns at 90 %;
   - the header rule (FR-010).
-- [ ] T007 [P] Write `CSVClipboard.tsv` in Sources/CommanderCore/Viewer/CSVClipboard.swift:
+- [X] T007 [P] Write `CSVClipboard.tsv` in Sources/CommanderCore/Viewer/CSVClipboard.swift:
   - tab and LF separators;
   - fields with a tab, quote, CR or LF quoted, with quotes doubled.
-- [ ] T008 [P] Write tests in Tests/CommanderCoreTests/CSVTableTests.swift for:
+- [X] T008 [P] Write tests in Tests/CommanderCoreTests/CSVTableTests.swift for:
   - parsing: quotes, doubled quotes, CR/LF/CRLF, the final line break, an empty line, a quote
     mid-field;
   - the BOM, UTF-16 LE/BE and Windows-1250;
@@ -92,7 +92,7 @@
 
 ## Phase 4: User Story 4 — Sorting (P2)
 
-- [ ] T017 [US4] Write `CSVSort` in Sources/CommanderCore/Viewer/CSVSort.swift:
+- [X] T017 [US4] Write `CSVSort` in Sources/CommanderCore/Viewer/CSVSort.swift:
   - key extraction;
   - numbers with non-numeric cells after them;
   - text deduplicated, sorted by the locale comparison (parallel above 50 000 distinct values)
