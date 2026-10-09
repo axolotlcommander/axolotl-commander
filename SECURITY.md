@@ -4,7 +4,7 @@
 
 Do **not** report security vulnerabilities in a public issue. Use GitHub's private reporting:
 [Report a vulnerability](https://github.com/axolotlcommander/axolotl-commander/security/advisories/new),
-or e-mail **acidek@icloud.com**.
+or e-mail **milan@axolotlcommander.org**.
 
 Please say what the bug affects (e.g. archive extraction, SFTP/FTP, Markdown/HTML preview,
 password storage), how to reproduce it, and what impact it may have. We will respond within
