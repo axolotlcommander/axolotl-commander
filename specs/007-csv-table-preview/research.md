@@ -150,6 +150,11 @@ expected count is the histogram's maximum, with the larger field count winning a
 
 Esc cancels between chunks. Files over 256 MB ask first (FR-027).
 
+**Measured after implementation** (release build, 10⁶ unique strings): comparing through
+`Locale` serializes on a lock, so parallel chunks were slower than one thread (13 s). With a
+CoreFoundation locale made once and shared (`CFStringCompareWithOptionsAndLocale`), chunks and
+the pairwise merges run in parallel: 2.6 s for the whole sort, extraction included.
+
 **Rationale**: the measured single-threaded cost for 10⁶ unique strings is 7.7 s. Split across 8
 to 10 performance cores, plus an O(n log k) merge, that is about 1.5–2.5 s, which meets SC-007.
 Deduplication makes the common case (repeated values) fast: 0.09 s.

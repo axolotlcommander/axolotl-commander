@@ -112,9 +112,9 @@
 ## Phase 5: Polish
 
 - [X] T019 [P] Add en + cs strings in Resources/Localizable.xcstrings.
-- [ ] T020 [P] Update CHANGELOG.md (Unreleased → Added) and the README feature list if it
+- [X] T020 [P] Update CHANGELOG.md (Unreleased → Added) and the README feature list if it
   mentions the viewer.
-- [ ] T021 Build without warnings and run `swift test`. GUI checks from quickstart.md in the test
+- [X] T021 Build without warnings and run `swift test`. GUI checks from quickstart.md in the test
   copy, plus the maintainer's export (local only).
 - [ ] T022 Update docs/STATE.md (local), commit and open the PR.
 

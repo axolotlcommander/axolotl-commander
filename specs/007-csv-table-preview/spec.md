@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-09
 
-**Status**: Draft
+**Status**: Implemented
 
 **Input**: User description: "Next feature: a quick view for CSV. We have a preview for Markdown, so
 there should be one for CSV as well; Quick Look can do it, so the app should do it too. Sorting
@@ -24,6 +24,9 @@ them.
 - Q: Do F3 and ⇧F3 work while the cursor is still in the find field (⌘F, type, Enter, F3, F3…)?
   → A: Yes. The viewer's function keys work while any field of the viewer is being edited, in every
   mode (FR-019a).
+- Q: A file with a single row (only a header)? → A: The header rule needs at least two rows, so
+  the row is shown as data; First Row Is Header turns it into the titles with 0 rows. The Edge
+  Cases entry is updated.
 - Q: How do the keys move in the table? → A: As in the file panels: ↑ ↓ Page Up/Down Home End move
   the selection (⇧ extends it), ← → scroll by one column, and typing does not jump to rows (FR-018).
 
@@ -175,7 +178,8 @@ Click the titles and check the order.
 
 - **Empty file**: an empty table and "0 rows" in the status bar.
 - **No separator found** (a single column): one column, and the separator popup shows Auto.
-- **Only a header row**: the titles are shown with no data rows ("0 rows").
+- **Only a header row**: shown as one data row (the header rule needs two rows); First Row Is
+  Header shows it as the titles with no data rows ("0 rows").
 - **A field of several megabytes** (no line breaks): the cell shows the beginning, truncated, and
   the viewer stays responsive. The tooltip and ⌘C carry the whole field.
 - **Binary content** with a `.csv` extension: opens in Hex, as the viewer does for binary files

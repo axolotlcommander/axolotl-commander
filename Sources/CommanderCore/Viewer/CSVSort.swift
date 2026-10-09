@@ -68,6 +68,22 @@ public enum CSVSort {
         return cells
     }
 
+    /// Compares texts by a locale's rules, ignoring case. A CoreFoundation locale made once is safe
+    /// to share and lets comparisons run in parallel (measured: comparing through `Locale` serializes
+    /// on a lock, so parallel chunks were slower than one thread).
+    struct Collator: @unchecked Sendable {
+        private let locale: CFLocale
+
+        init(_ locale: Locale) {
+            self.locale = CFLocaleCreate(nil, CFLocaleIdentifier(rawValue: locale.identifier as CFString))
+        }
+
+        func order(_ a: String, _ b: String) -> CFComparisonResult {
+            CFStringCompareWithOptionsAndLocale(a as CFString, b as CFString, CFRange(location: 0, length: a.utf16.count),
+                                                [.compareCaseInsensitive, .compareLocalized], locale)
+        }
+    }
+
     /// The rank of each cell's text among the distinct texts, in the locale's order.
     static func textRanks(_ cells: [String], locale: Locale) async throws -> [Int32] {
         var ids: [String: Int32] = [:]
@@ -84,27 +100,25 @@ public enum CSVSort {
             }
         }
         ids = [:]
-        let sorted = try await sortedIDs(distinct, locale: locale)
+        let collator = Collator(locale)
+        let sorted = try await sortedIDs(distinct, collator: collator)
         // Texts the comparison finds equal ("Praha", "praha") share a rank, so they keep file order.
         var rankOfID = [Int32](repeating: 0, count: distinct.count)
         var rank: Int32 = 0
         for (k, id) in sorted.enumerated() {
-            if k > 0, distinct[Int(sorted[k - 1])].compare(distinct[Int(id)], options: .caseInsensitive, range: nil,
-                                                           locale: locale) != .orderedSame {
-                rank += 1
-            }
+            if k > 0, collator.order(distinct[Int(sorted[k - 1])], distinct[Int(id)]) != .compareEqualTo { rank += 1 }
             rankOfID[Int(id)] = rank
         }
         return cellIDs.map { rankOfID[Int($0)] }
     }
 
-    /// Indices of `texts` in the locale's order; large inputs are sorted in parallel chunks.
-    private static func sortedIDs(_ texts: [String], locale: Locale) async throws -> [Int32] {
+    /// Indices of `texts` in the locale's order; large inputs are sorted in chunks on all cores and
+    /// merged pairwise, also in parallel.
+    private static func sortedIDs(_ texts: [String], collator: Collator) async throws -> [Int32] {
         @Sendable func less(_ a: Int32, _ b: Int32) -> Bool {
             // A cancelled sort finishes fast with any order; the caller throws afterwards.
             if Task.isCancelled { return false }
-            return texts[Int(a)].compare(texts[Int(b)], options: .caseInsensitive, range: nil, locale: locale)
-                == .orderedAscending
+            return collator.order(texts[Int(a)], texts[Int(b)]) == .compareLessThan
         }
         let all = Array(0..<Int32(texts.count))
         guard texts.count > parallelThreshold else {
@@ -125,11 +139,17 @@ public enum CSVSort {
         }
         try Task.checkCancellation()
         while chunks.count > 1 {
-            var next: [[Int32]] = []
-            for pair in stride(from: 0, to: chunks.count, by: 2) {
-                next.append(pair + 1 < chunks.count ? merge(chunks[pair], chunks[pair + 1], by: less) : chunks[pair])
+            let round = chunks
+            chunks = try await withThrowingTaskGroup(of: (Int, [Int32]).self) { group in
+                for pair in stride(from: 0, to: round.count, by: 2) {
+                    group.addTask {
+                        (pair / 2, pair + 1 < round.count ? merge(round[pair], round[pair + 1], by: less) : round[pair])
+                    }
+                }
+                var result = [[Int32]](repeating: [], count: (round.count + 1) / 2)
+                for try await (slot, merged) in group { result[slot] = merged }
+                return result
             }
-            chunks = next
             try Task.checkCancellation()
         }
         return chunks.first ?? []

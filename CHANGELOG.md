@@ -11,6 +11,16 @@ First public release of the source code: a two-panel file manager (stages 0–11
 
 ### Added
 
+- CSV, TSV and TAB files open in the viewer's Preview as a table, also when they are hundreds of
+  megabytes large. The table has:
+  - a detected separator, encoding and header row;
+  - fixed row numbers;
+  - marked malformed rows (⌘↓/⌘↑, Show Only Malformed Rows ⇧⌘D);
+  - find cell by cell (F3/⇧F3);
+  - Go to Row (⌘L) and copy as tab-separated text;
+  - sorting by a column once the file is read
+  ([007-csv-table-preview](specs/007-csv-table-preview/spec.md)).
+- In the viewer, function keys such as F3 and ⇧F3 also work while the find field is being edited.
 - Website [axolotlcommander.org](https://axolotlcommander.org), linked from the README and the
   About window.
 - Function key bar F1–F12 at the bottom of the main window, following the held modifiers
