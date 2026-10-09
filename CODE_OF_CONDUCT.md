@@ -7,6 +7,6 @@ In short: we treat others with respect, regardless of background, experience, id
 opinions; we criticize code and ideas, not people; harassment, insults, and publishing other
 people's private information are not acceptable.
 
-Report violations to the project maintainer at **acidek@icloud.com**. Every report is assessed
+Report violations to the project maintainer at **milan@axolotlcommander.org**. Every report is assessed
 confidentially. Maintainers may edit or remove inappropriate contributions and temporarily or
 permanently ban a participant, as described in the Contributor Covenant.
