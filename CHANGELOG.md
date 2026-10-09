@@ -11,6 +11,8 @@ First public release of the source code: a two-panel file manager (stages 0–11
 
 ### Added
 
+- Website [axolotlcommander.org](https://axolotlcommander.org), linked from the README and the
+  About window.
 - Function key bar F1–F12 at the bottom of the main window, following the held modifiers
   (⇧ ⌃ ⌥ ⌘); the bar and the command line can be hidden from the View menu or Settings
   ([002-function-key-bar](specs/002-function-key-bar/spec.md)).

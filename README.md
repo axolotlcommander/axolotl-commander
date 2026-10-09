@@ -5,7 +5,8 @@
 <h1 align="center">Axolotl Commander</h1>
 
 <p align="center">
-  A keyboard-driven two-panel file manager for macOS.
+  A keyboard-driven two-panel file manager for macOS.<br>
+  <a href="https://axolotlcommander.org"><b>axolotlcommander.org</b></a>
 </p>
 
 <p align="center">
