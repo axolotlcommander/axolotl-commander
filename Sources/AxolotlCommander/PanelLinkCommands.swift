@@ -11,7 +11,7 @@ extension PanelViewController {
     /// The folder new links go to: the other panel's, unless it shows no folder on this Mac.
     private var linkFolder: URL {
         guard let other = router?.otherPanel(than: self),
-              other.model.archive == nil, other.model.remote == nil, other.model.results == nil
+              other.model.archive == nil, other.model.remote == nil, other.model.results == nil, !other.model.isNetwork
         else { return model.location }
         return other.model.location
     }

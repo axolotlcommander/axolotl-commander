@@ -12,8 +12,10 @@ public struct LocalFileSource: FileSource {
     public init() {}
 
     /// Folders inside archives (`/x/a.zip/dir`) are listed from the archive's index,
-    /// server folders (`sftp://…`, `ftp://…`) through `RemoteConnections.shared`.
+    /// server folders (`sftp://…`, `ftp://…`) through `RemoteConnections.shared`, the Network folder
+    /// (`network:/`) from `NetworkDiscovery`.
     public func list(_ directory: URL, includeHidden: Bool) async throws -> [FileItem] {
+        if NetworkPlaces.isNetwork(directory) { return NetworkDiscovery.shared.items() }
         if let remote = RemoteURL.parse(directory) {
             return try await RemoteConnections.shared.list(remote, includeHidden: includeHidden)
         }

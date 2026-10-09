@@ -211,7 +211,7 @@ final class PathBar: NSView {
             image = NSWorkspace.shared.icon(forFile: segment.url.path(percentEncoded: false))
         case .archiveFolder, .remoteFolder:
             image = NSImage(named: NSImage.folderName) ?? NSWorkspace.shared.icon(for: .folder)
-        case .server:
+        case .server, .network:
             image = NSImage(systemSymbolName: "network", accessibilityDescription: nil) ?? NSImage()
         case .results:
             image = NSImage(systemSymbolName: "magnifyingglass", accessibilityDescription: nil) ?? NSImage()

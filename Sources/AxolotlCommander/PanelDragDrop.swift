@@ -22,6 +22,8 @@ extension PanelViewController {
 
     /// Where a drop at `index` goes: a folder row, ".." (the parent) or the panel's folder.
     func dropTarget(row index: Int?) -> URL? {
+        // Nothing can be dropped into the Network folder (FR-012).
+        guard !model.isNetwork else { return nil }
         if let index, model.items.indices.contains(index) {
             let item = model.items[index]
             if item.isParent { return model.results == nil ? model.location.deletingLastPathComponent() : nil }

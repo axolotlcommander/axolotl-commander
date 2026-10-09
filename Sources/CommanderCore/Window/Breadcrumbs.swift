@@ -7,7 +7,7 @@ public import Foundation
 /// title of search results.
 public struct PathSegment: Hashable, Sendable {
     public enum Kind: Hashable, Sendable {
-        case volume, home, folder, archive, archiveFolder, server, remoteFolder, results
+        case volume, home, folder, archive, archiveFolder, server, remoteFolder, results, network
     }
 
     public var name: String

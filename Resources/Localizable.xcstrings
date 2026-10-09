@@ -8533,6 +8533,16 @@
           }
         }
       }
+    },
+    "Server": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
