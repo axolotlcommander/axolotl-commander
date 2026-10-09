@@ -5,18 +5,20 @@ only marks the version with a tag and publishes the draft release.
 
 ## Procedure
 
-1. Everything is merged into `main` and CI is green.
-2. In [CHANGELOG.md](../CHANGELOG.md), move the items from "Unreleased" under the new version with a date.
-3. Tag and push:
+1. The pull request raised the version with `scripts/bump-version.sh minor|patch`, which writes
+   `VERSION` and moves the items from "Unreleased" in [CHANGELOG.md](../CHANGELOG.md) under the new
+   version with a date (rules: "Versioning" in [CLAUDE.md](../CLAUDE.md)).
+2. It is merged into `main` and CI is green.
+3. Tag the merge commit with the version from `VERSION` and push the tag:
 
    ```sh
-   git tag -a v0.1.0 -m "Axolotl Commander 0.1.0"
-   git push origin v0.1.0
+   git tag -a "v$(cat VERSION)" -m "Axolotl Commander $(cat VERSION)"
+   git push origin "v$(cat VERSION)"
    ```
 
-4. The workflow checks that the tag has the form `vX.Y.Z`, is on `main` and that the signing secrets
+4. The workflow checks that the tag has the form `vX.Y.Z`, matches `VERSION`, is on `main` and that the signing secrets
    are set (see below), runs the tests, builds a universal app (Apple silicon + Intel) with the
-   version from the tag, signs it (and notarizes it with a Developer ID), packages `Axolotl-Commander-0.1.0.zip` and `.dmg`
+   version from the tag, signs it (and notarizes it with a Developer ID), packages `Axolotl-Commander-X.Y.Z.zip` and `.dmg`
    with `SHA256SUMS.txt`, and creates a **draft** release with automatic notes from pull requests.
 5. On GitHub, under *Releases*, review the draft, add notes, and click *Publish release*.
 
@@ -66,6 +68,6 @@ distributed outside the Mac App Store — via GitHub Releases, possibly a Homebr
 ## Manually (without GitHub)
 
 ```sh
-UNIVERSAL=1 VERSION=0.1.0 scripts/bundle.sh release
-ditto -c -k --keepParent "build/Axolotl Commander.app" Axolotl-Commander-0.1.0.zip
+UNIVERSAL=1 scripts/bundle.sh release
+ditto -c -k --keepParent "build/Axolotl Commander.app" Axolotl-Commander-$(cat VERSION).zip
 ```

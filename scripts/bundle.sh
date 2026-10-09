@@ -2,11 +2,11 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2026 The Axolotl Commander Authors
 # Builds Axolotl Commander.app into build/. Usage: scripts/bundle.sh [debug|release]
-# Environment: VERSION (e.g. 0.2.0), BUILD_NUMBER, UNIVERSAL=1 (Apple silicon + Intel),
+# Environment: VERSION (default: the VERSION file), BUILD_NUMBER, UNIVERSAL=1 (Apple silicon + Intel),
 # SIGN_IDENTITY (code signing identity; see the end of this script).
 set -eu
 CONFIG="${1:-debug}"
-VERSION="${VERSION:-0.1.0}"
+VERSION="${VERSION:-$(cat "$(dirname "$0")/../VERSION")}"
 BUILD_NUMBER="${BUILD_NUMBER:-1}"
 cd "$(dirname "$0")/.."
 if [ "${UNIVERSAL:-0}" = 1 ]; then
