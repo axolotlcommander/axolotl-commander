@@ -43,6 +43,10 @@ jobs:
             echo "::error::Release tags look like v1.2.3, not $GITHUB_REF_NAME."
             exit 1
           fi
+          if [ "${GITHUB_REF_NAME#v}" != "$(cat VERSION)" ]; then
+            echo "::error::The tag $GITHUB_REF_NAME does not match the VERSION file ($(cat VERSION))."
+            exit 1
+          fi
           git fetch --quiet origin main
           if ! git merge-base --is-ancestor HEAD origin/main; then
             echo "::error::The tagged commit is not on main."

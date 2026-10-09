@@ -5,7 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 
 ## [Unreleased]
 
-First public release of the source code: a two-panel file manager (stages 0–11 of the plan in
+## [0.2.0] - 2026-10-09
+
+The first versioned release (earlier builds called themselves 0.1.0 without a tag): a two-panel file manager (stages 0–11 of the plan in
 [docs/PLAN.md](docs/PLAN.md)) and the data-safety fixes from the
 [001-data-safety-gaps](specs/001-data-safety-gaps/spec.md) specification.
 

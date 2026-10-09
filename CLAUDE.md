@@ -33,6 +33,20 @@ New features get a spec in `specs/NNN-name/` through Spec Kit (written in Englis
 above). Small changes (a bug fix, a layout tweak, a new shortcut) do not need a spec: a test and a
 commit are enough.
 
+## Versioning
+
+- [Semantic Versioning](https://semver.org/); before 1.0 the version is `0.MINOR.PATCH`. The single
+  source is the `VERSION` file: `scripts/bundle.sh` and the release workflow read it.
+- Every pull request that changes the app raises the version in the same pull request with
+  `scripts/bump-version.sh minor|patch` (it also moves the "Unreleased" items of `CHANGELOG.md`
+  under the new version with today's date):
+  - **minor**: a new feature (a merged spec) or a change in behavior or settings;
+  - **patch**: a bug fix, a layout tweak, a new shortcut, a translation fix;
+  - **no change**: documentation, specs, CI and scripts only.
+- Pull requests from forks do not have to raise the version; the maintainer does it before merging.
+- After the merge into `main`, tag the merge commit `vX.Y.Z` (the version in `VERSION`) and push the
+  tag; the release workflow builds a draft release (see [docs/RELEASING.md](docs/RELEASING.md)).
+
 ## Workflow
 
 - Commit after every completed step (build without warnings, `swift test` green).
