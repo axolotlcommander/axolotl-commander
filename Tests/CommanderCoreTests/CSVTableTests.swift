@@ -247,6 +247,29 @@ private func table(_ data: Data, _ d: CSVDialect) -> [[String]] {
         #expect(try find("slav;x", from: -1) == nil)
     }
 
+    @Test func cellByCell() throws {
+        let data = Data("a;Praha;b;Praha\nPraha;c\nd;e\n".utf8)
+        let idx = index(data, dialect())
+        func next(_ position: Int, _ column: Int?, backward: Bool = false) throws -> CSVSearch.Match? {
+            try CSVSearch.find("praha", ignoreCase: true, in: data, index: idx, dialect: dialect(),
+                               rows: .range(0..<3), from: position, column: column, backward: backward)
+        }
+        #expect(try next(-1, nil) == .init(position: 0, column: 1))
+        #expect(try next(0, 1) == .init(position: 0, column: 3))
+        #expect(try next(0, 3) == .init(position: 1, column: 0))
+        #expect(try next(1, 0) == .init(position: 0, column: 1))
+        #expect(try next(0, 3, backward: true) == .init(position: 0, column: 1))
+        #expect(try next(0, 1, backward: true) == .init(position: 1, column: 0))
+        #expect(try next(1, 0, backward: true) == .init(position: 0, column: 3))
+        // A row without a found cell is passed as a whole.
+        #expect(try next(0, nil) == .init(position: 1, column: 0))
+        // The only match is in the starting row, before the cell: found after wrapping around.
+        let single = Data("x;Brno;y\n".utf8)
+        let one = index(single, dialect())
+        #expect(try CSVSearch.find("brno", ignoreCase: true, in: single, index: one, dialect: dialect(),
+                                   rows: .range(0..<1), from: 0, column: 1, backward: false) == .init(position: 0, column: 1))
+    }
+
     @Test func listOrder() throws {
         let idx = index(data, dialect())
         let match = try CSVSearch.find("praha", ignoreCase: true, in: data, index: idx, dialect: dialect(),

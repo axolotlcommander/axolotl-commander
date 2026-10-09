@@ -169,6 +169,9 @@ from the row after the selection, and wraps around.
   search is running.
 - **Result**: the row is selected and scrolled into view, and the cell is highlighted (selected
   text color background) until the selection changes.
+- **Cell by cell** (Clarification 2026-10-09): the search starts after the cell found last when it
+  is in the selected row. It covers the rest of that row, then the other rows, and that row's
+  earlier cells last.
 
 ## R10 — Position between modes, Go to Row, Copy
 

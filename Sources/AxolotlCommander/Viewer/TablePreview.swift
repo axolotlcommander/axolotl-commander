@@ -694,6 +694,8 @@ final class TablePreview: NSView, NSTableViewDataSource, NSTableViewDelegate {
         findTask?.cancel()
         setMessage(String(localized: "Searching…"))
         let data = data, index = index, dialect = dialect, rows = rows, start = table.selectedRow
+        // From the cell found last when it is in the selected row, so F3 goes on within that row.
+        let column = start >= 0 && start < rows.count ? found.flatMap { $0.row == rows[start] ? $0.column : nil } : nil
         let report: @Sendable (Int) -> Void = { [weak self] percent in
             Task { @MainActor in
                 guard let self, self.findTask != nil else { return }
@@ -704,7 +706,7 @@ final class TablePreview: NSView, NSTableViewDataSource, NSTableViewDelegate {
             let work = Task.detached(priority: .userInitiated) { () -> CSVSearch.Match? in
                 var reported = ContinuousClock.now
                 return try CSVSearch.find(query, ignoreCase: ignoreCase, in: data, index: index, dialect: dialect,
-                                          rows: rows, from: start, backward: backward) { done in
+                                          rows: rows, from: start, column: column, backward: backward) { done in
                     guard ContinuousClock.now - reported > .milliseconds(200) else { return }
                     reported = .now
                     report(Int(done * 100))

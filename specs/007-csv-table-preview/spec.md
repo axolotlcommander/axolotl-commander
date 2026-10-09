@@ -13,6 +13,15 @@ complicated." Agreed in discussion: the table is a new kind of the F3 viewer's P
 (⌘3/F6), next to Markdown, HTML and images; it is built for large data files and for checking
 them.
 
+## Clarifications
+
+### Session 2026-10-09
+
+- Q: Where do Find Next (F3) and Find Previous (⇧F3) go when a row has several matches? → A: To the
+  next (previous) matching cell: the remaining cells of the same row first, then the following
+  (preceding) rows. Found in the maintainer's check of the first build; FR-019 and User Story 1,
+  scenario 8 follow it.
+
 ## User Scenarios & Testing *(mandatory)*
 
 Typical files: Czech data exports separated by semicolons, in Windows-1250 or UTF-8, with CRLF
@@ -56,8 +65,9 @@ the test copy of the app and check the cells, the titles and the status bar.
 7. **Given** a comma separated file detected wrongly, **When** the user chooses another separator
    in the status bar, **Then** the table is read again with that separator.
 8. **Given** a table, **When** the user presses ⌘F, types a word and presses Enter, **Then** the
-   next row containing it (ignoring case and diacritics) is selected and scrolled into view, with
-   the matching cell highlighted. ⇧Enter or ⇧⌘G goes to the previous match.
+   next cell containing it (ignoring case and diacritics) is highlighted, and its row is selected
+   and scrolled into view. F3 (⌘G) goes to the next matching cell, in the same row first, and
+   ⇧F3 (⇧⌘G, ⇧Enter) to the previous one.
 9. **Given** a table, **When** the user presses ⌘L and enters 500, **Then** data row 500 is
    selected and scrolled into view.
 10. **Given** two selected rows, **When** the user presses ⌘C, **Then** the clipboard holds the two
@@ -255,8 +265,10 @@ Click the titles and check the order.
   With no selection, ⌘C copies nothing (the command is disabled).
 - **FR-019**: Edit → Find (⌘F/F7) MUST open the viewer's find bar for the table. Matches MUST
   ignore case and diacritics. Find Next/Previous (⌘G/F3, ⇧⌘G/⇧F3, Enter/⇧Enter in the find bar)
-  MUST select the next/previous row with a match in the displayed order, highlight the matching
-  cell and wrap at the end. Searching a large file MUST run in the background, show that it is
+  MUST go to the next/previous matching cell in the displayed order: the remaining cells of the
+  current row first, then the following (preceding) rows. They MUST highlight the cell, select
+  its row and wrap at the end. A row selected without a found cell is searched after (before)
+  it as a whole. Searching a large file MUST run in the background, show that it is
   searching, and be cancellable with Esc. Go to Line or Offset (⌘L) MUST take a row number in
   Table mode and select that file row (in a filtered view, the nearest shown row).
 
