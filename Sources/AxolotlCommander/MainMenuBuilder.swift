@@ -71,7 +71,11 @@ enum MainMenuBuilder {
         }
         for spec in CommandRegistry.items(in: id, context: context) {
             if spec.separatorBefore, !menu.items.isEmpty { menu.addItem(.separator()) }
-            menu.addItem(spec.command == .viewerEncoding ? encodingItem(spec) : item(for: spec))
+            switch spec.command {
+            case .viewerEncoding: menu.addItem(encodingItem(spec))
+            case .viewerSeparator: menu.addItem(separatorItem(spec))
+            default: menu.addItem(item(for: spec))
+            }
         }
     }
 
@@ -89,6 +93,25 @@ enum MainMenuBuilder {
         }
         menu.addItem(.separator())
         menu.addItem(item(for: CommandRegistry.spec(.viewerSetDefaultEncoding)))
+        holder.submenu = menu
+        return holder
+    }
+
+    /// View → Separator (table preview): automatic detection and the four separators.
+    private static func separatorItem(_ spec: CommandSpec) -> NSMenuItem {
+        let holder = NSMenuItem(title: spec.localizedTitle, action: nil, keyEquivalent: "")
+        let menu = NSMenu(title: holder.title)
+        let auto = NSMenuItem(title: String(localized: "Detect Automatically"),
+                              action: #selector(ViewerWindowController.selectSeparator(_:)), keyEquivalent: "")
+        auto.tag = -1
+        menu.addItem(auto)
+        menu.addItem(.separator())
+        for (index, separator) in CSVSeparator.allCases.enumerated() {
+            let item = NSMenuItem(title: separator.title, action: #selector(ViewerWindowController.selectSeparator(_:)),
+                                  keyEquivalent: "")
+            item.tag = index
+            menu.addItem(item)
+        }
         holder.submenu = menu
         return holder
     }

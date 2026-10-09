@@ -44,7 +44,7 @@
 
 ## Phase 2: User Story 1 + 2 — Table, large files (P1)
 
-- [ ] T009 [US1] Write `TablePreview` in Sources/AxolotlCommander/Viewer/TablePreview.swift:
+- [X] T009 [US1] Write `TablePreview` in Sources/AxolotlCommander/Viewer/TablePreview.swift:
   - the row-number gutter table, synchronized vertically;
   - the main view-based table, with columns added as `maxFields` grows;
   - titles from the header or 1, 2, 3…;
@@ -55,7 +55,7 @@
   - the font size;
   - `onKey` passed to the viewer;
   - row selection, and the first visible row ⇄ byte offset.
-- [ ] T010 [US1] Change ViewerWindowController for `PreviewKind.table`:
+- [X] T010 [US1] Change ViewerWindowController for `PreviewKind.table`:
   - `.csv`, `.tsv` and `.tab`, falling back to Hex for binary content;
   - show/hide, starting the indexer and cancelling it on step, reload or close;
   - re-reading on encoding and separator changes;
@@ -63,30 +63,30 @@
   - the info text (rows / counting…, columns);
   - position mapping (R10);
   - zoom.
-- [ ] T011 [US1] Wire table find into ViewerWindowController:
+- [X] T011 [US1] Wire table find into ViewerWindowController:
   - `HexFindBar` with `allowsHex = false`;
   - `CSVSearch` (Sources/CommanderCore/Viewer/CSVSearch.swift) in the background with a
     progress text;
   - Esc cancels;
   - the found cell is highlighted.
-- [ ] T012 [US1] Add Go to Row… (⌘L), ⌘C as TSV and ⌘A in table mode.
-- [ ] T013 [US1] Register the new commands in Sources/CommanderCore/Command.swift:
+- [X] T012 [US1] Add Go to Row… (⌘L), ⌘C as TSV and ⌘A in table mode.
+- [X] T013 [US1] Register the new commands in Sources/CommanderCore/Command.swift:
   - `viewerHeaderRow`;
   - `viewerSeparator` with a submenu like Text Encoding (MainMenuBuilder);
   - validation in the viewer.
 
 ## Phase 3: User Story 3 — Malformed rows (P1)
 
-- [ ] T014 [US3] Add malformed rows to `CSVIndex` (R7):
+- [X] T014 [US3] Add malformed rows to `CSVIndex` (R7):
   - the histogram, the expected count (the larger count wins a tie) and the malformed list;
   - the header excluded when it is on;
   - recomputation without a rescan;
   - tests.
-- [ ] T015 [US3] Add the markers to `TablePreview`:
+- [X] T015 [US3] Add the markers to `TablePreview`:
   - ⚠ and orange on the row number;
   - a tooltip and an accessibility label;
   - the status text "N malformed rows (expected M fields)" and "unclosed quote in row N".
-- [ ] T016 [US3] Add the commands `viewerNextMalformed` (⌘↓), `viewerPreviousMalformed` (⌘↑) and
+- [X] T016 [US3] Add the commands `viewerNextMalformed` (⌘↓), `viewerPreviousMalformed` (⌘↑) and
   `viewerMalformedOnly` (⇧⌘D):
   - the filter keeps file row numbers and the selection.
 
@@ -100,7 +100,7 @@
   - stable, with empty cells last;
   - cancellable;
   - tests with an injected `cs_CZ` locale.
-- [ ] T018 [US4] Add title clicks to `TablePreview`:
+- [X] T018 [US4] Add title clicks to `TablePreview`:
   - the ascending → descending → file order cycle and the indicator;
   - before the file is fully read, a notice and no change;
   - a confirmation above 256 MB;
@@ -111,7 +111,7 @@
 
 ## Phase 5: Polish
 
-- [ ] T019 [P] Add en + cs strings in Resources/Localizable.xcstrings.
+- [X] T019 [P] Add en + cs strings in Resources/Localizable.xcstrings.
 - [ ] T020 [P] Update CHANGELOG.md (Unreleased → Added) and the README feature list if it
   mentions the viewer.
 - [ ] T021 Build without warnings and run `swift test`. GUI checks from quickstart.md in the test

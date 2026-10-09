@@ -63,6 +63,7 @@ public enum Command: String, CaseIterable, Hashable, Sendable {
     case viewerNextEncoding, viewerPreviousEncoding, viewerSetDefaultEncoding
     case viewerZoomIn, viewerZoomOut, viewerActualSize, viewerReload
     case viewerPreview, viewerHighlight, viewerZoomToFit, viewerSaveImageAs, viewerLoadRemote
+    case viewerNextMalformed, viewerPreviousMalformed, viewerMalformedOnly, viewerHeaderRow, viewerSeparator
 
     // Find window (⌃⌥F7)
     case findStart, findStop, findOpen, findShowInPanel, findView, findEdit, findQuickLook
@@ -285,6 +286,11 @@ public enum CommandRegistry {
         viewer(.viewerHex, "Hex", .view, [ch("2", m), f(4)])
         viewer(.viewerPreview, "Preview", .view, [ch("3", m), f(6)])
         viewer(.viewerLoadRemote, "Load Images from the Internet", .view)
+        viewer(.viewerHeaderRow, "First Row Is Header", .view, sep: true)
+        viewer(.viewerSeparator, "Separator", .view)
+        viewer(.viewerMalformedOnly, "Show Only Malformed Rows", .view, [ch("d", [m, s])])
+        viewer(.viewerNextMalformed, "Next Malformed Row", .go, [K(.down, m)])
+        viewer(.viewerPreviousMalformed, "Previous Malformed Row", .go, [K(.up, m)])
         viewer(.viewerWrap, "Wrap Lines", .view, [ch("w", c), f(2)], sep: true)
         viewer(.viewerHighlight, "Highlight Syntax", .view, [ch("h", c)])
         viewer(.viewerEncoding, "Text Encoding", .view, sep: true)
