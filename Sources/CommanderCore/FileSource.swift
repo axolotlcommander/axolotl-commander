@@ -36,8 +36,12 @@ public struct LocalFileSource: FileSource {
             .isDirectoryKey, .isSymbolicLinkKey, .isPackageKey, .isHiddenKey,
             .fileSizeKey, .contentModificationDateKey, .isAliasFileKey,
         ]
+        // Listing a symbolic link to a folder by URL fails with "Not a directory", so the link is
+        // resolved for reading; the items keep the link's path (see below).
+        let resolved = directory.resolvingSymlinksInPath()
+        let viaLink = resolved.path != directory.path
         let urls = try fm.contentsOfDirectory(
-            at: directory,
+            at: resolved,
             includingPropertiesForKeys: keys,
             options: includeHidden ? [] : [.skipsHiddenFiles]
         )
@@ -56,7 +60,7 @@ public struct LocalFileSource: FileSource {
             let hidden = (values?.isHidden ?? false) || name.hasPrefix(".")
             if hidden && !includeHidden { continue }
             result.append(FileItem(
-                url: url,
+                url: viaLink ? directory.appendingPathComponent(name, isDirectory: values?.isDirectory ?? false) : url,
                 name: name,
                 isDirectory: isDirectory,
                 isSymlink: isSymlink,

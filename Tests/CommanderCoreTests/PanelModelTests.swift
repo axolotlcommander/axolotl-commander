@@ -61,6 +61,22 @@ import Foundation
         #expect(link.isDirectory && link.isSymlink)
     }
 
+    @Test func enterSymlinkToDirectory() async throws {
+        let f = try Fixture()
+        try FileManager.default.createSymbolicLink(
+            atPath: f.root.appendingPathComponent("link").path, withDestinationPath: "docs")
+        let m = PanelModel(location: f.root)
+        await m.refresh()
+        m.moveCursor(to: try #require(m.items.firstIndex { $0.name == "link" }))
+        #expect(try await m.enterCursor() == nil)
+        #expect(m.location.lastPathComponent == "link")
+        #expect(names(m) == ["..", "sub", "inner.txt"])
+        // The items stay under the link's path, so ".." leads back next to the link.
+        #expect(m.items.dropFirst().allSatisfy { $0.url.deletingLastPathComponent().lastPathComponent == "link" })
+        #expect(m.items.first { $0.name == "sub" }?.isDirectory == true)
+        #expect(m.items.first { $0.name == "inner.txt" }?.size == 7)
+    }
+
     @Test func enterParentRestoresFocus() async throws {
         let f = try Fixture()
         let m = PanelModel(location: f.root)
