@@ -18,12 +18,17 @@ public enum TextDecoding {
                 if e < total { end = e; cut = true }
             }
             let bytes = UnsafeBufferPointer(rebasing: raw.bindMemory(to: UInt8.self)[start..<end])
-            switch encoding {
-            case .utf8: return decodeUTF8(bytes, cut: cut)
-            case .utf16LE: return decodeUTF16(bytes, bigEndian: false, cut: cut)
-            case .utf16BE: return decodeUTF16(bytes, bigEndian: true, cut: cut)
-            default: return decodeSingleByte(bytes, encoding)
-            }
+            return decode(bytes, as: encoding, cut: cut)
+        }
+    }
+
+    /// Decodes raw bytes (a slice of a larger buffer); `cut` drops a trailing incomplete sequence.
+    public static func decode(_ bytes: UnsafeBufferPointer<UInt8>, as encoding: TextEncoding, cut: Bool = false) -> String {
+        switch encoding {
+        case .utf8: decodeUTF8(bytes, cut: cut)
+        case .utf16LE: decodeUTF16(bytes, bigEndian: false, cut: cut)
+        case .utf16BE: decodeUTF16(bytes, bigEndian: true, cut: cut)
+        default: decodeSingleByte(bytes, encoding)
         }
     }
 

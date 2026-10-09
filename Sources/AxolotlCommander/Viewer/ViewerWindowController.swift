@@ -43,6 +43,7 @@ enum ViewerDefaults {
 
     static let markdownExtensions: Set<String> = ["md", "markdown", "mdown", "mkd", "mkdn", "mdwn"]
     static let htmlExtensions: Set<String> = ["html", "htm", "xhtml"]
+    static let tableExtensions: Set<String> = ["csv", "tsv", "tab"]
 }
 
 /// Text view of the viewer: viewer keys (Space, ⌫, Esc…) first, then normal selection keys.
@@ -69,16 +70,17 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
     enum Mode { case text, hex, preview }
     /// What the Preview mode shows for a file.
     enum PreviewKind {
-        case markdown, html, image
+        case markdown, html, image, table
 
         /// Shown in the web view (find, zoom, the internet bar).
-        var isPage: Bool { self != .image }
+        var isPage: Bool { self == .markdown || self == .html }
     }
 
     static func previewKind(for url: URL) -> PreviewKind? {
         let ext = url.pathExtension.lowercased()
         if ViewerDefaults.markdownExtensions.contains(ext) { return .markdown }
         if ViewerDefaults.htmlExtensions.contains(ext) { return .html }
+        if ViewerDefaults.tableExtensions.contains(ext) { return .table }
         if ImageExport.canRead(url) { return .image }
         return nil
     }
@@ -134,6 +136,13 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
     private let findBar = HexFindBar()
     private let markdownPreview = MarkdownPreview()
     private let imagePreview = ImagePreview()
+    private let tablePreview = TablePreview()
+    private let separatorPopup = NSPopUpButton(frame: .zero, pullsDown: false)
+    private let headerBox = NSButton(checkboxWithTitle: String(localized: "Header"), target: nil, action: nil)
+    /// Bumped for every load, so the table preview knows a file from a reload of it.
+    private var loadToken = 0
+    private var isTable: Bool { mode == .preview && previewKind == .table }
+    private var keyMonitor: Any?
     private let modeControl = NSSegmentedControl(labels: [String(localized: "Text"), String(localized: "Hex"),
                                                           String(localized: "Preview")],
                                                  trackingMode: .selectOne, target: nil, action: nil)
@@ -155,6 +164,10 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         super.init(window: window)
         window.delegate = self
         buildContent(in: window)
+        keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard let self, event.window === self.window else { return event }
+            return self.interceptFieldKey(event) ? nil : event
+        }
         if let last = Self.open.last?.window {
             window.setFrame(last.frame, display: false)
             window.setFrameTopLeftPoint(window.cascadeTopLeft(from: NSPoint(x: last.frame.minX, y: last.frame.maxY)))
@@ -208,9 +221,11 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         imagePreview.onKey = { [weak self] in self?.handleKey($0) ?? false }
         imagePreview.onArrow = { [weak self] previous in self?.step(previous ? .previous : .next) }
         imagePreview.onZoomChange = { [weak self] in self?.updateInfo() }
+        tablePreview.onKey = { [weak self] in self?.handleKey($0) ?? false }
+        tablePreview.onStatusChange = { [weak self] in self?.updateInfo() }
 
         let lists = NSView()
-        for scroll in [textScroll, hexScroll, markdownPreview, imagePreview] as [NSView] {
+        for scroll in [textScroll, hexScroll, markdownPreview, imagePreview, tablePreview] as [NSView] {
             (scroll as? NSScrollView)?.borderType = .noBorder
             // Shown by `show(at:)` once the window has its final layout: a scroll view visible from the
             // start keeps a title bar pocket (macOS 26) laid out a title bar too low, over the content.
@@ -239,6 +254,23 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         encodingPopup.lastItem?.tag = -1
         encodingPopup.target = self
         encodingPopup.action = #selector(encodingPopupChanged)
+        separatorPopup.controlSize = .small
+        separatorPopup.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
+        separatorPopup.addItem(withTitle: String(localized: "Auto"))
+        separatorPopup.lastItem?.tag = -1
+        separatorPopup.menu?.addItem(.separator())
+        for (index, separator) in CSVSeparator.allCases.enumerated() {
+            separatorPopup.addItem(withTitle: separator.title)
+            separatorPopup.lastItem?.tag = index
+        }
+        separatorPopup.target = self
+        separatorPopup.action = #selector(separatorPopupChanged)
+        separatorPopup.toolTip = String(localized: "Separator")
+        headerBox.controlSize = .small
+        headerBox.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
+        headerBox.target = self
+        headerBox.action = #selector(headerBoxChanged)
+        headerBox.toolTip = CommandRegistry.spec(.viewerHeaderRow).localizedTitle
         wrapBox.controlSize = .small
         wrapBox.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
         wrapBox.target = self
@@ -250,7 +282,8 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         }
         infoField.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         infoField.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        let status = NSStackView(views: [modeControl, encodingPopup, wrapBox, infoField, positionField])
+        let status = NSStackView(views: [modeControl, encodingPopup, separatorPopup, headerBox, wrapBox, infoField,
+                                         positionField])
         status.spacing = 10
         status.edgeInsets = NSEdgeInsets(top: 4, left: 10, bottom: 5, right: 12)
         let separator = NSBox()
@@ -282,6 +315,8 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         let position = keepingPosition ? positionFraction() : 0
         if !keepingPosition { remoteAllowed = false }
         previewKind = Self.previewKind(for: url)
+        loadToken += 1
+        if previewKind != .table { tablePreview.clear() }
         modeControl.setEnabled(previewKind != nil, forSegment: 2)
         window?.title = url.lastPathComponent
         window?.subtitle = url.deletingLastPathComponent().displayPath
@@ -297,6 +332,11 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
             detection = loaded.detection
             loadError = loaded.error
             decodedAs = nil
+            if previewKind == .table, isBinary {
+                // Binary content with a table extension: no table, Hex as for any binary file.
+                previewKind = nil
+                modeControl.setEnabled(false, forSegment: 2)
+            }
             hexView.data = data
             hexView.encoding = encoding
             if loadError != nil {
@@ -316,6 +356,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         hexScroll.isHidden = mode != .hex
         markdownPreview.isHidden = !(mode == .preview && previewKind?.isPage == true)
         imagePreview.isHidden = !(mode == .preview && previewKind == .image)
+        tablePreview.isHidden = !isTable
         if mode == .text || mode == .preview && previewKind == .image { findBar.isHidden = true }
         findBar.allowsHex = mode == .hex
         modeControl.selectedSegment = switch mode {
@@ -326,7 +367,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         updateStatus()
         switch mode {
         case .preview:
-            showPreview()
+            showPreview(at: position)
         case .hex:
             hexView.scrollToTop(offset: Int(position * Double(data.count)))
             window?.makeFirstResponder(hexView)
@@ -344,9 +385,20 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         }
     }
 
-    private func showPreview() {
+    private func showPreview(at position: Double = 0) {
         previewTask?.cancel()
         switch previewKind {
+        case .table?:
+            markdownPreview.clear()
+            imagePreview.clear()
+            let bom = EncodingDetector.bom(in: data)
+            let skip = bom?.encoding == encoding ? bom?.length ?? 0 : 0
+            let ext = sequence.current.pathExtension.lowercased()
+            tablePreview.fontSize = fontSize
+            tablePreview.show(data, encoding: encoding, contentStart: skip, preferTab: ext == "tsv" || ext == "tab",
+                              token: loadToken, at: position)
+            tablePreview.focus()
+            updateStatus()
         case .image?:
             markdownPreview.clear()
             imagePreview.show(sequence.current)
@@ -431,7 +483,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
     private func positionFraction() -> Double {
         switch mode {
         case .preview:
-            return 0
+            return previewKind == .table ? tablePreview.topFraction : 0
         case .hex:
             return data.isEmpty ? 0 : Double(hexView.topOffset) / Double(data.count)
         case .text:
@@ -468,6 +520,16 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         wrapBox.isEnabled = mode == .text
         encodingPopup.isHidden = mode == .preview && previewKind == .image
         wrapBox.isHidden = mode == .preview
+        separatorPopup.isHidden = !isTable
+        headerBox.isHidden = !isTable
+        if isTable {
+            let detected = tablePreview.dialect.separator
+            separatorPopup.menu?.item(withTag: -1)?.title = tablePreview.separatorChoice == nil
+                ? detected.map { String(localized: "Auto (\($0.title))") } ?? String(localized: "Auto")
+                : String(localized: "Auto")
+            separatorPopup.selectItem(withTag: tablePreview.separatorChoice.flatMap { CSVSeparator.allCases.firstIndex(of: $0) } ?? -1)
+            headerBox.state = tablePreview.hasHeader ? .on : .off
+        }
         updateInfo()
     }
 
@@ -481,6 +543,11 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
             }
             parts.append("\(Int((imagePreview.zoom * 100).rounded())) %")
             infoField.stringValue = parts.joined(separator: " · ")
+            return
+        }
+        if isTable {
+            infoField.stringValue = (parts + tablePreview.statusParts).joined(separator: " · ")
+            headerBox.state = tablePreview.hasHeader ? .on : .off
             return
         }
         if let source = sourceText { parts.append(source) }
@@ -527,6 +594,14 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         return true
     }
 
+    /// While a field edits (a find bar), the viewer's function keys still work: ⌘F, type, Enter,
+    /// then F3 / ⇧F3 for the next and previous match without leaving the field.
+    private func interceptFieldKey(_ event: NSEvent) -> Bool {
+        guard let editor = window?.firstResponder as? NSTextView, editor.isFieldEditor,
+              let chord = KeyChord(event: event), case .function = chord.key else { return false }
+        return handleKey(event)
+    }
+
     func perform(_ command: Command) {
         switch command {
         case .viewerNextFile: step(.next)
@@ -536,7 +611,9 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         case .viewerFirstFile: step(.first)
         case .viewerLastFile: step(.last)
         case .viewerSaveAs: Task { await saveCopy() }
-        case .viewerClose: window?.close()
+        case .viewerClose:
+            if isTable, tablePreview.cancelWork() { return }
+            window?.close()
         case .viewerFind: find(.showFindInterface)
         case .viewerFindNext: find(.nextMatch)
         case .viewerFindPrevious: find(.previousMatch)
@@ -567,12 +644,26 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         case .viewerSetDefaultEncoding: UserDefaults.standard.set(encoding.rawValue, forKey: ViewerDefaults.encodingKey)
         case .viewerZoomIn, .viewerZoomOut, .viewerActualSize: zoom(command)
         case .viewerReload: load(keepingPosition: true)
+        case .viewerNextMalformed, .viewerPreviousMalformed:
+            if !isTable || !tablePreview.moveToMalformed(backward: command == .viewerPreviousMalformed) { NSSound.beep() }
+        case .viewerMalformedOnly:
+            guard isTable else { return }
+            tablePreview.toggleMalformedOnly()
+        case .viewerHeaderRow:
+            guard isTable else { return }
+            tablePreview.toggleHeader()
+            updateStatus()
         default:
             if CommandRegistry.spec(command).scope == .app { (NSApp.delegate as? AppDelegate)?.perform(command) }
         }
     }
 
     func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
+        if menuItem.action == #selector(selectSeparator(_:)) {
+            let choice = menuItem.tag < 0 ? nil : CSVSeparator.allCases[menuItem.tag]
+            menuItem.state = isTable && tablePreview.separatorChoice == choice ? .on : .off
+            return isTable
+        }
         if menuItem.action == #selector(selectEncoding(_:)) {
             menuItem.state = TextEncoding.allCases[menuItem.tag] == encoding ? .on : .off
             return true
@@ -599,8 +690,21 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
             return mode == .text
         case .viewerAutoEncoding: menuItem.state = encodingOverride == nil ? .on : .off
         case .viewerGoTo:
+            if isTable {
+                menuItem.title = String(localized: "Go to Row…")
+                return tablePreview.hasRows
+            }
             menuItem.title = mode == .hex ? String(localized: "Go to Offset…") : String(localized: "Go to Line…")
             return loadError == nil && mode != .preview
+        case .viewerNextMalformed: return isTable && tablePreview.canMoveToMalformed(backward: false)
+        case .viewerPreviousMalformed: return isTable && tablePreview.canMoveToMalformed(backward: true)
+        case .viewerMalformedOnly:
+            menuItem.state = isTable && tablePreview.malformedOnly ? .on : .off
+            return isTable && (tablePreview.malformedOnly || !tablePreview.malformed.isEmpty)
+        case .viewerHeaderRow:
+            menuItem.state = isTable && tablePreview.hasHeader ? .on : .off
+            return isTable && tablePreview.index.rowCount > 0
+        case .viewerSeparator: return isTable
         case .viewerNextFile, .viewerPreviousFile, .viewerFirstFile, .viewerLastFile: return several
         case .viewerNextSelected, .viewerPreviousSelected: return several && sequence.entries.contains(where: \.isSelected)
         case .viewerZoomIn:
@@ -632,6 +736,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         // Another file opens fresh: automatic mode and encoding again.
         encodingOverride = nil
         modeOverride = nil
+        tablePreview.resetChoices()
         textView.textStorage?.setAttributedString(NSAttributedString())
         load()
     }
@@ -652,6 +757,16 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
 
     @objc func selectEncoding(_ sender: NSMenuItem) { setEncoding(TextEncoding.allCases[sender.tag]) }
 
+    @objc func selectSeparator(_ sender: NSMenuItem) { setSeparator(tag: sender.tag) }
+    @objc private func separatorPopupChanged() { setSeparator(tag: separatorPopup.selectedTag()) }
+    @objc private func headerBoxChanged() { perform(.viewerHeaderRow) }
+
+    private func setSeparator(tag: Int) {
+        guard isTable else { return }
+        tablePreview.setSeparator(tag < 0 ? nil : CSVSeparator.allCases[tag])
+        updateStatus()
+    }
+
     @objc private func encodingPopupChanged() {
         let tag = encodingPopup.selectedTag()
         setEncoding(tag < 0 ? nil : TextEncoding.allCases[tag])
@@ -671,6 +786,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
             decode(restoring: .origin(textScroll.contentView.bounds.origin))
         }
         if mode == .preview, previewKind?.isPage == true { showPreview() }
+        if isTable { showPreview(at: tablePreview.topFraction) }
         updateStatus()
     }
 
@@ -697,6 +813,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
             storage.addAttribute(.font, value: font, range: NSRange(location: 0, length: storage.length))
         }
         hexView.font = font
+        tablePreview.fontSize = fontSize
     }
 
     private func zoom(_ command: Command) {
@@ -733,7 +850,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
     private func find(_ action: NSTextFinder.Action) {
         switch mode {
         case .preview:
-            guard previewKind?.isPage == true else { NSSound.beep(); return }
+            guard previewKind?.isPage == true || previewKind == .table else { NSSound.beep(); return }
             switch action {
             case .showFindInterface, .setSearchString: showFindBar()
             default:
@@ -766,13 +883,14 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
 
     private func closeFindBar() {
         findBar.isHidden = true
-        window?.makeFirstResponder(mode == .preview ? markdownPreview.webView : hexView)
+        window?.makeFirstResponder(isTable ? tablePreview.keyView : mode == .preview ? markdownPreview.webView : hexView)
     }
 
     private func findInBar(backward: Bool) {
         guard mode == .preview else { return findInHex(backward: backward) }
         let query = findBar.query
         guard !query.isEmpty else { return }
+        if isTable { return tablePreview.find(query, ignoreCase: findBar.ignoresCase, backward: backward) }
         findTask?.cancel()
         findTask = Task {
             let found = await markdownPreview.find(query, backward: backward, ignoreCase: findBar.ignoresCase)
@@ -816,7 +934,11 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
     private func goTo() async {
         switch mode {
         case .preview:
-            NSSound.beep()
+            guard isTable else { NSSound.beep(); return }
+            guard let text = await TextPrompt.ask(title: String(localized: "Go to Row"), message: String(localized: "Row number:"),
+                                                  initial: "", in: window),
+                  let number = Int(text.trimmingCharacters(in: .whitespaces).replacingOccurrences(of: " ", with: "")),
+                  tablePreview.goTo(rowNumber: number) else { NSSound.beep(); return }
         case .hex:
             guard let text = await TextPrompt.ask(title: String(localized: "Go to Offset"),
                                                   message: String(localized: "Offset (decimal, or hex as 0x1F, $1F or 1Fh):"),
@@ -919,6 +1041,9 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         highlightTask?.cancel()
         markdownPreview.clear()
         imagePreview.clear()
+        tablePreview.clear()
+        if let keyMonitor { NSEvent.removeMonitor(keyMonitor) }
+        keyMonitor = nil
         Self.open.removeAll { $0 === self }
     }
 }

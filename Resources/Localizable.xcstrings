@@ -8553,6 +8553,316 @@
           }
         }
       }
+    },
+    "… (the field is longer)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "… (pole je delší)"
+          }
+        }
+      }
+    },
+    "Row %@ has %lld fields; most rows have %lld.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Řádek %1$@ má polí: %2$lld, většina řádků: %3$lld."
+          }
+        }
+      }
+    },
+    "Row %@, malformed: %lld of %lld fields": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Řádek %1$@, vadný: polí %2$lld z %3$lld"
+          }
+        }
+      }
+    },
+    "Row %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Řádek %@"
+          }
+        }
+      }
+    },
+    "Sorting is available once the file is fully loaded.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Řadit lze, až bude soubor načtený celý."
+          }
+        }
+      }
+    },
+    "Sort by “%@”?": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seřadit podle „%@“?"
+          }
+        }
+      }
+    },
+    "Sorting keeps this column's values in memory and may use a lot of it.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Řazení drží hodnoty sloupce v paměti a může jí spotřebovat hodně."
+          }
+        }
+      }
+    },
+    "Sort": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seřadit"
+          }
+        }
+      }
+    },
+    "Sorting…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Řazení…"
+          }
+        }
+      }
+    },
+    "Searching…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hledání…"
+          }
+        }
+      }
+    },
+    "%@ rows": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "řádků: %@"
+          }
+        }
+      }
+    },
+    "counting… %@ rows": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "počítám… řádků: %@"
+          }
+        }
+      }
+    },
+    "%lld columns": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "sloupců: %lld"
+          }
+        }
+      }
+    },
+    "%@ malformed rows (expected %lld fields)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "vadných řádků: %1$@ (očekáváno polí: %2$lld)"
+          }
+        }
+      }
+    },
+    "unclosed quote in row %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "neuzavřená uvozovka v řádku %@"
+          }
+        }
+      }
+    },
+    "Semicolon": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Středník"
+          }
+        }
+      }
+    },
+    "Comma": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Čárka"
+          }
+        }
+      }
+    },
+    "Tab": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tabulátor"
+          }
+        }
+      }
+    },
+    "Vertical Bar": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Svislá čára"
+          }
+        }
+      }
+    },
+    "Header": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hlavička"
+          }
+        }
+      }
+    },
+    "Auto": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automaticky"
+          }
+        }
+      }
+    },
+    "Auto (%@)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automaticky (%@)"
+          }
+        }
+      }
+    },
+    "Go to Row…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přejít na řádek…"
+          }
+        }
+      }
+    },
+    "Go to Row": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přejít na řádek"
+          }
+        }
+      }
+    },
+    "Row number:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Číslo řádku:"
+          }
+        }
+      }
+    },
+    "First Row Is Header": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "První řádek je hlavička"
+          }
+        }
+      }
+    },
+    "Show Only Malformed Rows": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jen vadné řádky"
+          }
+        }
+      }
+    },
+    "Next Malformed Row": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Další vadný řádek"
+          }
+        }
+      }
+    },
+    "Previous Malformed Row": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Předchozí vadný řádek"
+          }
+        }
+      }
+    },
+    "Row %@ opens a quote that is never closed; the quote is read as text.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Řádek %@ otevírá uvozovku, která se nikde neuzavře; uvozovka se čte jako text."
+          }
+        }
+      }
+    },
+    "Row %@, malformed: unclosed quote": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Řádek %@, vadný: neuzavřená uvozovka"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
