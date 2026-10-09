@@ -345,6 +345,8 @@ final class PanelViewController: NSViewController {
         let s = model.summary
         if s.files + s.directories > 0 {
             statusField.stringValue = String(localized: "Selected \(s.files) files, \(s.directories) folders — \(Format.bytes(s.bytes))")
+        } else if let item = model.cursorItem, let service = NetworkPlaces.service(of: item.url) {
+            statusField.stringValue = String(localized: "\(service.name)   \(service.kind.rawValue.uppercased()) server")
         } else if let item = model.cursorItem, !item.isParent {
             let size = item.isDirectory ? (model.directorySizes[model.rules.key(item.name)].map(Format.bytes) ?? String(localized: "folder")) : Format.bytes(item.size ?? 0)
             statusField.stringValue = "\(item.name)   \(size)   \(item.modificationDate.map(Format.date) ?? "")"
@@ -1235,7 +1237,8 @@ extension PanelViewController: NSTableViewDataSource, NSTableViewDelegate {
         case .name: return item.isParent ? ".." : item.baseName
         case .ext: return item.fileExtension
         case .size:
-            if item.isParent { return "" }
+            // Servers in the Network folder have no size.
+            if item.isParent || NetworkPlaces.isNetwork(item.url) { return "" }
             if item.isDirectory {
                 // A package is a file to the user: no <DIR>, its size once calculated (Space).
                 return model.directorySizes[model.rules.key(item.name)].map(Format.grouped) ?? (item.isPackage ? "—" : "<DIR>")

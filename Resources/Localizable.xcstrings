@@ -8543,6 +8543,16 @@
           }
         }
       }
+    },
+    "%@   %@ server": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@   server %2$@"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
