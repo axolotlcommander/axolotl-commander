@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-10-09
+
+### Fixed
+
+- Symbolic links to folders open again in the panel (for example /Volumes/Macintosh HD, a link
+  to /); before, the panel only beeped with "Not a directory".
+
 ## [0.2.0] - 2026-10-09
 
 The first versioned release (earlier builds called themselves 0.1.0 without a tag): a two-panel file manager (stages 0–11 of the plan in
