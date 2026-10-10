@@ -5,6 +5,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-10-10
+
+### Changed
+
+- The Size and Date columns of the panel can be made narrow. A value that does not fit shows a
+  shorter form instead: a rounded size ("1.2 MB"); the date without the time, with a two-digit
+  year, or only the day and month; an ellipsis when nothing fits. The full value is in the
+  tooltip. Before, the columns could not get narrower than their widest value, so their edges
+  offered no resizing in that direction.
+- A column resized by hand takes its width from Name, so the columns always fill the panel, and
+  the right edge of the last column can be dragged too.
+
 ## [0.2.1] - 2026-10-09
 
 ### Fixed
