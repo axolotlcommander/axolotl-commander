@@ -13,7 +13,7 @@ public enum CellText {
         return distinct([grouped, rounded])
     }
 
-    /// Date and time, then the date alone, then the date with a two-digit year.
+    /// Date and time, then the date alone, with a two-digit year, and the day and month.
     public static func date(_ date: Date, locale: Locale = .current, timeZone: TimeZone = .current) -> [String] {
         var calendar = Calendar.current
         calendar.locale = locale
@@ -22,12 +22,17 @@ public enum CellText {
         let day = Date.FormatStyle(date: .numeric, time: .omitted, locale: locale, calendar: calendar, timeZone: timeZone)
         let short = Date.FormatStyle(locale: locale, calendar: calendar, timeZone: timeZone)
             .day(.defaultDigits).month(.defaultDigits).year(.twoDigits)
-        return distinct([date.formatted(full), date.formatted(day), date.formatted(short)])
+        let dayMonth = Date.FormatStyle(locale: locale, calendar: calendar, timeZone: timeZone)
+            .day(.defaultDigits).month(.defaultDigits)
+        return distinct([date.formatted(full), date.formatted(day), date.formatted(short), date.formatted(dayMonth)])
     }
 
-    /// The first variant that fits; the last one when none does (it is then truncated).
+    /// Shown when no variant fits: a cut number would mislead.
+    public static let none = "…"
+
+    /// The first variant that fits, or `none`.
     public static func fitting(_ variants: [String], fits: (String) -> Bool) -> String {
-        variants.first(where: fits) ?? variants.last ?? ""
+        variants.first(where: fits) ?? (variants.isEmpty ? "" : none)
     }
 
     private static func distinct(_ variants: [String]) -> [String] {

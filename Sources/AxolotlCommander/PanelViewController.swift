@@ -76,6 +76,7 @@ final class PanelViewController: NSViewController {
     private var networkObservers: [any NSObjectProtocol] = []
     private var watchedURL: URL?
     private var syncingSelection = false
+    private var fillingWidth = false
     private var sizeTask: Task<Void, Never>?
 
     /// Commander-style quick search buffer; nil when not searching.
@@ -136,6 +137,7 @@ final class PanelViewController: NSViewController {
             if column.isNumeric { tc.headerCell.alignment = .right }
             tableView.addTableColumn(tc)
         }
+        tableView.headerView = PanelHeaderView(frame: tableView.headerView?.frame ?? .zero)
         tableView.style = .plain
         tableView.rowHeight = 18
         tableView.intercellSpacing = NSSize(width: 6, height: 0)
@@ -1289,6 +1291,20 @@ extension PanelViewController: NSTableViewDataSource, NSTableViewDelegate {
         model.moveCursor(to: tableView.selectedRow)
     }
 
+    /// A column resized by hand gives or takes its width from Name, so the columns keep filling
+    /// the panel: no gap on the right and no sideways scrolling.
+    func tableViewColumnDidResize(_ notification: Notification) {
+        guard !fillingWidth, let resized = notification.userInfo?["NSTableColumn"] as? NSTableColumn,
+              resized.identifier != Column.name.identifier,
+              let name = tableView.tableColumn(withIdentifier: Column.name.identifier),
+              let last = tableView.tableColumns.indices.last else { return }
+        let spare = tableScroll.contentView.bounds.width - tableView.rect(ofColumn: last).maxX
+        guard abs(spare) >= 0.5 else { return }
+        fillingWidth = true
+        name.width = max(name.minWidth, name.width + spare)
+        fillingWidth = false
+    }
+
     func tableView(_ tableView: NSTableView, didClick tableColumn: NSTableColumn) {
         guard let column = Column(rawValue: tableColumn.identifier.rawValue) else { return }
         resort(column.sortField)
@@ -1298,6 +1314,38 @@ extension PanelViewController: NSTableViewDataSource, NSTableViewDelegate {
         let rowView = PanelRowView()
         rowView.panelIsActive = isActive
         return rowView
+    }
+}
+
+/// While the columns fill the panel, AppKit offers no handle on the right edge of the last
+/// column. This header adds one: dragging it moves the last column's left border with the pointer
+/// (the right edge stays at the panel's edge), and Name makes up the difference.
+final class PanelHeaderView: NSTableHeaderView {
+    private static let grip: CGFloat = 8
+
+    private var lastEdge: NSRect? {
+        guard let table = tableView, let last = table.tableColumns.indices.last else { return nil }
+        let maxX = min(table.rect(ofColumn: last).maxX, visibleRect.maxX)
+        return NSRect(x: maxX - Self.grip, y: bounds.minY, width: Self.grip, height: bounds.height)
+    }
+
+    override func resetCursorRects() {
+        super.resetCursorRects()
+        if let lastEdge { addCursorRect(lastEdge, cursor: .resizeLeftRight) }
+    }
+
+    override func mouseDown(with event: NSEvent) {
+        let start = convert(event.locationInWindow, from: nil).x
+        guard let edge = lastEdge, edge.minX <= start, start <= edge.maxX + 1,
+              let column = tableView?.tableColumns.last else { return super.mouseDown(with: event) }
+        let startWidth = column.width
+        window?.trackEvents(matching: [.leftMouseDragged, .leftMouseUp], timeout: .infinity, mode: .eventTracking) { event, stop in
+            guard let event else { return }
+            let x = self.convert(event.locationInWindow, from: nil).x
+            column.width = min(max(column.minWidth, startWidth - (x - start)), column.maxWidth)
+            if event.type == .leftMouseUp { stop.pointee = true }
+        }
+        window?.invalidateCursorRects(for: self)
     }
 }
 
