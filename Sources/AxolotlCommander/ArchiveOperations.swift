@@ -299,43 +299,63 @@ extension OperationsController {
 
     /// F5/F6 when the sources or the destination are inside an archive.
     func transferArchive(_ kind: TransferKind, sources: [URL], destination: URL, mask: String, panel: PanelViewController) {
-        let source = ArchivePath.split(sources[0].deletingLastPathComponent())
-        let names = sources.map(\.lastPathComponent)
+        // Branch view lists members of several archive folders; each folder is one group.
+        let groups = SourceGroups.byFolder(sources).compactMap { group in
+            ArchivePath.split(group.folder).map { (source: $0, names: group.names) }
+        }
         if let target = ArchivePath.split(destination) {
-            addToArchive(kind, sources: sources, names: names, from: source, to: target, panel: panel)
-        } else if let source {
-            extractOut(kind, names: names, from: source, to: destination, mask: mask, panel: panel)
+            guard groups.count <= 1 else {
+                Task {
+                    await inform(String(localized: "The operation could not be completed."),
+                                 String(localized: "Members of several archive folders cannot be added to an archive at once. Copy them to a folder on disk first."))
+                }
+                return
+            }
+            let source = ArchivePath.split(sources[0].deletingLastPathComponent())
+            addToArchive(kind, sources: sources, names: sources.map(\.lastPathComponent), from: source, to: target, panel: panel)
+        } else if !groups.isEmpty {
+            extractOut(kind, groups: groups, to: destination, mask: mask, panel: panel)
         }
     }
 
     /// Unpacks into a hidden folder inside the destination (same volume), then moves the
     /// items into place with the usual conflict questions. A move removes from the archive
     /// only the members whose copy fully arrived.
-    private func extractOut(_ kind: TransferKind, names: [String], from source: ArchivePath, to destination: URL,
+    private func extractOut(_ kind: TransferKind, groups: [(source: ArchivePath, names: [String])], to destination: URL,
                             mask: String, panel: PanelViewController) {
         let state = OperationState(title: kind == .copy ? String(localized: "Copying…") : String(localized: "Moving…"))
-        let members = names.map { source.member($0) }
         perform(state) { [operations] in
-            let staging = try await self.unpack(source.archive, members: members, base: source.inner, into: destination, state: state)
-            defer { try? FileManager.default.removeItem(at: staging) }
-            let staged = (try? FileManager.default.contentsOfDirectory(at: staging, includingPropertiesForKeys: nil)) ?? []
-            guard !staged.isEmpty else { return }
-            let request = TransferRequest(kind: .move, sources: staged, destinationDirectory: destination, nameMask: mask)
+            // One staging folder per archive folder, so members of subfolders arrive flat.
+            var staged: [(source: ArchivePath, names: [String], members: [String], staging: URL)] = []
+            defer { for group in staged { try? FileManager.default.removeItem(at: group.staging) } }
+            for group in groups {
+                let members = group.names.map { group.source.member($0) }
+                let staging = try await self.unpack(group.source.archive, members: members, base: group.source.inner,
+                                                    into: destination, state: state)
+                staged.append((group.source, group.names, members, staging))
+            }
+            let items = staged.flatMap { (try? FileManager.default.contentsOfDirectory(at: $0.staging, includingPropertiesForKeys: nil)) ?? [] }
+            guard !items.isEmpty else { return }
+            let request = TransferRequest(kind: .move, sources: items, destinationDirectory: destination, nameMask: mask)
             let report = try await operations.transfer(
                 request,
                 progress: { p in Task { @MainActor in state.progress = p } },
                 conflict: { conflict in await self.askConflict(conflict) })
             if kind == .move {
                 let blocked = (report.skipped + report.keptSources).map { $0.standardizedFileURL.path(percentEncoded: false) }
-                let arrived = zip(names, members).filter { name, _ in
-                    guard let top = ArchiveExtractor.sanitize(name) else { return false }
-                    let path = staging.appending(path: top).standardizedFileURL.path(percentEncoded: false)
-                    return !FileManager.default.fileExists(atPath: path)
-                        && !blocked.contains { $0 == path || $0.hasPrefix(path + "/") }
-                }.map(\.1)
-                if !arrived.isEmpty {
-                    try await ArchiveWriter.update(source.archive, removing: Set(arrived), progress: { _ in })
-                    await ArchiveCatalog.shared.invalidate(source.archive)
+                var arrived: [URL: Set<String>] = [:]
+                for group in staged {
+                    for (name, member) in zip(group.names, group.members) {
+                        guard let top = ArchiveExtractor.sanitize(name) else { continue }
+                        let path = group.staging.appending(path: top).standardizedFileURL.path(percentEncoded: false)
+                        if !FileManager.default.fileExists(atPath: path), !blocked.contains(where: { $0 == path || $0.hasPrefix(path + "/") }) {
+                            arrived[group.source.archive, default: []].insert(member)
+                        }
+                    }
+                }
+                for (archive, members) in arrived where !members.isEmpty {
+                    try await ArchiveWriter.update(archive, removing: members, progress: { _ in })
+                    await ArchiveCatalog.shared.invalidate(archive)
                 }
             }
             panel.model.deselectAll()
@@ -471,7 +491,8 @@ extension OperationsController {
             guard let window, await alert.beginSheetModal(for: window) == .alertFirstButtonReturn else { return }
             let state = OperationState(title: String(localized: "Deleting…"))
             perform(state) {
-                try await ArchiveWriter.update(archive.archive, removing: Set(urls.map { archive.member($0.lastPathComponent) }),
+                // Branch view lists members of subfolders too: each URL names its own member.
+                try await ArchiveWriter.update(archive.archive, removing: Set(urls.map { ArchivePath.split($0)?.inner ?? archive.member($0.lastPathComponent) }),
                                                progress: { _ in })
                 await ArchiveCatalog.shared.invalidate(archive.archive)
             }
@@ -495,7 +516,7 @@ extension OperationsController {
         }
     }
 
-    func rename(_ name: String, to newName: String, in archive: ArchivePath, panel: PanelViewController) {
+    func rename(_ name: String, to newName: String, in archive: ArchivePath, panel: PanelViewController, focusing old: URL) {
         guard archive.format.isWritable else { return report(ArchiveError.readOnly) }
         guard !newName.contains("/"), newName != ".", newName != ".." else { return report(OperationError.invalidName(newName)) }
         let state = OperationState(title: String(localized: "Renaming…"))
@@ -506,7 +527,7 @@ extension OperationsController {
                                            progress: { _ in })
             await ArchiveCatalog.shared.invalidate(archive.archive)
             await panel.model.refresh()
-            panel.focus(name: newName)
+            panel.focusRenamed(old, to: newName)
         }
     }
 

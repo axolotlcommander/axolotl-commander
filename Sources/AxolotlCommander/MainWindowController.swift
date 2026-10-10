@@ -146,6 +146,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
     func panelLocationChanged(_ panel: PanelViewController) {
         guard panel === activePanel else { return }
         window?.title = panel.model.results.map { "\($0.title) — \(panel.model.location.displayPath)" }
+            ?? (panel.model.branch != nil ? "\(panel.model.location.displayPath) — \(BranchListing.title)" : nil)
             ?? panel.model.location.displayPath
         commandLine.setDirectory(panel.diskFolder)
     }
@@ -242,7 +243,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
             }
         case .sameFolderAsOther:
             let other = activeSide == .left ? right : left
-            if other.model.results != nil {
+            if other.isFlatListing {
                 Task { await activePanel.restoreTab(other.model.snapshot()) }
             } else {
                 activePanel.go(to: other.model.location, focusing: other.model.cursorItem.flatMap { $0.isParent ? nil : $0.name })

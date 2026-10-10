@@ -36,7 +36,8 @@ public func sortItems(
     _ items: [FileItem],
     by spec: SortSpec,
     rules: NameRules,
-    directorySizes: [String: Int64] = [:]
+    directorySizes: [String: Int64] = [:],
+    byFileName: Bool = false
 ) -> [FileItem] {
     var parents: [FileItem] = []
     var dirs: [FileItem] = []
@@ -47,7 +48,13 @@ public func sortItems(
         else { files.append(item) }
     }
 
-    func byName(_ a: FileItem, _ b: FileItem) -> ComparisonResult { rules.order(a.name, b.name) }
+    /// In branch view the shown name is the file's own; the path below the root keeps equal names in
+    /// a fixed order.
+    func byName(_ a: FileItem, _ b: FileItem) -> ComparisonResult {
+        guard byFileName else { return rules.order(a.name, b.name) }
+        let own = rules.order(a.fileName, b.fileName)
+        return own == .orderedSame ? rules.order(a.name, b.name) : own
+    }
     func compare<T: Comparable>(_ x: T, _ y: T) -> ComparisonResult {
         x < y ? .orderedAscending : (x > y ? .orderedDescending : .orderedSame)
     }

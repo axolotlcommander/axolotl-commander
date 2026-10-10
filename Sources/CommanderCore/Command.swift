@@ -21,7 +21,7 @@ public enum Command: String, CaseIterable, Hashable, Sendable {
 
     // View
     case sortByName, sortByExtension, sortByDate, sortBySize
-    case filter, refresh, toggleHidden, maximizePanel, comparePanels, calculateSizes
+    case filter, refresh, toggleHidden, branchView, branchViewSelected, maximizePanel, comparePanels, calculateSizes
     case swapPanels, sameFolderAsOther
     case viewModeDetailed, viewModeBrief
     case toggleCommandLine, toggleFunctionKeyBar
@@ -201,6 +201,8 @@ public enum CommandRegistry {
         add(.viewModeDetailed, "Detailed", .view, [ch("1", [c, o])], sep: true)
         add(.viewModeBrief, "Brief", .view, [ch("2", [c, o])])
         add(.toggleHidden, "Show Hidden Files", .view, [ch(".", [m, s])], sep: true)
+        add(.branchView, "Branch View (With Subfolders)", .view, [ch("b", c)])
+        add(.branchViewSelected, "Branch View of Selected Items", .view)
         add(.filter, "Filter…", .view, [f(12, c)])
         add(.refresh, "Refresh", .view, [f(9, c), ch("r", m)])
         add(.maximizePanel, "Maximize Panel", .view, [f(11, c)], sep: true)

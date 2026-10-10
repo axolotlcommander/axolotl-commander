@@ -24,7 +24,7 @@ No setup: the existing SwiftPM layout, no new dependencies.
 
 ## Phase 2: Foundational (core)
 
-- [ ] T001 [P] Create `Sources/CommanderCore/Branch.swift` (SPDX header) per data-model.md:
+- [X] T001 [P] Create `Sources/CommanderCore/Branch.swift` (SPDX header) per data-model.md:
   - `BranchListing` (`root`, `starts: [URL]?`, `title`);
   - `BranchProgress`, `BranchResult`;
   - `BranchScanner.scan(_:source:includeHidden:progress:)`, iterative depth first, by the research.md R3
@@ -32,7 +32,7 @@ No setup: the existing SwiftPM layout, no new dependencies.
     `unreadable`, a root error rethrown, `Task.checkCancellation()` per folder, progress at most every
     100 ms and after the last folder.
   - Each item's `name` is the path relative to `root`; `url` is unchanged.
-- [ ] T002 [P] Create `Tests/CommanderCoreTests/BranchScannerTests.swift` on a temporary folder the test
+- [X] T002 [P] Create `Tests/CommanderCoreTests/BranchScannerTests.swift` on a temporary folder the test
   creates and removes. It covers:
   - files only, relative names, duplicate names;
   - hidden files with and without `includeHidden`;
@@ -43,10 +43,10 @@ No setup: the existing SwiftPM layout, no new dependencies.
   - progress, called at least once with the final count;
   - marked starts (a file and a folder);
   - an in-memory `FileSource` with `sftp://` and archive-like URLs, for US4.
-- [ ] T003 `sortItems(_:by:rules:directorySizes:byFileName:)` in `Sources/CommanderCore/Sorting.swift`:
+- [X] T003 `sortItems(_:by:rules:directorySizes:byFileName:)` in `Sources/CommanderCore/Sorting.swift`:
   - when `byFileName` is set, the name order compares `url.lastPathComponent`, then `name`;
   - add a test to the existing sorting tests.
-- [ ] T004 `PanelModel` in `Sources/CommanderCore/PanelModel.swift`:
+- [X] T004 `PanelModel` in `Sources/CommanderCore/PanelModel.swift`:
   - `branch: BranchListing?`, `unreadableFolders`, `onBranchProgress`;
   - `showBranch(_:focusing:)`;
   - `load(_:results:branch:includeHidden:)` scans a branch through `BranchScanner` with `source` and
@@ -54,9 +54,9 @@ No setup: the existing SwiftPM layout, no new dependencies.
   - `navigate`, `refresh`, `snapshot`, `restore`, the history `Place`, `buildItems` (`byFileName`
     when `branch != nil`) and quick search `matches` (the file name in branch view);
   - `goParent` keeps its normal behavior.
-- [ ] T005 `PanelState` and `PanelState.Place` in `Sources/CommanderCore/Window/PanelState.swift`:
+- [X] T005 `PanelState` and `PanelState.Place` in `Sources/CommanderCore/Window/PanelState.swift`:
   `branch: BranchListing?`, in memory only (not in `CodingKeys`).
-- [ ] T006 [P] Create `Tests/CommanderCoreTests/PanelModelBranchTests.swift`. It covers:
+- [X] T006 [P] Create `Tests/CommanderCoreTests/PanelModelBranchTests.swift`. It covers:
   - `showBranch` lists the files;
   - going back to the folder with the cursor on a direct file;
   - `goParent` goes to the parent;
@@ -66,45 +66,45 @@ No setup: the existing SwiftPM layout, no new dependencies.
   - `showHidden` changes rescan;
   - `PanelState` encoding has no branch;
   - `restore` with a branch rescans.
-- [ ] T007 `Command` in `Sources/CommanderCore/Command.swift`:
+- [X] T007 `Command` in `Sources/CommanderCore/Command.swift`:
   - `.branchView`, "Branch View (With Subfolders)", ⌃B, View menu after "Show Hidden Files";
   - `.branchViewSelected`, "Branch View of Selected Items", no chord.
   Check the chord uniqueness tests. `swift test` is green. Commit.
 
 ## Phase 3: User Stories 1 + 2 - Branch view of the folder, responsive (P1) 🎯 MVP
 
-- [ ] T008 [US1] The ⌃B toggle in `Sources/AxolotlCommander/PanelViewController.swift` (command
+- [X] T008 [US1] The ⌃B toggle in `Sources/AxolotlCommander/PanelViewController.swift` (command
   dispatch):
   - in a normal listing it starts the scan of `BranchListing(root: location)`;
   - in branch view it calls `go(to: location, focusing:)` with the cursor's file name when the file
     is directly in the folder.
-- [ ] T009 [US2] Scan task and progress, like `sizeTask`/`sizingProgress`:
+- [X] T009 [US2] Scan task and progress, like `sizeTask`/`sizingProgress`:
   - `branchTask` and `branchProgress`, shown first in `updateStatus()`;
   - Esc with no quick search cancels the task. The first scan leaves the panel as it was; a cancelled
     rescan goes to the folder's normal listing.
   - `model.onBranchProgress` updates the text ("Reading the branch: N files — folder — Esc stops").
   - The panel's busy state follows the scan.
-- [ ] T010 [US1] Names: in the Name and Ext cells, and in `Sources/AxolotlCommander/BriefView.swift`,
+- [X] T010 [US1] Names: in the Name and Ext cells, and in `Sources/AxolotlCommander/BriefView.swift`,
   show `url.lastPathComponent` (base name and extension) when `model.branch != nil`. The in-place
   rename (F2) uses the file name, like the results listing (lines that use `model.results == nil ?
   item.name : item.url.lastPathComponent`).
-- [ ] T011 [US1] Status line: the item line already shows `item.name`, which is the relative path. The
+- [X] T011 [US1] Status line: the item line already shows `item.name`, which is the relative path. The
   totals line adds "— N folders could not be read" when `unreadableFolders > 0`.
-- [ ] T012 [US1] Path bar and titles:
+- [X] T012 [US1] Path bar and titles:
   - `Breadcrumbs.trail(..., branch:)` in `Sources/CommanderCore/Window/Breadcrumbs.swift` appends a
     non-clickable `.branch` segment ("Branch");
   - `PathBar` draws it like `.results`;
   - `locationText` gives "<folder> — Branch";
   - the window title in `MainWindowController` and the tab title get "(Branch)";
   - `trailSource` includes the branch.
-- [ ] T013 [US1] Validation (FR-009, FR-015):
+- [X] T013 [US1] Validation (FR-009, FR-015):
   - the create and link commands at `PanelViewController` ~line 533 are disabled when
     `model.branch != nil`;
   - `branchView` is disabled in the Network folder and in a results listing;
   - drag destination rules (`PanelDragDrop`) and the context menu treat branch view like the results
     listing for dropping into the folder;
   - `PanelLinkCommands` and the `ArchiveOperations` target folder use the branch root.
-- [ ] T014 [US1] Watching and refresh: `watchLocation` does not watch in branch view; ⌘R and the
+- [X] T014 [US1] Watching and refresh: `watchLocation` does not watch in branch view; ⌘R and the
   refresh after operations rescan (through `model.refresh()` with progress); switching tabs rescans.
 - [ ] T015 [US1] Build without warnings, `swift test` green. Commit.
 
@@ -115,7 +115,7 @@ No setup: the existing SwiftPM layout, no new dependencies.
 
 ## Phase 5: User Story 4 - Archives and servers (P2)
 
-- [ ] T017 [US4] Archive operations in `Sources/AxolotlCommander/ArchiveOperations.swift`:
+- [X] T017 [US4] Archive operations in `Sources/AxolotlCommander/ArchiveOperations.swift`:
   - `transferArchive` (extract out, add) groups the sources by their own folder and runs per group;
   - `deleteInArchive` and rename use each item's own `ArchivePath`.
   Add a core helper `groupedByFolder(_ urls: [URL]) -> [(folder: URL, names: [String])]` with a test.

@@ -3,11 +3,11 @@
 
 public import Foundation
 
-/// One step of a panel's location in the path bar: a volume, server, folder, archive or the
-/// title of search results.
+/// One step of a panel's location in the path bar: a volume, server, folder, archive, the
+/// title of search results or the branch view mark.
 public struct PathSegment: Hashable, Sendable {
     public enum Kind: Hashable, Sendable {
-        case volume, home, folder, archive, archiveFolder, server, remoteFolder, results, network
+        case volume, home, folder, archive, archiveFolder, server, remoteFolder, results, network, branch
     }
 
     public var name: String
@@ -21,7 +21,7 @@ public struct PathSegment: Hashable, Sendable {
         self.kind = kind
     }
 
-    public var isClickable: Bool { kind != .results }
+    public var isClickable: Bool { kind != .results && kind != .branch }
 }
 
 /// Which segments of a trail fit into the path bar.
@@ -47,8 +47,13 @@ public enum Breadcrumbs {
     /// `volume` is the volume containing a local location (mount point and name).
     public static func trail(
         location: URL, results: ResultsListing? = nil, archive: ArchivePath? = nil,
-        remote: RemoteLocation? = nil, volume: (root: URL, name: String), home: URL
+        remote: RemoteLocation? = nil, volume: (root: URL, name: String), home: URL, branchTitle: String? = nil
     ) -> [PathSegment] {
+        // Branch view: the folder's own trail, then a mark that is not a place to go to.
+        if let branchTitle {
+            return trail(location: location, archive: archive, remote: remote, volume: volume, home: home)
+                + [PathSegment(name: branchTitle, url: location, kind: .branch)]
+        }
         if let results {
             let title = PathSegment(name: results.title, url: results.root, kind: .results)
             return [title] + trail(location: results.root, remote: RemoteURL.parse(results.root),
@@ -87,7 +92,7 @@ public enum Breadcrumbs {
     /// The item to put the cursor on after going to segment `index`: the next segment on the
     /// trail, which leads back toward where the panel was. Nil for the last segment.
     public static func focusName(after index: Int, in trail: [PathSegment]) -> String? {
-        guard trail.indices.contains(index + 1), trail[index + 1].kind != .results else { return nil }
+        guard trail.indices.contains(index + 1), trail[index + 1].isClickable else { return nil }
         return trail[index + 1].name
     }
 

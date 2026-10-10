@@ -12,11 +12,14 @@ public struct PanelState: Codable, Hashable, Sendable {
         public var cursorName: String?
         /// Find results shown at that moment. Not persisted: after a restart the root folder is shown.
         public var results: ResultsListing?
+        /// Branch view shown at that moment; not persisted either.
+        public var branch: BranchListing?
 
-        public init(url: URL, cursorName: String? = nil, results: ResultsListing? = nil) {
+        public init(url: URL, cursorName: String? = nil, results: ResultsListing? = nil, branch: BranchListing? = nil) {
             self.url = url
             self.cursorName = cursorName
             self.results = results
+            self.branch = branch
         }
 
         private enum CodingKeys: String, CodingKey { case url, cursorName }
@@ -34,6 +37,8 @@ public struct PanelState: Codable, Hashable, Sendable {
     public var forward: [Place]
     /// Find results shown in the panel (in memory only, like `Place.results`).
     public var results: ResultsListing?
+    /// Branch view shown in the panel (in memory only, like `results`).
+    public var branch: BranchListing?
     /// Names of the selected items (in memory only: a tab keeps its selection while switching).
     public var selectedNames: [String]
 
@@ -50,6 +55,7 @@ public struct PanelState: Codable, Hashable, Sendable {
         back: [Place] = [],
         forward: [Place] = [],
         results: ResultsListing? = nil,
+        branch: BranchListing? = nil,
         selectedNames: [String] = []
     ) {
         self.location = location
@@ -60,6 +66,7 @@ public struct PanelState: Codable, Hashable, Sendable {
         self.back = back
         self.forward = forward
         self.results = results
+        self.branch = branch
         self.selectedNames = selectedNames
     }
 
@@ -79,8 +86,8 @@ public struct PanelState: Codable, Hashable, Sendable {
     /// Short tab title: the last path component, "/" for the root.
     public var title: String {
         if let results { return results.title }
-        let name = location.lastPathComponent
-        return name.isEmpty ? "/" : name
+        let name = location.lastPathComponent.isEmpty ? "/" : location.lastPathComponent
+        return branch == nil ? name : "\(name) (\(BranchListing.title))"
     }
 
     /// The closest ancestor of `url` (including `url` itself) for which `exists` is true;
