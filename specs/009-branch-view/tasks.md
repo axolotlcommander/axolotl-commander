@@ -110,7 +110,7 @@ No setup: the existing SwiftPM layout, no new dependencies.
 
 ## Phase 4: User Story 3 - Branch view of the marked items (P2)
 
-- [ ] T016 [US3] `branchViewSelected`: the starts are the marked items, or the cursor item when
+- [X] T016 [US3] `branchViewSelected`: the starts are the marked items, or the cursor item when
   nothing is marked. It is disabled on "..", in the Network folder and in a results listing. Commit.
 
 ## Phase 5: User Story 4 - Archives and servers (P2)
@@ -125,9 +125,9 @@ No setup: the existing SwiftPM layout, no new dependencies.
 
 ## Phase 6: Polish
 
-- [ ] T019 [P] Czech translations in `Resources/Localizable.xcstrings`: the command names, "Branch",
+- [X] T019 [P] Czech translations in `Resources/Localizable.xcstrings`: the command names, "Branch",
   the progress text, the unreadable-folders text.
-- [ ] T020 [P] CHANGELOG "Unreleased" → "Added": branch view.
+- [X] T020 [P] CHANGELOG "Unreleased" → "Added": branch view.
 - [ ] T021 GUI check from quickstart.md in the test copy, on a scratchpad test tree only.
 - [ ] T022 After 008 is merged: rebase on `main`, `scripts/bump-version.sh minor`, then PR, merge, tag
   and install (when the maintainer says).

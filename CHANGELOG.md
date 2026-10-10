@@ -18,6 +18,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
   counts) for every rounded size in the app: panels, status bars, the volume bar, operations,
   Properties, Compare and Disk Usage.
 - A size that does not fit a narrow Size column shows an ellipsis, never a cut number.
+- Branch view (⌃B, View → Branch View (With Subfolders)), as in Total Commander: the panel lists
+  every file of the folder and of all its subfolders in one list. The Name column shows the file's
+  own name; the status bar shows its path below the folder. ⌃B again returns to the folder. It
+  works in folders on disk, in archives and on servers; a long scan shows its progress, and Esc stops
+  it. View → Branch View of Selected Items does the same for the marked files and folders.
 
 ## [0.2.2] - 2026-10-10
 
