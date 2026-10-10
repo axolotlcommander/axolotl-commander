@@ -131,7 +131,7 @@ final class PanelViewController: NSViewController {
             let tc = NSTableColumn(identifier: column.identifier)
             tc.title = column.title
             tc.minWidth = column.minWidth
-            tc.width = max(column.width, column.minWidth)
+            tc.width = max(column.width, column.fitWidth)
             tc.resizingMask = column == .name ? [.autoresizingMask, .userResizingMask] : .userResizingMask
             if column.isNumeric { tc.headerCell.alignment = .right }
             tableView.addTableColumn(tc)
@@ -1166,13 +1166,17 @@ private enum Column: String, CaseIterable {
         case .date: 130
         }
     }
-    /// The Date and Size columns always fit their values, also in bold (marked rows): a
-    /// middle-truncated date or size misleads.
-    var minWidth: CGFloat {
+    /// Every column can be made narrow; Size and Date then show a shorter form of the value
+    /// (`CellText`), never a number cut in the middle.
+    var minWidth: CGFloat { 40 }
+
+    /// The width that fits every value in full, also in bold (marked rows): the initial width of
+    /// Size and Date.
+    var fitWidth: CGFloat {
         switch self {
         case .date: Self.dateWidth
         case .size: Self.sizeWidth
-        default: 40
+        default: minWidth
         }
     }
 
@@ -1225,26 +1229,27 @@ extension PanelViewController: NSTableViewDataSource, NSTableViewDelegate {
             ?? FileCellView(identifier: tableColumn.identifier, withIcon: column == .name)
         let marked = model.isSelected(item)
         cell.textField?.alignment = column.isNumeric ? .right : .left
-        cell.textField?.stringValue = text(for: column, item: item)
         cell.textField?.textColor = textColor(for: item, marked: marked)
         cell.textField?.font = marked ? .boldSystemFont(ofSize: NSFont.systemFontSize) : .systemFont(ofSize: NSFont.systemFontSize)
+        cell.variants = texts(for: column, item: item)
         if column == .name { cell.imageView?.image = IconCache.icon(for: item) }
         return cell
     }
 
-    private func text(for column: Column, item: FileItem) -> String {
+    /// The cell's text from the longest form to the shortest; the cell shows the first that fits.
+    private func texts(for column: Column, item: FileItem) -> [String] {
         switch column {
-        case .name: return item.isParent ? ".." : item.baseName
-        case .ext: return item.fileExtension
+        case .name: return [item.isParent ? ".." : item.baseName]
+        case .ext: return [item.fileExtension]
         case .size:
             // Servers in the Network folder have no size.
-            if item.isParent || NetworkPlaces.isNetwork(item.url) { return "" }
+            if item.isParent || NetworkPlaces.isNetwork(item.url) { return [""] }
             if item.isDirectory {
                 // A package is a file to the user: no <DIR>, its size once calculated (Space).
-                return model.directorySizes[model.rules.key(item.name)].map(Format.grouped) ?? (item.isPackage ? "—" : "<DIR>")
+                return model.directorySizes[model.rules.key(item.name)].map { CellText.size($0) } ?? [item.isPackage ? "—" : "<DIR>"]
             }
-            return Format.grouped(item.size ?? 0)
-        case .date: return item.isParent ? "" : item.modificationDate.map(Format.date) ?? ""
+            return CellText.size(item.size ?? 0)
+        case .date: return item.isParent ? [""] : item.modificationDate.map { CellText.date($0) } ?? [""]
         }
     }
 
@@ -1328,6 +1333,30 @@ final class PanelRowView: NSTableRowView {
 }
 
 final class FileCellView: NSTableCellView {
+    /// The text from the longest form to the shortest: the first that fits the width is shown, the
+    /// full one in the tooltip when it is shortened.
+    var variants: [String] = [] {
+        didSet { fitText() }
+    }
+
+    override func setFrameSize(_ newSize: NSSize) {
+        let changed = newSize.width != frame.width
+        super.setFrameSize(newSize)
+        if changed { fitText() }
+    }
+
+    private func fitText() {
+        guard let label = textField else { return }
+        // The label's width follows from the constraints in init; its cell adds a little padding.
+        let available = frame.width - (imageView == nil ? 4 : 24) - 4
+        let font = label.font ?? .systemFont(ofSize: NSFont.systemFontSize)
+        let text = variants.count < 2 ? variants.first ?? "" : CellText.fitting(variants) {
+            ($0 as NSString).size(withAttributes: [.font: font]).width <= available
+        }
+        if label.stringValue != text { label.stringValue = text }
+        label.toolTip = variants.count > 1 && text != variants[0] ? variants[0] : nil
+    }
+
     convenience init(identifier: NSUserInterfaceItemIdentifier, withIcon: Bool) {
         self.init(frame: .zero)
         self.identifier = identifier
