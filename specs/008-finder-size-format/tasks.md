@@ -115,7 +115,7 @@ status line.
   - "Units:", "1000 (like Finder)", "1024 (like Windows)".
 - [X] T017 [P] Add a CHANGELOG "Unreleased" → "Added" entry. It says that sizes are now in Finder
   style by default, and that exact bytes are back with Settings → Appearance → Size in panels.
-- [ ] T018 Run the GUI check from quickstart.md, in the test copy only, in a scratchpad test
+- [X] T018 Run the GUI check from quickstart.md, in the test copy only, in a scratchpad test
   folder.
 - [ ] T019 Run `scripts/bump-version.sh minor` (0.3.0), then commit, open a PR, merge, tag v0.3.0,
   build and install (ask first if the app is running).
