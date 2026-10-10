@@ -186,14 +186,14 @@ extension OperationsController {
         }
     }
 
-    func rename(_ item: RemoteLocation, to newName: String, panel: PanelViewController) {
+    func rename(_ item: RemoteLocation, to newName: String, panel: PanelViewController, focusing old: URL) {
         Task {
             do {
                 guard !newName.contains("/"), newName != ".", newName != ".." else { throw RemoteError.invalidName(newName) }
                 let target = RemotePath.join(RemotePath.parent(item.path), newName)
                 try await RemoteConnections.shared.perform(on: item.endpoint) { try await $0.rename(item.path, to: target) }
                 await panel.model.refresh()
-                panel.focus(name: newName)
+                panel.focusRenamed(old, to: newName)
             } catch {
                 report(error)
             }

@@ -9,14 +9,6 @@ import Testing
     private let cs = Locale(identifier: "cs_CZ")
     private let utc = TimeZone(identifier: "UTC")!
 
-    @Test func sizeGoesFromBytesToRounded() {
-        let variants = CellText.size(1_234_567, locale: cs)
-        #expect(variants.count == 2)
-        #expect(variants[0].filter(\.isNumber) == "1234567")
-        #expect(variants[1].contains("MB"))
-        #expect(variants[1].count < variants[0].count)
-    }
-
     @Test func dateDropsTheTimeThenShortensTheYear() {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = utc

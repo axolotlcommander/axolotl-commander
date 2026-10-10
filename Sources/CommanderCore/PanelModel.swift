@@ -42,6 +42,15 @@ public final class PanelModel {
     public private(set) var directorySizes: [String: Int64] = [:]
     /// Set while the panel shows find results instead of a directory; `location` is then its root.
     public private(set) var results: ResultsListing?
+    /// Set while the panel shows the branch view of `location`: the files of its subfolders too.
+    public private(set) var branch: BranchListing?
+    /// Subfolders of the shown branch that could not be read.
+    public private(set) var unreadableFolders = 0
+    /// Told how a branch scan goes (also when a refresh rescans it); nil when the scan has ended.
+    @ObservationIgnored public var onBranchProgress: (@MainActor @Sendable (BranchProgress?) -> Void)?
+    @ObservationIgnored private var branchScan: Task<BranchResult, any Error>?
+    /// Whether a branch is being scanned (to show or to refresh it).
+    public var isScanningBranch: Bool { branchScan != nil }
     /// Set while `location` is a folder inside an archive (`/x/a.zip/dir`).
     public private(set) var archive: ArchivePath?
     /// Set while `location` is a folder on a server (`sftp://…`, `ftp://…`).
@@ -85,8 +94,9 @@ public final class PanelModel {
 
     // MARK: Loading
 
-    private func load(_ url: URL, results: ResultsListing? = nil, includeHidden: Bool? = nil) async throws
-        -> (raw: [FileItem], rules: NameRules, archive: ArchivePath?) {
+    private func load(_ url: URL, results: ResultsListing? = nil, branch: BranchListing? = nil,
+                      includeHidden: Bool? = nil) async throws
+        -> (raw: [FileItem], rules: NameRules, archive: ArchivePath?, unreadable: Int) {
         inFlight += 1
         isLoading = true
         defer {
@@ -94,15 +104,39 @@ public final class PanelModel {
             isLoading = inFlight > 0
         }
         do {
-            let raw = if let results {
-                try await results.load()
+            var unreadable = 0
+            let raw: [FileItem]
+            if let results {
+                raw = try await results.load()
+            } else if let branch {
+                let report = onBranchProgress
+                let (source, hidden) = (source, includeHidden ?? showHidden)
+                let scan = Task {
+                    try await BranchScanner.scan(
+                        branch, source: source, includeHidden: hidden,
+                        progress: { p in
+                            // A report that arrives after the scan has ended is dropped.
+                            Task { @MainActor [weak self] in if self?.isScanningBranch == true { report?(p) } }
+                        })
+                }
+                branchScan?.cancel()
+                branchScan = scan
+                defer {
+                    if branchScan == scan {
+                        branchScan = nil
+                        report?(nil)
+                    }
+                }
+                let scanned = try await withTaskCancellationHandler { try await scan.value } onCancel: { scan.cancel() }
+                raw = scanned.items
+                unreadable = scanned.unreadable
             } else {
-                try await source.list(url, includeHidden: includeHidden ?? showHidden).filter { !$0.isParent }
+                raw = try await source.list(url, includeHidden: includeHidden ?? showHidden).filter { !$0.isParent }
             }
             // Member names are case-sensitive: "A.txt" and "a.txt" are two members.
             let archive = results == nil ? ArchivePath.split(url) : nil
             let caseSensitive = archive != nil || RemoteURL.isRemote(url) || NetworkPlaces.isNetwork(url)
-            return (raw, caseSensitive ? NameRules(caseSensitive: true) : NameRules.forVolume(containing: url), archive)
+            return (raw, caseSensitive ? NameRules(caseSensitive: true) : NameRules.forVolume(containing: url), archive, unreadable)
         } catch {
             lastError = error
             throw error
@@ -112,9 +146,10 @@ public final class PanelModel {
     private func buildItems() -> [FileItem] {
         var visible = rawItems
         if let filter {
-            visible = visible.filter { $0.isDirectory || filter.matches($0.name, rules: rules) }
+            let ownName = branch != nil
+            visible = visible.filter { $0.isDirectory || filter.matches(ownName ? $0.fileName : $0.name, rules: rules) }
         }
-        var result = sortItems(visible, by: sort, rules: rules, directorySizes: directorySizes)
+        var result = sortItems(visible, by: sort, rules: rules, directorySizes: directorySizes, byFileName: branch != nil)
         if results != nil {
             // ".." leaves the results for their root folder.
             result.insert(FileItem(url: location, name: "..", isParent: true, isDirectory: true), at: 0)
@@ -153,16 +188,24 @@ public final class PanelModel {
         try await navigate(to: listing.root, focusing: name, mode: .record, results: listing)
     }
 
-    private func navigate(to url: URL, focusing name: String?, mode: NavMode, results: ResultsListing? = nil) async throws {
+    /// Shows the branch view of `listing.root`; Back returns to where the panel was. The panel stays
+    /// as it was until the scan has finished, so cancelling the task changes nothing.
+    public func showBranch(_ listing: BranchListing, focusing name: String? = nil) async throws {
+        try await navigate(to: listing.root, focusing: name, mode: .record, branch: listing)
+    }
+
+    private func navigate(to url: URL, focusing name: String?, mode: NavMode, results: ResultsListing? = nil,
+                          branch: BranchListing? = nil) async throws {
         navToken += 1
         let token = navToken
-        let loaded = try await load(url, results: results)
+        let loaded = try await load(url, results: results, branch: branch)
         guard token == navToken else { throw CancellationError() }
 
-        let leaving = PanelState.Place(url: location, cursorName: cursorItem?.name, results: self.results)
+        let leaving = PanelState.Place(url: location, cursorName: cursorItem?.name, results: self.results, branch: self.branch)
         switch mode {
         case .record:
-            if leaving.url.standardizedFileURL.path != url.standardizedFileURL.path || leaving.results != results {
+            if leaving.url.standardizedFileURL.path != url.standardizedFileURL.path || leaving.results != results
+                || leaving.branch != branch {
                 back.append(leaving)
                 if back.count > Self.historyLimit { back.removeFirst(back.count - Self.historyLimit) }
                 forward.removeAll()
@@ -179,6 +222,8 @@ public final class PanelModel {
 
         location = url
         self.results = results
+        self.branch = branch
+        unreadableFolders = loaded.unreadable
         archive = loaded.archive
         rules = loaded.rules
         rawItems = loaded.raw
@@ -200,6 +245,7 @@ public final class PanelModel {
             back: back,
             forward: forward,
             results: results,
+            branch: branch,
             selectedNames: selectedItems.map(\.name)
         )
     }
@@ -210,7 +256,7 @@ public final class PanelModel {
     public func restore(_ state: PanelState) async throws {
         navToken += 1
         let token = navToken
-        let loaded = try await load(state.location, results: state.results, includeHidden: state.showHidden)
+        let loaded = try await load(state.location, results: state.results, branch: state.branch, includeHidden: state.showHidden)
         guard token == navToken else { throw CancellationError() }
 
         isRestoring = true
@@ -223,6 +269,8 @@ public final class PanelModel {
         forward = Array(state.forward.suffix(Self.historyLimit))
         location = state.location
         results = state.results
+        branch = state.branch
+        unreadableFolders = loaded.unreadable
         archive = loaded.archive
         rules = loaded.rules
         rawItems = loaded.raw
@@ -234,20 +282,37 @@ public final class PanelModel {
         lastError = nil
     }
 
+    /// Stops a running branch scan: a branch being opened is not shown; a branch being refreshed
+    /// gives way to the folder's normal listing.
+    public func cancelBranchScan() {
+        branchScan?.cancel()
+    }
+
     /// Find results: an item was renamed, so the listing follows it (call `refresh` afterwards).
     public func replaceResult(_ old: URL, with new: URL) {
         results = results?.replacing(old, with: new)
     }
 
-    /// Reloads the current directory, keeping cursor, selection and sizes where possible.
+    /// Reloads the current directory (scans a branch again), keeping cursor, selection and sizes
+    /// where possible.
     public func refresh() async {
         let token = navToken
         let url = location
-        guard let loaded = try? await load(url, results: results), token == navToken else { return }
+        let loaded: (raw: [FileItem], rules: NameRules, archive: ArchivePath?, unreadable: Int)
+        do {
+            loaded = try await load(url, results: results, branch: branch)
+        } catch is CancellationError where branch != nil && token == navToken {
+            try? await go(to: url)
+            return
+        } catch {
+            return
+        }
+        guard token == navToken else { return }
         let name = cursorItem?.name
         let old = cursor
         rules = loaded.rules
         rawItems = loaded.raw
+        unreadableFolders = loaded.unreadable
         let present = Set(rawItems.map { rules.key($0.name) })
         selection.formIntersection(present)
         directorySizes = directorySizes.filter { present.contains($0.key) }
@@ -309,12 +374,12 @@ public final class PanelModel {
 
     public func goBack() async throws {
         guard let entry = back.last else { return }
-        try await navigate(to: entry.url, focusing: entry.cursorName, mode: .back, results: entry.results)
+        try await navigate(to: entry.url, focusing: entry.cursorName, mode: .back, results: entry.results, branch: entry.branch)
     }
 
     public func goForward() async throws {
         guard let entry = forward.last else { return }
-        try await navigate(to: entry.url, focusing: entry.cursorName, mode: .forward, results: entry.results)
+        try await navigate(to: entry.url, focusing: entry.cursorName, mode: .forward, results: entry.results, branch: entry.branch)
     }
 
     // MARK: Cursor
@@ -353,7 +418,8 @@ public final class PanelModel {
 
     private func matches(_ item: FileItem, prefix: String) -> Bool {
         guard !item.isParent, !prefix.isEmpty else { return false }
-        return rules.key(item.name).hasPrefix(rules.key(prefix))
+        // In branch view the shown name is the file's own, without its folder.
+        return rules.key(branch != nil ? item.fileName : item.name).hasPrefix(rules.key(prefix))
     }
 
     // MARK: Selection

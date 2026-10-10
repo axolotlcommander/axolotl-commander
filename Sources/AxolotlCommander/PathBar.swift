@@ -215,6 +215,8 @@ final class PathBar: NSView {
             image = NSImage(systemSymbolName: "network", accessibilityDescription: nil) ?? NSImage()
         case .results:
             image = NSImage(systemSymbolName: "magnifyingglass", accessibilityDescription: nil) ?? NSImage()
+        case .branch:
+            image = NSImage(systemSymbolName: "list.bullet.indent", accessibilityDescription: nil) ?? NSImage()
         }
         let sized = image.copy() as? NSImage ?? image
         sized.size = NSSize(width: 16, height: 16)

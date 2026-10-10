@@ -205,7 +205,8 @@ extension PanelViewController: NSCollectionViewDataSource {
     func reloadBrief() {
         if let layout = briefView.collectionViewLayout as? NSCollectionViewFlowLayout {
             let font = NSFont.systemFont(ofSize: NSFont.systemFontSize)
-            let widest = model.items.prefix(2000).map { ($0.name as NSString).size(withAttributes: [.font: font]).width }.max() ?? 0
+            let ownNames = model.branch != nil
+            let widest = model.items.prefix(2000).map { ((ownNames ? $0.fileName : $0.name) as NSString).size(withAttributes: [.font: font]).width }.max() ?? 0
             let width = min(max(widest + 30, 110), 300).rounded()
             if layout.itemSize.width != width { layout.itemSize = NSSize(width: width, height: Self.briefRowHeight) }
         }
@@ -244,7 +245,8 @@ extension PanelViewController: NSCollectionViewDataSource {
         guard let brief = item as? BriefItem, model.items.indices.contains(indexPath.item) else { return item }
         let file = model.items[indexPath.item]
         let marked = model.isSelected(file)
-        brief.cell.label.stringValue = file.isParent ? ".." : file.name
+        // Branch view shows the file's own name; the tooltip has its path below the folder.
+        brief.cell.label.stringValue = file.isParent ? ".." : model.branch != nil ? file.fileName : file.name
         brief.cell.label.font = marked ? .boldSystemFont(ofSize: NSFont.systemFontSize) : .systemFont(ofSize: NSFont.systemFontSize)
         brief.cell.label.textColor = briefTextColor(for: file, at: indexPath.item)
         brief.cell.icon.image = IconCache.icon(for: file)

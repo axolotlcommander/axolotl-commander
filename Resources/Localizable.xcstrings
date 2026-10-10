@@ -8863,6 +8863,138 @@
           }
         }
       }
+    },
+    "Size in panels:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Velikost v panelech:"
+          }
+        }
+      }
+    },
+    "Like Finder (kB, MB, GB)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jako ve Finderu (kB, MB, GB)"
+          }
+        }
+      }
+    },
+    "In bytes": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "V bajtech"
+          }
+        }
+      }
+    },
+    "Units:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jednotky:"
+          }
+        }
+      }
+    },
+    "1000 (like Finder)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1000 (jako Finder)"
+          }
+        }
+      }
+    },
+    "1024 (like Windows)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1024 (jako Windows)"
+          }
+        }
+      }
+    },
+    "Branch": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Větev"
+          }
+        }
+      }
+    },
+    "Branch View (With Subfolders)": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zobrazit větev (s podsložkami)"
+          }
+        }
+      }
+    },
+    "Branch View of Selected Items": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zobrazit větev označených položek"
+          }
+        }
+      }
+    },
+    "Reading the branch: %@ files — Esc stops": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Načítám větev: %@ souborů — Esc zastaví"
+          }
+        }
+      }
+    },
+    "Reading the branch: %@ files — %@ — Esc stops": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Načítám větev: %1$@ souborů — %2$@ — Esc zastaví"
+          }
+        }
+      }
+    },
+    "%lld folders could not be read": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "nečitelné složky: %lld"
+          }
+        }
+      }
+    },
+    "Members of several archive folders cannot be added to an archive at once. Copy them to a folder on disk first.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Položky z více složek archivu nejde do archivu přidat najednou. Zkopírujte je nejdřív do složky na disku."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

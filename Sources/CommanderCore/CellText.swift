@@ -3,16 +3,10 @@
 
 public import Foundation
 
-/// Texts of the Size and Date columns from the longest to the shortest, so a narrow column shows a
-/// shorter form of the value instead of cutting a number in the middle.
+/// Texts of the Date column from the longest to the shortest, so a narrow column shows a
+/// shorter form of the value instead of cutting a number in the middle. The Size column
+/// gets its texts from `SizeFormat.columnVariants`.
 public enum CellText {
-    /// Bytes with grouping ("1 234 567"), then a rounded size ("1,2 MB").
-    public static func size(_ bytes: Int64, locale: Locale = .current) -> [String] {
-        let grouped = bytes.formatted(IntegerFormatStyle<Int64>(locale: locale).grouping(.automatic))
-        let rounded = bytes.formatted(ByteCountFormatStyle(style: .file, locale: locale))
-        return distinct([grouped, rounded])
-    }
-
     /// Date and time, then the date alone, with a two-digit year, and the day and month.
     public static func date(_ date: Date, locale: Locale = .current, timeZone: TimeZone = .current) -> [String] {
         var calendar = Calendar.current

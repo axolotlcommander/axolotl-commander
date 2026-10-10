@@ -84,3 +84,17 @@ extension SystemColor {
         }
     }
 }
+
+/// How sizes are written: the Size column's mode and the base of every rounded size. Plain
+/// UserDefaults keys, bound in Settings → Appearance; a missing or unknown value is the default.
+enum SizeSettings {
+    static let displayKey = "size.display"
+    static let unitsKey = "size.units"
+
+    static var saved: SizeFormat {
+        let defaults = UserDefaults.standard
+        return SizeFormat(
+            display: defaults.string(forKey: displayKey).flatMap(SizeDisplay.init(rawValue:)) ?? .finder,
+            units: defaults.string(forKey: unitsKey).flatMap(SizeUnits.init(rawValue:)) ?? .decimal)
+    }
+}

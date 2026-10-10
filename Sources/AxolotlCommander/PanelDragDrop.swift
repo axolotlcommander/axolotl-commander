@@ -29,7 +29,8 @@ extension PanelViewController {
             if item.isParent { return model.results == nil ? model.location.deletingLastPathComponent() : nil }
             if item.isDirectory && !item.isPackage { return item.url }
         }
-        return model.results == nil ? model.location : nil
+        // Find results and branch view have no folder of their own to drop into.
+        return isFlatListing ? nil : model.location
     }
 
     func dragOperation(_ info: any NSDraggingInfo, target: URL) -> NSDragOperation {

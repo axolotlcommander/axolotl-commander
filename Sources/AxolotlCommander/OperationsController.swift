@@ -343,14 +343,17 @@ final class OperationsController {
 
     func rename(_ url: URL, to newName: String, in panel: PanelViewController) {
         guard newName != url.lastPathComponent, !newName.isEmpty else { return }
-        if let archive = panel.model.archive { return rename(url.lastPathComponent, to: newName, in: archive, panel: panel) }
-        if let remote = RemoteURL.parse(url) { return rename(remote, to: newName, panel: panel) }
+        // In branch view the item may be in a subfolder of the panel's archive folder.
+        if panel.model.archive != nil, let archive = ArchivePath.split(url.deletingLastPathComponent()) {
+            return rename(url.lastPathComponent, to: newName, in: archive, panel: panel, focusing: url)
+        }
+        if let remote = RemoteURL.parse(url) { return rename(remote, to: newName, panel: panel, focusing: url) }
         Task {
             do {
                 let renamed = try await operations.rename(url, to: newName)
                 panel.model.replaceResult(url, with: renamed)
                 await panel.model.refresh()
-                panel.focus(name: panel.model.results?.relativeName(of: renamed) ?? renamed.lastPathComponent)
+                panel.focusRenamed(url, to: renamed.lastPathComponent)
             } catch {
                 report(error)
             }

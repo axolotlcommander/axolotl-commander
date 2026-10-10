@@ -5,6 +5,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-10
+
+### Added
+
+- Sizes in the panels read like Finder: "402 bytes", "453 kB", "4.1 MB", in the language and
+  number format of the system. **This is the new default**; to get exact bytes in the Size column
+  back, choose Settings → Appearance → Size in panels → In bytes. The exact byte count is always in
+  the tooltip of the Size cell and in the status bar for the item under the cursor
+  ("4.3 MB (4,300,000 bytes)").
+- Settings → Appearance → Units chooses 1000 (as Finder counts, the default) or 1024 (as Windows
+  counts) for every rounded size in the app: panels, status bars, the volume bar, operations,
+  Properties, Compare and Disk Usage.
+- A size that does not fit a narrow Size column shows an ellipsis, never a cut number.
+- Branch view (⌃B, View → Branch View (With Subfolders)), as in Total Commander: the panel lists
+  every file of the folder and of all its subfolders in one list. The Name column shows the file's
+  own name; the status bar shows its path below the folder. ⌃B again returns to the folder. It
+  works in folders on disk, in archives and on servers; a long scan shows its progress, and Esc stops
+  it. View → Branch View of Selected Items does the same for the marked files and folders.
+
 ## [0.2.2] - 2026-10-10
 
 ### Changed

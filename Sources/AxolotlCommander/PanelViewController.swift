@@ -57,7 +57,7 @@ final class PanelViewController: NSViewController {
     /// Breadcrumbs or the path field (hosted inside), by the "Path bar" setting.
     private(set) lazy var pathBar = PathBar(field: pathField)
     /// What the shown trail was built from (location, results, archive).
-    private var trailSource: (URL, ResultsListing?, ArchivePath?)?
+    private var trailSource: (URL, ResultsListing?, ArchivePath?, Bool)?
     let statusField = NSTextField(labelWithString: "")
     private let volumeBar = VolumeBar()
     let tabStrip = TabStrip()
@@ -77,6 +77,8 @@ final class PanelViewController: NSViewController {
     private var watchedURL: URL?
     private var syncingSelection = false
     private var fillingWidth = false
+    /// The size settings the Size column and the status line were last drawn with.
+    private var sizeFormat = SizeSettings.saved
     private var sizeTask: Task<Void, Never>?
 
     /// Commander-style quick search buffer; nil when not searching.
@@ -127,6 +129,9 @@ final class PanelViewController: NSViewController {
         // Leaving the field never navigates; only Enter does.
         pathField.cell?.sendsActionOnEndEditing = false
         configurePathBar()
+        NotificationCenter.default.addObserver(self, selector: #selector(sizeSettingsChanged),
+                                               name: UserDefaults.didChangeNotification, object: nil)
+        configureBranchProgress()
 
         for column in Column.allCases {
             let tc = NSTableColumn(identifier: column.identifier)
@@ -321,7 +326,8 @@ final class PanelViewController: NSViewController {
     /// Inside an archive the folder holding the archive is watched: rewriting it replaces the file.
     private func watchLocation() {
         // Servers are not watched; ⌘R refreshes. The Network folder refreshes on discovery changes.
-        if model.remote != nil || model.isNetwork {
+        // A branch is scanned again on ⌘R and after the app's own operations, never by itself.
+        if model.remote != nil || model.isNetwork || model.branch != nil {
             watcher?.cancel()
             watcher = nil
             watchedURL = nil
@@ -336,6 +342,10 @@ final class PanelViewController: NSViewController {
     }
 
     private func updateStatus() {
+        if let branchProgress {
+            statusField.stringValue = branchProgress
+            return
+        }
         if let sizingProgress {
             statusField.stringValue = sizingProgress
             return
@@ -350,12 +360,43 @@ final class PanelViewController: NSViewController {
         } else if let item = model.cursorItem, let service = NetworkPlaces.service(of: item.url) {
             statusField.stringValue = String(localized: "\(service.name)   \(service.kind.rawValue.uppercased()) server")
         } else if let item = model.cursorItem, !item.isParent {
-            let size = item.isDirectory ? (model.directorySizes[model.rules.key(item.name)].map(Format.bytes) ?? String(localized: "folder")) : Format.bytes(item.size ?? 0)
+            let size = sizeBytes(of: item).map(statusSize) ?? String(localized: "folder")
             statusField.stringValue = "\(item.name)   \(size)   \(item.modificationDate.map(Format.date) ?? "")"
         } else {
             let t = model.totals
-            statusField.stringValue = String(localized: "\(t.files) files, \(t.directories) folders — \(Format.bytes(t.bytes))")
+            var text = String(localized: "\(t.files) files, \(t.directories) folders — \(Format.bytes(t.bytes))")
+            if model.branch != nil, model.unreadableFolders > 0 {
+                text += " — " + String(localized: "\(model.unreadableFolders) folders could not be read")
+            }
+            statusField.stringValue = text
         }
+    }
+
+    /// The rounded size with the exact bytes next to it, unless the rounded text shows every byte.
+    private func statusSize(_ bytes: Int64) -> String {
+        let rounded = Format.bytes(bytes)
+        return sizeFormat.roundedIsExact(bytes) ? rounded : String(localized: "\(rounded) (\(Format.grouped(bytes)) bytes)")
+    }
+
+    /// The byte count of a file, or of a folder or package once calculated (Space); nil when there
+    /// is none to show.
+    private func sizeBytes(of item: FileItem) -> Int64? {
+        if item.isParent || NetworkPlaces.isNetwork(item.url) { return nil }
+        if item.isDirectory { return model.directorySizes[model.rules.key(item.name)] }
+        return item.size ?? 0
+    }
+
+    /// Settings → Appearance changed how sizes are written: only the Size column and the status
+    /// line are redrawn, so the cursor, selection and scroll stay.
+    @objc private func sizeSettingsChanged() {
+        let saved = SizeSettings.saved
+        guard saved != sizeFormat else { return }
+        sizeFormat = saved
+        let column = tableView.column(withIdentifier: Column.size.identifier)
+        if column >= 0, tableView.numberOfRows > 0 {
+            tableView.reloadData(forRowIndexes: IndexSet(0..<tableView.numberOfRows), columnIndexes: [column])
+        }
+        updateStatus()
     }
 
     /// Runs a navigation, reporting failure without moving the panel.
@@ -372,6 +413,10 @@ final class PanelViewController: NSViewController {
         guard let chord = KeyChord(event: event) else { return false }
         if chord.key == .escape, chord.modifiers.isEmpty, quickSearch == nil, isSizing {
             sizeTask?.cancel()
+            return true
+        }
+        if chord.key == .escape, chord.modifiers.isEmpty, quickSearch == nil, model.isScanningBranch {
+            model.cancelBranchScan()
             return true
         }
         if handleQuickSearch(chord, event: event) { return true }
@@ -494,6 +539,7 @@ final class PanelViewController: NSViewController {
         .changeCase, .batchRename, .calculateChecksums, .verifyChecksums, .occupiedSpace, .userMenu,
         .contextMenu, .moveFilesHere, .invertAll, .restoreSelection, .saveSelection, .loadSelection, .volumeInfo,
         .newSymbolicLink, .newHardLink, .editSymbolicLink, .pasteAsSymbolicLink, .goToLinkTarget, .changeAttributes,
+        .branchView, .branchViewSelected,
     ]
 
     private static let needTargets: Set<Command> = [
@@ -529,15 +575,18 @@ final class PanelViewController: NSViewController {
         case .goBack: return model.canGoBack
         case .goForward: return model.canGoForward
         case .closeTab, .nextTab, .previousTab: return tabs.tabs.count > 1
-        // Find results have no folder of their own to create or paste into.
-        case .makeDirectory, .newFile: return model.results == nil
-        case .pasteFiles: return model.results == nil && Self.pasteboardHasFilesOrPath
-        case .moveFilesHere: return model.results == nil && Self.pasteboardHasFiles
-        case .newSymbolicLink, .newHardLink, .changeAttributes: return model.results == nil
-        case .pasteAsSymbolicLink: return model.results == nil && Self.pasteboardHasFiles
+        // Find results and branch view have no folder of their own to create or paste into.
+        case .makeDirectory, .newFile: return !isFlatListing
+        case .pasteFiles: return !isFlatListing && Self.pasteboardHasFilesOrPath
+        case .moveFilesHere: return !isFlatListing && Self.pasteboardHasFiles
+        case .newSymbolicLink, .newHardLink, .changeAttributes: return !isFlatListing
+        case .pasteAsSymbolicLink: return !isFlatListing && Self.pasteboardHasFiles
         case .editSymbolicLink:
-            return model.results == nil && model.cursorItem.map { $0.isSymlink && !$0.isParent } == true
-        case .goToLinkTarget: return model.results == nil && cursorIsLink
+            return !isFlatListing && model.cursorItem.map { $0.isSymlink && !$0.isParent } == true
+        case .goToLinkTarget: return !isFlatListing && cursorIsLink
+        // Find results are a flat list already (as in Total Commander).
+        case .branchView: return model.results == nil
+        case .branchViewSelected: return !isFlatListing && !targets().isEmpty
         case .restoreSelection: return !model.previousSelection.isEmpty
         case .saveSelection: return !model.selectedItems.isEmpty
         case .loadSelection: return !Self.rememberedSelection.isEmpty
@@ -602,7 +651,9 @@ final class PanelViewController: NSViewController {
         case .nextTab: switchTab { $0.next() }
         case .previousTab: switchTab { $0.previous() }
         case .hotPaths: showHotPathsMenu()
-        case .refresh: Task { await model.refresh() }
+        case .refresh: refresh()
+        case .branchView: toggleBranch()
+        case .branchViewSelected: showBranch(of: targets())
         case .sortByName: resort(.name)
         case .sortByExtension: resort(.ext)
         case .sortByDate: resort(.date)
@@ -782,6 +833,18 @@ final class PanelViewController: NSViewController {
         return model.cursorItem.flatMap { $0.isParent ? nil : [$0] } ?? []
     }
 
+    /// Puts the cursor on the item renamed to `newName` in the folder of `old`. Find results and
+    /// branch view name their items by the path below the root, so the name alone is not enough.
+    func focusRenamed(_ old: URL, to newName: String) {
+        // "/tmp" and "/private/tmp" are one folder: compare resolved paths.
+        let parts = old.deletingLastPathComponent().resolvingSymlinksInPath().appending(path: newName).pathComponents
+        let base = model.location.resolvingSymlinksInPath().pathComponents
+        guard isFlatListing, parts.count > base.count, Array(parts.prefix(base.count)) == base else {
+            return focus(name: newName)
+        }
+        focus(name: parts.dropFirst(base.count).joined(separator: "/"))
+    }
+
     /// Puts the cursor on the item with this name (volume name rules).
     func focus(name: String) {
         if let index = model.items.firstIndex(where: { !$0.isParent && model.rules.same($0.name, name) }) {
@@ -827,6 +890,7 @@ final class PanelViewController: NSViewController {
 
     /// Path field text: the folder, or the results title and their root folder.
     private var locationText: String {
+        if model.branch != nil { return "\(model.location.displayPath) — \(BranchListing.title)" }
         guard let results = model.results else { return model.location.displayPath }
         return "\(results.title) — \(model.location.displayPath)"
     }
@@ -881,6 +945,56 @@ final class PanelViewController: NSViewController {
         Task { await openCursor() }
     }
 
+    /// Find results or a branch: items from many folders, no folder of the panel's own to add to.
+    var isFlatListing: Bool { model.results != nil || model.branch != nil }
+
+    // MARK: Branch view (⌃B)
+
+    /// Status text while a branch is scanned.
+    private var branchProgress: String?
+
+    /// ⌃B: the branch of the folder, or back to the folder's normal listing.
+    private func toggleBranch() {
+        guard model.branch != nil else { return showBranch(BranchListing(root: model.location)) }
+        // The file stays under the cursor when it is directly in the folder.
+        let name = model.cursorItem.flatMap { $0.isParent || $0.name.contains("/") ? nil : $0.name }
+        go(to: model.location, focusing: name)
+    }
+
+    /// The branch of the marked items (or the cursor item): the marked files and the files of the
+    /// marked folders.
+    private func showBranch(of items: [FileItem]) {
+        guard !items.isEmpty else { return }
+        showBranch(BranchListing(root: model.location, starts: items.map(\.url)))
+    }
+
+    private func showBranch(_ listing: BranchListing) {
+        Task {
+            // Esc stops the scan: the panel simply stays where it was.
+            await navigate {
+                do { try await model.showBranch(listing) } catch is CancellationError {}
+            }
+        }
+    }
+
+    /// ⌘R; a branch is scanned again.
+    private func refresh() {
+        Task { await model.refresh() }
+    }
+
+    fileprivate func configureBranchProgress() {
+        model.onBranchProgress = { [weak self] progress in
+            guard let self else { return }
+            branchProgress = progress.map {
+                let files = $0.files.formatted()
+                return $0.folder.isEmpty
+                    ? String(localized: "Reading the branch: \(files) files — Esc stops")
+                    : String(localized: "Reading the branch: \(files) files — \($0.folder) — Esc stops")
+            }
+            updateStatus()
+        }
+    }
+
     private var isSizing: Bool { sizingProgress != nil }
     /// Status text while ⌃⇧F10 calculates folder sizes.
     private var sizingProgress: String?
@@ -913,7 +1027,7 @@ final class PanelViewController: NSViewController {
     /// Brief view has no editable cells: F2 asks for the name in a sheet.
     private func askRename() async {
         guard let item = model.cursorItem, !item.isParent else { return }
-        let name = model.results == nil ? item.name : item.url.lastPathComponent
+        let name = isFlatListing ? item.url.lastPathComponent : item.name
         guard let newName = await TextPrompt.ask(title: String(localized: "Rename"), message: String(localized: "New name:"),
                                                  initial: name, in: view.window) else { return }
         router?.operations.rename(item.url, to: newName, in: self)
@@ -927,8 +1041,9 @@ final class PanelViewController: NSViewController {
         guard let cell = tableView.view(atColumn: columnIndex, row: row, makeIfNecessary: true) as? NSTableCellView,
               let field = cell.textField else { return }
         renaming = (row, item)
-        // Find results show the path below their root; only the last part is renamed.
-        let name = model.results == nil ? item.name : item.url.lastPathComponent
+        // Find results and branch view name items by their path below the root; only the last part
+        // is renamed.
+        let name = isFlatListing ? item.url.lastPathComponent : item.name
         field.stringValue = name
         field.isEditable = true
         field.delegate = self
@@ -936,7 +1051,7 @@ final class PanelViewController: NSViewController {
         if field.currentEditor() == nil { view.window?.makeFirstResponder(field) }
         // Finder selects the base name only, so typing keeps the extension.
         let base = item.isDirectory && !item.isPackage ? name
-            : model.results == nil ? item.baseName : (name as NSString).deletingPathExtension
+            : isFlatListing ? (name as NSString).deletingPathExtension : item.baseName
         field.currentEditor()?.selectedRange = NSRange(location: 0, length: (base as NSString).length)
     }
 
@@ -1078,7 +1193,7 @@ final class PanelViewController: NSViewController {
         let returnFocus = pathBar.style == .breadcrumbs
         defer { if returnFocus { view.window?.makeFirstResponder(listView) } }
         let input = pathField.stringValue
-        if model.results != nil, input == locationText {
+        if isFlatListing, input == locationText {
             view.window?.makeFirstResponder(tableView)
             return
         }
@@ -1182,10 +1297,30 @@ private enum Column: String, CaseIterable {
         }
     }
 
+    /// The Size column's width for the mode chosen in Settings.
+    private static var sizeWidth: CGFloat {
+        SizeSettings.saved.display == .bytes ? bytesWidth : finderWidth
+    }
+
     /// Sizes up to 999 GB in bytes with grouping, measured in the bold font, plus the cell's insets.
-    private static let sizeWidth: CGFloat = {
+    private static let bytesWidth: CGFloat = {
         let font = NSFont.boldSystemFont(ofSize: NSFont.systemFontSize)
         let widest = (Format.grouped(999_999_999_999) as NSString).size(withAttributes: [.font: font]).width
+        return ceil(widest) + 12
+    }()
+
+    /// The widest rounded size up to the terabytes in either base ("1 023 bajtů", "999,9 MB"),
+    /// measured in the bold font, plus the cell's insets.
+    private static let finderWidth: CGFloat = {
+        let font = NSFont.boldSystemFont(ofSize: NSFont.systemFontSize)
+        var samples: [Int64] = [999, 1_023]
+        for base in [1000.0, 1024.0] {
+            for power in 1...4 {
+                for mantissa in [99.9, 999.4, 1_023.4] { samples.append(Int64(mantissa * pow(base, Double(power)))) }
+            }
+        }
+        let widest = samples.flatMap { bytes in SizeUnits.allCases.map { SizeFormat.rounded(bytes, units: $0) } }
+            .map { ($0 as NSString).size(withAttributes: [.font: font]).width }.max() ?? 0
         return ceil(widest) + 12
     }()
 
@@ -1233,6 +1368,8 @@ extension PanelViewController: NSTableViewDataSource, NSTableViewDelegate {
         cell.textField?.alignment = column.isNumeric ? .right : .left
         cell.textField?.textColor = textColor(for: item, marked: marked)
         cell.textField?.font = marked ? .boldSystemFont(ofSize: NSFont.systemFontSize) : .systemFont(ofSize: NSFont.systemFontSize)
+        // Set before the text: the tooltip of a shortened size shows every byte.
+        cell.exact = column == .size ? sizeBytes(of: item).map { SizeFormat.exact($0) } : nil
         cell.variants = texts(for: column, item: item)
         if column == .name { cell.imageView?.image = IconCache.icon(for: item) }
         return cell
@@ -1241,16 +1378,13 @@ extension PanelViewController: NSTableViewDataSource, NSTableViewDelegate {
     /// The cell's text from the longest form to the shortest; the cell shows the first that fits.
     private func texts(for column: Column, item: FileItem) -> [String] {
         switch column {
-        case .name: return [item.isParent ? ".." : item.baseName]
+        case .name: return [item.isParent ? ".." : model.branch != nil ? item.fileBaseName : item.baseName]
         case .ext: return [item.fileExtension]
         case .size:
-            // Servers in the Network folder have no size.
+            if let bytes = sizeBytes(of: item) { return sizeFormat.columnVariants(bytes) }
+            // Servers in the Network folder have no size; a package is a file to the user, no <DIR>.
             if item.isParent || NetworkPlaces.isNetwork(item.url) { return [""] }
-            if item.isDirectory {
-                // A package is a file to the user: no <DIR>, its size once calculated (Space).
-                return model.directorySizes[model.rules.key(item.name)].map { CellText.size($0) } ?? [item.isPackage ? "—" : "<DIR>"]
-            }
-            return CellText.size(item.size ?? 0)
+            return [item.isPackage ? "—" : "<DIR>"]
         case .date: return item.isParent ? [""] : item.modificationDate.map { CellText.date($0) } ?? [""]
         }
     }
@@ -1386,6 +1520,9 @@ final class FileCellView: NSTableCellView {
     var variants: [String] = [] {
         didSet { fitText() }
     }
+    /// The exact value for the tooltip when the shown text is not it (a rounded size); nil to show
+    /// the first variant when the text is shortened.
+    var exact: String?
 
     override func setFrameSize(_ newSize: NSSize) {
         let changed = newSize.width != frame.width
@@ -1398,11 +1535,16 @@ final class FileCellView: NSTableCellView {
         // The label's width follows from the constraints in init; its cell adds a little padding.
         let available = frame.width - (imageView == nil ? 4 : 24) - 4
         let font = label.font ?? .systemFont(ofSize: NSFont.systemFontSize)
-        let text = variants.count < 2 ? variants.first ?? "" : CellText.fitting(variants) {
+        // A single name may be cut in the middle; a size (with an exact value) never is.
+        let text = variants.count < 2 && exact == nil ? variants.first ?? "" : CellText.fitting(variants) {
             ($0 as NSString).size(withAttributes: [.font: font]).width <= available
         }
         if label.stringValue != text { label.stringValue = text }
-        label.toolTip = variants.count > 1 && text != variants[0] ? variants[0] : nil
+        if let exact {
+            label.toolTip = text != exact ? exact : nil
+        } else {
+            label.toolTip = variants.count > 1 && text != variants[0] ? variants[0] : nil
+        }
     }
 
     convenience init(identifier: NSUserInterfaceItemIdentifier, withIcon: Bool) {
@@ -1454,8 +1596,9 @@ extension PanelViewController {
     /// The trail follows the location; cursor moves and selection changes leave it alone.
     fileprivate func updatePathBar() {
         // The archive counts too: a restored tab learns that its location is an archive only after loading.
-        if let source = trailSource, source == (model.location, model.results, model.archive) { return }
-        trailSource = (model.location, model.results, model.archive)
+        let isBranch = model.branch != nil
+        if let source = trailSource, source == (model.location, model.results, model.archive, isBranch) { return }
+        trailSource = (model.location, model.results, model.archive, isBranch)
         if model.isNetwork {
             pathBar.show(trail: [PathSegment(name: String(localized: "Network"), url: model.location, kind: .network)])
             return
@@ -1463,7 +1606,8 @@ extension PanelViewController {
         pathBar.show(trail: Breadcrumbs.trail(
             location: model.location, results: model.results, archive: model.archive, remote: model.remote,
             volume: Self.volume(containing: model.location),
-            home: FileManager.default.homeDirectoryForCurrentUser))
+            home: FileManager.default.homeDirectoryForCurrentUser,
+            branchTitle: isBranch ? BranchListing.title : nil))
     }
 
     /// The volume a local location is on, named as the volume bar names it. A mount point that is

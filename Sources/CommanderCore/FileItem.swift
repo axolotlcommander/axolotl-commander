@@ -57,16 +57,31 @@ public struct FileItem: Identifiable, Hashable, Sendable {
         )
     }
 
-    /// Text after the last dot (files only, and only when the dot is not the
+    /// The last part of `name`: the name itself, or the file's own name when `name` is a path below
+    /// a listing's root (Find results, branch view).
+    public var fileName: String {
+        guard !isParent, let slash = name.lastIndex(of: "/") else { return name }
+        return String(name[name.index(after: slash)...])
+    }
+
+    /// Text after the last dot of the file's own name (files only, and only when the dot is not the
     /// first character). Empty for directories and the parent row.
     public var fileExtension: String {
-        guard !isDirectory || isPackage, !isParent, let dot = name.lastIndex(of: "."), dot != name.startIndex else { return "" }
-        return String(name[name.index(after: dot)...])
+        let own = fileName
+        guard !isDirectory || isPackage, !isParent, let dot = own.lastIndex(of: "."), dot != own.startIndex else { return "" }
+        return String(own[own.index(after: dot)...])
     }
 
     /// Name without ".ext" for files and packages (“Mail” of “Mail.app”); the full name for folders.
     public var baseName: String {
-        guard !isDirectory || isPackage, !isParent, let dot = name.lastIndex(of: "."), dot != name.startIndex else { return name }
-        return String(name[..<dot])
+        let ext = fileExtension
+        return ext.isEmpty ? name : String(name.dropLast(ext.count + 1))
+    }
+
+    /// The file's own name without ".ext" (no path).
+    public var fileBaseName: String {
+        let ext = fileExtension
+        let own = fileName
+        return ext.isEmpty ? own : String(own.dropLast(ext.count + 1))
     }
 }

@@ -17,8 +17,9 @@ enum Format {
         groupedFormatter.string(from: NSNumber(value: value)) ?? String(value)
     }
 
+    /// A rounded size in the base chosen in Settings (Units).
     static func bytes(_ value: Int64) -> String {
-        ByteCountFormatter.string(fromByteCount: value, countStyle: .file)
+        SizeFormat.rounded(value, units: SizeSettings.saved.units)
     }
 
     static func date(_ date: Date) -> String {
