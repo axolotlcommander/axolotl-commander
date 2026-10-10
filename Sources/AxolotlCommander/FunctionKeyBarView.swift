@@ -187,54 +187,75 @@ private final class FunctionKeyButton: NSButton {
 
     private func fits() -> Bool { (cell?.cellSize.width ?? .infinity) <= bounds.width }
 
-    private static let nameFont = NSFont.systemFont(ofSize: NSFont.smallSystemFontSize)
-    private static let keyFont = NSFont.monospacedDigitSystemFont(ofSize: NSFont.smallSystemFontSize, weight: .medium)
-
-    /// Where every name starts: after the widest key ("F12") and a space, so the key and the name
-    /// stay in place in every button whatever the held modifiers make the name.
-    private static let nameOffset: CGFloat = {
-        let key = NSAttributedString(string: "F12", attributes: [.font: keyFont]).size().width
-        let space = NSAttributedString(string: " ", attributes: [.font: nameFont]).size().width
-        return (key + space).rounded(.up)
-    }()
-
-    /// Left aligned with a tab stop for the name: centered text moved whenever the name changed.
     private func label(name: String?) -> NSAttributedString {
         let keyColor: NSColor = command == nil || !isEnabled ? .tertiaryLabelColor : .secondaryLabelColor
         let nameColor: NSColor = isEnabled ? .labelColor : .tertiaryLabelColor
         let paragraph = NSMutableParagraphStyle()
         paragraph.alignment = .left
         paragraph.lineBreakMode = .byTruncatingTail
-        paragraph.tabStops = [NSTextTab(textAlignment: .left, location: Self.nameOffset)]
+        paragraph.tabStops = [NSTextTab(textAlignment: .left, location: KeyCap.nameOffset)]
         let text = NSMutableAttributedString(string: "F\(number)", attributes: [
-            .font: Self.keyFont, .foregroundColor: keyColor, .paragraphStyle: paragraph,
+            .font: KeyCap.font, .foregroundColor: keyColor, .paragraphStyle: paragraph,
         ])
         if let name {
             text.append(NSAttributedString(string: "\t" + name, attributes: [
-                .font: Self.nameFont, .foregroundColor: nameColor, .paragraphStyle: paragraph,
+                .font: KeyCap.nameFont, .foregroundColor: nameColor, .paragraphStyle: paragraph,
             ]))
         }
         return text
     }
 }
 
+/// Sizes of the label: the key in a cap of one width for F1…F12, the name right after the cap.
+private enum KeyCap {
+    static let nameFont = NSFont.systemFont(ofSize: NSFont.smallSystemFontSize)
+    static let font = NSFont.monospacedDigitSystemFont(ofSize: NSFont.smallSystemFontSize - 1, weight: .medium)
+    static let padding: CGFloat = 3
+    static let gap: CGFloat = 4
+    static let width: CGFloat = {
+        let widest = NSAttributedString(string: "F12", attributes: [.font: font]).size().width
+        return (widest + 2 * padding).rounded(.up)
+    }()
+    /// Where every name starts, so names line up in every button whatever the held modifiers show.
+    static let nameOffset = width + gap
+}
+
 /// The recessed bezel with narrower side margins than the system's, so longer names fit.
 private final class FunctionKeyButtonCell: NSButtonCell {
-    private static let margin: CGFloat = 4
-    private static let lineHeight = NSLayoutManager().defaultLineHeight(
-        for: .systemFont(ofSize: NSFont.smallSystemFontSize)).rounded(.up)
+    private static let margin: CGFloat = 3
+    private static let lineHeight = NSLayoutManager().defaultLineHeight(for: KeyCap.nameFont).rounded(.up)
 
     override var cellSize: NSSize {
         NSSize(width: attributedTitle.size().width.rounded(.up) + 2 * Self.margin, height: super.cellSize.height)
     }
 
-    /// Draws the title itself at a fixed spot: the system centered a title without a name ("F10")
-    /// and placed titles by their own height, so the labels moved when held modifiers changed them.
+    /// Draws the title itself at a fixed spot: the key in its cap, then the name. The system centered
+    /// a title without a name ("F10") and placed titles by their own height, so labels moved when
+    /// held modifiers changed them.
     override func drawTitle(_ title: NSAttributedString, withFrame frame: NSRect, in controlView: NSView) -> NSRect {
         let bounds = controlView.bounds
-        let rect = NSRect(x: bounds.minX + Self.margin, y: ((bounds.height - Self.lineHeight) / 2).rounded(),
-                          width: max(bounds.width - 2 * Self.margin, 0), height: Self.lineHeight)
-        title.draw(with: rect, options: [.usesLineFragmentOrigin, .truncatesLastVisibleLine])
-        return rect
+        let y = ((bounds.height - Self.lineHeight) / 2).rounded()
+        let text = title.string as NSString
+        let tab = text.range(of: "\t")
+        let keyLength = tab.location == NSNotFound ? text.length : tab.location
+        let key = title.attributedSubstring(from: NSRange(location: 0, length: keyLength))
+
+        let cap = NSRect(x: bounds.minX + Self.margin, y: y, width: KeyCap.width, height: Self.lineHeight)
+        let color = key.attribute(.foregroundColor, at: 0, effectiveRange: nil) as? NSColor ?? .secondaryLabelColor
+        let path = NSBezierPath(roundedRect: cap.insetBy(dx: 0.5, dy: 0.5), xRadius: 3, yRadius: 3)
+        color.withAlphaComponent(0.6).setStroke()
+        path.lineWidth = 1
+        path.stroke()
+        let keySize = key.size()
+        key.draw(at: NSPoint(x: cap.midX - keySize.width / 2, y: cap.midY - keySize.height / 2))
+
+        if tab.location != NSNotFound {
+            let name = title.attributedSubstring(from: NSRange(location: tab.location + 1,
+                                                                length: text.length - tab.location - 1))
+            let rect = NSRect(x: cap.maxX + KeyCap.gap, y: y,
+                              width: max(bounds.maxX - Self.margin - cap.maxX - KeyCap.gap, 0), height: Self.lineHeight)
+            name.draw(with: rect, options: [.usesLineFragmentOrigin, .truncatesLastVisibleLine])
+        }
+        return frame
     }
 }
