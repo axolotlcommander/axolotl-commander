@@ -28,7 +28,7 @@ No setup: the existing SwiftPM layout, no new dependencies.
 
 **Purpose**: the pure formatting rules every story uses.
 
-- [ ] T001 [P] Write `Tests/CommanderCoreTests/SizeFormatTests.swift` (SPDX header, Swift Testing):
+- [X] T001 [P] Write `Tests/CommanderCoreTests/SizeFormatTests.swift` (SPDX header, Swift Testing):
   - `SizeFormat.rounded` for cs_CZ and en_US, units `.decimal` and `.binary`, for 0, 1, 402, 999,
     1 000, 1 023, 1 024, 4 300 000, 46 000 000 and 1 200 000 000 000 bytes. Compare with
     `ByteCountFormatStyle(style: .file | .binary, locale:)` and spot-check the research.md R1 table
@@ -40,14 +40,14 @@ No setup: the existing SwiftPM layout, no new dependencies.
   - `roundedIsExact`: true for 402 and for 1 000 in binary, false for 4 300 000.
   - `SizeDisplay(rawValue:)` and `SizeUnits(rawValue:)` with an unknown value give nil;
     `SizeFormat()` defaults to `.finder` and `.decimal`.
-- [ ] T002 Create `Sources/CommanderCore/SizeFormat.swift` (SPDX header) per data-model.md:
+- [X] T002 Create `Sources/CommanderCore/SizeFormat.swift` (SPDX header) per data-model.md:
   - `public enum SizeDisplay: String, Sendable, CaseIterable { case finder, bytes }`;
   - `public enum SizeUnits: String, Sendable, CaseIterable { case decimal, binary }`;
   - `public struct SizeFormat: Sendable, Equatable` with `display` (default `.finder`), `units`
     (default `.decimal`), `static rounded(_:units:locale:)`, `static exact(_:locale:)`,
     `columnVariants(_:locale:)` and `roundedIsExact(_:locale:)`.
   - `roundedIsExact` compares the digits of the rounded text with the digits of the byte count.
-- [ ] T003 Remove `CellText.size` from `Sources/CommanderCore/CellText.swift` and its test case
+- [X] T003 Remove `CellText.size` from `Sources/CommanderCore/CellText.swift` and its test case
   from `Tests/CommanderCoreTests/CellTextTests.swift`. Moving the case into `SizeFormatTests` is
   covered by T001. `swift test` is green. Commit.
 
@@ -60,34 +60,34 @@ status line.
 
 **Independent Test**: the quickstart's steps 4, 5 and 8.
 
-- [ ] T004 [US1] Add `SizeSettings` to `Sources/AxolotlCommander/AppSettings.swift`:
+- [X] T004 [US1] Add `SizeSettings` to `Sources/AxolotlCommander/AppSettings.swift`:
   - `displayKey = "size.display"` and `unitsKey = "size.units"`;
   - `static var saved: SizeFormat`, where an unknown or missing value gives the default.
-- [ ] T005 [US1] Add the "Size in panels:" picker to `AppearanceSettings` in
+- [X] T005 [US1] Add the "Size in panels:" picker to `AppearanceSettings` in
   `Sources/AxolotlCommander/SettingsView.swift`, below "Path bar":
   - `@AppStorage(SizeSettings.displayKey)`;
   - the tags `finder` and `bytes`;
   - the labels from contracts/settings-ui.md.
-- [ ] T006 [US1] In `Sources/AxolotlCommander/PanelViewController.swift`, the `texts(for:item:)`
+- [X] T006 [US1] In `Sources/AxolotlCommander/PanelViewController.swift`, the `texts(for:item:)`
   Size case uses `sizeFormat.columnVariants(...)`, keeping `<DIR>`, "—" and the empty cells as
   today. `sizeFormat` is a stored property that holds the last applied `SizeSettings.saved`.
-- [ ] T007 [US1] `FileCellView` gets `exact: String?`. The tooltip is `exact` whenever the shown
+- [X] T007 [US1] `FileCellView` gets `exact: String?`. The tooltip is `exact` whenever the shown
   text differs from it, and nil otherwise. `viewFor` passes `SizeFormat.exact` for the Size cells
   that have a byte count. Date cells keep today's "first variant" tooltip.
-- [ ] T008 [US1] The status line for the item under the cursor, in `updateStatus()`: for a file or
+- [X] T008 [US1] The status line for the item under the cursor, in `updateStatus()`: for a file or
   a calculated folder it shows `"%@ (%@ bytes)"` (rounded, exact), or only the rounded text when
   `roundedIsExact`. The totals stay as they are.
-- [ ] T009 [US2] Live update: in the `UserDefaults.didChangeNotification` observer, compare
+- [X] T009 [US2] Live update: in the `UserDefaults.didChangeNotification` observer, compare
   `SizeSettings.saved` with `sizeFormat`. On a difference:
   - store the new value;
   - `reloadData(forRowIndexes: all, columnIndexes: size column)`;
   - `updateStatus()`.
   The cursor, selection and scroll are kept.
-- [ ] T010 [US2] `Column.sizeWidth` depends on the mode (research.md R7):
+- [X] T010 [US2] `Column.sizeWidth` depends on the mode (research.md R7):
   - `.bytes`: `Format.grouped(999_999_999_999)`, as today;
   - `.finder`: the widest rounded text in bold over sample values in both bases.
   It is used for new columns.
-- [ ] T011 [US1] Build without warnings, `swift test` green. Commit.
+- [X] T011 [US1] Build without warnings, `swift test` green. Commit.
 
 **Checkpoint**: the column follows the mode; the exact bytes are one glance away.
 
@@ -97,20 +97,20 @@ status line.
 
 **Independent Test**: the quickstart's step 6.
 
-- [ ] T012 [US3] Add the "Units:" picker to `Sources/AxolotlCommander/SettingsView.swift`:
+- [X] T012 [US3] Add the "Units:" picker to `Sources/AxolotlCommander/SettingsView.swift`:
   - `@AppStorage(SizeSettings.unitsKey)`;
   - the tags `decimal` and `binary`;
   - the labels from contracts/settings-ui.md.
-- [ ] T013 [US3] `Format.bytes` in `Sources/AxolotlCommander/Support.swift` returns
+- [X] T013 [US3] `Format.bytes` in `Sources/AxolotlCommander/Support.swift` returns
   `SizeFormat.rounded(value, units: SizeSettings.saved.units, locale: .current)`. This covers the
   volume bar, volume info, operations, Properties, Compare, Disk Usage and the viewer (FR-008).
-- [ ] T014 [US3] The panel's live update (T009) also reacts to a units change, through the same
+- [X] T014 [US3] The panel's live update (T009) also reacts to a units change, through the same
   `SizeFormat` comparison. The volume bar is refreshed in the panel the next time it is shown.
-- [ ] T015 [US3] Build without warnings, `swift test` green. Commit.
+- [X] T015 [US3] Build without warnings, `swift test` green. Commit.
 
 ## Phase 5: Polish
 
-- [ ] T016 [P] Add Czech translations to `Resources/Localizable.xcstrings`:
+- [X] T016 [P] Add Czech translations to `Resources/Localizable.xcstrings`:
   - "Size in panels:", "Like Finder (kB, MB, GB)", "In bytes";
   - "Units:", "1000 (like Finder)", "1024 (like Windows)".
 - [ ] T017 [P] Add a CHANGELOG "Unreleased" → "Added" entry. It says that sizes are now in Finder

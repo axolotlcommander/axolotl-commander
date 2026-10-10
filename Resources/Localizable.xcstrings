@@ -8863,6 +8863,66 @@
           }
         }
       }
+    },
+    "Size in panels:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Velikost v panelech:"
+          }
+        }
+      }
+    },
+    "Like Finder (kB, MB, GB)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jako ve Finderu (kB, MB, GB)"
+          }
+        }
+      }
+    },
+    "In bytes": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "V bajtech"
+          }
+        }
+      }
+    },
+    "Units:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jednotky:"
+          }
+        }
+      }
+    },
+    "1000 (like Finder)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1000 (jako Finder)"
+          }
+        }
+      }
+    },
+    "1024 (like Windows)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1024 (jako Windows)"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

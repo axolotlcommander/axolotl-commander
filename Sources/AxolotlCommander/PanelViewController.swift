@@ -77,6 +77,8 @@ final class PanelViewController: NSViewController {
     private var watchedURL: URL?
     private var syncingSelection = false
     private var fillingWidth = false
+    /// The size settings the Size column and the status line were last drawn with.
+    private var sizeFormat = SizeSettings.saved
     private var sizeTask: Task<Void, Never>?
 
     /// Commander-style quick search buffer; nil when not searching.
@@ -127,6 +129,8 @@ final class PanelViewController: NSViewController {
         // Leaving the field never navigates; only Enter does.
         pathField.cell?.sendsActionOnEndEditing = false
         configurePathBar()
+        NotificationCenter.default.addObserver(self, selector: #selector(sizeSettingsChanged),
+                                               name: UserDefaults.didChangeNotification, object: nil)
 
         for column in Column.allCases {
             let tc = NSTableColumn(identifier: column.identifier)
@@ -350,12 +354,39 @@ final class PanelViewController: NSViewController {
         } else if let item = model.cursorItem, let service = NetworkPlaces.service(of: item.url) {
             statusField.stringValue = String(localized: "\(service.name)   \(service.kind.rawValue.uppercased()) server")
         } else if let item = model.cursorItem, !item.isParent {
-            let size = item.isDirectory ? (model.directorySizes[model.rules.key(item.name)].map(Format.bytes) ?? String(localized: "folder")) : Format.bytes(item.size ?? 0)
+            let size = sizeBytes(of: item).map(statusSize) ?? String(localized: "folder")
             statusField.stringValue = "\(item.name)   \(size)   \(item.modificationDate.map(Format.date) ?? "")"
         } else {
             let t = model.totals
             statusField.stringValue = String(localized: "\(t.files) files, \(t.directories) folders — \(Format.bytes(t.bytes))")
         }
+    }
+
+    /// The rounded size with the exact bytes next to it, unless the rounded text shows every byte.
+    private func statusSize(_ bytes: Int64) -> String {
+        let rounded = Format.bytes(bytes)
+        return sizeFormat.roundedIsExact(bytes) ? rounded : String(localized: "\(rounded) (\(Format.grouped(bytes)) bytes)")
+    }
+
+    /// The byte count of a file, or of a folder or package once calculated (Space); nil when there
+    /// is none to show.
+    private func sizeBytes(of item: FileItem) -> Int64? {
+        if item.isParent || NetworkPlaces.isNetwork(item.url) { return nil }
+        if item.isDirectory { return model.directorySizes[model.rules.key(item.name)] }
+        return item.size ?? 0
+    }
+
+    /// Settings → Appearance changed how sizes are written: only the Size column and the status
+    /// line are redrawn, so the cursor, selection and scroll stay.
+    @objc private func sizeSettingsChanged() {
+        let saved = SizeSettings.saved
+        guard saved != sizeFormat else { return }
+        sizeFormat = saved
+        let column = tableView.column(withIdentifier: Column.size.identifier)
+        if column >= 0, tableView.numberOfRows > 0 {
+            tableView.reloadData(forRowIndexes: IndexSet(0..<tableView.numberOfRows), columnIndexes: [column])
+        }
+        updateStatus()
     }
 
     /// Runs a navigation, reporting failure without moving the panel.
@@ -1182,10 +1213,30 @@ private enum Column: String, CaseIterable {
         }
     }
 
+    /// The Size column's width for the mode chosen in Settings.
+    private static var sizeWidth: CGFloat {
+        SizeSettings.saved.display == .bytes ? bytesWidth : finderWidth
+    }
+
     /// Sizes up to 999 GB in bytes with grouping, measured in the bold font, plus the cell's insets.
-    private static let sizeWidth: CGFloat = {
+    private static let bytesWidth: CGFloat = {
         let font = NSFont.boldSystemFont(ofSize: NSFont.systemFontSize)
         let widest = (Format.grouped(999_999_999_999) as NSString).size(withAttributes: [.font: font]).width
+        return ceil(widest) + 12
+    }()
+
+    /// The widest rounded size up to the terabytes in either base ("1 023 bajtů", "999,9 MB"),
+    /// measured in the bold font, plus the cell's insets.
+    private static let finderWidth: CGFloat = {
+        let font = NSFont.boldSystemFont(ofSize: NSFont.systemFontSize)
+        var samples: [Int64] = [999, 1_023]
+        for base in [1000.0, 1024.0] {
+            for power in 1...4 {
+                for mantissa in [99.9, 999.4, 1_023.4] { samples.append(Int64(mantissa * pow(base, Double(power)))) }
+            }
+        }
+        let widest = samples.flatMap { bytes in SizeUnits.allCases.map { SizeFormat.rounded(bytes, units: $0) } }
+            .map { ($0 as NSString).size(withAttributes: [.font: font]).width }.max() ?? 0
         return ceil(widest) + 12
     }()
 
@@ -1233,6 +1284,8 @@ extension PanelViewController: NSTableViewDataSource, NSTableViewDelegate {
         cell.textField?.alignment = column.isNumeric ? .right : .left
         cell.textField?.textColor = textColor(for: item, marked: marked)
         cell.textField?.font = marked ? .boldSystemFont(ofSize: NSFont.systemFontSize) : .systemFont(ofSize: NSFont.systemFontSize)
+        // Set before the text: the tooltip of a shortened size shows every byte.
+        cell.exact = column == .size ? sizeBytes(of: item).map { SizeFormat.exact($0) } : nil
         cell.variants = texts(for: column, item: item)
         if column == .name { cell.imageView?.image = IconCache.icon(for: item) }
         return cell
@@ -1244,13 +1297,10 @@ extension PanelViewController: NSTableViewDataSource, NSTableViewDelegate {
         case .name: return [item.isParent ? ".." : item.baseName]
         case .ext: return [item.fileExtension]
         case .size:
-            // Servers in the Network folder have no size.
+            if let bytes = sizeBytes(of: item) { return sizeFormat.columnVariants(bytes) }
+            // Servers in the Network folder have no size; a package is a file to the user, no <DIR>.
             if item.isParent || NetworkPlaces.isNetwork(item.url) { return [""] }
-            if item.isDirectory {
-                // A package is a file to the user: no <DIR>, its size once calculated (Space).
-                return model.directorySizes[model.rules.key(item.name)].map { CellText.size($0) } ?? [item.isPackage ? "—" : "<DIR>"]
-            }
-            return CellText.size(item.size ?? 0)
+            return [item.isPackage ? "—" : "<DIR>"]
         case .date: return item.isParent ? [""] : item.modificationDate.map { CellText.date($0) } ?? [""]
         }
     }
@@ -1386,6 +1436,9 @@ final class FileCellView: NSTableCellView {
     var variants: [String] = [] {
         didSet { fitText() }
     }
+    /// The exact value for the tooltip when the shown text is not it (a rounded size); nil to show
+    /// the first variant when the text is shortened.
+    var exact: String?
 
     override func setFrameSize(_ newSize: NSSize) {
         let changed = newSize.width != frame.width
@@ -1402,7 +1455,11 @@ final class FileCellView: NSTableCellView {
             ($0 as NSString).size(withAttributes: [.font: font]).width <= available
         }
         if label.stringValue != text { label.stringValue = text }
-        label.toolTip = variants.count > 1 && text != variants[0] ? variants[0] : nil
+        if let exact {
+            label.toolTip = text != exact ? exact : nil
+        } else {
+            label.toolTip = variants.count > 1 && text != variants[0] ? variants[0] : nil
+        }
     }
 
     convenience init(identifier: NSUserInterfaceItemIdentifier, withIcon: Bool) {

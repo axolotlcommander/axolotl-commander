@@ -95,6 +95,8 @@ private struct AppearanceSettings: View {
     @State private var selection: HighlightRule.ID?
     @AppStorage(PathBar.styleKey) private var pathBarStyle = PathBar.Style.breadcrumbs.rawValue
     @AppStorage(PathBar.iconsKey) private var pathBarIcons = true
+    @AppStorage(SizeSettings.displayKey) private var sizeDisplay = SizeDisplay.finder.rawValue
+    @AppStorage(SizeSettings.unitsKey) private var sizeUnits = SizeUnits.decimal.rawValue
     @AppStorage(VolumeBarSettings.homeKey) private var volumeBarHome = VolumeBarSettings().showHome
     @AppStorage(VolumeBarSettings.iCloudKey) private var volumeBarICloud = VolumeBarSettings().showICloud
     @AppStorage(VolumeBarSettings.networkKey) private var volumeBarNetwork = VolumeBarSettings().showNetwork
@@ -114,6 +116,18 @@ private struct AppearanceSettings: View {
                 .frame(width: 260)
                 Toggle("Show icons in path bar", isOn: $pathBarIcons)
                     .disabled(pathBarStyle != PathBar.Style.breadcrumbs.rawValue)
+            }
+            HStack(spacing: 16) {
+                Picker("Size in panels:", selection: $sizeDisplay) {
+                    Text("Like Finder (kB, MB, GB)").tag(SizeDisplay.finder.rawValue)
+                    Text("In bytes").tag(SizeDisplay.bytes.rawValue)
+                }
+                .frame(width: 320)
+                Picker("Units:", selection: $sizeUnits) {
+                    Text("1000 (like Finder)").tag(SizeUnits.decimal.rawValue)
+                    Text("1024 (like Windows)").tag(SizeUnits.binary.rawValue)
+                }
+                .frame(width: 240)
             }
             // Volumes are always shown; these items follow them.
             HStack(spacing: 16) {
