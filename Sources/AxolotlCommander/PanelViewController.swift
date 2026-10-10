@@ -1451,7 +1451,8 @@ final class FileCellView: NSTableCellView {
         // The label's width follows from the constraints in init; its cell adds a little padding.
         let available = frame.width - (imageView == nil ? 4 : 24) - 4
         let font = label.font ?? .systemFont(ofSize: NSFont.systemFontSize)
-        let text = variants.count < 2 ? variants.first ?? "" : CellText.fitting(variants) {
+        // A single name may be cut in the middle; a size (with an exact value) never is.
+        let text = variants.count < 2 && exact == nil ? variants.first ?? "" : CellText.fitting(variants) {
             ($0 as NSString).size(withAttributes: [.font: font]).width <= available
         }
         if label.stringValue != text { label.stringValue = text }

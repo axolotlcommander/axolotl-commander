@@ -113,7 +113,7 @@ status line.
 - [X] T016 [P] Add Czech translations to `Resources/Localizable.xcstrings`:
   - "Size in panels:", "Like Finder (kB, MB, GB)", "In bytes";
   - "Units:", "1000 (like Finder)", "1024 (like Windows)".
-- [ ] T017 [P] Add a CHANGELOG "Unreleased" → "Added" entry. It says that sizes are now in Finder
+- [X] T017 [P] Add a CHANGELOG "Unreleased" → "Added" entry. It says that sizes are now in Finder
   style by default, and that exact bytes are back with Settings → Appearance → Size in panels.
 - [ ] T018 Run the GUI check from quickstart.md, in the test copy only, in a scratchpad test
   folder.
