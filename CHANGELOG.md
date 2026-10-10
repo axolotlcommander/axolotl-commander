@@ -5,6 +5,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-10-10
+
+### Changed
+
+- F1 (Help → Axolotl Commander Help) opens the project page on GitHub until the app has its own
+  help; before, it was always grayed out.
+
+### Fixed
+
+- The function key bar keeps every key number and name in a fixed place: the labels are left
+  aligned, so holding ⇧, ⌃ or ⌥ no longer shifts them around.
+
 ## [0.3.0] - 2026-10-10
 
 ### Added

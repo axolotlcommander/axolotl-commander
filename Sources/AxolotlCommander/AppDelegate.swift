@@ -89,7 +89,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
 
     func canPerform(_ command: Command) -> Bool {
         switch command {
-        case .about, .settings, .quit, .configureKeys: true
+        case .about, .settings, .quit, .configureKeys, .help: true
         default: false
         }
     }
@@ -100,9 +100,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         case .settings: showSettings()
         case .configureKeys: showSettings(tab: .keyboard)
         case .quit: NSApp.terminate(nil)
+        // There is no built-in help yet: the project page explains the app.
+        case .help: NSWorkspace.shared.open(Self.helpURL)
         default: break
         }
     }
+
+    static let helpURL = URL(string: "https://github.com/axolotlcommander/axolotl-commander#readme")!
 
     func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
         guard let command = menuItem.command else { return true }

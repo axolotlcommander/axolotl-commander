@@ -118,6 +118,7 @@ private final class FunctionKeyButton: NSButton {
         showsBorderOnlyWhileMouseInside = true
         controlSize = .small
         font = .systemFont(ofSize: NSFont.smallSystemFontSize)
+        alignment = .left
         imagePosition = .noImage
         refusesFirstResponder = true
         lineBreakMode = .byTruncatingTail
@@ -186,19 +187,31 @@ private final class FunctionKeyButton: NSButton {
 
     private func fits() -> Bool { (cell?.cellSize.width ?? .infinity) <= bounds.width }
 
+    private static let nameFont = NSFont.systemFont(ofSize: NSFont.smallSystemFontSize)
+    private static let keyFont = NSFont.monospacedDigitSystemFont(ofSize: NSFont.smallSystemFontSize, weight: .medium)
+
+    /// Where every name starts: after the widest key ("F12") and a space, so the key and the name
+    /// stay in place in every button whatever the held modifiers make the name.
+    private static let nameOffset: CGFloat = {
+        let key = NSAttributedString(string: "F12", attributes: [.font: keyFont]).size().width
+        let space = NSAttributedString(string: " ", attributes: [.font: nameFont]).size().width
+        return (key + space).rounded(.up)
+    }()
+
+    /// Left aligned with a tab stop for the name: centered text moved whenever the name changed.
     private func label(name: String?) -> NSAttributedString {
-        let font = NSFont.systemFont(ofSize: NSFont.smallSystemFontSize)
         let keyColor: NSColor = command == nil || !isEnabled ? .tertiaryLabelColor : .secondaryLabelColor
         let nameColor: NSColor = isEnabled ? .labelColor : .tertiaryLabelColor
         let paragraph = NSMutableParagraphStyle()
+        paragraph.alignment = .left
         paragraph.lineBreakMode = .byTruncatingTail
+        paragraph.tabStops = [NSTextTab(textAlignment: .left, location: Self.nameOffset)]
         let text = NSMutableAttributedString(string: "F\(number)", attributes: [
-            .font: NSFont.monospacedDigitSystemFont(ofSize: NSFont.smallSystemFontSize, weight: .medium),
-            .foregroundColor: keyColor, .paragraphStyle: paragraph,
+            .font: Self.keyFont, .foregroundColor: keyColor, .paragraphStyle: paragraph,
         ])
         if let name {
-            text.append(NSAttributedString(string: " " + name, attributes: [
-                .font: font, .foregroundColor: nameColor, .paragraphStyle: paragraph,
+            text.append(NSAttributedString(string: "\t" + name, attributes: [
+                .font: Self.nameFont, .foregroundColor: nameColor, .paragraphStyle: paragraph,
             ]))
         }
         return text
