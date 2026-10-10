@@ -16,6 +16,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 
 - The function key bar keeps every key number and name in a fixed place: the labels are left
   aligned, so holding ⇧, ⌃ or ⌥ no longer shifts them around.
+- F3 on a TypeScript file (`.ts`, `.mts`) opens the viewer with syntax highlighting. macOS takes
+  these extensions for MPEG-2 video, so they went to Quick Look; a real video file still does.
 
 ## [0.3.0] - 2026-10-10
 

@@ -38,7 +38,20 @@ enum ViewerDefaults {
     static func prefersQuickLook(_ url: URL) -> Bool {
         guard let type = UTType(filenameExtension: url.pathExtension) else { return false }
         if ImageExport.canRead(url) { return false }
-        return [UTType.image, .pdf, .audiovisualContent, .font].contains { type.conforms(to: $0) }
+        guard [UTType.image, .pdf, .audiovisualContent, .font].contains(where: { type.conforms(to: $0) }) else {
+            return false
+        }
+        // The system takes ".ts" (TypeScript) for an MPEG-2 transport stream video: a file with a
+        // source code extension that starts as text goes to the viewer.
+        return SyntaxLanguage.forFile(named: url.lastPathComponent) == nil || !startsAsText(url)
+    }
+
+    /// True when the first few kilobytes of a readable local file are not binary.
+    private static func startsAsText(_ url: URL) -> Bool {
+        guard url.isFileURL, let handle = try? FileHandle(forReadingFrom: url) else { return false }
+        defer { try? handle.close() }
+        guard let data = try? handle.read(upToCount: 4096) else { return false }
+        return !EncodingDetector.looksBinary(data)
     }
 
     static let markdownExtensions: Set<String> = ["md", "markdown", "mdown", "mkd", "mkdn", "mdwn"]

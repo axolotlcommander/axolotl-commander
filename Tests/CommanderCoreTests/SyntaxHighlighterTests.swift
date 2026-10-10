@@ -46,6 +46,8 @@ private func isWellFormed(_ spans: [SyntaxSpan], length: Int) -> Bool {
         #expect(SyntaxLanguage.forFile(named: "a.hpp")?.id == "cpp")
         #expect(SyntaxLanguage.forFile(named: "page.xhtml")?.id == "html")
         #expect(SyntaxLanguage.forFile(named: "Info.plist")?.id == "xml")
+        #expect(SyntaxLanguage.forFile(named: "app.ts")?.id == "typescript")
+        #expect(SyntaxLanguage.forFile(named: "clip.mts")?.id == "typescript")
         #expect(SyntaxLanguage.forFile(named: "Localizable.xcstrings")?.id == "json")
         #expect(SyntaxLanguage.forFile(named: "x.tar.sh")?.id == "shell")
         #expect(SyntaxLanguage.forFile(named: "/some/dir/readme.md")?.id == "markdown")
