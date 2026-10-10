@@ -130,8 +130,9 @@ No setup: the existing SwiftPM layout, no new dependencies.
   the progress text, the unreadable-folders text.
 - [X] T020 [P] CHANGELOG "Unreleased" → "Added": branch view.
 - [X] T021 GUI check from quickstart.md in the test copy, on a scratchpad test tree only.
-- [ ] T022 After 008 is merged: rebase on `main`, `scripts/bump-version.sh minor`, then PR, merge, tag
-  and install (when the maintainer says).
+- [X] T022 Ship in 0.3.0 with spec 008 (the maintainer's choice; research.md R9): the branch is rebased
+  on `008-finder-size-format`, and the CHANGELOG entry is in 0.3.0. PR, merge, tag v0.3.0 and install
+  when the maintainer says.
 
 ## Dependencies
 

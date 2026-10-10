@@ -104,7 +104,7 @@ Sources/AxolotlCommander/ArchiveOperations.swift  # sources grouped by folder, r
 Resources/Localizable.xcstrings                   # en + cs
 Tests/CommanderCoreTests/BranchScannerTests.swift      # NEW
 Tests/CommanderCoreTests/PanelModelBranchTests.swift   # NEW
-CHANGELOG.md, VERSION                             # minor, after 008 is merged
+CHANGELOG.md                                      # in the 0.3.0 section, together with spec 008
 ```
 
 **Structure Decision**: the existing layout. The branch types live in one core file next to
@@ -137,8 +137,7 @@ CHANGELOG.md, VERSION                             # minor, after 008 is merged
 5. **Polish**:
    - localization;
    - the GUI check;
-   - the CHANGELOG;
-   - the version bump after 008 is merged.
+   - the CHANGELOG entry, in 0.3.0 with spec 008 (research.md R9).
    Commit.
 
 ## Complexity Tracking

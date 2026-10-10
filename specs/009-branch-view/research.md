@@ -134,5 +134,6 @@ results title. The path field shows "<folder> — Branch". The tab title is "<fo
 
 ## R9 — Version
 
-Minor. Spec 008 (0.3.0) is still on its own branch and not merged. This spec bumps the version when
-its PR is opened, after 008 is merged (0.4.0).
+Version 0.3.0 was not published, so the maintainer chose to ship this spec in 0.3.0 together with
+spec 008 (2026-10-10). The branch is built on top of `008-finder-size-format`, and the CHANGELOG entry
+is in the 0.3.0 section. There is no separate bump.
