@@ -119,7 +119,8 @@ No setup: the existing SwiftPM layout, no new dependencies.
   - `transferArchive` (extract out, add) groups the sources by their own folder and runs per group;
   - `deleteInArchive` and rename use each item's own `ArchivePath`.
   Add a core helper `groupedByFolder(_ urls: [URL]) -> [(folder: URL, names: [String])]` with a test.
-- [ ] T018 [US4] Check the server branch: progress, Esc, F5 download and F8 from many folders. Fix
+- [ ] T018 [US4] (Partly: the walk through a server source is unit tested; no live server in the GUI
+  check yet.) Check the server branch: progress, Esc, F5 download and F8 from many folders. Fix
   what breaks; if servers turn out to be a real problem, tell the maintainer (they allowed dropping
   servers). Commit.
 
@@ -128,7 +129,7 @@ No setup: the existing SwiftPM layout, no new dependencies.
 - [X] T019 [P] Czech translations in `Resources/Localizable.xcstrings`: the command names, "Branch",
   the progress text, the unreadable-folders text.
 - [X] T020 [P] CHANGELOG "Unreleased" → "Added": branch view.
-- [ ] T021 GUI check from quickstart.md in the test copy, on a scratchpad test tree only.
+- [X] T021 GUI check from quickstart.md in the test copy, on a scratchpad test tree only.
 - [ ] T022 After 008 is merged: rebase on `main`, `scripts/bump-version.sh minor`, then PR, merge, tag
   and install (when the maintainer says).
 

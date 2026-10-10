@@ -836,8 +836,9 @@ final class PanelViewController: NSViewController {
     /// Puts the cursor on the item renamed to `newName` in the folder of `old`. Find results and
     /// branch view name their items by the path below the root, so the name alone is not enough.
     func focusRenamed(_ old: URL, to newName: String) {
-        let parts = old.deletingLastPathComponent().appending(path: newName).standardized.pathComponents
-        let base = model.location.standardized.pathComponents
+        // "/tmp" and "/private/tmp" are one folder: compare resolved paths.
+        let parts = old.deletingLastPathComponent().resolvingSymlinksInPath().appending(path: newName).pathComponents
+        let base = model.location.resolvingSymlinksInPath().pathComponents
         guard isFlatListing, parts.count > base.count, Array(parts.prefix(base.count)) == base else {
             return focus(name: newName)
         }
@@ -968,7 +969,12 @@ final class PanelViewController: NSViewController {
     }
 
     private func showBranch(_ listing: BranchListing) {
-        Task { await navigate { try await model.showBranch(listing) } }
+        Task {
+            // Esc stops the scan: the panel simply stays where it was.
+            await navigate {
+                do { try await model.showBranch(listing) } catch is CancellationError {}
+            }
+        }
     }
 
     /// ⌘R; a branch is scanned again.

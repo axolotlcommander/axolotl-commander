@@ -114,14 +114,18 @@ public final class PanelModel {
                 let scan = Task {
                     try await BranchScanner.scan(
                         branch, source: source, includeHidden: hidden,
-                        progress: { p in if let report { Task { @MainActor in report(p) } } })
+                        progress: { p in
+                            // A report that arrives after the scan has ended is dropped.
+                            Task { @MainActor [weak self] in if self?.isScanningBranch == true { report?(p) } }
+                        })
                 }
                 branchScan?.cancel()
                 branchScan = scan
                 defer {
-                    if branchScan == scan { branchScan = nil }
-                    // Queued after the progress reports, so it is the last word.
-                    if let report { Task { @MainActor in report(nil) } }
+                    if branchScan == scan {
+                        branchScan = nil
+                        report?(nil)
+                    }
                 }
                 let scanned = try await withTaskCancellationHandler { try await scan.value } onCancel: { scan.cancel() }
                 raw = scanned.items

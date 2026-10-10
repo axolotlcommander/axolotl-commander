@@ -83,6 +83,8 @@ public func sortItems(
 
     let sortedFiles: [FileItem]
     switch spec.field {
+    case .name where byFileName:
+        sortedFiles = sortedByFileName(files, ascending: spec.ascending, rules: rules)
     case .name:
         sortedFiles = sorted(files, primary: byName)
     case .ext:
@@ -96,4 +98,21 @@ public func sortItems(
         sortedFiles = sorted(files) { compare(size($0), size($1)) }
     }
     return parents + sortedDirs + sortedFiles
+}
+
+/// Branch view lists tens of thousands of files: the names are normalized once instead of in every
+/// comparison. Same order as `NameRules.order` on the file's own name, then on its path.
+private func sortedByFileName(_ files: [FileItem], ascending: Bool, rules: NameRules) -> [FileItem] {
+    let keyed = files.map { item in
+        (item: item, own: item.fileName.precomposedStringWithCanonicalMapping,
+         path: item.name.precomposedStringWithCanonicalMapping)
+    }
+    let options: String.CompareOptions = [.caseInsensitive, .numeric]
+    return keyed.sorted { a, b in
+        var r = a.own.compare(b.own, options: options)
+        if r == .orderedSame { r = a.path.compare(b.path, options: options) }
+        if r == .orderedSame { r = rules.order(a.item.name, b.item.name) }
+        if !ascending, r != .orderedSame { r = r == .orderedAscending ? .orderedDescending : .orderedAscending }
+        return r == .orderedAscending
+    }.map(\.item)
 }
