@@ -221,15 +221,20 @@ private final class FunctionKeyButton: NSButton {
 /// The recessed bezel with narrower side margins than the system's, so longer names fit.
 private final class FunctionKeyButtonCell: NSButtonCell {
     private static let margin: CGFloat = 4
+    private static let lineHeight = NSLayoutManager().defaultLineHeight(
+        for: .systemFont(ofSize: NSFont.smallSystemFontSize)).rounded(.up)
 
     override var cellSize: NSSize {
         NSSize(width: attributedTitle.size().width.rounded(.up) + 2 * Self.margin, height: super.cellSize.height)
     }
 
+    /// Draws the title itself at a fixed spot: the system centered a title without a name ("F10")
+    /// and placed titles by their own height, so the labels moved when held modifiers changed them.
     override func drawTitle(_ title: NSAttributedString, withFrame frame: NSRect, in controlView: NSView) -> NSRect {
         let bounds = controlView.bounds
-        let wide = NSRect(x: bounds.minX + Self.margin, y: frame.minY,
-                          width: max(bounds.width - 2 * Self.margin, 0), height: frame.height)
-        return super.drawTitle(title, withFrame: wide, in: controlView)
+        let rect = NSRect(x: bounds.minX + Self.margin, y: ((bounds.height - Self.lineHeight) / 2).rounded(),
+                          width: max(bounds.width - 2 * Self.margin, 0), height: Self.lineHeight)
+        title.draw(with: rect, options: [.usesLineFragmentOrigin, .truncatesLastVisibleLine])
+        return rect
     }
 }
