@@ -5,6 +5,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-10-11
+
+### Changed
+
+- F1 (Help → Axolotl Commander Help) opens the project page on GitHub until the app has its own
+  help; before, it was always grayed out.
+
+### Fixed
+
+- The function key bar keeps every key and name in a fixed place: each key is drawn in a key cap
+  of one width at the left of its button with the name right after it, so holding ⇧, ⌃ or ⌥ no
+  longer shifts the labels around.
+- F3 on a TypeScript file (`.ts`, `.mts`) opens the viewer with syntax highlighting. macOS takes
+  these extensions for MPEG-2 video, so they went to Quick Look; a real video file still does.
+
 ## [0.3.0] - 2026-10-10
 
 ### Added
