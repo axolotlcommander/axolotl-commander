@@ -6,9 +6,9 @@
   Commander change in `KeyScheme.swift`.
 - [X] T003 [P] Tests in `Tests/CommanderCoreTests/QuickFilterTests.swift`: matching, model behavior,
   visible-only `selectedItems`, chords. Build, test, commit.
-- [ ] T004 [US1] UI: typing state, keys per FR-004 / FR-005, status line, and the spec 011 typing route
+- [X] T004 [US1] UI: typing state, keys per FR-004 / FR-005, status line, and the spec 011 typing route
   yielding to the filter, in `PanelViewController`.
-- [ ] T005 [US2] [US3] UI: `lastQuickFilter`, Quick Filter with Last Text, and quick search turning into
+- [X] T005 [US2] [US3] UI: `lastQuickFilter`, Quick Filter with Last Text, and quick search turning into
   the filter. Commit.
-- [ ] T006 Czech strings, CHANGELOG, quickstart. Commit.
+- [X] T006 Czech strings, CHANGELOG, quickstart. Commit.
 - [ ] T007 GUI check in the test copy (when the maintainer is away); install after asking.

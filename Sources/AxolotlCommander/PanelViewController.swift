@@ -85,6 +85,11 @@ final class PanelViewController: NSViewController {
 
     /// Commander-style quick search buffer; nil when not searching.
     private var quickSearch: String?
+    /// The quick filter is being typed (spec 013); the text is `model.quickFilter`.
+    private var quickFilterTyping = false
+    private var quickFilterLocation: URL?
+    /// The panel's last non-empty quick filter (Quick Filter with Last Text).
+    private var lastQuickFilter: String?
     /// The last folder this panel showed on each volume (in memory, for the volume buttons).
     private var volumePlaces = VolumePlaces()
     private var lastVisitedFolder: URL?
@@ -364,6 +369,10 @@ final class PanelViewController: NSViewController {
             statusField.stringValue = String(localized: "Quick search: \(quickSearch)")
             return
         }
+        if quickFilterTyping || model.quickFilter != nil {
+            statusField.stringValue = String(localized: "Quick filter: \(model.quickFilter ?? "")")
+            return
+        }
         let s = model.summary
         if s.files + s.directories > 0 {
             statusField.stringValue = String(localized: "Selected \(s.files) files, \(s.directories) folders — \(Format.bytes(s.bytes))")
@@ -421,6 +430,7 @@ final class PanelViewController: NSViewController {
 
     func handleKey(_ event: NSEvent) -> Bool {
         guard let chord = KeyChord(event: event) else { return false }
+        if handleQuickFilter(chord, event: event) { return true }
         if handleTyping(chord, event: event) { return true }
         if chord.key == .escape, chord.modifiers.isEmpty, quickSearch == nil, isSizing {
             sizeTask?.cancel()
@@ -452,7 +462,7 @@ final class PanelViewController: NSViewController {
         let action = PanelTyping.route(key: chord.key, modifiers: chord.modifiers, text: event.characters,
                                        baseText: event.characters(byApplyingModifiers: shift),
                                        lineIsEmpty: !router.commandLineHasText,
-                                       quickSearchActive: quickSearch != nil, isBound: bound)
+                                       quickSearchActive: quickSearch != nil || quickFilterTyping, isBound: bound)
         switch action {
         case .none: return false
         case .startQuickSearch(let text):
@@ -485,12 +495,69 @@ final class PanelViewController: NSViewController {
         case .down where chord.modifiers == .control, .up where chord.modifiers == .control:
             model.quickSearchNext(quickSearch!, forward: chord.key == .down)
         default:
+            // Quick Filter during quick search turns the search text into the filter.
+            if KeyMaps.panel.command(for: chord) == .quickFilter, let text = quickSearch {
+                quickSearch = nil
+                startQuickFilter(text)
+                return true
+            }
             quickSearch = nil
             updateStatus()
             return false
         }
         updateStatus()
         return true
+    }
+
+    // MARK: Quick filter
+
+    /// Starts (or resumes) typing the quick filter, optionally with `text`.
+    func startQuickFilter(_ text: String?) {
+        if let text, !text.isEmpty {
+            if model.setQuickFilter(text) { lastQuickFilter = text } else { NSSound.beep() }
+        }
+        quickFilterTyping = true
+        quickFilterLocation = model.location
+        updateStatus()
+    }
+
+    /// Keys while the quick filter is typed; Esc also clears a filter whose typing has ended.
+    private func handleQuickFilter(_ chord: KeyChord, event: NSEvent) -> Bool {
+        if quickFilterTyping, model.location != quickFilterLocation { quickFilterTyping = false }
+        guard quickFilterTyping else {
+            guard chord.key == .escape, chord.modifiers.isEmpty, model.quickFilter != nil else { return false }
+            model.setQuickFilter(nil)
+            updateStatus()
+            return true
+        }
+        let text = model.quickFilter ?? ""
+        let plain = chord.modifiers.isDisjoint(with: [.control, .command, .option])
+        switch chord.key {
+        case .character where plain:
+            if let typed = event.characters, !typed.isEmpty { extendQuickFilter(text + typed) }
+        case .space where chord.modifiers.isEmpty:
+            extendQuickFilter(text + " ")
+        case .backspace where chord.modifiers.isEmpty:
+            if !text.isEmpty { model.setQuickFilter(String(text.dropLast())) }
+        case .escape:
+            quickFilterTyping = false
+            model.setQuickFilter(nil)
+        case .up, .down, .pageUp, .pageDown, .home, .end:
+            // Moving among the shown items keeps typing.
+            if !chord.modifiers.isEmpty { quickFilterTyping = false }
+            updateStatus()
+            return false
+        default:
+            quickFilterTyping = false
+            updateStatus()
+            return false
+        }
+        updateStatus()
+        return true
+    }
+
+    private func extendQuickFilter(_ text: String) {
+        if model.setQuickFilter(text) { lastQuickFilter = text } else { NSSound.beep() }
     }
 
     private func handleMovement(_ chord: KeyChord) -> Bool {
@@ -567,6 +634,7 @@ final class PanelViewController: NSViewController {
         .view, .quickLook, .edit, .viewWith, .editWith, .newFile, .properties, .openTerminal, .revealInFinder,
         .newTab, .closeTab, .nextTab, .previousTab, .hotPaths, .viewModeDetailed, .viewModeBrief,
         .openInNewTab, .openInBackgroundTab, .reopenClosedTab, .closeOtherTabs, .tabList,
+        .quickFilter, .quickFilterLast,
         .find, .pack, .unpack, .connectToServer, .disconnect, .compareFiles,
         .changeCase, .batchRename, .calculateChecksums, .verifyChecksums, .occupiedSpace, .userMenu,
         .contextMenu, .moveFilesHere, .invertAll, .restoreSelection, .saveSelection, .loadSelection, .volumeInfo,
@@ -683,6 +751,11 @@ final class PanelViewController: NSViewController {
         case .viewModeDetailed: viewMode = .detailed
         case .viewModeBrief: viewMode = .brief
         case .closeTab: closeTab(at: tabs.active)
+        case .quickFilter:
+            let text = quickSearch
+            quickSearch = nil
+            startQuickFilter(text)
+        case .quickFilterLast: startQuickFilter(lastQuickFilter)
         case .openInNewTab: openCursorInNewTab(activate: true)
         case .openInBackgroundTab: openCursorInNewTab(activate: false)
         case .reopenClosedTab: reopenClosedTab()

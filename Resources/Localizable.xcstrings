@@ -9514,6 +9514,39 @@
           }
         }
       }
+    },
+    "Quick Filter": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rychlý filtr"
+          }
+        }
+      }
+    },
+    "Quick Filter with Last Text": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rychlý filtr s posledním textem"
+          }
+        }
+      }
+    },
+    "Quick filter: %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rychlý filtr: %@"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

@@ -44,6 +44,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
     (⌃⇧↑) open the folder under the cursor without leaving the current tab;
   - Reopen Closed Tab (⌘⇧T) and Tab List… (⌘⇧\, ⌃⇧A), which also offers the recently closed tabs;
   - Close Other Tabs (⌥⌘W; ⌃⇧W in Classic Commander) and Swap Panels with All Tabs (⌃⇧U).
+- Quick Filter (⌥⌘F; ⌃S in Classic Commander): typed text narrows the panel list as you type, as a
+  substring or a mask such as `*.txt`. The arrows move among the matches, and Esc shows everything
+  again. Quick Filter with Last Text (⌃⇧S, ⌥⌘⇧F) brings back the last filter, and Quick Filter during
+  quick search turns the search into a filter. Marked items the filter hides are left out of commands
+  (spec 013).
 
 ### Fixed
 
