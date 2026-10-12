@@ -9338,6 +9338,17 @@
           }
         }
       }
+    },
+    "Cut": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vyjmout"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

@@ -37,6 +37,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 
 - ⌃↩ in a panel inserts the name of the item under the cursor into the command line again; macOS
   showed the context menu for it instead.
+- ⌘X cuts the selected text in the command line and other text fields; the Edit menu had no Cut
+  item. ⌃X, ⌃C and ⌃V also cut, copy and paste text while the command line has focus.
 
 ## [0.3.1] - 2026-10-11
 

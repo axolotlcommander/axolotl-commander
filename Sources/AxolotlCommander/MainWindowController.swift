@@ -445,6 +445,10 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
             return true
         case (.up, .control): commandLine.showOlder(); return true
         case (.down, .control): commandLine.showNewer(); return true
+        // ⌃X / ⌃C / ⌃V edit the text as ⌘X / ⌘C / ⌘V do, a habit from Windows commanders.
+        case (.character("x"), .control): return commandLine.edit(#selector(NSText.cut(_:)))
+        case (.character("c"), .control): return commandLine.edit(#selector(NSText.copy(_:)))
+        case (.character("v"), .control): return commandLine.edit(#selector(NSText.paste(_:)))
         default: break
         }
         guard let command = KeyMaps.panel.command(for: chord) else { return false }

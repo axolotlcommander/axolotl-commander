@@ -93,6 +93,12 @@ final class CommandLineBar: NSView, NSTextFieldDelegate {
         browser = nil
     }
 
+    /// Sends a text editing action (cut, copy, paste) to the field editor.
+    func edit(_ action: Selector) -> Bool {
+        guard isEditing, let editor = field.currentEditor() else { return false }
+        return NSApp.sendAction(action, to: editor, from: self)
+    }
+
     /// Stores the executed line in the history (without passwords) and clears the field.
     func commit(_ line: String) {
         history.add(line)
