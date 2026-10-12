@@ -344,6 +344,21 @@ public final class PanelModel {
         return item
     }
 
+    /// The state of a new tab for the cursor item ("Open in New Tab"): this panel after entering it,
+    /// worked out on a scratch model so the panel itself does not move. A file or a package gives
+    /// the current state with the item under the cursor.
+    public func stateEnteringCursor() async throws -> PanelState {
+        let state = snapshot()
+        guard let item = cursorItem, !item.isPackage else { return state }
+        let entersArchive = !item.isDirectory && archive == nil && remote == nil
+            && ArchiveFormat.detect(fileName: item.name) != nil
+        guard item.isParent || item.isDirectory || entersArchive else { return state }
+        let scratch = PanelModel(location: location, source: source)
+        try await scratch.restore(state)
+        _ = try await scratch.enterCursor()
+        return scratch.snapshot()
+    }
+
     /// Where the other panel goes for the cursor item (⌃⇧← / ⌃⇧→): into a folder or an archive
     /// on disk, otherwise to the folder holding the item with the item focused. nil on "..".
     public var otherPanelTarget: (url: URL, focus: String?)? { openTarget(parentOpensLocation: false) }

@@ -86,3 +86,31 @@ import Testing
         }
     }
 }
+
+/// The tab commands' chords (spec 012, FR-012 and FR-013).
+@Suite struct TabChordTests {
+    typealias K = KeyChord
+
+    @Test(arguments: [
+        (K(.up, .control), Command.openInNewTab),
+        (K(.down, [.command, .option]), .openInNewTab),
+        (K(.down, [.command, .option, .shift]), .openInBackgroundTab),
+        (K(.up, [.control, .shift]), .openInNewTabOtherPanel),
+        (K(.character("t"), [.command, .shift]), .reopenClosedTab),
+        (K(.character("w"), [.command, .option]), .closeOtherTabs),
+        (K(.character("a"), [.control, .shift]), .tabList),
+        (K(.character("\\"), [.command, .shift]), .tabList),
+        (K(.character("u"), [.control, .shift]), .swapPanelsWithTabs),
+    ])
+    func factoryChord(chord: KeyChord, command: Command) {
+        #expect(KeyMap.standard.command(for: chord) == command)
+    }
+
+    @Test func classicCommanderMovesControlShiftW() {
+        let classic = KeyBindings(scheme: .classicCommander, overrides: [:])
+        let map = KeyMap(context: .panel, bindings: classic)
+        #expect(map.command(for: K(.character("w"), [.control, .shift])) == .closeOtherTabs)
+        #expect(map.command(for: K(.character("w"), .control)) == .closeTab)
+        #expect(KeyMap.standard.command(for: K(.character("w"), [.control, .shift])) == .closeTab)
+    }
+}

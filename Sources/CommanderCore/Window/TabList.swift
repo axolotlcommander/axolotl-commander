@@ -33,8 +33,13 @@ public struct TabList: Codable, Hashable, Sendable {
 
     /// Inserts `state` right after the active tab and activates it.
     public mutating func open(_ state: PanelState) {
+        open(state, activate: true)
+    }
+
+    /// Inserts `state` right after the active tab; a background tab leaves the active one active.
+    public mutating func open(_ state: PanelState, activate: Bool) {
         tabs.insert(state, at: active + 1)
-        active += 1
+        if activate { active += 1 }
     }
 
     /// Closes the active tab; returns false (changing nothing) for the only tab.
@@ -82,5 +87,29 @@ public struct TabList: Codable, Hashable, Sendable {
             if target <= a { a += 1 }
             active = a
         }
+    }
+}
+
+/// The tabs a panel closed, newest first, for Reopen Closed Tab and the tab list. Kept in memory.
+public struct ClosedTabs: Hashable, Sendable {
+    public static let limit = 10
+
+    public private(set) var items: [PanelState] = []
+
+    public init() {}
+
+    public var isEmpty: Bool { items.isEmpty }
+
+    public mutating func push(_ state: PanelState) {
+        items.insert(state, at: 0)
+        if items.count > Self.limit { items.removeLast(items.count - Self.limit) }
+    }
+
+    public mutating func popNewest() -> PanelState? {
+        items.isEmpty ? nil : items.removeFirst()
+    }
+
+    public mutating func remove(at index: Int) -> PanelState? {
+        items.indices.contains(index) ? items.remove(at: index) : nil
     }
 }

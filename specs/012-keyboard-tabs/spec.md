@@ -53,7 +53,8 @@ agreed in chat on 2026-10-12.
   - Swap Panels with All Tabs: ⌃⇧U.
 
   Each command is also in the Go or View menu. Classic Commander moves ⌃⇧W from Close Tab to Close
-  Other Tabs; Close Tab keeps ⌃W there.
+  Other Tabs; Close Tab keeps ⌃W there. This replaces spec 010's clarification that ⌃⇧W keeps
+  closing the tab in that scheme.
 - Q: Where does the focus go after Open in New Tab of Other Panel? → A: It stays in the active panel.
   The other panel switches to the new tab.
 - Q: Which tabs does the tab list show? → A: The active panel's open tabs, then its recently closed

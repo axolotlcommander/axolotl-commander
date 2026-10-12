@@ -4,16 +4,16 @@
 
 ## Phase 1: Foundational (core)
 
-- [ ] T001 Add `TabList.open(_:activate:)` and `ClosedTabs` to
+- [X] T001 Add `TabList.open(_:activate:)` and `ClosedTabs` to
   `Sources/CommanderCore/Window/TabList.swift`. `ClosedTabs` has `push` (newest first, at most 10),
   `popNewest`, `remove(at:)`, `items` and `isEmpty`.
-- [ ] T002 Add `PanelModel.stateEnteringCursor()` to `Sources/CommanderCore/PanelModel.swift`.
-- [ ] T003 Add seven commands with chords and menus per FR-012 to `Sources/CommanderCore/Command.swift`:
+- [X] T002 Add `PanelModel.stateEnteringCursor()` to `Sources/CommanderCore/PanelModel.swift`.
+- [X] T003 Add seven commands with chords and menus per FR-012 to `Sources/CommanderCore/Command.swift`:
   - `openInNewTab`, `openInBackgroundTab`, `openInNewTabOtherPanel`;
   - `reopenClosedTab`, `closeOtherTabs`, `tabList`;
   - `swapPanelsWithTabs`.
   Add the Classic Commander change to `Sources/CommanderCore/KeyScheme.swift`.
-- [ ] T004 [P] Add tests for T001–T003 to the existing test files and a new `TabListTests` section.
+- [X] T004 [P] Add tests for T001–T003 to the existing test files and a new `TabListTests` section.
   Build, test, commit.
 
 ## Phase 2: User Story 1 — Open in a new tab (P1)

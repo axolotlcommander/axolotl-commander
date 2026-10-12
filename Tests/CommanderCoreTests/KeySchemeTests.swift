@@ -21,7 +21,8 @@ import Testing
         (K(.character("t"), .control), Command.newTab),
         (K(.character("t"), [.control, .shift]), .newTab),
         (K(.character("w"), .control), .closeTab),
-        (K(.character("w"), [.control, .shift]), .closeTab),
+        // Spec 012 FR-013: ⌃⇧W moved from Close Tab to Close Other Tabs.
+        (K(.character("w"), [.control, .shift]), .closeOtherTabs),
         (K(.tab, .control), .nextTab),
         (K(.tab, [.control, .shift]), .previousTab),
         (K(.pageDown, [.control, .shift]), .nextTab),
