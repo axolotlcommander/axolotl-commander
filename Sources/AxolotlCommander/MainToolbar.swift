@@ -42,6 +42,17 @@ enum MainToolbar {
         return toolbar
     }
 
+    /// Applies a stored toolbar configuration (the autosaved dictionary, e.g. from a settings import):
+    /// its items in order and its display mode.
+    static func apply(_ configuration: [String: Any], to toolbar: NSToolbar) {
+        if let identifiers = configuration["TB Item Identifiers"] as? [String] {
+            toolbar.itemIdentifiers = identifiers.map { NSToolbarItem.Identifier($0) }
+        }
+        if let raw = configuration["TB Display Mode"] as? UInt, let mode = NSToolbar.DisplayMode(rawValue: raw) {
+            toolbar.displayMode = mode
+        }
+    }
+
     static func identifier(_ command: Command) -> NSToolbarItem.Identifier { .init("cmd." + command.rawValue) }
 
     static func command(_ identifier: NSToolbarItem.Identifier) -> Command? {

@@ -5,7 +5,7 @@
 /// `CommandRegistry`, so a command is declared exactly once.
 public enum Command: String, CaseIterable, Hashable, Sendable {
     // App
-    case about, settings, quit, help
+    case about, settings, exportSettings, importSettings, quit, help
 
     // File
     case view, quickLook, edit, viewWith, editWith, newFile, copy, move, makeDirectory
@@ -151,6 +151,8 @@ public enum CommandRegistry {
 
         add(.about, "About Axolotl Commander", .app, scope: .app)
         add(.settings, "Settings…", .app, [ch(",", m)], scope: .app, sep: true)
+        add(.exportSettings, "Export Settings…", .app, scope: .app)
+        add(.importSettings, "Import Settings…", .app, scope: .app)
         add(.quit, "Quit Axolotl Commander", .app, [ch("q", m)], scope: .app, sep: true)
 
         add(.view, "View", .file, [f(3)])

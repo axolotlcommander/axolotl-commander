@@ -244,14 +244,14 @@ then import a broken file.
 
 ### UI
 
-- [ ] T015 [US4] Add the commands `exportSettings` ("Export Settings…") and `importSettings` ("Import
+- [X] T015 [US4] Add the commands `exportSettings` ("Export Settings…") and `importSettings` ("Import
   Settings…"), both app scope, to `Sources/CommanderCore/Command.swift`:
   - in the `Command` App case list;
   - in the registry after `.settings`, without chords;
   - both are in the app menu, so Quit keeps its separator.
 
   Check that `everyCommandIsDeclaredOnce` and `noChordBoundTwice` still pass.
-- [ ] T016 [US4] Create `Sources/AxolotlCommander/SettingsTransfer.swift` (SPDX header):
+- [X] T016 [US4] Create `Sources/AxolotlCommander/SettingsTransfer.swift` (SPDX header):
   - the app catalog: the preference keys of research.md R6, with allowed values taken from the app
     enums (path bar style, size display and units, text encodings, checksum algorithms), number
     ranges (viewer and compare font size 6…72), `comparison` as `json` (`ComparisonOptions`), and
@@ -265,17 +265,17 @@ then import a broken file.
     4. `apply` to `UserDefaults.standard`;
     5. the live reload (research.md R8);
     6. the summary alert.
-- [ ] T017 [US4] `Sources/AxolotlCommander/AppSettings.swift`: add `reload()`, which loads appearance,
+- [X] T017 [US4] `Sources/AxolotlCommander/AppSettings.swift`: add `reload()`, which loads appearance,
   hotPaths, comparison and connections again from UserDefaults; the `didSet` saves are harmless. In
   `Sources/AxolotlCommander/MainToolbar.swift`, add a way to apply a toolbar configuration
   dictionary to each main window's toolbar.
-- [ ] T018 [US4] `Sources/AxolotlCommander/AppDelegate.swift`:
+- [X] T018 [US4] `Sources/AxolotlCommander/AppDelegate.swift`:
   - `exportSettings` and `importSettings` are always-enabled app commands that call
     `SettingsTransfer`;
   - Import is disabled while any main window has an attached sheet.
-- [ ] T019 [US4] `Sources/AxolotlCommander/SettingsView.swift`: add the "Export Settings…" and "Import
+- [X] T019 [US4] `Sources/AxolotlCommander/SettingsView.swift`: add the "Export Settings…" and "Import
   Settings…" buttons to the General tab, calling `SettingsTransfer` with the Settings window.
-- [ ] T020 [US4] `Resources/Localizable.xcstrings`: add en + cs for:
+- [X] T020 [US4] `Resources/Localizable.xcstrings`: add en + cs for:
   - the two commands;
   - the panel titles, the error alert and the confirmation alert;
   - the section names;

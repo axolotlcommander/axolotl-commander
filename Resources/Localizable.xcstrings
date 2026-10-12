@@ -9107,6 +9107,237 @@
           }
         }
       }
+    },
+    "Export Settings…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exportovat nastavení…"
+          }
+        }
+      }
+    },
+    "Import Settings…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importovat nastavení…"
+          }
+        }
+      }
+    },
+    "Import": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importovat"
+          }
+        }
+      }
+    },
+    "Preferences": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Předvolby"
+          }
+        }
+      }
+    },
+    "Saved Servers": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uložené servery"
+          }
+        }
+      }
+    },
+    "Toolbar": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nástrojový panel"
+          }
+        }
+      }
+    },
+    "The settings could not be exported.": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nastavení se nepodařilo exportovat."
+          }
+        }
+      }
+    },
+    "This file is not an Axolotl Commander settings file.": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tento soubor není soubor nastavení Axolotl Commanderu."
+          }
+        }
+      }
+    },
+    "Import settings?": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importovat nastavení?"
+          }
+        }
+      }
+    },
+    "The checked parts replace your current settings.": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zaškrtnuté části nahradí vaše současné nastavení."
+          }
+        }
+      }
+    },
+    "The file comes from a newer version; parts this version does not know are skipped.": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soubor pochází z novější verze; části, které tato verze nezná, se přeskočí."
+          }
+        }
+      }
+    },
+    "Settings imported.": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nastavení je importováno."
+          }
+        }
+      }
+    },
+    "unknown part": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "neznámá část"
+          }
+        }
+      }
+    },
+    "unknown setting": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "neznámé nastavení"
+          }
+        }
+      }
+    },
+    "unknown command": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "neznámý příkaz"
+          }
+        }
+      }
+    },
+    "invalid shortcut": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "neplatná zkratka"
+          }
+        }
+      }
+    },
+    "wrong kind of value": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "nesprávný druh hodnoty"
+          }
+        }
+      }
+    },
+    "value out of range": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "hodnota mimo rozsah"
+          }
+        }
+      }
+    },
+    "unknown key scheme": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "neznámé schéma kláves"
+          }
+        }
+      }
+    },
+    "invalid entry": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "neplatná položka"
+          }
+        }
+      }
+    },
+    "One file with the keys, preferences, appearance, hot paths, user menu, saved servers and toolbar. Passwords are never included.": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jeden soubor s klávesami, předvolbami, vzhledem, oblíbenými cestami, uživatelskou nabídkou, uloženými servery a nástrojovým panelem. Hesla v něm nikdy nejsou."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

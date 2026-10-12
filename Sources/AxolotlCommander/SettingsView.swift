@@ -26,6 +26,14 @@ struct SettingsView: View {
                     Text("Also in the View menu. The bar shows what F1–F12 do; hold ⇧, ⌃, ⌥ or ⌘ to see the other commands.")
                         .font(.caption).foregroundStyle(.secondary)
                 }
+                Section {
+                    HStack {
+                        Button("Export Settings…") { SettingsTransfer.export(from: NSApp.keyWindow) }
+                        Button("Import Settings…") { SettingsTransfer.importSettings(from: NSApp.keyWindow) }
+                    }
+                    Text("One file with the keys, preferences, appearance, hot paths, user menu, saved servers and toolbar. Passwords are never included.")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
             }
             .padding()
             .tabItem { Label("General", systemImage: "gearshape") }
