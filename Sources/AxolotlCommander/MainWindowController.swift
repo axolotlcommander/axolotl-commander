@@ -160,6 +160,12 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
 
     func otherPanel(than panel: PanelViewController) -> PanelViewController { panel === left ? right : left }
 
+    /// Folder History's ⌥Return: the other panel opens the folder (both panels shown); the focus stays.
+    func openInOtherPanel(_ target: FolderHistory.Target, from panel: PanelViewController) {
+        if maximizedSide != nil { setMaximized(nil) }
+        otherPanel(than: panel).open(target, takeFocus: false)
+    }
+
     func refreshPanels() async {
         await left.model.refresh()
         await right.model.refresh()
@@ -222,7 +228,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
              .swapPanels, .sameFolderAsOther,
              .insertNameToCommandLine, .insertPathToCommandLine, .insertFullPathToCommandLine,
              .insertLeftPathToCommandLine, .insertRightPathToCommandLine,
-             .toggleCommandLine, .toggleFunctionKeyBar: true
+             .toggleCommandLine, .toggleFunctionKeyBar, .commandLineHistory: true
         case .openInLeftPanel, .openInRightPanel: openInPanel(command) != nil
         case .openInNewTabOtherPanel: activePanel.model.cursorItem != nil && !activePanel.model.isNetwork
         case .swapPanelsWithTabs: true
@@ -289,6 +295,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         case .rightVolumeMenu: activate(.right); right.perform(.rightVolumeMenu)
         case .focusCommandLine:
             if commandLine.isEditing { activate(activeSide) } else { commandLine.focus() }
+        case .commandLineHistory: showCommandLineHistory()
         case .insertNameToCommandLine:
             if let item = activePanel.model.cursorItem { commandLine.insert(ShellQuote.quote(item.isParent ? ".." : item.name) + " ") }
         case .insertPathToCommandLine: insertPath(of: activePanel)
@@ -485,7 +492,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         guard let command = KeyMaps.panel.command(for: chord) else { return false }
         switch command {
         case .focusCommandLine, .insertNameToCommandLine, .insertPathToCommandLine, .insertFullPathToCommandLine,
-             .insertLeftPathToCommandLine, .insertRightPathToCommandLine:
+             .insertLeftPathToCommandLine, .insertRightPathToCommandLine, .commandLineHistory:
             performHere(command)
             return true
         default:
@@ -504,6 +511,21 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         case .clear: commandLine.clear()
         case .run: execute(commandLine.text)
         case .none, .startQuickSearch: break
+        }
+    }
+
+    /// Commands → Command Line History…: executed lines as a filterable list; the chosen one goes into
+    /// the command line, ready to edit or run (it never runs by itself).
+    private func showCommandLineHistory() {
+        let lines = commandLine.historyEntries
+        guard let window, !lines.isEmpty else { NSSound.beep(); return }
+        let rows = lines.map { HistoryListSheet.Row(text: $0, symbol: "terminal") }
+        HistoryListSheet.present(on: window, title: String(localized: "Command Line History"), rows: rows,
+                                 selection: 0, hint: String(localized: "Return puts the command into the command line."),
+                                 allowsModifiers: false) { [weak self] index, _ in
+            guard let self else { return }
+            showCommandLine()
+            commandLine.setFromHistory(lines[index])
         }
     }
 

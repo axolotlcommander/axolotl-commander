@@ -151,6 +151,56 @@ extension PanelViewController {
     @objc private func tabChosen(_ sender: NSMenuItem) { switchTab { $0.select(sender.tag) } }
     @objc private func closedTabChosen(_ sender: NSMenuItem) { reopenClosedTab(at: sender.tag) }
 
+    // MARK: Folder history
+
+    /// Go → Folder History…: the panel's Back / Forward history and the recent typed paths as a
+    /// filterable list; Return opens here, ⌘Return in a new tab, ⌥Return in the other panel.
+    func showFolderHistory() {
+        guard let window = view.window else { return }
+        let history = model.historyPlaces
+        let entries = FolderHistory.entries(back: history.back, current: model.location, forward: history.forward,
+                                            recent: AppSettings.shared.recentPaths.paths, display: \.displayPath)
+        let rows = entries.map { entry in
+            let symbol = switch entry.target {
+            case .location: entry.isCurrent ? "folder.fill" : "folder"
+            case .typed: "clock"
+            }
+            return HistoryListSheet.Row(text: entry.text, symbol: symbol, isCurrent: entry.isCurrent)
+        }
+        let hint = String(localized: "Return opens here, ⌘Return in a new tab, ⌥Return in the other panel.")
+        HistoryListSheet.present(on: window, title: String(localized: "Folder History"), rows: rows,
+                                 selection: FolderHistory.initialSelection(in: entries), hint: hint,
+                                 allowsModifiers: true) { [weak self] index, choice in
+            guard let self else { return }
+            let target = entries[index].target
+            switch choice {
+            case .plain:
+                // The current folder: nothing to open.
+                if !entries[index].isCurrent { open(target) }
+            case .command: openNewTab { $0.open(target) }
+            case .option: router?.openInOtherPanel(target, from: self)
+            }
+        }
+    }
+
+    /// Opens a folder history entry the way Back (a place) or Go to Folder (a typed path) does.
+    func open(_ target: FolderHistory.Target, takeFocus: Bool = true) {
+        switch target {
+        case .location(let url): go(to: url)
+        case .typed(let path): goTo(typed: path, takeFocus: takeFocus)
+        }
+    }
+
+    /// A new active tab showing the current folder; `then` runs once it is shown.
+    private func openNewTab(then action: @escaping (PanelViewController) -> Void) {
+        tabs.updateCurrent(model.snapshot())
+        tabs.open(model.snapshot(), activate: true)
+        Task {
+            await restoreTab(tabs.current)
+            action(self)
+        }
+    }
+
     // MARK: Hot paths
 
     /// ⇧F9: defined hot paths, plus saving the current folder.

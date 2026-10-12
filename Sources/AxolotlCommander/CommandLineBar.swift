@@ -128,6 +128,16 @@ final class CommandLineBar: NSView, NSTextFieldDelegate {
         browser = nil
     }
 
+    /// Executed lines, newest first (Command Line History…).
+    var historyEntries: [String] { history.entries }
+
+    /// Replaces the text with a history line, focused with the caret at the end; nothing runs.
+    func setFromHistory(_ line: String) {
+        browser = nil
+        field.stringValue = line
+        focus()
+    }
+
     func showOlder() {
         if browser == nil { browser = HistoryBrowser(history) }
         if let line = browser?.older(current: field.stringValue) { setLine(line) } else { NSSound.beep() }

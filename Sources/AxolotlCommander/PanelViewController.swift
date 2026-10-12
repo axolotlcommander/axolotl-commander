@@ -567,7 +567,8 @@ final class PanelViewController: NSViewController {
         let page = brief ? briefRows * briefVisibleColumns
                          : max(1, Int(tableView.visibleRect.height / tableView.rowHeight) - 1)
         let from = model.cursor
-        if chord.modifiers == .option {
+        // A chord bound to a command (Classic Commander's ⌥↓ = Folder History) wins over the direct keys.
+        if chord.modifiers == .option, KeyMaps.panel.command(for: chord) == nil {
             // ⌥↑ ⌥↓ previous / next marked item, ⌥Home ⌥End first / last one.
             let found: Int? = switch chord.key {
             case .up: model.selectedIndex(after: from, forward: false)
@@ -634,7 +635,7 @@ final class PanelViewController: NSViewController {
         .view, .quickLook, .edit, .viewWith, .editWith, .newFile, .properties, .openTerminal, .revealInFinder,
         .newTab, .closeTab, .nextTab, .previousTab, .hotPaths, .viewModeDetailed, .viewModeBrief,
         .openInNewTab, .openInBackgroundTab, .reopenClosedTab, .closeOtherTabs, .tabList,
-        .quickFilter, .quickFilterLast,
+        .quickFilter, .quickFilterLast, .folderHistory,
         .find, .pack, .unpack, .connectToServer, .disconnect, .compareFiles,
         .changeCase, .batchRename, .calculateChecksums, .verifyChecksums, .occupiedSpace, .userMenu,
         .contextMenu, .moveFilesHere, .invertAll, .restoreSelection, .saveSelection, .loadSelection, .volumeInfo,
@@ -652,7 +653,7 @@ final class PanelViewController: NSViewController {
         .open, .goParent, .goHome, .goBack, .goForward, .changeDirectory, .editPath, .refresh,
         .sortByName, .sortByExtension, .sortByDate, .sortBySize, .viewModeDetailed, .viewModeBrief, .filter,
         .leftVolumeMenu, .rightVolumeMenu, .newTab, .closeTab, .nextTab, .previousTab, .hotPaths,
-        .reopenClosedTab, .closeOtherTabs, .tabList,
+        .reopenClosedTab, .closeOtherTabs, .tabList, .folderHistory,
         .connectToServer, .disconnect, .contextMenu,
     ]
 
@@ -761,6 +762,7 @@ final class PanelViewController: NSViewController {
         case .reopenClosedTab: reopenClosedTab()
         case .closeOtherTabs: closeOtherTabs(keeping: tabs.active)
         case .tabList: showTabList()
+        case .folderHistory: showFolderHistory()
         case .nextTab: switchTab { $0.next() }
         case .previousTab: switchTab { $0.previous() }
         case .hotPaths: showHotPathsMenu()
@@ -1338,11 +1340,17 @@ final class PanelViewController: NSViewController {
             view.window?.makeFirstResponder(tableView)
             return
         }
+        goTo(typed: input)
+    }
+
+    /// Opens a typed path (the path field, a recent path in Folder History) and remembers it;
+    /// `takeFocus` gives the panel the keyboard focus once the folder is shown.
+    func goTo(typed input: String, takeFocus: Bool = true) {
         // "sftp://user:password@host/path" connects; the password is used once and never stored in history.
         if let typed = RemoteURL.parse(typed: input) {
             connect(to: typed.location, password: typed.password) { [weak self] url in
                 AppSettings.shared.recentPaths.add(url.displayPath)
-                if let self { view.window?.makeFirstResponder(tableView) }
+                if let self, takeFocus { view.window?.makeFirstResponder(tableView) }
             }
             return
         }
@@ -1352,7 +1360,7 @@ final class PanelViewController: NSViewController {
                 do {
                     try await model.go(to: url)
                     AppSettings.shared.recentPaths.add(url.displayPath)
-                    view.window?.makeFirstResponder(tableView)
+                    if takeFocus { view.window?.makeFirstResponder(tableView) }
                 } catch {
                     NSSound.beep()
                     statusField.stringValue = Format.error(error)

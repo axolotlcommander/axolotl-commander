@@ -49,6 +49,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
   again. Quick Filter with Last Text (⌃⇧S, ⌥⌘⇧F) brings back the last filter, and Quick Filter during
   quick search turns the search into a filter. Marked items the filter hides are left out of commands
   (spec 013).
+- Go → Folder History… (⌃⌘H; also ⌥↓ in Classic Commander) lists the folders the panel visited and
+  the recently typed paths; typing filters the list. Return opens the folder, ⌘Return opens it in a
+  new tab and ⌥Return in the other panel. Commands → Command Line History… (⌥F8) lists executed
+  commands; the chosen one goes into the command line without running (spec 014).
 
 ### Fixed
 

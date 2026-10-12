@@ -9580,6 +9580,50 @@
           }
         }
       }
+    },
+    "Folder History": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Historie složek"
+          }
+        }
+      }
+    },
+    "Command Line History": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Historie příkazové řádky"
+          }
+        }
+      }
+    },
+    "Return opens here, ⌘Return in a new tab, ⌥Return in the other panel.": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Return otevře zde, ⌘Return v nové záložce, ⌥Return v druhém panelu."
+          }
+        }
+      }
+    },
+    "Return puts the command into the command line.": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Return vloží příkaz do příkazové řádky."
+          }
+        }
+      }
     }
   },
   "version": "1.0"
