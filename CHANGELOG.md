@@ -32,6 +32,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
   one JSON file and load it back: keys, preferences, appearance, hot paths, user menu, saved servers
   and toolbar. Passwords are never included. Import lets you choose the parts and reports anything it
   skipped.
+- Settings → General → Panels: four behavior options, each independent of the key scheme (spec 011):
+  - Space moves the cursor down (on by default; off keeps the cursor on the marked item);
+  - Typing goes to the command line: characters typed in a panel fill the command line while the
+    panel keeps the focus; with text in the line, Return runs it, Backspace and Esc edit it, and ⌥ +
+    a character starts quick search;
+  - ⌃← / ⌃→ change the panel the arrow points to, and ".." opens the other panel's folder;
+  - Volume buttons open the other panel's folder on that volume, or the last folder used there.
 
 ### Fixed
 
