@@ -68,6 +68,13 @@ chords to it.
   "Insert Full Path" on ⌃⇧↩ joins FR-001 (maintainer's request). ⌃↩ keeps inserting the name only.
   The full path is quoted like the name and followed by a space. On ".." it inserts the folder's path.
   It is the one new command of this spec. The other new commands stay in specs 012–016.
+- Q: How do settings files stay usable as the app grows? → A: (maintainer's request) Automated
+  guards:
+  - a frozen format-1 file that every later version must import without loss;
+  - a source scan that fails when a new UserDefaults key is neither exported nor explicitly
+    excluded;
+  - written rules: no renames, a version bump with conversion for incompatible changes. See
+    contracts/settings-file.md.
 
 ## User Scenarios & Testing *(mandatory)*
 

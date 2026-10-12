@@ -8,47 +8,11 @@ import UniformTypeIdentifiers
 /// Export Settings… and Import Settings…: the whole setup in one JSON file
 /// (`specs/010-keyboard-schemes/contracts/keyboard-ui.md`).
 enum SettingsTransfer {
-    static let toolbarKey = "NSToolbar Configuration MainToolbar"
+    static let toolbarKey = SettingsCatalog.toolbarKey
 
-    /// Everything that is exported and may be imported. A new preference must be added here.
-    static let catalog: SettingsCatalog = {
-        func values<T: RawRepresentable & CaseIterable>(_ type: T.Type) -> Set<String> where T.RawValue == String {
-            Set(T.allCases.map(\.rawValue))
-        }
-        let fonts = ViewerDefaults.fontSizes
-        let volumeBar = VolumeBarSettings()
-        return SettingsCatalog.standard(preferences: [
-            PreferenceSpec(MainWindowController.showCommandLineKey, .bool, default: .bool(true)),
-            PreferenceSpec(MainWindowController.showFunctionKeyBarKey, .bool, default: .bool(true)),
-            PreferenceSpec(Launcher.terminalDefaultsKey, .string(allowed: nil), default: .string("com.apple.Terminal")),
-            PreferenceSpec(Launcher.editorDefaultsKey, .string(allowed: nil), default: .string("com.apple.TextEdit")),
-            PreferenceSpec(ViewerDefaults.encodingKey, .string(allowed: values(TextEncoding.self))),
-            PreferenceSpec(ViewerDefaults.wrapKey, .bool, default: .bool(true)),
-            PreferenceSpec(ViewerDefaults.highlightKey, .bool, default: .bool(true)),
-            PreferenceSpec(ViewerDefaults.fontSizeKey, .number(fonts), default: .number(ViewerDefaults.defaultFontSize)),
-            PreferenceSpec(PathBar.styleKey, .string(allowed: [PathBar.Style.breadcrumbs.rawValue, PathBar.Style.text.rawValue]),
-                           default: .string(PathBar.Style.breadcrumbs.rawValue)),
-            PreferenceSpec(PathBar.iconsKey, .bool, default: .bool(true)),
-            PreferenceSpec(SizeSettings.displayKey, .string(allowed: values(SizeDisplay.self)),
-                           default: .string(SizeDisplay.finder.rawValue)),
-            PreferenceSpec(SizeSettings.unitsKey, .string(allowed: values(SizeUnits.self)),
-                           default: .string(SizeUnits.decimal.rawValue)),
-            PreferenceSpec(VolumeBarSettings.homeKey, .bool, default: .bool(volumeBar.showHome)),
-            PreferenceSpec(VolumeBarSettings.iCloudKey, .bool, default: .bool(volumeBar.showICloud)),
-            PreferenceSpec(VolumeBarSettings.networkKey, .bool, default: .bool(volumeBar.showNetwork)),
-            PreferenceSpec(VolumeBarSettings.serversKey, .bool, default: .bool(volumeBar.showServers)),
-            PreferenceSpec(CompareDefaults.whitespaceKey, .string(allowed: values(DiffOptions.Whitespace.self)),
-                           default: .string(DiffOptions.Whitespace.compare.rawValue)),
-            PreferenceSpec(CompareDefaults.ignoreCaseKey, .bool, default: .bool(false)),
-            PreferenceSpec(CompareDefaults.differencesOnlyKey, .bool, default: .bool(false)),
-            PreferenceSpec(CompareDefaults.fontSizeKey, .number(fonts)),
-            PreferenceSpec(ChecksumDefaults.algorithmKey, .string(allowed: values(ChecksumAlgorithm.self)),
-                           default: .string(ChecksumAlgorithm.sha256.rawValue)),
-            PreferenceSpec(LinkSheetModel.relativeKey, .bool, default: .bool(false)),
-            PreferenceSpec("ssh.extraArguments", .stringArray),
-            PreferenceSpec("comparison", .json(validate: SettingsCatalog.decodes(ComparisonOptions.self))),
-        ], schemeKey: KeyMaps.schemeKey, bindingsKey: KeyMaps.defaultsKey, toolbarKey: toolbarKey)
-    }()
+    /// Everything that is exported and may be imported (`SettingsCatalog.app` in the core, where tests
+    /// guard it).
+    static let catalog = SettingsCatalog.app
 
     /// Import replaces settings live; not while a main window shows a sheet.
     static var canImport: Bool {

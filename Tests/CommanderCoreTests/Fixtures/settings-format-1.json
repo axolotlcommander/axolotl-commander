@@ -1,0 +1,780 @@
+{
+  "appVersion" : "0.4.0",
+  "appearance" : {
+    "highlights" : [
+      {
+        "color" : "purple",
+        "directory" : "no",
+        "hidden" : "any",
+        "id" : "5E1A0C10-0000-4000-8000-000000000001",
+        "isEnabled" : true,
+        "masks" : "*.zip;*.tar;*.gz;*.tgz;*.bz2;*.xz;*.7z;*.rar;*.dmg;*.pkg",
+        "symlink" : "any"
+      },
+      {
+        "color" : "green",
+        "directory" : "no",
+        "hidden" : "any",
+        "id" : "5E1A0C10-0000-4000-8000-000000000002",
+        "isEnabled" : true,
+        "masks" : "*.sh;*.command;*.py;*.rb;*.pl",
+        "symlink" : "any"
+      },
+      {
+        "color" : "orange",
+        "directory" : "no",
+        "hidden" : "yes",
+        "id" : "00000000-0000-4000-8000-0000000000A1",
+        "isEnabled" : true,
+        "masks" : "*.log",
+        "symlink" : "no"
+      }
+    ],
+    "markColor" : "blue"
+  },
+  "connections" : [
+    {
+      "encoding" : "auto",
+      "endpoint" : {
+        "host" : "sftp.example.org",
+        "port" : 2222,
+        "proto" : "sftp",
+        "user" : "me"
+      },
+      "id" : "00000000-0000-4000-8000-000000000010",
+      "initialPath" : "/srv/www",
+      "name" : "Example SFTP",
+      "passiveMode" : true
+    },
+    {
+      "encoding" : "windows1250",
+      "endpoint" : {
+        "host" : "ftp.example.org",
+        "proto" : "ftp"
+      },
+      "id" : "00000000-0000-4000-8000-000000000011",
+      "initialPath" : "",
+      "name" : "Old FTP",
+      "passiveMode" : false
+    }
+  ],
+  "exported" : "2026-10-12T20:00:00Z",
+  "format" : "axolotl-commander-settings",
+  "formatVersion" : 1,
+  "hotPaths" : {
+    "slots" : [
+      {
+        "name" : "Projects",
+        "path" : "~/Projects"
+      },
+      null,
+      {
+        "name" : "tmp",
+        "path" : "/tmp"
+      },
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  "keyboard" : {
+    "bindings" : {
+      "about" : [
+
+      ],
+      "batchRename" : [
+        "ctrl+opt+cmd+F14"
+      ],
+      "branchView" : [
+        "ctrl+opt+cmd+F15"
+      ],
+      "branchViewSelected" : [
+        "ctrl+opt+cmd+F16"
+      ],
+      "calculateChecksums" : [
+        "ctrl+opt+cmd+F16"
+      ],
+      "calculateSizes" : [
+        "ctrl+opt+cmd+F19"
+      ],
+      "changeAttributes" : [
+        "ctrl+opt+cmd+F18"
+      ],
+      "changeCase" : [
+
+      ],
+      "changeDirectory" : [
+        "ctrl+opt+cmd+F17"
+      ],
+      "closeTab" : [
+        "ctrl+opt+cmd+F15"
+      ],
+      "compareActualSize" : [
+
+      ],
+      "compareClose" : [
+        "ctrl+opt+cmd+F14"
+      ],
+      "compareCopy" : [
+        "ctrl+opt+cmd+F17"
+      ],
+      "compareDifferencesOnly" : [
+        "ctrl+opt+cmd+F14"
+      ],
+      "compareFiles" : [
+        "ctrl+opt+cmd+F15"
+      ],
+      "compareFirstDifference" : [
+        "ctrl+opt+cmd+F16"
+      ],
+      "compareIgnoreAllWhitespace" : [
+        "ctrl+opt+cmd+F19"
+      ],
+      "compareIgnoreCase" : [
+
+      ],
+      "compareIgnoreWhitespace" : [
+        "ctrl+opt+cmd+F18"
+      ],
+      "compareLastDifference" : [
+        "ctrl+opt+cmd+F17"
+      ],
+      "compareNextDifference" : [
+        "ctrl+opt+cmd+F14"
+      ],
+      "comparePanels" : [
+        "ctrl+opt+cmd+F18"
+      ],
+      "comparePreviousDifference" : [
+        "ctrl+opt+cmd+F15"
+      ],
+      "compareReload" : [
+        "ctrl+opt+cmd+F16"
+      ],
+      "compareSwap" : [
+        "ctrl+opt+cmd+F15"
+      ],
+      "compareZoomIn" : [
+        "ctrl+opt+cmd+F18"
+      ],
+      "compareZoomOut" : [
+        "ctrl+opt+cmd+F19"
+      ],
+      "configureKeys" : [
+        "ctrl+opt+cmd+F18"
+      ],
+      "connectToServer" : [
+
+      ],
+      "contextMenu" : [
+        "ctrl+opt+cmd+F16"
+      ],
+      "copy" : [
+        "ctrl+opt+cmd+F18"
+      ],
+      "copyFiles" : [
+        "ctrl+opt+cmd+F19"
+      ],
+      "copyFullPath" : [
+        "ctrl+opt+cmd+F16"
+      ],
+      "copyName" : [
+        "ctrl+opt+cmd+F17"
+      ],
+      "delete" : [
+        "ctrl+opt+cmd+F14"
+      ],
+      "deletePermanently" : [
+        "ctrl+opt+cmd+F15"
+      ],
+      "deselectAll" : [
+        "ctrl+opt+cmd+F15"
+      ],
+      "deselectByMask" : [
+        "ctrl+opt+cmd+F19"
+      ],
+      "deselectSameExtension" : [
+        "ctrl+opt+cmd+F17"
+      ],
+      "disconnect" : [
+        "ctrl+opt+cmd+F14"
+      ],
+      "edit" : [
+        "ctrl+opt+cmd+F14"
+      ],
+      "editPath" : [
+        "ctrl+opt+cmd+F18"
+      ],
+      "editSymbolicLink" : [
+        "ctrl+opt+cmd+F17"
+      ],
+      "editWith" : [
+        "ctrl+opt+cmd+F16"
+      ],
+      "exportSettings" : [
+        "ctrl+opt+cmd+F15"
+      ],
+      "filter" : [
+        "ctrl+opt+cmd+F19"
+      ],
+      "find" : [
+
+      ],
+      "findClose" : [
+
+      ],
+      "findCopyFiles" : [
+        "ctrl+opt+cmd+F15"
+      ],
+      "findCopyNames" : [
+        "ctrl+opt+cmd+F17"
+      ],
+      "findCopyPaths" : [
+        "ctrl+opt+cmd+F16"
+      ],
+      "findEdit" : [
+        "ctrl+opt+cmd+F17"
+      ],
+      "findOpen" : [
+        "ctrl+opt+cmd+F14"
+      ],
+      "findProperties" : [
+        "ctrl+opt+cmd+F19"
+      ],
+      "findQuickLook" : [
+        "ctrl+opt+cmd+F18"
+      ],
+      "findRemove" : [
+        "ctrl+opt+cmd+F14"
+      ],
+      "findSelectAll" : [
+        "ctrl+opt+cmd+F18"
+      ],
+      "findShowInPanel" : [
+        "ctrl+opt+cmd+F15"
+      ],
+      "findStart" : [
+        "ctrl+opt+cmd+F19"
+      ],
+      "findStop" : [
+
+      ],
+      "findToPanel" : [
+        "ctrl+opt+cmd+F19"
+      ],
+      "findTrash" : [
+
+      ],
+      "findView" : [
+        "ctrl+opt+cmd+F16"
+      ],
+      "focusCommandLine" : [
+        "ctrl+opt+cmd+F19"
+      ],
+      "goBack" : [
+        "ctrl+opt+cmd+F19"
+      ],
+      "goForward" : [
+
+      ],
+      "goHome" : [
+        "ctrl+opt+cmd+F16"
+      ],
+      "goHotPath1" : [
+        "ctrl+opt+cmd+F18"
+      ],
+      "goHotPath10" : [
+
+      ],
+      "goHotPath2" : [
+        "ctrl+opt+cmd+F19"
+      ],
+      "goHotPath3" : [
+
+      ],
+      "goHotPath4" : [
+        "ctrl+opt+cmd+F14"
+      ],
+      "goHotPath5" : [
+        "ctrl+opt+cmd+F15"
+      ],
+      "goHotPath6" : [
+        "ctrl+opt+cmd+F16"
+      ],
+      "goHotPath7" : [
+        "ctrl+opt+cmd+F17"
+      ],
+      "goHotPath8" : [
+        "ctrl+opt+cmd+F18"
+      ],
+      "goHotPath9" : [
+        "ctrl+opt+cmd+F19"
+      ],
+      "goParent" : [
+        "ctrl+opt+cmd+F14"
+      ],
+      "goRoot" : [
+        "ctrl+opt+cmd+F15"
+      ],
+      "goToLinkTarget" : [
+        "ctrl+opt+cmd+F17"
+      ],
+      "help" : [
+        "ctrl+opt+cmd+F18"
+      ],
+      "hotPaths" : [
+        "ctrl+opt+cmd+F19"
+      ],
+      "importSettings" : [
+        "ctrl+opt+cmd+F16"
+      ],
+      "insertFullPathToCommandLine" : [
+        "ctrl+opt+cmd+F15"
+      ],
+      "insertLeftPathToCommandLine" : [
+        "ctrl+opt+cmd+F16"
+      ],
+      "insertNameToCommandLine" : [
+
+      ],
+      "insertPathToCommandLine" : [
+        "ctrl+opt+cmd+F14"
+      ],
+      "insertRightPathToCommandLine" : [
+        "ctrl+opt+cmd+F17"
+      ],
+      "invertAll" : [
+        "ctrl+opt+cmd+F18"
+      ],
+      "invertByMask" : [
+
+      ],
+      "leftVolumeMenu" : [
+        "ctrl+opt+cmd+F18"
+      ],
+      "loadSelection" : [
+        "ctrl+opt+cmd+F14"
+      ],
+      "makeDirectory" : [
+
+      ],
+      "maximizePanel" : [
+        "ctrl+opt+cmd+F17"
+      ],
+      "move" : [
+        "ctrl+opt+cmd+F19"
+      ],
+      "moveFilesHere" : [
+        "ctrl+opt+cmd+F14"
+      ],
+      "newFile" : [
+        "ctrl+opt+cmd+F17"
+      ],
+      "newHardLink" : [
+        "ctrl+opt+cmd+F16"
+      ],
+      "newSymbolicLink" : [
+        "ctrl+opt+cmd+F15"
+      ],
+      "newTab" : [
+        "ctrl+opt+cmd+F14"
+      ],
+      "nextTab" : [
+        "ctrl+opt+cmd+F16"
+      ],
+      "occupiedSpace" : [
+        "ctrl+opt+cmd+F14"
+      ],
+      "open" : [
+        "ctrl+opt+cmd+F19"
+      ],
+      "openInLeftPanel" : [
+        "ctrl+opt+cmd+F17"
+      ],
+      "openInRightPanel" : [
+        "ctrl+opt+cmd+F18"
+      ],
+      "openTerminal" : [
+        "ctrl+opt+cmd+F15"
+      ],
+      "pack" : [
+        "ctrl+opt+cmd+F18"
+      ],
+      "pasteAsSymbolicLink" : [
+        "ctrl+opt+cmd+F15"
+      ],
+      "pasteFiles" : [
+
+      ],
+      "previousTab" : [
+        "ctrl+opt+cmd+F17"
+      ],
+      "properties" : [
+        "ctrl+opt+cmd+F17"
+      ],
+      "quickLook" : [
+
+      ],
+      "quit" : [
+        "ctrl+opt+cmd+F17"
+      ],
+      "refresh" : [
+
+      ],
+      "rename" : [
+        "ctrl+opt+cmd+F16"
+      ],
+      "restoreSelection" : [
+        "ctrl+opt+cmd+F19"
+      ],
+      "revealInFinder" : [
+        "ctrl+opt+cmd+F16"
+      ],
+      "rightVolumeMenu" : [
+        "ctrl+opt+cmd+F19"
+      ],
+      "sameFolderAsOther" : [
+        "ctrl+opt+cmd+F14"
+      ],
+      "saveSelection" : [
+
+      ],
+      "selectAll" : [
+        "ctrl+opt+cmd+F14"
+      ],
+      "selectByMask" : [
+        "ctrl+opt+cmd+F18"
+      ],
+      "selectSameExtension" : [
+        "ctrl+opt+cmd+F16"
+      ],
+      "setHotPath1" : [
+        "ctrl+opt+cmd+F14"
+      ],
+      "setHotPath10" : [
+        "ctrl+opt+cmd+F16"
+      ],
+      "setHotPath2" : [
+        "ctrl+opt+cmd+F15"
+      ],
+      "setHotPath3" : [
+        "ctrl+opt+cmd+F16"
+      ],
+      "setHotPath4" : [
+        "ctrl+opt+cmd+F17"
+      ],
+      "setHotPath5" : [
+        "ctrl+opt+cmd+F18"
+      ],
+      "setHotPath6" : [
+        "ctrl+opt+cmd+F19"
+      ],
+      "setHotPath7" : [
+
+      ],
+      "setHotPath8" : [
+        "ctrl+opt+cmd+F14"
+      ],
+      "setHotPath9" : [
+        "ctrl+opt+cmd+F15"
+      ],
+      "settings" : [
+        "ctrl+opt+cmd+F14"
+      ],
+      "sortByDate" : [
+        "ctrl+opt+cmd+F17"
+      ],
+      "sortByExtension" : [
+        "ctrl+opt+cmd+F16"
+      ],
+      "sortByName" : [
+        "ctrl+opt+cmd+F15"
+      ],
+      "sortBySize" : [
+        "ctrl+opt+cmd+F18"
+      ],
+      "swapPanels" : [
+
+      ],
+      "switchPanel" : [
+
+      ],
+      "toggleCommandLine" : [
+        "ctrl+opt+cmd+F17"
+      ],
+      "toggleFunctionKeyBar" : [
+        "ctrl+opt+cmd+F18"
+      ],
+      "toggleHidden" : [
+        "ctrl+opt+cmd+F14"
+      ],
+      "toggleSelection" : [
+        "ctrl+opt+cmd+F14"
+      ],
+      "toggleSelectionAndSize" : [
+        "ctrl+opt+cmd+F15"
+      ],
+      "unpack" : [
+        "ctrl+opt+cmd+F19"
+      ],
+      "userMenu" : [
+        "ctrl+opt+cmd+F18"
+      ],
+      "verifyChecksums" : [
+        "ctrl+opt+cmd+F17"
+      ],
+      "view" : [
+        "ctrl+opt+cmd+F19"
+      ],
+      "viewModeBrief" : [
+        "ctrl+opt+cmd+F16"
+      ],
+      "viewModeDetailed" : [
+        "ctrl+opt+cmd+F15"
+      ],
+      "viewWith" : [
+        "ctrl+opt+cmd+F15"
+      ],
+      "viewerActualSize" : [
+        "ctrl+opt+cmd+F14"
+      ],
+      "viewerAutoEncoding" : [
+        "ctrl+opt+cmd+F15"
+      ],
+      "viewerClose" : [
+        "ctrl+opt+cmd+F17"
+      ],
+      "viewerCopy" : [
+        "ctrl+opt+cmd+F18"
+      ],
+      "viewerEncoding" : [
+        "ctrl+opt+cmd+F14"
+      ],
+      "viewerFind" : [
+
+      ],
+      "viewerFindNext" : [
+        "ctrl+opt+cmd+F14"
+      ],
+      "viewerFindPrevious" : [
+        "ctrl+opt+cmd+F15"
+      ],
+      "viewerFirstFile" : [
+        "ctrl+opt+cmd+F14"
+      ],
+      "viewerGoTo" : [
+        "ctrl+opt+cmd+F17"
+      ],
+      "viewerHeaderRow" : [
+        "ctrl+opt+cmd+F17"
+      ],
+      "viewerHex" : [
+        "ctrl+opt+cmd+F19"
+      ],
+      "viewerHighlight" : [
+        "ctrl+opt+cmd+F17"
+      ],
+      "viewerLastFile" : [
+        "ctrl+opt+cmd+F15"
+      ],
+      "viewerLoadRemote" : [
+
+      ],
+      "viewerMalformedOnly" : [
+        "ctrl+opt+cmd+F16"
+      ],
+      "viewerNextEncoding" : [
+        "ctrl+opt+cmd+F16"
+      ],
+      "viewerNextFile" : [
+        "ctrl+opt+cmd+F17"
+      ],
+      "viewerNextMalformed" : [
+        "ctrl+opt+cmd+F14"
+      ],
+      "viewerNextSelected" : [
+        "ctrl+opt+cmd+F19"
+      ],
+      "viewerPreview" : [
+        "ctrl+opt+cmd+F16"
+      ],
+      "viewerPreviousEncoding" : [
+        "ctrl+opt+cmd+F17"
+      ],
+      "viewerPreviousFile" : [
+        "ctrl+opt+cmd+F18"
+      ],
+      "viewerPreviousMalformed" : [
+        "ctrl+opt+cmd+F15"
+      ],
+      "viewerPreviousSelected" : [
+
+      ],
+      "viewerReload" : [
+        "ctrl+opt+cmd+F15"
+      ],
+      "viewerSaveAs" : [
+        "ctrl+opt+cmd+F16"
+      ],
+      "viewerSaveImageAs" : [
+        "ctrl+opt+cmd+F19"
+      ],
+      "viewerSelectAll" : [
+        "ctrl+opt+cmd+F19"
+      ],
+      "viewerSeparator" : [
+        "ctrl+opt+cmd+F18"
+      ],
+      "viewerSetDefaultEncoding" : [
+        "ctrl+opt+cmd+F18"
+      ],
+      "viewerText" : [
+        "ctrl+opt+cmd+F18"
+      ],
+      "viewerUseSelectionForFind" : [
+        "ctrl+opt+cmd+F16"
+      ],
+      "viewerWrap" : [
+
+      ],
+      "viewerZoomIn" : [
+        "ctrl+opt+cmd+F19"
+      ],
+      "viewerZoomOut" : [
+
+      ],
+      "viewerZoomToFit" : [
+        "ctrl+opt+cmd+F18"
+      ],
+      "volumeInfo" : [
+        "ctrl+opt+cmd+F19"
+      ],
+      "workingDirectories" : [
+
+      ]
+    },
+    "scheme" : "classicCommander"
+  },
+  "preferences" : {
+    "checksum.algorithm" : "crc32",
+    "compare.differencesOnly" : true,
+    "compare.fontSize" : 16,
+    "compare.ignoreCase" : true,
+    "compare.whitespace" : "ignoreAll",
+    "comparison" : {
+      "compareDate" : false,
+      "compareSize" : false,
+      "dateTolerance" : 5,
+      "ignoreDirectories" : ".git",
+      "ignoreFiles" : "*.bak",
+      "selectDirectoriesOnlyInOnePanel" : false
+    },
+    "editor.bundleID" : "com.microsoft.VSCode",
+    "links.relativePath" : true,
+    "pathBar.showIcons" : false,
+    "pathBar.style" : "text",
+    "showCommandLine" : false,
+    "showFunctionKeyBar" : false,
+    "size.display" : "bytes",
+    "size.units" : "binary",
+    "ssh.extraArguments" : [
+      "-o",
+      "ConnectTimeout=5"
+    ],
+    "terminal.bundleID" : "com.googlecode.iterm2",
+    "viewer.encoding" : "koi8r",
+    "viewer.fontSize" : 14,
+    "viewer.highlight" : false,
+    "viewer.wrap" : false,
+    "volumeBar.showHome" : true,
+    "volumeBar.showICloud" : false,
+    "volumeBar.showNetwork" : false,
+    "volumeBar.showServers" : false
+  },
+  "toolbar" : {
+    "TB Display Mode" : 2,
+    "TB Icon Size Mode" : 1,
+    "TB Is Shown" : true,
+    "TB Item Identifiers" : [
+      "cmd.goBack",
+      "cmd.goForward",
+      "NSToolbarFlexibleSpaceItem",
+      "cmd.find"
+    ],
+    "TB Size Mode" : 1
+  },
+  "userMenu" : [
+    {
+      "arguments" : "-la $(FullPath)",
+      "children" : [
+
+      ],
+      "directory" : "$(FullPath)",
+      "id" : "00000000-0000-4000-8000-000000000001",
+      "kind" : "command",
+      "program" : "/bin/ls",
+      "runInTerminal" : true,
+      "shortcut" : "ctrl+opt+char:l",
+      "title" : "List"
+    },
+    {
+      "arguments" : "",
+      "children" : [
+
+      ],
+      "directory" : "$(FullPath)",
+      "id" : "00000000-0000-4000-8000-000000000002",
+      "kind" : "separator",
+      "program" : "",
+      "runInTerminal" : false,
+      "title" : ""
+    },
+    {
+      "arguments" : "",
+      "children" : [
+        {
+          "arguments" : "status",
+          "children" : [
+
+          ],
+          "directory" : "$(Path)",
+          "id" : "00000000-0000-4000-8000-000000000004",
+          "kind" : "command",
+          "program" : "git",
+          "runInTerminal" : false,
+          "title" : "Status"
+        }
+      ],
+      "directory" : "$(FullPath)",
+      "id" : "00000000-0000-4000-8000-000000000003",
+      "kind" : "submenu",
+      "program" : "",
+      "runInTerminal" : false,
+      "title" : "Git"
+    }
+  ]
+}

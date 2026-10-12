@@ -35,6 +35,8 @@ let package = Package(
         .testTarget(
             name: "CommanderCoreTests",
             dependencies: ["CommanderCore"],
+            // Frozen files read through #filePath, not bundled.
+            exclude: ["Fixtures"],
             swiftSettings: strict
         ),
     ]

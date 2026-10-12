@@ -56,3 +56,21 @@ One UTF-8 JSON object, pretty-printed with sorted keys. Default file name:
 
   The exporter writes only catalog keys, so these cannot appear.
 - **Determinism**: two exports of the same settings differ only in `exported` and `appVersion`.
+
+## Compatibility across versions
+
+Settings files must keep working while the app grows. Tests enforce these rules:
+
+- **Newer app, older file.** Every later version imports a format-1 file without skipping anything
+  and keeps every value. `SettingsFormatCompatibilityTests` imports the frozen
+  `Tests/CommanderCoreTests/Fixtures/settings-format-1.json`, which has every catalog key, every
+  command name of its time and every section filled. The fixture is never edited.
+- **Never renamed:** UserDefaults keys, command names, scheme names, section names and the Codable
+  fields of the sections. New fields are optional with a default, so old files still decode.
+- **New preferences are exported.** A new UserDefaults key goes into `SettingsCatalog.app`, or into
+  `SettingsCatalog.notExported` when it is session state. `SettingsCatalogCoverageTests` scans the
+  sources and fails for a key that is in neither list.
+- **Older app, newer file.** The older app imports what it knows. It reports the unknown parts and
+  warns when `formatVersion` is higher.
+- **Incompatible change.** Raise `SettingsArchive.formatVersion`, convert older files in
+  `SettingsArchive.read`, and add a frozen fixture for the new format, keeping the old one.
