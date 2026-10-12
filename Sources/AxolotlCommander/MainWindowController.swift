@@ -220,7 +220,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         switch command {
         case .switchPanel, .leftVolumeMenu, .rightVolumeMenu, .focusCommandLine, .maximizePanel, .comparePanels,
              .swapPanels, .sameFolderAsOther,
-             .insertNameToCommandLine, .insertPathToCommandLine,
+             .insertNameToCommandLine, .insertPathToCommandLine, .insertFullPathToCommandLine,
              .insertLeftPathToCommandLine, .insertRightPathToCommandLine,
              .toggleCommandLine, .toggleFunctionKeyBar: true
         case .openInLeftPanel, .openInRightPanel: activePanel.model.otherPanelTarget != nil
@@ -261,6 +261,9 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         case .insertNameToCommandLine:
             if let item = activePanel.model.cursorItem { commandLine.insert(ShellQuote.quote(item.isParent ? ".." : item.name) + " ") }
         case .insertPathToCommandLine: insertPath(of: activePanel)
+        case .insertFullPathToCommandLine:
+            guard let item = activePanel.model.cursorItem else { break }
+            if item.isParent { insertPath(of: activePanel) } else { commandLine.insert(ShellQuote.quote(item.url.displayPath) + " ") }
         case .insertLeftPathToCommandLine: insertPath(of: left)
         case .insertRightPathToCommandLine: insertPath(of: right)
         case .toggleCommandLine:
@@ -306,7 +309,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
 
     /// Commands that work with the command line; they show it first when it is hidden.
     private static let commandLineCommands: Set<Command> = [
-        .focusCommandLine, .insertNameToCommandLine, .insertPathToCommandLine,
+        .focusCommandLine, .insertNameToCommandLine, .insertPathToCommandLine, .insertFullPathToCommandLine,
         .insertLeftPathToCommandLine, .insertRightPathToCommandLine,
     ]
 
@@ -440,7 +443,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         }
         guard let command = KeyMaps.panel.command(for: chord) else { return false }
         switch command {
-        case .focusCommandLine, .insertNameToCommandLine, .insertPathToCommandLine,
+        case .focusCommandLine, .insertNameToCommandLine, .insertPathToCommandLine, .insertFullPathToCommandLine,
              .insertLeftPathToCommandLine, .insertRightPathToCommandLine:
             performHere(command)
             return true

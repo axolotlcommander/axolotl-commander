@@ -34,7 +34,7 @@ None. US1 needs only the registry, and US2 and US3 build on `KeyBindings`.
 **Independent test**: `swift test` (KeyMapTests); in the GUI, ⌥←, ⇧F6, ⌃F1 and ⌃R in a panel, and
 the ⌃ / ⇧ / ⌥ layers of the function key bar.
 
-- [ ] T001 [US1] In `Sources/CommanderCore/Command.swift` `CommandRegistry.all`, **append** the FR-001
+- [X] T001 [US1] In `Sources/CommanderCore/Command.swift` `CommandRegistry.all`, **append** the FR-001
   chords (research.md R1). Existing chords keep their order.
   - Panel and navigation:
     - openInLeftPanel `K(.left, c)`; openInRightPanel `K(.right, c)`;
@@ -61,7 +61,7 @@ the ⌃ / ⇧ / ⌥ layers of the function key bar.
     - insertPathToCommandLine `ch("p", c)`;
     - the new command `insertFullPathToCommandLine` ("Insert Full Path", panel only, no menu,
       `[K(.enter, [c, s])]`), declared next to `insertPathToCommandLine`.
-- [ ] T001a [US1] `Sources/AxolotlCommander/MainWindowController.swift`: handle
+- [X] T001a [US1] `Sources/AxolotlCommander/MainWindowController.swift`: handle
   `insertFullPathToCommandLine` everywhere `insertNameToCommandLine` is handled:
   - enablement;
   - the list of command-line commands;
@@ -70,9 +70,9 @@ the ⌃ / ⇧ / ⌥ layers of the function key bar.
 
   It inserts `ShellQuote.quote(<location displayPath joined with the item name>) + " "`. On "..", it
   inserts the folder path, like `insertPath`.
-- [ ] T002 [US1] In `Sources/CommanderCore/Window/FunctionKeyBar.swift`, add the bar title "Quit"
+- [X] T002 [US1] In `Sources/CommanderCore/Window/FunctionKeyBar.swift`, add the bar title "Quit"
   for `.quit` (`barTitles`) and the short title "Link" for `.newSymbolicLink` (`shortTitles`).
-- [ ] T003 [US1] Extend `Tests/CommanderCoreTests/KeyMapTests.swift`:
+- [X] T003 [US1] Create `Tests/CommanderCoreTests/HabitChordTests.swift`:
   - a parameterized test that every FR-001 chord maps to its command in `KeyMap.standard`, and that
     `windowsBindingsSurvive` still passes;
   - a test that no FR-001 chord is one of the panel's direct chords:
