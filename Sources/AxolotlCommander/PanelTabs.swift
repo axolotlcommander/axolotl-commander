@@ -31,11 +31,45 @@ extension PanelViewController {
         tabsChanged()
     }
 
+    /// Open in New Tab / Open in Background Tab: what Enter would enter, in a new tab after the
+    /// current one; the current tab stays as it is.
+    func openCursorInNewTab(activate: Bool) {
+        Task {
+            await navigate {
+                let state = try await model.stateEnteringCursor()
+                openTab(state, activate: activate)
+            }
+        }
+    }
+
+    /// The state for a tab of the other panel (Open in New Tab of Other Panel).
+    func stateForNewTab() async -> PanelState? {
+        do { return try await model.stateEnteringCursor() } catch {
+            NSSound.beep()
+            statusField.stringValue = Format.error(error)
+            return nil
+        }
+    }
+
+    /// Inserts a tab after the current one; an active one is shown at once.
+    func openTab(_ state: PanelState, activate: Bool) {
+        tabs.updateCurrent(model.snapshot())
+        tabs.open(state, activate: activate)
+        if activate { Task { await restoreTab(tabs.current) } } else { tabsChanged() }
+    }
+
+    /// Reopen Closed Tab (the newest) or a closed tab chosen in the tab list.
+    func reopenClosedTab(at index: Int = 0) {
+        guard let state = closedTabs.remove(at: index) else { NSSound.beep(); return }
+        openTab(state, activate: true)
+    }
+
     /// ⌃⇧W: the last tab of a panel stays.
     func closeTab(at index: Int) {
         guard tabs.tabs.count > 1 else { NSSound.beep(); return }
         tabs.updateCurrent(model.snapshot())
         let wasActive = index == tabs.active
+        closedTabs.push(tabs.tabs[index])
         tabs.close(at: index)
         if wasActive {
             Task { await restoreTab(tabs.current) }
@@ -49,6 +83,7 @@ extension PanelViewController {
         tabs.updateCurrent(model.snapshot())
         let keep = tabs.tabs[index]
         let wasActive = index == tabs.active
+        for (other, state) in tabs.tabs.enumerated() where other != index { closedTabs.push(state) }
         tabs = TabList(keep)
         if wasActive { tabsChanged() } else { Task { await restoreTab(keep) } }
     }
@@ -86,6 +121,35 @@ extension PanelViewController {
             do { try await model.restore(fallback) } catch { statusField.stringValue = Format.error(error) }
         }
     }
+
+    /// Tab List…: the open tabs (the active one checked), then the recently closed ones.
+    func showTabList() {
+        tabs.updateCurrent(model.snapshot())
+        let menu = NSMenu()
+        func entry(_ state: PanelState, tag: Int, action: Selector) -> NSMenuItem {
+            let item = NSMenuItem(title: state.title, action: action, keyEquivalent: "")
+            item.target = self
+            item.tag = tag
+            item.toolTip = state.location.displayPath
+            return item
+        }
+        for (index, state) in tabs.tabs.enumerated() {
+            let item = entry(state, tag: index, action: #selector(tabChosen(_:)))
+            item.state = index == tabs.active ? .on : .off
+            menu.addItem(item)
+        }
+        if !closedTabs.isEmpty {
+            menu.addItem(.separator())
+            menu.addItem(.sectionHeader(title: String(localized: "Recently Closed")))
+            for (index, state) in closedTabs.items.enumerated() {
+                menu.addItem(entry(state, tag: index, action: #selector(closedTabChosen(_:))))
+            }
+        }
+        menu.popUp(positioning: nil, at: NSPoint(x: 0, y: pathBar.bounds.height + 2), in: pathBar)
+    }
+
+    @objc private func tabChosen(_ sender: NSMenuItem) { switchTab { $0.select(sender.tag) } }
+    @objc private func closedTabChosen(_ sender: NSMenuItem) { reopenClosedTab(at: sender.tag) }
 
     // MARK: Hot paths
 

@@ -224,6 +224,8 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
              .insertLeftPathToCommandLine, .insertRightPathToCommandLine,
              .toggleCommandLine, .toggleFunctionKeyBar: true
         case .openInLeftPanel, .openInRightPanel: openInPanel(command) != nil
+        case .openInNewTabOtherPanel: activePanel.model.cursorItem != nil && !activePanel.model.isNetwork
+        case .swapPanelsWithTabs: true
         default: false
         }
     }
@@ -265,6 +267,24 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
             guard let (plan, target) = openInPanel(command) else { return }
             panel(plan.target).go(to: target.url, focusing: target.focus)
             if plan.focus != core(activeSide) { activate(plan.focus == .left ? .left : .right) }
+        case .openInNewTabOtherPanel:
+            // The other panel gets the tab and shows it; the focus stays here.
+            let source = activePanel
+            let other = activeSide == .left ? right : left
+            if maximizedSide != nil { setMaximized(nil) }
+            Task {
+                guard let state = await source.stateForNewTab() else { return }
+                other.openTab(state, activate: true)
+            }
+        case .swapPanelsWithTabs:
+            // ⌃⇧U: the panels exchange their whole tab lists; ⌃U swaps only the current tabs.
+            left.tabs.updateCurrent(left.model.snapshot())
+            right.tabs.updateCurrent(right.model.snapshot())
+            (left.tabs, right.tabs) = (right.tabs, left.tabs)
+            Task {
+                await left.restoreTab(left.tabs.current)
+                await right.restoreTab(right.tabs.current)
+            }
         case .leftVolumeMenu: activate(.left); left.perform(.leftVolumeMenu)
         case .rightVolumeMenu: activate(.right); right.perform(.rightVolumeMenu)
         case .focusCommandLine:

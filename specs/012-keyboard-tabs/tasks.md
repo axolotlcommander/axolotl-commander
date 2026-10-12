@@ -18,26 +18,26 @@
 
 ## Phase 2: User Story 1 — Open in a new tab (P1)
 
-- [ ] T005 [US1] In `Sources/AxolotlCommander/PanelTabs.swift`, add `openCursorInNewTab(activate:)` and
+- [X] T005 [US1] In `Sources/AxolotlCommander/PanelTabs.swift`, add `openCursorInNewTab(activate:)` and
   `openTab(_:activate:)`.
-- [ ] T006 [US1] Wire the panel commands and their validation in `PanelViewController`. Open in New Tab
+- [X] T006 [US1] Wire the panel commands and their validation in `PanelViewController`. Open in New Tab
   of Other Panel goes through `MainWindowController`: un-maximize, the other panel's `openTab`, and the
   focus stays. Commit.
 
 ## Phase 3: User Story 2 — Closed tabs and the tab list (P1)
 
-- [ ] T007 [US2] Record closed tabs in `closeTab` / `closeOtherTabs`; add `reopenClosedTab()` and its
+- [X] T007 [US2] Record closed tabs in `closeTab` / `closeOtherTabs`; add `reopenClosedTab()` and its
   validation.
-- [ ] T008 [US2] Add the Tab List… menu, popped up over the path bar: open tabs (the active one
+- [X] T008 [US2] Add the Tab List… menu, popped up over the path bar: open tabs (the active one
   checked, with a path tooltip), then a "Recently Closed" section. Commit.
 
 ## Phase 4: User Story 3 — Close other tabs, swap with all tabs (P2)
 
-- [ ] T009 [US3] Add the `closeOtherTabs` command (the current tab is kept) and its validation.
-- [ ] T010 [US3] Add `swapPanelsWithTabs` in `MainWindowController`. Commit.
+- [X] T009 [US3] Add the `closeOtherTabs` command (the current tab is kept) and its validation.
+- [X] T010 [US3] Add `swapPanelsWithTabs` in `MainWindowController`. Commit.
 
 ## Phase 5: Polish
 
-- [ ] T011 Add the Czech strings, a CHANGELOG entry and the quickstart (GUI) steps.
+- [X] T011 Add the Czech strings, a CHANGELOG entry and the quickstart (GUI) steps.
 - [ ] T012 Run the GUI check in the test copy when the maintainer is away.
 - [ ] T013 Install for the maintainer, after asking.

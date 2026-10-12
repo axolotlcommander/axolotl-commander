@@ -39,6 +39,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
     a character starts quick search;
   - ⌃← / ⌃→ change the panel the arrow points to, and ".." opens the other panel's folder;
   - Volume buttons open the other panel's folder on that volume, or the last folder used there.
+- Tabs from the keyboard (spec 012), all in the Go and View menus:
+  - Open in New Tab (⌃↑, ⌥⌘↓), Open in Background Tab (⌥⌘⇧↓) and Open in New Tab of Other Panel
+    (⌃⇧↑) open the folder under the cursor without leaving the current tab;
+  - Reopen Closed Tab (⌘⇧T) and Tab List… (⌘⇧\, ⌃⇧A), which also offers the recently closed tabs;
+  - Close Other Tabs (⌥⌘W; ⌃⇧W in Classic Commander) and Swap Panels with All Tabs (⌃⇧U).
 
 ### Fixed
 

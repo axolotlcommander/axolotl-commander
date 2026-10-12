@@ -70,6 +70,8 @@ final class PanelViewController: NSViewController {
     var listView: NSView { viewMode == .brief ? briefView : tableView }
     /// Saved states of this panel's tabs; the active one mirrors the model (see PanelTabs.swift).
     var tabs: TabList
+    /// Tabs closed in this panel, newest first (Reopen Closed Tab, the tab list).
+    var closedTabs = ClosedTabs()
 
     private var watcher: DirectoryWatcher?
     /// Discovery and mount changes, which refresh the Network folder.
@@ -564,6 +566,7 @@ final class PanelViewController: NSViewController {
         .copy, .move, .delete, .deletePermanently, .makeDirectory, .rename, .copyFiles, .pasteFiles,
         .view, .quickLook, .edit, .viewWith, .editWith, .newFile, .properties, .openTerminal, .revealInFinder,
         .newTab, .closeTab, .nextTab, .previousTab, .hotPaths, .viewModeDetailed, .viewModeBrief,
+        .openInNewTab, .openInBackgroundTab, .reopenClosedTab, .closeOtherTabs, .tabList,
         .find, .pack, .unpack, .connectToServer, .disconnect, .compareFiles,
         .changeCase, .batchRename, .calculateChecksums, .verifyChecksums, .occupiedSpace, .userMenu,
         .contextMenu, .moveFilesHere, .invertAll, .restoreSelection, .saveSelection, .loadSelection, .volumeInfo,
@@ -581,6 +584,7 @@ final class PanelViewController: NSViewController {
         .open, .goParent, .goHome, .goBack, .goForward, .changeDirectory, .editPath, .refresh,
         .sortByName, .sortByExtension, .sortByDate, .sortBySize, .viewModeDetailed, .viewModeBrief, .filter,
         .leftVolumeMenu, .rightVolumeMenu, .newTab, .closeTab, .nextTab, .previousTab, .hotPaths,
+        .reopenClosedTab, .closeOtherTabs, .tabList,
         .connectToServer, .disconnect, .contextMenu,
     ]
 
@@ -603,7 +607,9 @@ final class PanelViewController: NSViewController {
         switch command {
         case .goBack: return model.canGoBack
         case .goForward: return model.canGoForward
-        case .closeTab, .nextTab, .previousTab: return tabs.tabs.count > 1
+        case .closeTab, .nextTab, .previousTab, .closeOtherTabs: return tabs.tabs.count > 1
+        case .openInNewTab, .openInBackgroundTab: return model.cursorItem != nil
+        case .reopenClosedTab: return !closedTabs.isEmpty
         // Find results and branch view have no folder of their own to create or paste into.
         case .makeDirectory, .newFile: return !isFlatListing
         case .pasteFiles: return !isFlatListing && Self.pasteboardHasFilesOrPath
@@ -677,6 +683,11 @@ final class PanelViewController: NSViewController {
         case .viewModeDetailed: viewMode = .detailed
         case .viewModeBrief: viewMode = .brief
         case .closeTab: closeTab(at: tabs.active)
+        case .openInNewTab: openCursorInNewTab(activate: true)
+        case .openInBackgroundTab: openCursorInNewTab(activate: false)
+        case .reopenClosedTab: reopenClosedTab()
+        case .closeOtherTabs: closeOtherTabs(keeping: tabs.active)
+        case .tabList: showTabList()
         case .nextTab: switchTab { $0.next() }
         case .previousTab: switchTab { $0.previous() }
         case .hotPaths: showHotPathsMenu()

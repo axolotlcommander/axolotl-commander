@@ -9448,6 +9448,72 @@
           }
         }
       }
+    },
+    "Open in Background Tab": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otevřít v záložce na pozadí"
+          }
+        }
+      }
+    },
+    "Open in New Tab of Other Panel": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otevřít v nové záložce druhého panelu"
+          }
+        }
+      }
+    },
+    "Reopen Closed Tab": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Znovu otevřít zavřenou záložku"
+          }
+        }
+      }
+    },
+    "Tab List…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seznam záložek…"
+          }
+        }
+      }
+    },
+    "Swap Panels with All Tabs": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prohodit panely i se záložkami"
+          }
+        }
+      }
+    },
+    "Recently Closed": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nedávno zavřené"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
