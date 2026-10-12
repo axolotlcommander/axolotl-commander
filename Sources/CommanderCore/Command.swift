@@ -352,35 +352,53 @@ public enum CommandRegistry {
         Dictionary(uniqueKeysWithValues: all.map { ($0.command, $0) })
 }
 
-/// User key binding overrides on top of the factory chords in `CommandRegistry`.
+/// The selected key scheme plus the user's key binding overrides on top of it.
 public struct KeyBindings: Codable, Sendable, Equatable {
-    /// Commands whose chords the user replaced; an empty array means "no shortcut".
+    /// The scheme under the user's changes. Not part of the Codable form (stored on its own), so
+    /// overrides written by earlier versions decode unchanged.
+    public var scheme: KeyScheme
+    /// Commands whose chords the user replaced; an empty array means "no shortcut". Switching the
+    /// scheme never touches them.
     public var overrides: [Command: [KeyChord]]
 
-    public init(overrides: [Command: [KeyChord]] = [:]) {
-        self.overrides = overrides.filter { $0.value != CommandRegistry.spec($0.key).chords }
+    /// Overrides equal to the scheme's chords are dropped.
+    public init(scheme: KeyScheme = .axolotl, overrides: [Command: [KeyChord]] = [:]) {
+        self.scheme = scheme
+        self.overrides = overrides.filter { $0.value != scheme.chords(for: $0.key) }
     }
 
     public static let factory = KeyBindings()
 
-    /// The user's chords when overridden, otherwise the factory chords.
+    /// The user's chords when overridden, otherwise the scheme's (which default to the factory's).
     public func chords(for command: Command) -> [KeyChord] {
-        overrides[command] ?? CommandRegistry.spec(command).chords
+        overrides[command] ?? scheme.chords(for: command)
     }
 
-    public func isCustomized(_ command: Command) -> Bool { overrides[command] != nil }
+    /// The user changed the command's chords to something the scheme does not give it. An
+    /// override that equals the selected scheme (kept after a scheme switch) does not count.
+    public func isCustomized(_ command: Command) -> Bool {
+        guard let chords = overrides[command] else { return false }
+        return chords != scheme.chords(for: command)
+    }
 
-    /// Replaces the chords of `command`; chords equal to the factory ones remove the override.
+    public func source(for command: Command) -> ChordSource {
+        if isCustomized(command) { return .user }
+        return scheme.changes[command] != nil ? .scheme : .defaults
+    }
+
+    /// Replaces the chords of `command`; chords equal to the scheme's remove the override.
     public mutating func set(_ chords: [KeyChord], for command: Command) {
-        if chords == CommandRegistry.spec(command).chords {
+        if chords == scheme.chords(for: command) {
             overrides[command] = nil
         } else {
             overrides[command] = chords
         }
     }
 
+    /// Back to the selected scheme.
     public mutating func reset(_ command: Command) { overrides[command] = nil }
 
+    /// Every command back to the selected scheme; the scheme stays.
     public mutating func resetAll() { overrides = [:] }
 
     /// Commands (other than `command`) that currently use `chord` in a context overlapping `command`'s scope.
@@ -405,7 +423,9 @@ public struct KeyBindings: Codable, Sendable, Equatable {
             guard chords.count == texts.count else { continue }
             result[command] = chords
         }
-        self.init(overrides: result)
+        // Not normalized: under another scheme an override equal to the factory chords matters.
+        scheme = .axolotl
+        overrides = result
     }
 
     public func encode(to encoder: any Encoder) throws {
@@ -416,7 +436,7 @@ public struct KeyBindings: Codable, Sendable, Equatable {
     }
 }
 
-/// Chord → command lookup built from the factory chords and optional user overrides.
+/// Chord → command lookup built from the factory chords, the key scheme and the user's overrides.
 public struct KeyMap: Sendable {
     public private(set) var bindings: [KeyChord: Command]
     /// Candidate chords per command in declaration order (including ones another command won).
@@ -439,7 +459,7 @@ public struct KeyMap: Sendable {
     }
 
     /// Builds the map from `bindings.chords(for:)` of every command in the context. Chords the user
-    /// assigned explicitly win over factory chords of other commands; among factory chords the
+    /// assigned explicitly win over scheme and factory chords of other commands; among those the
     /// declaration order decides.
     public init(context: CommandContext = .panel, bindings userBindings: KeyBindings) {
         var map: [KeyChord: Command] = [:]

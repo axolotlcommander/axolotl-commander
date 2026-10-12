@@ -99,11 +99,11 @@ switching and reset to the scheme.
 
 ### Core
 
-- [ ] T004 [P] [US2] Create `Sources/CommanderCore/KeyScheme.swift` (SPDX header) per data-model.md:
+- [X] T004 [P] [US2] Create `Sources/CommanderCore/KeyScheme.swift` (SPDX header) per data-model.md:
   - `KeyScheme` (`axolotl`, `classicCommander`, String raw values, `CaseIterable`, `Sendable`), with
     `changes` holding exactly the Classic Commander table of data-model.md and `chords(for:)`;
   - `ChordSource` (`defaults`, `scheme`, `user`).
-- [ ] T005 [US3] Change `KeyBindings` in `Sources/CommanderCore/Command.swift` per data-model.md:
+- [X] T005 [US3] Change `KeyBindings` in `Sources/CommanderCore/Command.swift` per data-model.md:
   - `scheme` (default `.axolotl`, not encoded);
   - `init(scheme:overrides:)`, which normalizes against the scheme; `init(overrides:)` delegates
     with `.axolotl`;
@@ -114,7 +114,7 @@ switching and reset to the scheme.
   - `set` normalizes against the scheme.
 
   `reset`, `resetAll` and `conflicts` keep their code. Update the doc comments.
-- [ ] T006 [P] [US3] Create `Tests/CommanderCoreTests/KeySchemeTests.swift`:
+- [X] T006 [P] [US3] Create `Tests/CommanderCoreTests/KeySchemeTests.swift`:
   - Scheme data:
     - Axolotl has no changes;
     - every FR-006 row holds in Classic Commander through `KeyMap(context: .panel, bindings:
