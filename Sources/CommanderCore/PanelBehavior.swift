@@ -52,13 +52,15 @@ public enum PanelTyping {
     /// - Parameters:
     ///   - text: what the key types (`NSEvent.characters`).
     ///   - baseText: what the key types without ⌥, for ⌥ + character.
-    ///   - isBound: the chord runs a command or a user menu item.
+    ///   - isBound: the chord runs a command or a user menu item. It only matters for ⌥ + character:
+    ///     plain characters never reached commands (quick search took them first), and Return,
+    ///     Backspace, Esc and Space act on a line with text by design.
     public static func route(key: KeyChord.Key, modifiers: KeyChord.Modifiers, text: String?, baseText: String?,
                              lineIsEmpty: Bool, quickSearchActive: Bool, isBound: Bool) -> Action {
-        if quickSearchActive || isBound { return .none }
+        if quickSearchActive { return .none }
         if case .character = key {
             if modifiers.isSubset(of: .shift), let text, !text.isEmpty { return .append(text) }
-            if modifiers.contains(.option), modifiers.isDisjoint(with: [.command, .control]),
+            if !isBound, modifiers.contains(.option), modifiers.isDisjoint(with: [.command, .control]),
                let baseText, !baseText.isEmpty {
                 return .startQuickSearch(baseText)
             }

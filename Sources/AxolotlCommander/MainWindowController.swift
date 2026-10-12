@@ -462,6 +462,23 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         }
     }
 
+    /// A panel key routed to the command line ("Typing goes to the command line"); the focus stays
+    /// in the panel.
+    func commandLine(_ action: PanelTyping.Action) {
+        switch action {
+        case .append(let text):
+            showCommandLine()
+            commandLine.append(text)
+        case .deleteLast: commandLine.deleteLast()
+        case .clear: commandLine.clear()
+        case .run: execute(commandLine.text)
+        case .none, .startQuickSearch: break
+        }
+    }
+
+    /// The command line holds text (a panel key then edits or runs it).
+    var commandLineHasText: Bool { !commandLine.isHidden && !commandLine.text.isEmpty }
+
     private func execute(_ line: String) {
         let panel = activePanel
         let directory = panel.model.location

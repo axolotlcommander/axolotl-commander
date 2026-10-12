@@ -36,9 +36,9 @@
 
 ## Phase 4: User Story 2 — Typing goes to the command line (P1)
 
-- [ ] T008 [US2] Add `PanelTyping.Action` and `PanelTyping.route(...)` to
+- [X] T008 [US2] Add `PanelTyping.Action` and `PanelTyping.route(...)` to
   `Sources/CommanderCore/PanelBehavior.swift`, following the data-model rules 1–6.
-- [ ] T009 [P] [US2] Add routing table tests to `Tests/CommanderCoreTests/PanelBehaviorTests.swift`:
+- [X] T009 [P] [US2] Add routing table tests to `Tests/CommanderCoreTests/PanelBehaviorTests.swift`:
   - each rule;
   - an empty versus a non-empty line;
   - a bound chord;
@@ -46,13 +46,13 @@
   - ⌥ + character;
   - ⇧ + character;
   - ⇧Return.
-- [ ] T010 [US2] Add `text`, `append(_:)`, `deleteLast()`, `clear()` to
+- [X] T010 [US2] Add `text`, `append(_:)`, `deleteLast()`, `clear()` to
   `Sources/AxolotlCommander/CommandLineBar.swift`. They work without focus and reset the history
   browser.
-- [ ] T011 [US2] Add `MainWindowController.commandLine(_ action:)` in
+- [X] T011 [US2] Add `MainWindowController.commandLine(_ action:)` in
   `Sources/AxolotlCommander/MainWindowController.swift`: it shows the line, appends, deletes the last
   character, clears, or runs it through `execute`, and never moves the focus.
-- [ ] T012 [US2] In `PanelViewController.handleKey`, when the setting is on and quick search is not
+- [X] T012 [US2] In `PanelViewController.handleKey`, when the setting is on and quick search is not
   running, route the key first. `.startQuickSearch` starts quick search with the text. The other
   actions go to the window. `isBound` = a panel command or user menu chord. Build, test, commit.
 

@@ -26,15 +26,17 @@ lineIsEmpty: Bool, quickSearchActive: Bool, isBound: Bool) -> Action`
 Callers invoke it only when the setting is on. Rules, first match wins:
 
 1. quick search active → `.none`;
-2. `isBound` → `.none` (a chord with a command keeps it);
-3. `.character`, modifiers ⊆ {⇧}, `text` non-empty → `.append(text)`;
-4. `.character`, modifiers contain ⌥ and no ⌘/⌃, `baseText` non-empty → `.startQuickSearch(baseText)`;
-5. line non-empty and no modifiers:
+2. `.character`, modifiers ⊆ {⇧}, `text` non-empty → `.append(text)` (plain characters never reached
+   commands: quick search took them first);
+3. `.character`, not `isBound`, modifiers contain ⌥ and no ⌘/⌃, `baseText` non-empty →
+   `.startQuickSearch(baseText)` (an ⌥ chord with a command keeps it);
+4. line non-empty and no modifiers (these keys have panel commands, but act on a line with text, so
+   `isBound` does not apply to them):
    - `.enter` / `.numEnter` → `.run`;
    - `.backspace` → `.deleteLast`;
    - `.escape` → `.clear`;
    - `.space` → `.append(" ")`;
-6. otherwise `.none`.
+5. otherwise `.none`.
 
 ## OpenInPanel
 

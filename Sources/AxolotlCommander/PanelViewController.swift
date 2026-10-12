@@ -411,6 +411,7 @@ final class PanelViewController: NSViewController {
 
     func handleKey(_ event: NSEvent) -> Bool {
         guard let chord = KeyChord(event: event) else { return false }
+        if handleTyping(chord, event: event) { return true }
         if chord.key == .escape, chord.modifiers.isEmpty, quickSearch == nil, isSizing {
             sizeTask?.cancel()
             return true
@@ -430,6 +431,26 @@ final class PanelViewController: NSViewController {
             return true
         }
         return false
+    }
+
+    /// "Typing goes to the command line": characters and, while the line holds text, Return,
+    /// Backspace, Esc and Space go to the command line; ⌥ + character starts quick search.
+    private func handleTyping(_ chord: KeyChord, event: NSEvent) -> Bool {
+        guard let router, PanelBehavior(defaults: .standard).typingToCommandLine else { return false }
+        let bound = UserMenuDefaults.command(for: chord) != nil || KeyMaps.panel.command(for: chord) != nil
+        let shift: NSEvent.ModifierFlags = event.modifierFlags.contains(.shift) ? .shift : []
+        let action = PanelTyping.route(key: chord.key, modifiers: chord.modifiers, text: event.characters,
+                                       baseText: event.characters(byApplyingModifiers: shift),
+                                       lineIsEmpty: !router.commandLineHasText,
+                                       quickSearchActive: quickSearch != nil, isBound: bound)
+        switch action {
+        case .none: return false
+        case .startQuickSearch(let text):
+            if model.quickSearch(text) { quickSearch = text } else { NSSound.beep() }
+            updateStatus()
+        default: router.commandLine(action)
+        }
+        return true
     }
 
     private func handleQuickSearch(_ chord: KeyChord, event: NSEvent) -> Bool {

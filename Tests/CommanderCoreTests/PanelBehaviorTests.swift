@@ -106,7 +106,10 @@ import Testing
         #expect(route(.character("a"), text: "a", searching: true) == .none)
         #expect(route(.backspace, empty: false, searching: true) == .none)
         #expect(route(.character("r"), .option, text: "®", base: "r", bound: true) == .none)
-        #expect(route(.enter, empty: false, bound: true) == .none)
+        // Return, Backspace, Esc and Space have panel commands, yet act on a line with text.
+        #expect(route(.enter, empty: false, bound: true) == .run)
+        #expect(route(.space, empty: false, bound: true) == .append(" "))
+        #expect(route(.space, empty: true, bound: true) == .none)
     }
 
     // MARK: Open in Left / Right Panel

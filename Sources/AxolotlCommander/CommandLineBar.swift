@@ -93,6 +93,27 @@ final class CommandLineBar: NSView, NSTextFieldDelegate {
         browser = nil
     }
 
+    /// The line as typed.
+    var text: String { field.stringValue }
+
+    /// Typing from a panel ("Typing goes to the command line"): the text goes to the end of the
+    /// line without a separator and the focus stays in the panel.
+    func append(_ text: String) {
+        field.stringValue += text
+        browser = nil
+    }
+
+    func deleteLast() {
+        guard !field.stringValue.isEmpty else { return }
+        field.stringValue.removeLast()
+        browser = nil
+    }
+
+    func clear() {
+        field.stringValue = ""
+        browser = nil
+    }
+
     /// Sends a text editing action (cut, copy, paste) to the field editor.
     func edit(_ action: Selector) -> Bool {
         guard isEditing, let editor = field.currentEditor() else { return false }
