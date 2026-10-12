@@ -417,14 +417,19 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         commandLine.insert(ShellQuote.quote(panel.model.location.displayPath) + " ")
     }
 
-    /// Keys handled before AppKit: ⌃Tab (the window would use it for key-view cycling) and,
-    /// while the command line edits, the panel chords that make sense there.
+    /// Keys handled before AppKit: ⌃Tab and ⌃⇧Tab (the window would use them for key-view cycling)
+    /// and, while the command line edits, the panel chords that make sense there.
     private func interceptKey(_ event: NSEvent) -> Bool {
         if commandLine.isEditing { return handleCommandLineKey(event) }
-        guard panelHasFocus, let chord = KeyChord(event: event),
-              KeyMaps.panel.command(for: chord) == .focusCommandLine else { return false }
-        showCommandLine()
-        commandLine.focus()
+        guard panelHasFocus, let chord = KeyChord(event: event), chord.key == .tab,
+              chord.modifiers.contains(.control),
+              let command = KeyMaps.panel.command(for: chord) else { return false }
+        if command == .focusCommandLine {
+            showCommandLine()
+            commandLine.focus()
+        } else {
+            perform(command)
+        }
         return true
     }
 

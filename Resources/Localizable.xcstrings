@@ -5280,16 +5280,6 @@
         }
       }
     },
-    "Reset all shortcuts to the factory settings?": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Obnovit všechny zkratky na tovární nastavení?"
-          }
-        }
-      }
-    },
     "Rest of the original name part": {
       "localizations": {
         "cs": {
@@ -7292,16 +7282,6 @@
         }
       }
     },
-    "Your changes to every command are removed.": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Všechny vaše změny příkazů budou odstraněny."
-          }
-        }
-      }
-    },
     "Zoom": {
       "localizations": {
         "cs": {
@@ -9025,6 +9005,105 @@
           "stringUnit": {
             "state": "translated",
             "value": "Odkaz"
+          }
+        }
+      }
+    },
+    "Key scheme:": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schéma kláves:"
+          }
+        }
+      }
+    },
+    "Classic Commander": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klasický Commander"
+          }
+        }
+      }
+    },
+    "Default": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Výchozí"
+          }
+        }
+      }
+    },
+    "Scheme": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schéma"
+          }
+        }
+      }
+    },
+    "Changed": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Změněno"
+          }
+        }
+      }
+    },
+    "Source": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Původ"
+          }
+        }
+      }
+    },
+    "⌃←, ⌃→, ⌃↑ and ⌃↓ reach the app only when the Mission Control shortcuts for them are turned off in System Settings → Keyboard → Keyboard Shortcuts.": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌃←, ⌃→, ⌃↑ a ⌃↓ se do aplikace dostanou, jen když jsou pro ně vypnuté zkratky Mission Control v Nastavení systému → Klávesnice → Klávesové zkratky."
+          }
+        }
+      }
+    },
+    "Reset all shortcuts to the selected key scheme?": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vrátit všechny zkratky na vybrané schéma kláves?"
+          }
+        }
+      }
+    },
+    "Your changes to every command are removed; the key scheme stays.": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vaše změny u všech příkazů se odstraní; schéma kláves zůstane."
           }
         }
       }

@@ -5,8 +5,8 @@ import AppKit
 import CommanderCore
 import SwiftUI
 
-/// Settings → Keyboard: every command with its shortcuts; a shortcut can be recorded, removed or
-/// reset to the factory one (all at once too).
+/// Settings → Keyboard: the key scheme and every command with its shortcuts; a shortcut can be
+/// recorded, removed or reset to the scheme's (all at once too).
 struct KeyboardSettings: View {
     private struct Row: Identifiable {
         var id: Command { command }
@@ -14,7 +14,10 @@ struct KeyboardSettings: View {
         let title: String
         let place: String
         let chords: [KeyChord]
-        let customized: Bool
+        /// Chords the command would have that another command's chord took.
+        let lost: [KeyChord]
+        let source: ChordSource
+        var customized: Bool { source == .user }
     }
 
     @State private var context: CommandContext = .panel
@@ -27,6 +30,10 @@ struct KeyboardSettings: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
+            Picker("Key scheme:", selection: schemeBinding) {
+                ForEach(KeyScheme.allCases, id: \.self) { Text($0.localizedTitle).tag($0) }
+            }
+            .fixedSize()
             HStack {
                 Picker("", selection: $context) {
                     Text("Panels").tag(CommandContext.panel)
@@ -45,10 +52,19 @@ struct KeyboardSettings: View {
                 }
                 TableColumn("Menu") { row in Text(row.place).foregroundStyle(.secondary) }.width(110)
                 TableColumn("Shortcut") { row in
-                    Text(row.chords.map(\.description).joined(separator: "   "))
-                        .monospaced()
-                        .foregroundStyle(row.customized ? Color.accentColor : .primary)
+                    HStack(spacing: 0) {
+                        Text(row.chords.map(\.description).joined(separator: "   "))
+                            .foregroundStyle(row.customized ? Color.accentColor : .primary)
+                        if !row.lost.isEmpty {
+                            Text((row.chords.isEmpty ? "" : "   ") + row.lost.map(\.description).joined(separator: "   "))
+                                .strikethrough().foregroundStyle(.secondary)
+                        }
+                    }
+                    .monospaced()
                 }.width(170)
+                TableColumn("Source") { row in
+                    Text(Self.sourceTitle(row.source)).foregroundStyle(row.customized ? Color.accentColor : .secondary)
+                }.width(70)
             }
             editor
         }
@@ -60,6 +76,22 @@ struct KeyboardSettings: View {
             standardFunctionKeys = FunctionKeys.areStandard
         }
         .onChange(of: selection) { stopRecording() }
+        // An import may change the bindings while the window is open.
+        .onReceive(NotificationCenter.default.publisher(for: KeyMaps.didChange)) { _ in
+            if bindings != KeyMaps.bindings { bindings = KeyMaps.bindings }
+        }
+    }
+
+    private var schemeBinding: Binding<KeyScheme> {
+        Binding(get: { bindings.scheme }, set: { scheme in update { $0.scheme = scheme } })
+    }
+
+    private static func sourceTitle(_ source: ChordSource) -> String {
+        switch source {
+        case .defaults: String(localized: "Default")
+        case .scheme: String(localized: "Scheme")
+        case .user: String(localized: "Changed")
+        }
     }
 
     private var map: KeyMap { KeyMap(context: context, bindings: bindings) }
@@ -71,7 +103,9 @@ struct KeyboardSettings: View {
             .map { spec in
                 Row(command: spec.command, title: spec.localizedTitle.replacingOccurrences(of: "…", with: ""),
                     place: spec.menu.map(Self.menuTitle) ?? String(localized: "Keyboard only"),
-                    chords: map.chords(for: spec.command), customized: bindings.isCustomized(spec.command))
+                    chords: map.chords(for: spec.command),
+                    lost: bindings.chords(for: spec.command).filter { map.command(for: $0) != spec.command },
+                    source: bindings.source(for: spec.command))
             }
             .filter { row in
                 query.isEmpty || row.title.lowercased().contains(query) || row.place.lowercased().contains(query)
@@ -121,11 +155,16 @@ struct KeyboardSettings: View {
                     recorder.isRecording ? stopRecording() : startRecording(for: command)
                 }
                 Button("Reset") { update { $0.reset(command) } }.disabled(!bindings.isCustomized(command))
+                let lost = bindings.chords(for: command).filter { map.command(for: $0).map { $0 != command } ?? false }
+                ForEach(lost, id: \.self) { chord in
+                    Text("\(chord.description) is used by \(CommandRegistry.spec(map.command(for: chord)!).localizedTitle).")
+                        .font(.callout).foregroundStyle(.secondary)
+                }
             } else {
                 Text("Select a command to change its shortcuts.").foregroundStyle(.secondary)
             }
             Spacer()
-            Button("Reset All…") { resetAll() }.disabled(bindings == .factory)
+            Button("Reset All…") { resetAll() }.disabled(bindings.overrides.isEmpty)
         }
         .frame(minHeight: 26)
         if let conflict, let command = selection {
@@ -137,6 +176,8 @@ struct KeyboardSettings: View {
             }
         }
         Text("Shortcuts with ⌘, ⌃, ⌥ or function keys also appear in the menus. Some ⌃ and F-key shortcuts may be taken by macOS (System Settings → Keyboard → Keyboard Shortcuts).")
+            .font(.caption).foregroundStyle(.secondary)
+        Text("⌃←, ⌃→, ⌃↑ and ⌃↓ reach the app only when the Mission Control shortcuts for them are turned off in System Settings → Keyboard → Keyboard Shortcuts.")
             .font(.caption).foregroundStyle(.secondary)
     }
 
@@ -173,8 +214,8 @@ struct KeyboardSettings: View {
 
     private func resetAll() {
         let alert = NSAlert()
-        alert.messageText = String(localized: "Reset all shortcuts to the factory settings?")
-        alert.informativeText = String(localized: "Your changes to every command are removed.")
+        alert.messageText = String(localized: "Reset all shortcuts to the selected key scheme?")
+        alert.informativeText = String(localized: "Your changes to every command are removed; the key scheme stays.")
         alert.addButton(withTitle: String(localized: "Reset All"))
         alert.addButton(withTitle: String(localized: "Cancel"))
         guard alert.runModal() == .alertFirstButtonReturn else { return }
@@ -189,4 +230,13 @@ struct KeyboardSettings: View {
     }
 
     private func stopRecording() { recorder.stop() }
+}
+
+extension KeyScheme {
+    var localizedTitle: String {
+        switch self {
+        case .axolotl: "Axolotl"
+        case .classicCommander: String(localized: "Classic Commander")
+        }
+    }
 }

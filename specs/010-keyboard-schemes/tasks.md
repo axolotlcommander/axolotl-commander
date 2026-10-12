@@ -147,17 +147,17 @@ switching and reset to the scheme.
 
 ### UI
 
-- [ ] T007 [US2] `Sources/AxolotlCommander/KeyMaps.swift`:
+- [X] T007 [US2] `Sources/AxolotlCommander/KeyMaps.swift`:
   - store the scheme under `keys.scheme` (absent = Axolotl) and load it with the bindings at startup;
   - `update(_:)` saves the overrides (key removed when there are none) and the scheme (key removed
     for Axolotl) separately;
   - add `reload()`, which reads both keys again and goes through the update path, for import.
-- [ ] T008 [US2] `Sources/AxolotlCommander/MainWindowController.swift` `interceptKey`: while a panel
+- [X] T008 [US2] `Sources/AxolotlCommander/MainWindowController.swift` `interceptKey`: while a panel
   has focus, a ⌃⇥ / ⌃⇧⇥ chord that `KeyMaps.panel` binds to any command runs that command on the
   active panel (focusCommandLine keeps its current handling). Command-line editing is unchanged
   (research.md R4). Check that `nextTab` / `previousTab` work through `perform`; if they are window
   actions, route them the same way the menu does.
-- [ ] T009 [US2] `Sources/AxolotlCommander/KeyboardSettings.swift` (contracts/keyboard-ui.md):
+- [X] T009 [US2] `Sources/AxolotlCommander/KeyboardSettings.swift` (contracts/keyboard-ui.md):
   - a "Key scheme:" picker above the table that sets `bindings.scheme` through `update`;
   - a source label per command row ("Default", "Scheme", "Changed");
   - chords another command took are shown as inactive, with "used by <command>";
@@ -166,9 +166,9 @@ switching and reset to the scheme.
   - the Mission Control hint under the table.
 
   `assign` keeps removing a chord from conflicting commands, using the effective chords.
-- [ ] T010 [US2] Add the scheme display names in `Sources/AxolotlCommander/KeyboardSettings.swift`:
+- [X] T010 [US2] Add the scheme display names in `Sources/AxolotlCommander/KeyboardSettings.swift`:
   `KeyScheme.localizedTitle`, "Axolotl" / "Classic Commander".
-- [ ] T011 [US2] `Resources/Localizable.xcstrings`: add en + cs for the T009/T010 strings ("Key
+- [X] T011 [US2] `Resources/Localizable.xcstrings`: add en + cs for the T009/T010 strings ("Key
   scheme:" → "Schéma kláves:", "Classic Commander" → "Klasický Commander", "Default" → "Výchozí",
   "Scheme" → "Schéma", "Changed" → "Změněno", the hint, the reset alert, "used by %@", "Quit" (bar),
   "Link" (bar)).
