@@ -70,13 +70,13 @@
 
 ## Phase 6: User Story 4 — Volume buttons (P2)
 
-- [ ] T016 [US4] Add `VolumeChoice.target(...)` and `VolumePlaces` to
+- [X] T016 [US4] Add `VolumeChoice.target(...)` and `VolumePlaces` to
   `Sources/CommanderCore/PanelBehavior.swift`.
-- [ ] T017 [P] [US4] Add tests for rules a–d, the missing remembered folder, path normalization and
+- [X] T017 [P] [US4] Add tests for rules a–d, the missing remembered folder, path normalization and
   `VolumePlaces` visits.
-- [ ] T018 [US4] In `Sources/AxolotlCommander/VolumeBar.swift`, add an `onChooseVolume` callback for
+- [X] T018 [US4] In `Sources/AxolotlCommander/VolumeBar.swift`, add an `onChooseVolume` callback for
   `.volume` items (buttons and the overflow menu).
-- [ ] T019 [US4] In `PanelViewController`:
+- [X] T019 [US4] In `PanelViewController`:
   - keep `volumePlaces`;
   - record a disk-folder visit in the location-change hook;
   - add `chooseVolume(_:)`, which activates the panel and applies `VolumeChoice` when the setting is

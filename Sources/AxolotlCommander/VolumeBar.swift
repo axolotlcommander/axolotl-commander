@@ -11,6 +11,8 @@ import CommanderCore
 final class VolumeBar: NSView {
     /// A volume, Home, iCloud Drive or a network volume from the Network menu.
     var onChoose: ((URL) -> Void)?
+    /// A mounted volume (a volume button, a network volume from the Network menu); `onChoose` when nil.
+    var onChooseVolume: ((URL) -> Void)?
     var onChooseServer: ((RemoteEndpoint) -> Void)?
     /// The Network button: the panel shows the Network folder (its right-click keeps the quick menu).
     var onChooseNetwork: (() -> Void)?
@@ -195,11 +197,15 @@ final class VolumeBar: NSView {
         updateStates()
         guard items.indices.contains(sender.tag) else { return }
         switch items[sender.tag] {
-        case .volume(let volume): onChoose?(volume.url)
+        case .volume(let volume): chooseVolume(volume.url)
         case .home(let url), .iCloud(let url): onChoose?(url)
         case .network: onChooseNetwork?()
         case .server(let endpoint, _): onChooseServer?(endpoint)
         }
+    }
+
+    private func chooseVolume(_ url: URL) {
+        if let onChooseVolume { onChooseVolume(url) } else { onChoose?(url) }
     }
 
     // MARK: Menus
@@ -208,7 +214,7 @@ final class VolumeBar: NSView {
     private func networkMenu() -> NSMenu? {
         let menu = NSMenu()
         for volume in Volumes.mounted() where volume.isNetwork {
-            let item = actionItem(volume.name) { [weak self] in self?.onChoose?(volume.url) }
+            let item = actionItem(volume.name) { [weak self] in self?.chooseVolume(volume.url) }
             let icon = NSWorkspace.shared.icon(forFile: volume.url.path)
             icon.size = NSSize(width: 16, height: 16)
             item.image = icon

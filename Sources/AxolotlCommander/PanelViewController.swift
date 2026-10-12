@@ -83,6 +83,9 @@ final class PanelViewController: NSViewController {
 
     /// Commander-style quick search buffer; nil when not searching.
     private var quickSearch: String?
+    /// The last folder this panel showed on each volume (in memory, for the volume buttons).
+    private var volumePlaces = VolumePlaces()
+    private var lastVisitedFolder: URL?
     /// Mark state applied while Shift+movement drags the selection.
     private var shiftMarkState: Bool?
     /// Items shown by Quick Look (see QuickLook.swift).
@@ -182,6 +185,7 @@ final class PanelViewController: NSViewController {
             router?.activate(side)
             go(to: url)
         }
+        volumeBar.onChooseVolume = { [weak self] url in self?.chooseVolume(url) }
         volumeBar.onChooseServer = { [weak self] endpoint in self?.openServer(endpoint) }
         volumeBar.onChooseNetwork = { [weak self] in
             guard let self else { return }
@@ -315,6 +319,10 @@ final class PanelViewController: NSViewController {
         updatePathBar()
         volumeBar.show(location: model.location)
         if let remote = model.remote { ServerConnectionsUI.shared.visit(remote, panel: self) }
+        if let folder = diskLocation, folder != lastVisitedFolder {
+            lastVisitedFolder = folder
+            volumePlaces.visit(folder, volume: Volumes.root(of: folder))
+        }
         router?.panelLocationChanged(self)
         ArchivePasswords.panel(self, showsArchive: model.archive?.archive)
         updateQuickLook()
@@ -898,6 +906,27 @@ final class PanelViewController: NSViewController {
         }
     }
 
+    /// A volume button or a volume from the volume menu: the root, or with "Volume buttons open the
+    /// other panel's folder or the last folder used there" the rules of `VolumeChoice`.
+    func chooseVolume(_ volume: URL) {
+        router?.activate(side)
+        guard PanelBehavior(defaults: .standard).volumeButtonsFollow, let router else { return go(to: volume) }
+        let other = router.otherPanel(than: self)
+        let target = VolumeChoice.target(volume: volume, panelVolume: diskLocation.map(Volumes.root(of:)),
+                                         otherFolder: other.diskLocation, otherVolume: other.diskLocation.map(Volumes.root(of:)),
+                                         remembered: volumePlaces.folder(on: volume)) { url in
+            var isDirectory: ObjCBool = false
+            return FileManager.default.fileExists(atPath: url.path(percentEncoded: false), isDirectory: &isDirectory)
+                && isDirectory.boolValue
+        }
+        go(to: target)
+    }
+
+    /// The folder on disk the panel shows; nil for an archive, a server or the Network folder.
+    var diskLocation: URL? {
+        model.remote == nil && model.archive == nil && !model.isNetwork ? model.location : nil
+    }
+
     /// A server button: this panel's last folder on the connection (else any panel's, else the
     /// login folder), with the panel made active.
     func openServer(_ endpoint: RemoteEndpoint) {
@@ -1157,7 +1186,9 @@ final class PanelViewController: NSViewController {
         let menu = NSMenu()
         for volume in Volumes.mounted() {
             let title = volume.availableCapacity.map { String(localized: "\(volume.name)  —  \(Format.bytes($0)) free") } ?? volume.name
-            menu.addItem(placeItem(title, volume.url, icon: NSWorkspace.shared.icon(forFile: volume.url.path)))
+            let item = placeItem(title, volume.url, icon: NSWorkspace.shared.icon(forFile: volume.url.path))
+            item.action = #selector(volumeRootChosen(_:))
+            menu.addItem(item)
         }
         menu.addItem(.separator())
         let fm = FileManager.default
@@ -1204,6 +1235,11 @@ final class PanelViewController: NSViewController {
     @objc private func volumeChosen(_ sender: NSMenuItem) {
         guard let url = sender.representedObject as? URL else { return }
         go(to: url)
+    }
+
+    @objc private func volumeRootChosen(_ sender: NSMenuItem) {
+        guard let url = sender.representedObject as? URL else { return }
+        chooseVolume(url)
     }
 
     // MARK: Path field
