@@ -94,6 +94,9 @@ public final class PanelModel {
     public var cursorItem: FileItem? {
         items.indices.contains(cursor) ? items[cursor] : nil
     }
+    /// The places Back and Forward would reach, oldest first (`back.last` and `forward.last` are the
+    /// next steps); read by the folder history list.
+    public var historyPlaces: (back: [PanelState.Place], forward: [PanelState.Place]) { (back, forward) }
     public var canGoBack: Bool { !back.isEmpty }
     public var canGoForward: Bool { !forward.isEmpty }
 

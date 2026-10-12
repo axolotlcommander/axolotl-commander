@@ -1,10 +1,10 @@
 # Tasks: Folder and Command History Lists
 
-- [ ] T001 Core: `FolderHistory` and `HistoryFilter` in `Sources/CommanderCore/HistoryList.swift`;
+- [X] T001 Core: `FolderHistory` and `HistoryFilter` in `Sources/CommanderCore/HistoryList.swift`;
   `PanelModel.historyPlaces`.
-- [ ] T002 Core: `folderHistory` and `commandLineHistory` commands (chords per FR-011) and the Classic
+- [X] T002 Core: `folderHistory` and `commandLineHistory` commands (chords per FR-011) and the Classic
   Commander change in `KeyScheme.swift`.
-- [ ] T003 [P] Tests in `Tests/CommanderCoreTests/HistoryListTests.swift`: order, marking, duplicates,
+- [X] T003 [P] Tests in `Tests/CommanderCoreTests/HistoryListTests.swift`: order, marking, duplicates,
   recent paths, initial selection, filtering, chords. Build, test, commit.
 - [ ] T004 [US1] UI: `HistoryListSheet` in `Sources/AxolotlCommander/HistoryListSheet.swift`; Folder
   History in `PanelViewController` with Return; `goTo(typed:)`; the direct ⌥ keys yield to bound chords.

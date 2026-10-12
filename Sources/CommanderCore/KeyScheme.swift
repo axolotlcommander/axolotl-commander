@@ -34,6 +34,7 @@ public enum KeyScheme: String, CaseIterable, Hashable, Sendable {
             .closeTab: [ch("w", c)],
             .closeOtherTabs: [ch("w", [c, s]), ch("w", [m, o])],
             .quickFilter: [ch("s", c), ch("f", [m, o])],
+            .folderHistory: [ch("h", [c, m]), K(.down, o)],
             .pasteAsSymbolicLink: [ch("v", [c, m])],
             .nextTab: [K(.tab, c), K(.pageDown, [c, s])],
             .previousTab: [K(.tab, [c, s]), K(.pageUp, [c, s])],

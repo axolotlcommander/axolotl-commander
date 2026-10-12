@@ -28,6 +28,7 @@ public enum Command: String, CaseIterable, Hashable, Sendable {
 
     // Go (active panel)
     case goBack, goForward, goParent, goRoot, goHome, changeDirectory, editPath
+    case folderHistory, commandLineHistory
     case hotPaths, workingDirectories
     case newTab, closeTab, nextTab, previousTab
     case openInNewTab, openInBackgroundTab, openInNewTabOtherPanel, reopenClosedTab, closeOtherTabs, tabList
@@ -223,6 +224,7 @@ public enum CommandRegistry {
 
         add(.goBack, "Back", .go, [K(.left, [c, o]), ch("[", m), K(.left, o)])
         add(.goForward, "Forward", .go, [K(.right, [c, o]), ch("]", m), K(.right, o)])
+        add(.folderHistory, "Folder History…", .go, [ch("h", [c, m])])
         add(.goParent, "Enclosing Folder", .go, [K(.backspace), K(.up, m), K(.pageUp, c)])
         add(.goRoot, "Volume Root", .go, [ch("\\", c), K(.backspace, c)])
         add(.goHome, "Home", .go, [ch("h", [m, s])])
@@ -251,6 +253,7 @@ public enum CommandRegistry {
         add(.calculateChecksums, "Calculate Checksums…", .commands, sep: true)
         add(.verifyChecksums, "Verify Checksums…", .commands, [ch("v", [c, s])])
         add(.openTerminal, "Open Terminal Here", .commands, [ch("/", c), K(.numSlash)], sep: true)
+        add(.commandLineHistory, "Command Line History…", .commands, [f(8, o)])
         add(.revealInFinder, "Show in Finder", .commands, [f(3, s)])
         add(.goToLinkTarget, "Go to Link Target", .commands, [ch("t", c)])
         add(.userMenu, "User Menu…", .commands, [f(9)], sep: true)

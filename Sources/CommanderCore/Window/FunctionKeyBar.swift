@@ -32,5 +32,6 @@ extension CommandRegistry {
         .workingDirectories: "Folders", .sortByName: "Name", .sortByExtension: "Ext",
         .sortByDate: "Date", .sortBySize: "Size", .comparePanels: "Compare", .maximizePanel: "Maximize",
         .changeCase: "Case", .find: "Find", .quickLook: "Look", .newSymbolicLink: "Link",
+        .commandLineHistory: "History",
     ]
 }
