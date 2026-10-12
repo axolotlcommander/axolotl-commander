@@ -188,13 +188,13 @@ then import a broken file.
 
 ### Core
 
-- [ ] T012 [P] [US4] Create `Sources/CommanderCore/Settings/JSONValue.swift` (SPDX header):
+- [X] T012 [P] [US4] Create `Sources/CommanderCore/Settings/JSONValue.swift` (SPDX header):
   - `JSONValue` with its Codable form, `init(data:)` / `data(sortedPretty:)`;
   - conversion to and from property-list values (`Bool`, numbers, `String`, `[String]`,
     dictionaries and arrays of those).
 
   NSNumber booleans stay booleans.
-- [ ] T013 [US4] Create `Sources/CommanderCore/Settings/SettingsArchive.swift` (SPDX header) per
+- [X] T013 [US4] Create `Sources/CommanderCore/Settings/SettingsArchive.swift` (SPDX header) per
   data-model.md and contracts/settings-file.md:
   - the catalog types: `PreferenceKind`, `PreferenceSpec`, `SettingsSection`, `BlobSpec`,
     `SettingsCatalog`;
@@ -218,7 +218,7 @@ then import a broken file.
     - keyboard: the scheme plus per-command entries; the overrides are replaced as a whole;
     - lists: elementwise, replacing the whole list;
     - whole values: replaced, or skipped when invalid.
-- [ ] T014 [P] [US4] Create `Tests/CommanderCoreTests/SettingsArchiveTests.swift`. Each test uses its
+- [X] T014 [P] [US4] Create `Tests/CommanderCoreTests/SettingsArchiveTests.swift`. Each test uses its
   own `UserDefaults(suiteName: "test.settings.<uuid>")` and calls `removePersistentDomain` at the end.
   It covers:
   - **Round trip**: fill every catalog kind, export, clear, import all, and every value is equal.
