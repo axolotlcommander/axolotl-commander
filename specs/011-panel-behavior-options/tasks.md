@@ -58,13 +58,13 @@
 
 ## Phase 5: User Story 3 — ⌃← / ⌃→ change the panel the arrow points to (P2)
 
-- [ ] T013 [US3] Add `OpenInPanel.Plan` and `OpenInPanel.plan(target:active:classic:)` to
+- [X] T013 [US3] Add `OpenInPanel.Plan` and `OpenInPanel.plan(target:active:classic:)` to
   `Sources/CommanderCore/PanelBehavior.swift`, and `PanelModel.openTarget(parentOpensLocation:)` to
   `Sources/CommanderCore/PanelModel.swift`, with `otherPanelTarget` delegating to it.
-- [ ] T014 [P] [US3] Add tests:
+- [X] T014 [P] [US3] Add tests:
   - plans for both settings, both active sides and both commands;
   - `openTarget` on temp folders: a folder, a file, an archive and "..", with and without the flag.
-- [ ] T015 [US3] In `MainWindowController`, validate and perform `.openInLeftPanel` /
+- [X] T015 [US3] In `MainWindowController`, validate and perform `.openInLeftPanel` /
   `.openInRightPanel` from the plan: the source panel's `openTarget`, the target's `go(to:focusing:)`,
   and the focus. Build, test, commit.
 

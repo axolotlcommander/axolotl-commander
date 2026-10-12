@@ -223,10 +223,23 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
              .insertNameToCommandLine, .insertPathToCommandLine, .insertFullPathToCommandLine,
              .insertLeftPathToCommandLine, .insertRightPathToCommandLine,
              .toggleCommandLine, .toggleFunctionKeyBar: true
-        case .openInLeftPanel, .openInRightPanel: activePanel.model.otherPanelTarget != nil
+        case .openInLeftPanel, .openInRightPanel: openInPanel(command) != nil
         default: false
         }
     }
+
+    /// Open in Left / Right Panel: today the item always goes to the other panel; with the classic
+    /// option the arrow names the panel that changes (`OpenInPanel`).
+    private func openInPanel(_ command: Command) -> (plan: OpenInPanel.Plan, target: (url: URL, focus: String?))? {
+        let classic = PanelBehavior(defaults: .standard).arrowsTargetPointedPanel
+        let plan = OpenInPanel.plan(target: command == .openInLeftPanel ? .left : .right,
+                                    active: core(activeSide), classic: classic)
+        guard let target = panel(plan.source).model.openTarget(parentOpensLocation: classic) else { return nil }
+        return (plan, target)
+    }
+
+    private func core(_ side: PanelSide) -> Side { side == .left ? .left : .right }
+    private func panel(_ side: Side) -> PanelViewController { side == .left ? left : right }
 
     private func performHere(_ command: Command) {
         if Self.commandLineCommands.contains(command) { showCommandLine() }
@@ -249,11 +262,9 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
                 activePanel.go(to: other.model.location, focusing: other.model.cursorItem.flatMap { $0.isParent ? nil : $0.name })
             }
         case .openInLeftPanel, .openInRightPanel:
-            // Always into the other panel; the arrow pointing at it also moves the focus there.
-            guard let target = activePanel.model.otherPanelTarget else { return }
-            let other = activeSide == .left ? right : left
-            other.go(to: target.url, focusing: target.focus)
-            if (command == .openInRightPanel) == (activeSide == .left) { activate(other.side) }
+            guard let (plan, target) = openInPanel(command) else { return }
+            panel(plan.target).go(to: target.url, focusing: target.focus)
+            if plan.focus != core(activeSide) { activate(plan.focus == .left ? .left : .right) }
         case .leftVolumeMenu: activate(.left); left.perform(.leftVolumeMenu)
         case .rightVolumeMenu: activate(.right); right.perform(.rightVolumeMenu)
         case .focusCommandLine:
