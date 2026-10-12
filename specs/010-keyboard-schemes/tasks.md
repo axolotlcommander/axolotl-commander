@@ -291,7 +291,7 @@ then import a broken file.
 
 - [X] T021 [P] `CHANGELOG.md`: add "Unreleased" entries for the new default chords, the Classic
   Commander key scheme and settings export and import. No version bump; 0.4.0 comes after spec 016.
-- [ ] T022 Run the full quickstart in the test copy:
+- [X] T022 Run the full quickstart in the test copy:
   - screenshots of the test windows only;
   - check the menus, the F-key bar layers and the import summary.
 - [ ] T023 Install the app for the user to try (`scripts/bundle.sh release` + `scripts/install.sh`).
