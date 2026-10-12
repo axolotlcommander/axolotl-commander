@@ -6,11 +6,11 @@
 - [X] T003 Core: `PanelModel` files-only selection and toggle in place; commands and chords
   (`Command.swift`, `KeyScheme.swift`).
 - [X] T004 [P] Tests in `Tests/CommanderCoreTests/SmallCommandsTests.swift`. Build, test, commit.
-- [ ] T005 [US1] UI: Copy As in `PanelViewController` / `OperationsController`.
-- [ ] T006 [US2] UI: New Folder in Other Panel (`OperationsController.makeDirectory`).
-- [ ] T007 [US3] UI: View Cursor File Only.
-- [ ] T008 [US4] UI: Pack and Move in `ArchiveOperations.swift`.
-- [ ] T009 [US5] UI: Test Archives in `ArchiveOperations.swift`.
-- [ ] T010 [US6] UI: selection commands and enabling rules. Commit.
-- [ ] T011 Czech strings, CHANGELOG, quickstart. Commit.
+- [X] T005 [US1] UI: Copy As in `PanelViewController` / `OperationsController`.
+- [X] T006 [US2] UI: New Folder in Other Panel (`OperationsController.makeDirectory`).
+- [X] T007 [US3] UI: View Cursor File Only.
+- [X] T008 [US4] UI: Pack and Move in `ArchiveOperations.swift`.
+- [X] T009 [US5] UI: Test Archives in `ArchiveOperations.swift`.
+- [X] T010 [US6] UI: selection commands and enabling rules. Commit.
+- [X] T011 Czech strings, CHANGELOG, quickstart. Commit.
 - [ ] T012 GUI check in the test copy (when the maintainer is away); install after asking.

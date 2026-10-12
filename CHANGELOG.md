@@ -53,6 +53,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
   the recently typed paths; typing filters the list. Return opens the folder, ⌘Return opens it in a
   new tab and ⌥Return in the other panel. Commands → Command Line History… (⌥F8) lists executed
   commands; the chosen one goes into the command line without running (spec 014).
+- Small commands (spec 015):
+  - File → Copy As… (⇧F5) copies the item under the cursor next to itself under a new name;
+  - File → New Folder in Other Panel… (⌥⌘N; ⇧F7 in Classic Commander) offers the cursor item's name;
+  - File → View Cursor File Only (⌥⇧F3; also ⇧F3 in Classic Commander) ignores the marked files;
+  - File → Pack and Move… (⌥⇧F5) packs and then moves the originals to the Trash;
+  - File → Test Archives (⌥⇧F9) reads the marked archives through and reports damaged ones;
+  - Edit → Select All Files / Deselect All Files (⌃⇧Num+ / ⌃⇧Num−) leave folders as they are;
+  - ⌥⇧↑ marks or unmarks without moving, ⌃⇧J inserts the full path into the command line;
+  - in Classic Commander ⌃L calculates the size of the marked items.
 
 ### Fixed
 

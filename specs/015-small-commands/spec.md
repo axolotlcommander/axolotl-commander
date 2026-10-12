@@ -156,8 +156,8 @@ marked archive through, checking its data, and reports the result.
    reported OK.
 3. **Given** an encrypted archive, **Then** the app asks for the password as Unpack does; Cancel
    reports that archive as not tested.
-4. **Given** the marked items include files that are not archives, **Then** they are skipped and the
-   result says so; with no archive at all the command is disabled.
+4. **Given** the marked items include files that are not archives, **Then** they are left out of the
+   test; with no archive at all the command is disabled.
 
 ---
 
@@ -222,7 +222,8 @@ line.
   on servers and in the Network folder.
 - **FR-005**: Test Archives (File menu, after Unpack…) MUST read every marked archive (or the cursor
   archive) completely, checking the data, with a cancellable progress window, and then report per
-  archive: OK, the problem, not tested (password cancelled) or not an archive. It MUST NOT write
+  archive: OK, the problem, or not tested (password cancelled). Marked items that are not archives are
+  left out. It MUST NOT write
   anything. It MUST be disabled in archives, on servers and in the Network folder.
 - **FR-006**: Insert Full Path MUST also be bound to ⌃⇧J.
 - **FR-007**: Toggle Selection Without Moving MUST mark or unmark the cursor item and keep the cursor;
@@ -234,8 +235,7 @@ line.
 
 ### Key Entities
 
-- **Archive test result**: an archive and its outcome (OK, problem with a message, not tested, not an
-  archive).
+- **Archive test result**: an archive and its outcome (OK, problem with a message, not tested).
 
 ## Success Criteria *(mandatory)*
 

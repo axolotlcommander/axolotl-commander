@@ -9712,6 +9712,105 @@
           }
         }
       }
+    },
+    "copy": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "kopie"
+          }
+        }
+      }
+    },
+    "Copy As": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopírovat jako"
+          }
+        }
+      }
+    },
+    "Copy “%@” as:": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopírovat „%@“ jako:"
+          }
+        }
+      }
+    },
+    "Pack and move %@ to:": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zabalit a přesunout %@ do:"
+          }
+        }
+      }
+    },
+    "Testing archives…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Testování archivů…"
+          }
+        }
+      }
+    },
+    "%@: OK": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: v pořádku"
+          }
+        }
+      }
+    },
+    "%@: not tested (no password)": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: neotestováno (bez hesla)"
+          }
+        }
+      }
+    },
+    "All archives are OK": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Všechny archivy jsou v pořádku"
+          }
+        }
+      }
+    },
+    "Problems found in %lld of %lld archives": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Problémy nalezeny v %lld z %lld archivů"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

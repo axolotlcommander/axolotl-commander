@@ -636,6 +636,8 @@ final class PanelViewController: NSViewController {
         .newTab, .closeTab, .nextTab, .previousTab, .hotPaths, .viewModeDetailed, .viewModeBrief,
         .openInNewTab, .openInBackgroundTab, .reopenClosedTab, .closeOtherTabs, .tabList,
         .quickFilter, .quickFilterLast, .folderHistory,
+        .copyAs, .makeDirectoryInOtherPanel, .viewCursorFile, .packAndMove, .testArchives,
+        .toggleSelectionInPlace, .selectAllFiles, .deselectAllFiles,
         .find, .pack, .unpack, .connectToServer, .disconnect, .compareFiles,
         .changeCase, .batchRename, .calculateChecksums, .verifyChecksums, .occupiedSpace, .userMenu,
         .contextMenu, .moveFilesHere, .invertAll, .restoreSelection, .saveSelection, .loadSelection, .volumeInfo,
@@ -661,7 +663,7 @@ final class PanelViewController: NSViewController {
     private static let diskOnly: Set<Command> = [
         .changeCase, .batchRename, .calculateChecksums, .verifyChecksums, .occupiedSpace, .moveFilesHere, .volumeInfo,
         .viewWith, .editWith, .newSymbolicLink, .newHardLink, .editSymbolicLink, .pasteAsSymbolicLink,
-        .goToLinkTarget, .changeAttributes,
+        .goToLinkTarget, .changeAttributes, .copyAs, .packAndMove, .testArchives,
     ]
 
     func canPerform(_ command: Command) -> Bool {
@@ -699,7 +701,11 @@ final class PanelViewController: NSViewController {
         case .selectSameExtension, .deselectSameExtension:
             return model.cursorItem.map { !$0.isDirectory && !$0.fileExtension.isEmpty } ?? false
         case .pack: return !targets().isEmpty
-        case .unpack: return !archiveTargets().isEmpty
+        case .unpack, .testArchives: return !archiveTargets().isEmpty
+        case .packAndMove: return !targets().isEmpty
+        case .copyAs: return model.cursorItem.map { !$0.isParent } ?? false
+        case .makeDirectoryInOtherPanel: return router.map { $0.otherPanel(than: self).canPerform(.makeDirectory) } ?? false
+        case .viewCursorFile: return model.cursorItem.map { !$0.isParent && (!$0.isDirectory || $0.isPackage) } ?? false
         case .disconnect: return !ServerConnectionsUI.shared.opened.isEmpty
         default: return true
         }
@@ -837,6 +843,14 @@ final class PanelViewController: NSViewController {
         case .disconnect: DisconnectSheet.show(for: self)
         case .pack: router?.operations.pack(targets(), from: self)
         case .unpack: router?.operations.unpack(archiveTargets(), from: self)
+        case .testArchives: router?.operations.testArchives(archiveTargets(), from: self)
+        case .packAndMove: router?.operations.pack(targets(), from: self, moving: true)
+        case .copyAs: Task { await askCopyAs() }
+        case .makeDirectoryInOtherPanel: makeDirectoryInOtherPanel()
+        case .viewCursorFile: openViewer(cursorOnly: true)
+        case .toggleSelectionInPlace: model.toggleSelection(at: model.cursor)
+        case .selectAllFiles: model.selectFiles(true)
+        case .deselectAllFiles: model.selectFiles(false)
         case .quickLook: toggleQuickLook()
         case .viewWith: showOpenWithMenu(viewing: true)
         case .editWith: showOpenWithMenu(viewing: false)
@@ -886,8 +900,10 @@ final class PanelViewController: NSViewController {
     }
 
     /// F3: the internal viewer for the file under the cursor; folders and media go to Quick Look.
-    private func openViewer() {
-        if let (left, right) = CompareFiles.selectedPair(in: self) {
+    /// F3 (two marked files are compared, the viewer steps through the folder's files) or View Cursor
+    /// File Only (`cursorOnly`: just that file).
+    private func openViewer(cursorOnly: Bool = false) {
+        if !cursorOnly, let (left, right) = CompareFiles.selectedPair(in: self) {
             Task { await CompareFiles.open(left, right, from: self) }
             return
         }
@@ -923,8 +939,8 @@ final class PanelViewController: NSViewController {
             toggleQuickLook()
             return
         }
-        let entries = model.items.filter { !$0.isParent && !$0.isDirectory }
-            .map { FileSequence.Entry(url: $0.url, isSelected: model.isSelected($0)) }
+        let entries = model.items.filter { !$0.isParent && !$0.isDirectory && (!cursorOnly || $0 == item) }
+            .map { FileSequence.Entry(url: $0.url, isSelected: !cursorOnly && model.isSelected($0)) }
         guard let sequence = FileSequence(entries: entries, current: item.url) else { return }
         ViewerWindowController.show(sequence)
     }
@@ -1161,6 +1177,30 @@ final class PanelViewController: NSViewController {
     private var renaming: (row: Int, item: FileItem)?
 
     /// Brief view has no editable cells: F2 asks for the name in a sheet.
+    /// Copy As (⇧F5): a copy of the cursor item next to it, under a name the user confirms.
+    private func askCopyAs() async {
+        guard let item = model.cursorItem, !item.isParent else { return }
+        let name = item.url.lastPathComponent
+        let suggestion = CopyAsName.suggestion(
+            for: name, isFolder: item.isDirectory && !item.isPackage,
+            suffix: String(localized: "copy", comment: "Copy As: added to the name of the copy, as in “report copy.txt”"))
+        guard let newName = await TextPrompt.ask(title: String(localized: "Copy As"),
+                                                 message: String(localized: "Copy “\(name)” as:"),
+                                                 initial: suggestion, in: view.window),
+              !newName.isEmpty else { return }
+        router?.operations.copyAs(item.url, name: newName, panel: self)
+    }
+
+    /// New Folder in Other Panel: named after the cursor item; the focus stays here.
+    private func makeDirectoryInOtherPanel() {
+        guard let router else { return }
+        let initial = model.cursorItem.flatMap { item in
+            item.isParent ? nil : NewFolderName.suggestion(for: item.url.lastPathComponent,
+                                                           isFolder: item.isDirectory && !item.isPackage)
+        } ?? ""
+        router.operations.makeDirectory(in: router.otherPanel(than: self), initial: initial)
+    }
+
     private func askRename() async {
         guard let item = model.cursorItem, !item.isParent else { return }
         let name = isFlatListing ? item.url.lastPathComponent : item.name

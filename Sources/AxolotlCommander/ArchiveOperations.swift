@@ -534,14 +534,18 @@ extension OperationsController {
     // MARK: Pack, unpack
 
     /// ⌃⌥F5: packs local items into a new archive (or adds them to an existing one) in the other panel.
-    func pack(_ items: [FileItem], from panel: PanelViewController) {
+    /// Pack… (⌥F5) and Pack and Move… (⌥⇧F5, `moving`): after the archive was written without an
+    /// error, the packed items go to the Trash; into an existing archive they are moved as F6 does.
+    func pack(_ items: [FileItem], from panel: PanelViewController, moving: Bool = false) {
         guard !isBusy, !items.isEmpty else { return }
         let other = windowController.otherPanel(than: panel)
         let folder = other.model.archive == nil && other.model.results == nil && !other.model.isNetwork
             ? other.model.location : panel.model.location
         let base = items.count == 1 ? items[0].baseName : panel.model.location.lastPathComponent
         let initial = folder.appending(path: (base.isEmpty ? "Archive" : base) + ".zip").displayPath
-        showTargetSheet(title: String(localized: "Pack \(Self.describe(items.map(\.url))) to:"), path: initial, showsFormat: true) { path in
+        let names = Self.describe(items.map(\.url))
+        let title = moving ? String(localized: "Pack and move \(names) to:") : String(localized: "Pack \(names) to:")
+        showTargetSheet(title: title, path: initial, showsFormat: true) { path in
             let url = try PathRules.resolve(path, relativeTo: panel.model.location)
             guard let format = ArchiveFormat.detect(fileName: url.lastPathComponent) else { throw ArchiveError.unsupportedFormat }
             guard format.isWritable else { throw ArchiveError.readOnly }
@@ -550,7 +554,7 @@ extension OperationsController {
             try ArchiveTransferCheck.validatePack(archive: url, sources: items.map(\.url))
             if FileManager.default.fileExists(atPath: url.path(percentEncoded: false)) {
                 // An existing archive gets the items added, like F5 into it.
-                self.addToArchive(.copy, sources: items.map(\.url), names: items.map(\.name), from: nil,
+                self.addToArchive(moving ? .move : .copy, sources: items.map(\.url), names: items.map(\.name), from: nil,
                                   to: ArchivePath(archive: url, format: format), panel: panel)
                 return
             }
@@ -558,12 +562,54 @@ extension OperationsController {
             self.perform(state) {
                 try await ArchiveWriter.create(url, format: format, adding: sources,
                                                progress: { done in Task { @MainActor in state.progress.doneBytes = done } })
+                if moving {
+                    // Only now that the archive is complete; to the Trash, so nothing is lost for good.
+                    for item in items { try FileManager.default.trashItem(at: item.url, resultingItemURL: nil) }
+                    await panel.model.refresh()
+                }
                 panel.model.deselectAll()
                 await other.model.refresh()
                 if other.model.location.standardizedFileURL == url.deletingLastPathComponent().standardizedFileURL {
                     other.focus(name: url.lastPathComponent)
                 }
             }
+        }
+    }
+
+    /// Test Archives (⌥⇧F9): reads each archive through (checking its data) and reports the outcome
+    /// per archive. Nothing is written. Encrypted archives ask for the password as Unpack does.
+    func testArchives(_ archives: [URL], from panel: PanelViewController) {
+        guard !isBusy, !archives.isEmpty else { return }
+        let state = OperationState(title: String(localized: "Testing archives…"))
+        perform(state) {
+            var lines: [String] = []
+            var failed = 0
+            for archive in archives {
+                if Task.isCancelled { throw ArchiveError.cancelled }
+                let name = archive.lastPathComponent
+                state.progress.currentName = name
+                do {
+                    try await ArchivePasswords.run(archive, members: [""], in: self.window) { passphrases in
+                        try await ArchiveTester.test(archive: archive, passphrases: passphrases) { done in
+                            Task { @MainActor in state.progress.doneBytes = done }
+                        }
+                    }
+                    lines.append(String(localized: "\(name): OK"))
+                } catch ArchiveError.cancelled where !Task.isCancelled {
+                    // The password was not given.
+                    failed += 1
+                    lines.append(String(localized: "\(name): not tested (no password)"))
+                } catch ArchiveError.cancelled {
+                    throw ArchiveError.cancelled
+                } catch {
+                    failed += 1
+                    lines.append("\(name): \(Format.error(error))")
+                }
+            }
+            let title = failed == 0
+                ? String(localized: "All archives are OK")
+                : String(localized: "Problems found in \(failed) of \(archives.count) archives")
+            await self.inform(title, lines.joined(separator: "\n"))
         }
     }
 

@@ -144,6 +144,23 @@ final class OperationsController {
         }
     }
 
+    /// Copy As: copies `source` into its own folder as `name` (a folder with its whole tree) and puts
+    /// the cursor on the copy. The planner refuses the item's own name and asks before overwriting.
+    func copyAs(_ source: URL, name: String, panel: PanelViewController) {
+        guard !isBusy else { return }
+        let state = OperationState(title: String(localized: "Copying…"))
+        let request = TransferRequest(kind: .copy, sources: [source],
+                                      destinationDirectory: source.deletingLastPathComponent(), targetName: name)
+        perform(state) { [operations] in
+            _ = try await operations.transfer(
+                request,
+                progress: { p in Task { @MainActor in state.progress = p } },
+                conflict: { conflict in await self.askConflict(conflict) })
+            await panel.model.refresh()
+            panel.focus(name: name)
+        }
+    }
+
     @MainActor
     func askConflict(_ conflict: Conflict) async -> ConflictResolution {
         let alert = NSAlert()
@@ -306,10 +323,10 @@ final class OperationsController {
 
     // MARK: Folder, rename
 
-    func makeDirectory(in panel: PanelViewController) {
+    func makeDirectory(in panel: PanelViewController, initial: String = "") {
         Task {
             guard let name = await TextPrompt.ask(title: String(localized: "New Folder"), message: String(localized: "Name:"),
-                                           initial: "", in: window),
+                                           initial: initial, in: window),
                   !name.isEmpty else { return }
             if let archive = panel.model.archive { return makeDirectory(named: name, in: archive, panel: panel) }
             if let remote = panel.model.remote { return makeDirectory(named: name, on: remote, panel: panel) }
