@@ -31,6 +31,7 @@ public enum Command: String, CaseIterable, Hashable, Sendable {
     case folderHistory, commandLineHistory
     case copyAs, makeDirectoryInOtherPanel, viewCursorFile, packAndMove, testArchives
     case toggleSelectionInPlace, selectAllFiles, deselectAllFiles
+    case quickView
     case hotPaths, workingDirectories
     case newTab, closeTab, nextTab, previousTab
     case openInNewTab, openInBackgroundTab, openInNewTabOtherPanel, reopenClosedTab, closeOtherTabs, tabList
@@ -227,7 +228,8 @@ public enum CommandRegistry {
         add(.calculateSizes, "Calculate Folder Sizes", .view, [f(10, [c, s]), K(.enter, [o, s])])
         add(.swapPanels, "Swap Panels", .view, [ch("u", c)])
         add(.swapPanelsWithTabs, "Swap Panels with All Tabs", .view, [ch("u", [c, s])])
-        add(.toggleCommandLine, "Show Command Line", .view, sep: true)
+        add(.quickView, "Quick View Panel", .view, [ch("q", c)], sep: true)
+        add(.toggleCommandLine, "Show Command Line", .view)
         add(.toggleFunctionKeyBar, "Show Function Key Bar", .view)
         add(.sameFolderAsOther, "Same Folder as Other Panel", .go, [ch(".", c)])
 

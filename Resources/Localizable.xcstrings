@@ -9811,6 +9811,28 @@
           }
         }
       }
+    },
+    "Quick View Panel": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Panel rychlého náhledu"
+          }
+        }
+      }
+    },
+    "Items in archives, on servers and in the Network folder have no preview.": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Položky v archivech, na serverech a ve složce Síť nemají náhled."
+          }
+        }
+      }
     }
   },
   "version": "1.0"
