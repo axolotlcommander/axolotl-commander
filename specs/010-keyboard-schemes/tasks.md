@@ -289,7 +289,7 @@ then import a broken file.
 
 ## Phase 6: Polish
 
-- [ ] T021 [P] `CHANGELOG.md`: add "Unreleased" entries for the new default chords, the Classic
+- [X] T021 [P] `CHANGELOG.md`: add "Unreleased" entries for the new default chords, the Classic
   Commander key scheme and settings export and import. No version bump; 0.4.0 comes after spec 016.
 - [ ] T022 Run the full quickstart in the test copy:
   - screenshots of the test windows only;

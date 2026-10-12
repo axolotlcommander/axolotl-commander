@@ -5,6 +5,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 
 ## [Unreleased]
 
+### Added
+
+- More default shortcuts from classic two-panel file managers, next to the existing ones (spec
+  010):
+  - ⌥← / ⌥→ back and forward;
+  - ⌃← / ⌃→ open in the left / right panel;
+  - ⌃F1 Brief view, ⇧F2 Compare Panels, ⇧F6 Rename, ⌥F9 Unpack;
+  - ⌃R refresh, ⌃A select all, ⌃C / ⌃V copy and paste files, ⌃I switch panel, ⌃D hot paths;
+  - ⌃F and ⌃N Connect to Server, ⌃⇧B branch view of selected items;
+  - ⌥↩ Get Info, ⌥⇧↩ folder sizes;
+  - ⌥Num+ / ⌥Num− select / deselect the same extension;
+  - ⌃J and ⌃P insert the name and the panel path into the command line.
+- ⌃⇧↩ inserts the full path of the item under the cursor into the command line (⌃↩ still
+  inserts its name).
+- Settings → Keyboard → Key scheme: "Classic Commander" changes the keys that mean something else
+  in the app:
+  - ⌃T / ⌃W open and close tabs, ⌃⇥ / ⌃⇧⇥ move between them;
+  - ⌃F2 is the Detailed view;
+  - ⌥F3 is View With, ⌥F4 quits;
+  - ⌃⇧F disconnects, ⌃⇧F5 makes a symbolic link.
+
+  Your own shortcut changes stay on top of the scheme. The table shows where each shortcut comes
+  from, and Reset returns to the scheme.
+- Export Settings… and Import Settings… (app menu and Settings → General) save the whole setup to
+  one JSON file and load it back: keys, preferences, appearance, hot paths, user menu, saved servers
+  and toolbar. Passwords are never included. Import lets you choose the parts and reports anything it
+  skipped.
+
 ## [0.3.1] - 2026-10-11
 
 ### Changed
