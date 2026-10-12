@@ -27,6 +27,8 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
     private let split = PanelSplitViewController()
     /// The panel shown alone (⌃F11), or nil when both are visible.
     private(set) var maximizedSide: PanelSide?
+    /// The quick view panel (⌃Q) and the side it covers; nil while off.
+    private var quickView: (pane: QuickViewPane, side: PanelSide)?
     private var saveTask: Task<Void, Never>?
     private var observers: [any NSObjectProtocol] = []
 
@@ -133,6 +135,8 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
     required init?(coder: NSCoder) { fatalError() }
 
     func activate(_ side: PanelSide) {
+        // The preview side cannot take focus: Tab or a click there ends the quick view first.
+        if quickView?.side == side { closeQuickView() }
         // The hidden panel cannot take focus; showing it again ends maximization.
         if let maximizedSide, maximizedSide != side { setMaximized(nil) }
         activeSide = side
@@ -164,6 +168,40 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
     func openInOtherPanel(_ target: FolderHistory.Target, from panel: PanelViewController) {
         if maximizedSide != nil { setMaximized(nil) }
         otherPanel(than: panel).open(target, takeFocus: false)
+    }
+
+    // MARK: Quick view panel
+
+    /// ⌃Q: the panel opposite the active one shows the preview of the active cursor item.
+    private func openQuickView() {
+        if maximizedSide != nil { setMaximized(nil) }
+        let side: PanelSide = activeSide == .left ? .right : .left
+        let pane = QuickViewPane()
+        pane.translatesAutoresizingMaskIntoConstraints = false
+        let covered = panel(side).view
+        covered.addSubview(pane)
+        NSLayoutConstraint.activate([
+            pane.leadingAnchor.constraint(equalTo: covered.leadingAnchor),
+            pane.trailingAnchor.constraint(equalTo: covered.trailingAnchor),
+            pane.topAnchor.constraint(equalTo: covered.topAnchor),
+            pane.bottomAnchor.constraint(equalTo: covered.bottomAnchor),
+        ])
+        quickView = (pane, side)
+        panelCursorChanged(activePanel)
+    }
+
+    private func closeQuickView() {
+        quickView?.pane.close()
+        quickView = nil
+    }
+
+    /// The active panel's cursor or folder changed: the quick view follows.
+    func panelCursorChanged(_ panel: PanelViewController) {
+        guard let quickView, panel === activePanel else { return }
+        let model = panel.model
+        quickView.pane.show(QuickViewSubject.subject(
+            cursor: model.cursorItem, location: model.location, inArchive: model.archive != nil,
+            onServer: model.remote != nil, isNetwork: model.isNetwork))
     }
 
     func refreshPanels() async {
@@ -231,7 +269,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
              .toggleCommandLine, .toggleFunctionKeyBar, .commandLineHistory: true
         case .openInLeftPanel, .openInRightPanel: openInPanel(command) != nil
         case .openInNewTabOtherPanel: activePanel.model.cursorItem != nil && !activePanel.model.isNetwork
-        case .swapPanelsWithTabs: true
+        case .swapPanelsWithTabs, .quickView: true
         default: false
         }
     }
@@ -254,8 +292,10 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         switch command {
         case .switchPanel: activate(activeSide == .left ? .right : .left)
         case .maximizePanel: setMaximized(maximizedSide == nil ? activeSide : nil)
+        case .quickView: if quickView == nil { openQuickView() } else { closeQuickView() }
         case .comparePanels: CompareSheet.show(in: window) { [weak self] in self?.comparePanels() }
         case .swapPanels:
+            closeQuickView()
             // ⌃U: the panels exchange their current tab (folder, cursor, selection, sort, history).
             let (leftState, rightState) = (left.model.snapshot(), right.model.snapshot())
             Task {
@@ -283,6 +323,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
                 other.openTab(state, activate: true)
             }
         case .swapPanelsWithTabs:
+            closeQuickView()
             // ⌃⇧U: the panels exchange their whole tab lists; ⌃U swaps only the current tabs.
             left.tabs.updateCurrent(left.model.snapshot())
             right.tabs.updateCurrent(right.model.snapshot())
@@ -426,6 +467,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
 
     /// ⌃F11: shows the active panel alone; the next press brings the other one back.
     func setMaximized(_ side: PanelSide?) {
+        if side != nil { closeQuickView() }
         if maximizedSide == nil, side != nil { saveLayout() }  // keep the divider position
         maximizedSide = side
         layoutChanged()
@@ -582,6 +624,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         if command == .viewModeDetailed { menuItem.state = activePanel.viewMode == .detailed ? .on : .off }
         if command == .viewModeBrief { menuItem.state = activePanel.viewMode == .brief ? .on : .off }
         if command == .toggleCommandLine { menuItem.state = commandLine.isHidden ? .off : .on }
+        if command == .quickView { menuItem.state = quickView == nil ? .off : .on }
         if command == .toggleFunctionKeyBar { menuItem.state = functionKeyBar.isHidden ? .off : .on }
         let sortFields: [Command: SortField] = [.sortByName: .name, .sortByExtension: .ext, .sortByDate: .date, .sortBySize: .size]
         if let field = sortFields[command] { menuItem.state = activePanel.model.sort.field == field ? .on : .off }

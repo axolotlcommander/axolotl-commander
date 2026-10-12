@@ -62,6 +62,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
   - Edit → Select All Files / Deselect All Files (⌃⇧Num+ / ⌃⇧Num−) leave folders as they are;
   - ⌥⇧↑ marks or unmarks without moving, ⌃⇧J inserts the full path into the command line;
   - in Classic Commander ⌃L calculates the size of the marked items.
+- View → Quick View Panel (⌃Q): the other panel shows the preview of the item under the cursor and
+  follows the cursor; ⌃Q again, Tab or a click on it brings the panel back (spec 016).
 
 ### Fixed
 

@@ -331,6 +331,7 @@ final class PanelViewController: NSViewController {
             volumePlaces.visit(folder, volume: Volumes.root(of: folder))
         }
         router?.panelLocationChanged(self)
+        router?.panelCursorChanged(self)
         ArchivePasswords.panel(self, showsArchive: model.archive?.archive)
         updateQuickLook()
         updateStatus()
