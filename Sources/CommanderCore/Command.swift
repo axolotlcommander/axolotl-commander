@@ -32,6 +32,7 @@ public enum Command: String, CaseIterable, Hashable, Sendable {
     case newTab, closeTab, nextTab, previousTab
     case openInNewTab, openInBackgroundTab, openInNewTabOtherPanel, reopenClosedTab, closeOtherTabs, tabList
     case swapPanelsWithTabs
+    case quickFilter, quickFilterLast
 
     // Left / Right
     case leftVolumeMenu, rightVolumeMenu
@@ -208,6 +209,8 @@ public enum CommandRegistry {
         add(.branchView, "Branch View (With Subfolders)", .view, [ch("b", c)])
         add(.branchViewSelected, "Branch View of Selected Items", .view, [ch("b", [c, s])])
         add(.filter, "Filter…", .view, [f(12, c)])
+        add(.quickFilter, "Quick Filter", .view, [ch("f", [m, o])])
+        add(.quickFilterLast, "Quick Filter with Last Text", .view, [ch("s", [c, s]), ch("f", [m, o, s])])
         add(.refresh, "Refresh", .view, [f(9, c), ch("r", m), ch("r", c)])
         add(.maximizePanel, "Maximize Panel", .view, [f(11, c)], sep: true)
         add(.comparePanels, "Compare Panels", .view, [f(10, c), f(2, s)])

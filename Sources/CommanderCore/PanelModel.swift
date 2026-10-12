@@ -71,6 +71,11 @@ public final class PanelModel {
         didSet { if !isRestoring, filter != oldValue { rebuild() } }
     }
 
+    /// Quick filter text (`QuickFilter`): hides files and folders that do not match; the parent row
+    /// stays. It belongs to the folder: navigation and tab restore clear it, a refresh keeps it.
+    /// Commands see only the shown items (`selectedItems`), so hidden marks are never processed.
+    public private(set) var quickFilter: String?
+
     private var back: [PanelState.Place] = []
     private var forward: [PanelState.Place] = []
 
@@ -145,9 +150,12 @@ public final class PanelModel {
 
     private func buildItems() -> [FileItem] {
         var visible = rawItems
+        let ownName = branch != nil
         if let filter {
-            let ownName = branch != nil
             visible = visible.filter { $0.isDirectory || filter.matches(ownName ? $0.fileName : $0.name, rules: rules) }
+        }
+        if let quickFilter {
+            visible = visible.filter { QuickFilter.matches(ownName ? $0.fileName : $0.name, text: quickFilter, rules: rules) }
         }
         var result = sortItems(visible, by: sort, rules: rules, directorySizes: directorySizes, byFileName: branch != nil)
         if results != nil {
@@ -163,6 +171,22 @@ public final class PanelModel {
         if let i = items.firstIndex(where: { $0.name == name }) { return i }
         let k = rules.key(name)
         return items.firstIndex { rules.key($0.name) == k }
+    }
+
+    /// Sets the quick filter (nil or empty = off). Text that would leave no item is refused and
+    /// nothing changes.
+    @discardableResult
+    public func setQuickFilter(_ text: String?) -> Bool {
+        let new = text?.isEmpty == true ? nil : text
+        guard new != quickFilter else { return true }
+        let old = quickFilter
+        quickFilter = new
+        if new != nil, !buildItems().contains(where: { !$0.isParent }) {
+            quickFilter = old
+            return false
+        }
+        rebuild()
+        return true
     }
 
     /// Rebuilds `items`, keeping the cursor on the same item when it survives.
@@ -229,6 +253,7 @@ public final class PanelModel {
         rawItems = loaded.raw
         selection = []
         directorySizes = [:]
+        quickFilter = nil
         items = buildItems()
         cursor = name.flatMap { index(ofName: $0) } ?? 0
         lastError = nil
@@ -277,6 +302,7 @@ public final class PanelModel {
         let present = Set(rawItems.map { rules.key($0.name) })
         selection = Set(state.selectedNames.map { rules.key($0) }).intersection(present)
         directorySizes = [:]
+        quickFilter = nil
         items = buildItems()
         cursor = state.cursorName.flatMap { index(ofName: $0) } ?? 0
         lastError = nil

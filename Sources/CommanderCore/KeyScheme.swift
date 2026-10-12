@@ -33,6 +33,8 @@ public enum KeyScheme: String, CaseIterable, Hashable, Sendable {
             .newTab: [ch("t", c), ch("t", [c, s])],
             .closeTab: [ch("w", c)],
             .closeOtherTabs: [ch("w", [c, s]), ch("w", [m, o])],
+            .quickFilter: [ch("s", c), ch("f", [m, o])],
+            .pasteAsSymbolicLink: [ch("v", [c, m])],
             .nextTab: [K(.tab, c), K(.pageDown, [c, s])],
             .previousTab: [K(.tab, [c, s]), K(.pageUp, [c, s])],
             .focusCommandLine: [K(.down, c)],
