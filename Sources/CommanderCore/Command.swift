@@ -29,6 +29,8 @@ public enum Command: String, CaseIterable, Hashable, Sendable {
     // Go (active panel)
     case goBack, goForward, goParent, goRoot, goHome, changeDirectory, editPath
     case folderHistory, commandLineHistory
+    case copyAs, makeDirectoryInOtherPanel, viewCursorFile, packAndMove, testArchives
+    case toggleSelectionInPlace, selectAllFiles, deselectAllFiles
     case hotPaths, workingDirectories
     case newTab, closeTab, nextTab, previousTab
     case openInNewTab, openInBackgroundTab, openInNewTabOtherPanel, reopenClosedTab, closeOtherTabs, tabList
@@ -160,14 +162,17 @@ public enum CommandRegistry {
         add(.quit, "Quit Axolotl Commander", .app, [ch("q", m)], scope: .app, sep: true)
 
         add(.view, "View", .file, [f(3)])
+        add(.viewCursorFile, "View Cursor File Only", .file, [f(3, [o, s])])
         add(.quickLook, "Quick Look", .file, [ch("y", m), f(3, o)])
         add(.edit, "Edit", .file, [f(4)])
         add(.viewWith, "View With…", .file, [f(3, [c, s])])
         add(.editWith, "Edit With…", .file, [f(4, [c, s])])
         add(.newFile, "New File…", .file, [f(4, s)])
         add(.copy, "Copy…", .file, [f(5)], sep: true)
+        add(.copyAs, "Copy As…", .file, [f(5, s)])
         add(.move, "Move…", .file, [f(6)])
         add(.makeDirectory, "New Folder…", .file, [f(7), ch("n", [m, s])])
+        add(.makeDirectoryInOtherPanel, "New Folder in Other Panel…", .file, [ch("n", [m, o])])
         add(.newSymbolicLink, "New Symbolic Link…", .file, [ch("l", [c, m])])
         add(.newHardLink, "New Hard Link…", .file)
         add(.editSymbolicLink, "Edit Symbolic Link…", .file)
@@ -180,7 +185,9 @@ public enum CommandRegistry {
         add(.changeCase, "Change Case…", .file, [f(7, c)])
         add(.batchRename, "Batch Rename…", .file, [ch("m", c)])
         add(.pack, "Pack…", .file, [f(5, o), f(5, [c, o])], sep: true)
+        add(.packAndMove, "Pack and Move…", .file, [f(5, [o, s])])
         add(.unpack, "Unpack…", .file, [f(6, o), f(6, [c, o]), f(9, o)])
+        add(.testArchives, "Test Archives", .file, [f(9, [o, s])])
 
         add(.copyFiles, "Copy Files", .edit, [ch("c", m), K(.insert, c), ch("c", c)])
         add(.pasteFiles, "Paste Files", .edit, [ch("v", m), K(.insert, s), ch("v", c)])
@@ -193,6 +200,8 @@ public enum CommandRegistry {
         add(.invertByMask, "Invert Selection…", .edit, [K(.numStar), ch("8", [c, o])])
         add(.selectAll, "Select All", .edit, [ch("a", m), K(.numPlus, c), ch("a", c)])
         add(.deselectAll, "Deselect All", .edit, [ch("a", [m, s]), K(.numMinus, c)])
+        add(.selectAllFiles, "Select All Files", .edit, [K(.numPlus, [c, s])])
+        add(.deselectAllFiles, "Deselect All Files", .edit, [K(.numMinus, [c, s])])
         add(.invertAll, "Invert All", .edit, [K(.numStar, c)])
         add(.restoreSelection, "Restore Selection", .edit, [ch("w", c)])
         add(.saveSelection, "Remember Selection", .edit, [f(5, [c, s])])
@@ -268,13 +277,14 @@ public enum CommandRegistry {
         add(.contextMenu, "Show Context Menu", nil, [f(10, s)])
         add(.switchPanel, "Switch Panel", nil, [K(.tab), K(.tab, s), ch("i", c)])
         add(.toggleSelection, "Toggle Selection", nil, [K(.insert)])
+        add(.toggleSelectionInPlace, "Toggle Selection Without Moving", nil, [K(.up, [o, s])])
         add(.toggleSelectionAndSize, "Toggle Selection and Size", nil, [K(.space)])
         add(.openInLeftPanel, "Open in Left Panel", nil, [K(.left, [c, s]), K(.left, c)])
         add(.openInRightPanel, "Open in Right Panel", nil, [K(.right, [c, s]), K(.right, c)])
         add(.focusCommandLine, "Command Line", nil, [K(.tab, c)])
         add(.insertNameToCommandLine, "Insert Name", nil, [K(.enter, c), ch("j", c)])
         add(.insertPathToCommandLine, "Insert Path", nil, [K(.space, c), K(.space, [c, s]), ch("p", c)])
-        add(.insertFullPathToCommandLine, "Insert Full Path", nil, [K(.enter, [c, s])])
+        add(.insertFullPathToCommandLine, "Insert Full Path", nil, [K(.enter, [c, s]), ch("j", [c, s])])
         add(.insertLeftPathToCommandLine, "Insert Left Path", nil, [ch("[", c)])
         add(.insertRightPathToCommandLine, "Insert Right Path", nil, [ch("]", c)])
         for (slot, (go, set)) in zip(Command.goHotPaths, Command.setHotPaths).enumerated() {

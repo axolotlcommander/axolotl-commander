@@ -17,7 +17,7 @@ struct PlanNode {
 
     let path: String
     let name: String
-    let targetName: String
+    var targetName: String
     let kind: Kind
     let stat: FileStat?
     let children: [PlanNode]
@@ -166,7 +166,8 @@ enum TransferPlanner {
             case .unknown: throw .identityUnknown(source)
             case .exists: break
             }
-            let node = PlanNode.scan(path, mask: request.nameMask)
+            var node = PlanNode.scan(path, mask: request.nameMask)
+            if let name = request.targetName, request.sources.count == 1 { node.targetName = name }
             try NameCheck.validate(node.targetName)
             let target = FSPath.join(dest, node.targetName)
             try NameCheck.validate(path: target)

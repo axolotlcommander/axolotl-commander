@@ -527,6 +527,11 @@ public final class PanelModel {
         for item in items { set(item, true) }
     }
 
+    /// Select All Files / Deselect All Files: every shown file, folders keep their marks.
+    public func selectFiles(_ on: Bool) {
+        for item in items where !item.isDirectory { set(item, on) }
+    }
+
     /// Replaces the selection with the items named in `names` (matched through `rules`);
     /// unknown names and ".." are ignored.
     public func setSelection(names: some Sequence<String>) {

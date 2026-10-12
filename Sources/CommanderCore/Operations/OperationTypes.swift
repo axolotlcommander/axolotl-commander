@@ -96,12 +96,17 @@ public struct TransferRequest: Sendable {
     public var destinationDirectory: URL
     /// Windows-style target mask applied to file names (not directory names), see `NameMask`.
     public var nameMask: String
+    /// The new name of the only source (Copy As); inner names of a folder are kept. Overrides
+    /// `nameMask` for that item.
+    public var targetName: String?
 
-    public init(kind: TransferKind, sources: [URL], destinationDirectory: URL, nameMask: String = "*.*") {
+    public init(kind: TransferKind, sources: [URL], destinationDirectory: URL, nameMask: String = "*.*",
+                targetName: String? = nil) {
         self.kind = kind
         self.sources = sources
         self.destinationDirectory = destinationDirectory
         self.nameMask = nameMask
+        self.targetName = targetName
     }
 }
 

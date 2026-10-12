@@ -1,11 +1,11 @@
 # Tasks: Small Commands
 
-- [ ] T001 Core: `TransferRequest.targetName` and the top-level rename in `TransferPlan.swift`;
+- [X] T001 Core: `TransferRequest.targetName` and the top-level rename in `TransferPlan.swift`;
   `CopyAsName` / `NewFolderName` in `Sources/CommanderCore/SmallCommands.swift`.
-- [ ] T002 Core: `ArchiveTester` in `Sources/CommanderCore/Archive/ArchiveTester.swift`.
-- [ ] T003 Core: `PanelModel` files-only selection and toggle in place; commands and chords
+- [X] T002 Core: `ArchiveTester` in `Sources/CommanderCore/Archive/ArchiveTester.swift`.
+- [X] T003 Core: `PanelModel` files-only selection and toggle in place; commands and chords
   (`Command.swift`, `KeyScheme.swift`).
-- [ ] T004 [P] Tests in `Tests/CommanderCoreTests/SmallCommandsTests.swift`. Build, test, commit.
+- [X] T004 [P] Tests in `Tests/CommanderCoreTests/SmallCommandsTests.swift`. Build, test, commit.
 - [ ] T005 [US1] UI: Copy As in `PanelViewController` / `OperationsController`.
 - [ ] T006 [US2] UI: New Folder in Other Panel (`OperationsController.makeDirectory`).
 - [ ] T007 [US3] UI: View Cursor File Only.

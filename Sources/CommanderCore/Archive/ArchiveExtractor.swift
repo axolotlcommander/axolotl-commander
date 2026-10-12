@@ -85,7 +85,7 @@ public enum ArchiveExtractor {
     }
 
     /// Fails early for an encrypted member that cannot be decrypted at all.
-    private static func checkEncrypted(_ path: String, reader: ArchiveReadHandle, passphrases: [String]) throws(ArchiveError) {
+    static func checkEncrypted(_ path: String, reader: ArchiveReadHandle, passphrases: [String]) throws(ArchiveError) {
         guard reader.detectedFormat() == .zip else { throw .encrypted(path) }
         if passphrases.allSatisfy(\.isEmpty) { throw .passwordRequired(path) }
     }

@@ -9624,6 +9624,94 @@
           }
         }
       }
+    },
+    "Copy As…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopírovat jako…"
+          }
+        }
+      }
+    },
+    "New Folder in Other Panel…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nová složka v druhém panelu…"
+          }
+        }
+      }
+    },
+    "View Cursor File Only": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zobrazit jen soubor pod kurzorem"
+          }
+        }
+      }
+    },
+    "Pack and Move…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zabalit a přesunout…"
+          }
+        }
+      }
+    },
+    "Test Archives": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otestovat archivy"
+          }
+        }
+      }
+    },
+    "Toggle Selection Without Moving": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Označit bez posunu"
+          }
+        }
+      }
+    },
+    "Select All Files": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Označit všechny soubory"
+          }
+        }
+      }
+    },
+    "Deselect All Files": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odznačit všechny soubory"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
