@@ -526,7 +526,9 @@ final class PanelViewController: NSViewController {
     private func handleQuickFilter(_ chord: KeyChord, event: NSEvent) -> Bool {
         if quickFilterTyping, model.location != quickFilterLocation { quickFilterTyping = false }
         guard quickFilterTyping else {
-            guard chord.key == .escape, chord.modifiers.isEmpty, model.quickFilter != nil else { return false }
+            // Esc first ends quick search, folder sizing or a branch scan; the next one clears the filter.
+            guard chord.key == .escape, chord.modifiers.isEmpty, model.quickFilter != nil,
+                  quickSearch == nil, !isSizing, !model.isScanningBranch else { return false }
             model.setQuickFilter(nil)
             updateStatus()
             return true
@@ -555,6 +557,11 @@ final class PanelViewController: NSViewController {
         }
         updateStatus()
         return true
+    }
+
+    /// A restored tab starts without the quick filter: typing it ends too.
+    func endQuickFilterTyping() {
+        quickFilterTyping = false
     }
 
     private func extendQuickFilter(_ text: String) {

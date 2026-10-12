@@ -166,6 +166,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
 
     /// Folder History's ⌥Return: the other panel opens the folder (both panels shown); the focus stays.
     func openInOtherPanel(_ target: FolderHistory.Target, from panel: PanelViewController) {
+        closeQuickView()
         if maximizedSide != nil { setMaximized(nil) }
         otherPanel(than: panel).open(target, takeFocus: false)
     }
@@ -177,6 +178,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         if maximizedSide != nil { setMaximized(nil) }
         let side: PanelSide = activeSide == .left ? .right : .left
         let pane = QuickViewPane()
+        pane.onClick = { [weak self] in self?.activate(side) }
         pane.translatesAutoresizingMaskIntoConstraints = false
         let covered = panel(side).view
         covered.addSubview(pane)
@@ -311,12 +313,14 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
             }
         case .openInLeftPanel, .openInRightPanel:
             guard let (plan, target) = openInPanel(command) else { return }
+            if let quickView, core(quickView.side) == plan.target { closeQuickView() }
             panel(plan.target).go(to: target.url, focusing: target.focus)
             if plan.focus != core(activeSide) { activate(plan.focus == .left ? .left : .right) }
         case .openInNewTabOtherPanel:
             // The other panel gets the tab and shows it; the focus stays here.
             let source = activePanel
             let other = activeSide == .left ? right : left
+            closeQuickView()
             if maximizedSide != nil { setMaximized(nil) }
             Task {
                 guard let state = await source.stateForNewTab() else { return }

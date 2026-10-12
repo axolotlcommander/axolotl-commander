@@ -194,6 +194,8 @@ line.
 - **View Cursor File Only on a package or a file the viewer leaves to Quick Look**: behaves as F3 does
   for that file.
 - **Pack and Move with folders**: whole folders are packed and then moved to the Trash.
+- **Pack and Move with special files** (pipes, sockets, devices): they are not packed, so they stay
+  where they are; only what the archive holds goes to the Trash.
 - **Pack and Move when the Trash is not available** (some network volumes): the archive stays, the
   originals stay, and the app reports that they could not be moved to the Trash.
 - **Test Archives with a long archive**: the progress window can cancel; the result then says the test

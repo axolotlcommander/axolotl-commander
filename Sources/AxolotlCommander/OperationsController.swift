@@ -157,7 +157,7 @@ final class OperationsController {
                 progress: { p in Task { @MainActor in state.progress = p } },
                 conflict: { conflict in await self.askConflict(conflict) })
             await panel.model.refresh()
-            panel.focus(name: name)
+            panel.focusRenamed(source, to: name)
         }
     }
 

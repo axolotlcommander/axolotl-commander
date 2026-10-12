@@ -14,6 +14,8 @@ final class QuickViewPane: NSView {
     private let preview: QLPreviewView?
     private var shown: QuickViewSubject?
     private var pending: Task<Void, Never>?
+    /// A click on the pane: the covered panel takes over, which ends the quick view.
+    var onClick: (() -> Void)?
 
     override init(frame: NSRect) {
         preview = QLPreviewView(frame: .zero, style: .normal)
@@ -28,7 +30,8 @@ final class QuickViewPane: NSView {
         note.alignment = .center
         note.stringValue = String(localized: "Items in archives, on servers and in the Network folder have no preview.")
         note.isHidden = true
-        preview?.shouldCloseWithWindow = false
+        preview?.shouldCloseWithWindow = true
+        registerForDraggedTypes([.fileURL, .URL, .string])
         preview?.autostarts = true
 
         let views: [NSView] = [nameLabel, note] + (preview.map { [$0] } ?? [])
@@ -60,11 +63,20 @@ final class QuickViewPane: NSView {
 
     override var acceptsFirstResponder: Bool { false }
 
-    /// The wheel scrolls the preview; a click goes to the panel underneath, which then becomes
-    /// active and ends the quick view, so the preview never holds the keyboard focus.
+    /// The wheel scrolls the preview; every other mouse event stays with the pane, so nothing of the
+    /// covered panel underneath is clicked, and the preview never holds the keyboard focus.
     override func hitTest(_ point: NSPoint) -> NSView? {
-        NSApp.currentEvent?.type == .scrollWheel ? super.hitTest(point) : nil
+        guard let hit = super.hitTest(point) else { return nil }
+        return NSApp.currentEvent?.type == .scrollWheel ? hit : self
     }
+
+    override func mouseDown(with event: NSEvent) { onClick?() }
+    override func rightMouseDown(with event: NSEvent) { onClick?() }
+
+    // Drops are refused here instead of reaching the covered folder.
+    override func draggingEntered(_ sender: any NSDraggingInfo) -> NSDragOperation { [] }
+    override func draggingUpdated(_ sender: any NSDraggingInfo) -> NSDragOperation { [] }
+    override func performDragOperation(_ sender: any NSDraggingInfo) -> Bool { false }
 
     /// Shows `subject`, after a short pause so that holding an arrow key does not queue previews.
     func show(_ subject: QuickViewSubject) {

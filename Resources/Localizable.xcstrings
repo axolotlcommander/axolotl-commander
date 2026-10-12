@@ -9833,6 +9833,28 @@
           }
         }
       }
+    },
+    "The test was cancelled.": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Test byl zrušen."
+          }
+        }
+      }
+    },
+    "Test Archives was cancelled": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Test archivů byl zrušen"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

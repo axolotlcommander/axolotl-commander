@@ -100,6 +100,7 @@ extension PanelViewController {
     /// Restores a saved state; a folder that has disappeared falls back to its nearest existing parent.
     func restoreTab(_ state: PanelState) async {
         isRestoringTab = true
+        endQuickFilterTyping()
         defer {
             isRestoringTab = false
             updateSortIndicator()

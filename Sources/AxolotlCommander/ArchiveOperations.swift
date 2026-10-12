@@ -399,7 +399,7 @@ extension OperationsController {
             return report(error)
         }
         let state = OperationState(title: kind == .copy ? String(localized: "Copying…") : String(localized: "Moving…"))
-        perform(state) { [operations] in
+        perform(state) {
             var files = sources
             var staging: URL?
             defer { if let staging { try? FileManager.default.removeItem(at: staging) } }
@@ -439,20 +439,26 @@ extension OperationsController {
                     try await ArchiveWriter.update(source.archive, removing: Set(done.map { source.member($0.lastPathComponent) }),
                                                    progress: { _ in })
                     await ArchiveCatalog.shared.invalidate(source.archive)
-                } else if !done.isEmpty {
-                    // The originals go to the Trash; on a volume without one only after asking.
-                    let plan = await operations.planDelete(done)
-                    let go = plan.toTrash.count == done.count ? true : await Self.confirmTrash(plan, in: self.window)
-                    if go {
-                        let outcome = try await Self.runTrash(plan, with: operations, progress: { _ in })
-                        if let text = Self.describe(outcome) { await self.inform(String(localized: "Not everything was deleted"), text) }
-                    } else {
-                        await self.inform(String(localized: "Some sources were kept"),
-                                          String(localized: "The items were copied into the archive; the originals were left where they were."))
-                    }
+                } else {
+                    try await self.trashPackedOriginals(done)
                 }
             }
             panel.model.deselectAll()
+        }
+    }
+
+    /// Move into an archive: the originals now stored in it go to the Trash; on a volume without one
+    /// only after asking.
+    private func trashPackedOriginals(_ done: [URL]) async throws {
+        guard !done.isEmpty else { return }
+        let plan = await operations.planDelete(done)
+        let go = plan.toTrash.count == done.count ? true : await Self.confirmTrash(plan, in: window)
+        if go {
+            let outcome = try await Self.runTrash(plan, with: operations, progress: { _ in })
+            if let text = Self.describe(outcome) { await inform(String(localized: "Not everything was deleted"), text) }
+        } else {
+            await inform(String(localized: "Some sources were kept"),
+                         String(localized: "The items were copied into the archive; the originals were left where they were."))
         }
     }
 
@@ -563,8 +569,12 @@ extension OperationsController {
                 try await ArchiveWriter.create(url, format: format, adding: sources,
                                                progress: { done in Task { @MainActor in state.progress.doneBytes = done } })
                 if moving {
-                    // Only now that the archive is complete; to the Trash, so nothing is lost for good.
-                    for item in items { try FileManager.default.trashItem(at: item.url, resultingItemURL: nil) }
+                    // Only now that the archive is complete, and only what it really holds (special
+                    // files are not packed); to the Trash, as Move into an archive does.
+                    await ArchiveCatalog.shared.invalidate(url)
+                    let stored = try await ArchiveCatalog.shared.index(of: url)
+                    let done = items.filter { stored.entry(at: $0.name) != nil || stored.contains(directory: $0.name) }
+                    try await self.trashPackedOriginals(done.map(\.url))
                     await panel.model.refresh()
                 }
                 panel.model.deselectAll()
@@ -585,7 +595,10 @@ extension OperationsController {
             var lines: [String] = []
             var failed = 0
             for archive in archives {
-                if Task.isCancelled { throw ArchiveError.cancelled }
+                if Task.isCancelled {
+                    lines.append(String(localized: "The test was cancelled."))
+                    break
+                }
                 let name = archive.lastPathComponent
                 state.progress.currentName = name
                 do {
@@ -600,13 +613,19 @@ extension OperationsController {
                     failed += 1
                     lines.append(String(localized: "\(name): not tested (no password)"))
                 } catch ArchiveError.cancelled {
-                    throw ArchiveError.cancelled
+                    lines.append(String(localized: "The test was cancelled."))
+                    break
+                } catch is CancellationError {
+                    lines.append(String(localized: "The test was cancelled."))
+                    break
                 } catch {
                     failed += 1
                     lines.append("\(name): \(Format.error(error))")
                 }
             }
-            let title = failed == 0
+            let title = Task.isCancelled
+                ? String(localized: "Test Archives was cancelled")
+                : failed == 0
                 ? String(localized: "All archives are OK")
                 : String(localized: "Problems found in \(failed) of \(archives.count) archives")
             await self.inform(title, lines.joined(separator: "\n"))
