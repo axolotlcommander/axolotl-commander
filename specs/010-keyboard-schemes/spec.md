@@ -50,6 +50,21 @@ chords to it.
 - Function keys need fn unless the system "standard function keys" option is on.
 - Third-party display utilities can take some ⌃⇧ and ⌃⌥ chords.
 
+## Clarifications
+
+### Session 2026-10-12
+
+- Q: Do New Tab and Close Tab lose their factory chords ⌃⇧T / ⌃⇧W in Classic Commander? → A: No.
+  The scheme adds ⌃T / ⌃W in front of them, so the menu shows ⌃T / ⌃W and ⌃⇧T / ⌃⇧W keep working.
+- Q: Which Quit chord does the menu show in Classic Commander? → A: ⌘Q stays first (the menu chord);
+  ⌥F4 is added after it.
+- Q: What happens to a user change that equals the newly selected scheme after a scheme switch? → A:
+  It is kept (FR-013) but shown as coming from the scheme, not as the user's change (FR-011). It
+  shows as the user's change again when the scheme changes back.
+- Q: Which sections does the settings file have? → A: Keyboard, Preferences, Appearance (the mark
+  color and the highlighting rules), Hot paths, User menu, Saved servers and Toolbar. The Compare
+  Panels options are part of Preferences. Recently visited folders are history and are not exported.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Familiar keys work out of the box (Priority: P1)
@@ -255,8 +270,8 @@ them and applies the rest.
 
   | Command | Chords in Classic Commander |
   |---|---|
-  | New Tab | ⌃T |
-  | Close Tab | ⌃W |
+  | New Tab | ⌃T, plus the factory ⌃⇧T |
+  | Close Tab | ⌃W, plus the factory ⌃⇧W |
   | Next Tab / Previous Tab | ⌃⇥ / ⌃⇧⇥ (the factory ⌃⇧PgDn / ⌃⇧PgUp stay as well) |
   | Focus Command Line | ⌃↓ |
   | Go to Link Target | no chord (menu item only) |
@@ -270,7 +285,7 @@ them and applies the rest.
   | Remember Selection | no chord (menu item only) |
   | View With… | ⌥F3, plus ⌃⇧F3 |
   | Quick Look | ⌘Y only |
-  | Quit | ⌥F4, plus ⌘Q |
+  | Quit | ⌘Q (still the menu chord), plus ⌥F4 |
 
   F2 MUST stay Rename in both schemes.
 - **FR-007**: Within one context, no two commands MAY share a chord in any scheme before user changes
