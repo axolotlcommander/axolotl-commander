@@ -29,7 +29,8 @@ All answers below were *decided while the maintainer was away; to review*.
 - Q: Items in archives and on servers? → A: Not previewed; the panel shows a short note instead.
 - Q: Keys? → A: Quick View Panel (View menu) on ⌃Q in both schemes; ⌃Q again closes it.
 - Q: What happens with Tab, maximizing and swapping panels? → A: They close the quick view first:
-  the preview side cannot take the focus. Tab then switches to the other panel as usual.
+  the preview side cannot take the focus. Tab then switches to the other panel as usual. A click on
+  the preview does the same; the mouse wheel scrolls the preview.
 - Q: Is it remembered? → A: No; it is off when a window opens.
 
 ## User Scenarios & Testing *(mandatory)*
