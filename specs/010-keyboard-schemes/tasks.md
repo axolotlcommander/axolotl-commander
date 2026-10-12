@@ -29,7 +29,7 @@ None. US1 needs only the registry, and US2 and US3 build on `KeyBindings`.
 
 ## Phase 3: User Story 1 - Familiar keys work out of the box (P1) 🎯 MVP
 
-**Goal**: the 23 FR-001 chords work in a panel, next to every existing chord.
+**Goal**: the 24 FR-001 chords work in a panel, next to every existing chord.
 
 **Independent test**: `swift test` (KeyMapTests); in the GUI, ⌥←, ⇧F6, ⌃F1 and ⌃R in a panel, and
 the ⌃ / ⇧ / ⌥ layers of the function key bar.
@@ -58,7 +58,18 @@ the ⌃ / ⇧ / ⌥ layers of the function key bar.
   - Servers: connectToServer `ch("f", c)`, `ch("n", c)`.
   - Command line:
     - insertNameToCommandLine `ch("j", c)`;
-    - insertPathToCommandLine `ch("p", c)`.
+    - insertPathToCommandLine `ch("p", c)`;
+    - the new command `insertFullPathToCommandLine` ("Insert Full Path", panel only, no menu,
+      `[K(.enter, [c, s])]`), declared next to `insertPathToCommandLine`.
+- [ ] T001a [US1] `Sources/AxolotlCommander/MainWindowController.swift`: handle
+  `insertFullPathToCommandLine` everywhere `insertNameToCommandLine` is handled:
+  - enablement;
+  - the list of command-line commands;
+  - `handleCommandLineKey`;
+  - `performHere`.
+
+  It inserts `ShellQuote.quote(<location displayPath joined with the item name>) + " "`. On "..", it
+  inserts the folder path, like `insertPath`.
 - [ ] T002 [US1] In `Sources/CommanderCore/Window/FunctionKeyBar.swift`, add the bar title "Quit"
   for `.quit` (`barTitles`) and the short title "Link" for `.newSymbolicLink` (`shortTitles`).
 - [ ] T003 [US1] Extend `Tests/CommanderCoreTests/KeyMapTests.swift`:

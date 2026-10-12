@@ -64,6 +64,10 @@ chords to it.
 - Q: Which sections does the settings file have? → A: Keyboard, Preferences, Appearance (the mark
   color and the highlighting rules), Hot paths, User menu, Saved servers and Toolbar. The Compare
   Panels options are part of Preferences. Recently visited folders are history and are not exported.
+- Q: Is there a key for the full path of the cursor item in the command line? → A: Yes, a new command
+  "Insert Full Path" on ⌃⇧↩ joins FR-001 (maintainer's request). ⌃↩ keeps inserting the name only.
+  The full path is quoted like the name and followed by a space. On ".." it inserts the folder's path.
+  It is the one new command of this spec. The other new commands stay in specs 012–016.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -246,6 +250,7 @@ them and applies the rest.
   | ⌥⇧↩ | Calculate Folder Sizes |
   | ⌥Num+ / ⌥Num− | Select / Deselect Same Extension |
   | ⌥F9 | Unpack |
+  | ⌃⇧↩ | Insert Full Path: the full path of the cursor item, name included, into the command line (new command) |
 
 - **FR-002**: None of the chords in FR-001 MAY collide with a factory chord of another command in the
   same context, or with a key the panel handles directly. The direct keys are:
@@ -377,7 +382,7 @@ them and applies the rest.
 
 ### Measurable Outcomes
 
-- **SC-001**: All 23 chords of FR-001 work in a panel on a fresh install, and every chord that worked
+- **SC-001**: All 24 chords of FR-001 work in a panel on a fresh install, and every chord that worked
   before the update still works (100 %, checked automatically).
 - **SC-002**: Switching the scheme changes the meaning of all its keys, the menus and the function key
   bar within 1 second, without a restart.
@@ -412,7 +417,7 @@ them and applies the rest.
   setups).
 - Behavior differences from classic managers: the Ctrl+arrow logic, a volume button taking over the
   other panel's path, Space not moving the cursor, letters typing into the command line (spec 011).
-- New commands such as quick filter, a history list, opening in a new tab or the quick view panel. Specs
+- New commands (except Insert Full Path, see Clarifications) such as quick filter, a history list, opening in a new tab or the quick view panel. Specs
   012–016 add them with their chords.
 - Syncing settings through iCloud or any service.
 - Exporting passwords, even encrypted.

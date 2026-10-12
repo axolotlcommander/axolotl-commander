@@ -7,7 +7,7 @@
 Three pieces, all on top of the existing key machinery (`CommandRegistry`, `KeyBindings`, `KeyMap`,
 `KeyMaps`):
 
-1. **More default chords.** The 23 chords of FR-001 are appended to the chord lists in
+1. **More default chords.** The 24 chords of FR-001 are appended to the chord lists in
    `CommandRegistry.all`. Each command's first chord stays the same, so menus do not change. The
    existing `noChordBoundTwice` test guards collisions. A new test guards the keys the panel
    handles directly.

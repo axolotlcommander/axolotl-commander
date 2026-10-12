@@ -17,7 +17,8 @@ the app scope that every context includes):
 - ⌃R, ⌃A, ⌃C, ⌃V, ⌃I, ⌃D (Disk Map is ⌃⇧D), ⌃F (Connect is also ⌃⇧F), ⌃N, ⌃J, ⌃P, ⌃⇧B;
 - ⌥↩, ⌥⇧↩;
 - ⌥Num+, ⌥Num−;
-- ⌥F9.
+- ⌥F9;
+- ⌃⇧↩ (⌃↩ is Insert Name), for the new command Insert Full Path.
 
 **The panel's direct keys** (`PanelViewController.handleKey`, before the key map):
 - Quick search takes characters typed without ⌃, ⌘ or ⌥. Every new chord carries ⌃ or ⌥, or is a
