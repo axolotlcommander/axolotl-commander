@@ -9349,6 +9349,105 @@
           }
         }
       }
+    },
+    "Space moves the cursor down": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mezerník posune kurzor dolů"
+          }
+        }
+      }
+    },
+    "Off: Space marks the item and the cursor stays on it.": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vypnuto: mezerník označí položku a kurzor na ní zůstane."
+          }
+        }
+      }
+    },
+    "Typing goes to the command line": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Psaní jde do příkazové řádky"
+          }
+        }
+      }
+    },
+    "Characters typed in a panel go to the command line; ⌥ + a character starts quick search.": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Znaky napsané v panelu jdou do příkazové řádky; ⌥ + znak spustí rychlé hledání."
+          }
+        }
+      }
+    },
+    "⌃← / ⌃→ change the panel the arrow points to": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌃← / ⌃→ mění panel, na který šipka ukazuje"
+          }
+        }
+      }
+    },
+    "Off: the item always goes to the other panel.": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vypnuto: položka se vždy otevře v druhém panelu."
+          }
+        }
+      }
+    },
+    "Volume buttons open the other panel's folder or the last folder used there": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tlačítka disků otevřou složku druhého panelu nebo naposledy použitou složku"
+          }
+        }
+      }
+    },
+    "Off: a volume button always opens the volume root.": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vypnuto: tlačítko disku vždy otevře kořen disku."
+          }
+        }
+      }
+    },
+    "Space, typing into the command line, ⌃← / ⌃→ and the volume buttons are set in General → Panels.": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mezerník, psaní do příkazové řádky, ⌃← / ⌃→ a tlačítka disků se nastavují v Obecné → Panely."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

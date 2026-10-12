@@ -7,7 +7,7 @@
 
 ## Phase 1: Setup
 
-- [ ] T001 Create `Sources/CommanderCore/PanelBehavior.swift` with the SPDX header and `PanelBehavior`:
+- [X] T001 Create `Sources/CommanderCore/PanelBehavior.swift` with the SPDX header and `PanelBehavior`:
   - the four keys `panel.spaceMovesDown`, `panel.typingToCommandLine`,
     `panel.arrowsTargetPointedPanel`, `panel.volumeButtonsFollow`;
   - defaults: true, false, false, false;
@@ -16,22 +16,22 @@
 
 ## Phase 2: Foundational (settings, blocks all stories)
 
-- [ ] T002 Add the four `PreferenceSpec(..., .bool, default:)` entries, using the `PanelBehavior` key
+- [X] T002 Add the four `PreferenceSpec(..., .bool, default:)` entries, using the `PanelBehavior` key
   constants, to `Sources/CommanderCore/Settings/AppSettingsCatalog.swift`.
-- [ ] T003 [P] Create `Tests/CommanderCoreTests/PanelBehaviorTests.swift` with tests for:
+- [X] T003 [P] Create `Tests/CommanderCoreTests/PanelBehaviorTests.swift` with tests for:
   - the defaults and `init(defaults:)` on a temporary suite;
   - the catalog entries (kinds, defaults);
   - an export / apply round trip of the four values.
-- [ ] T004 [US5] Add a "Panels" section to `Sources/AxolotlCommander/SettingsView.swift`: four
+- [X] T004 [US5] Add a "Panels" section to `Sources/AxolotlCommander/SettingsView.swift`: four
   `@AppStorage` toggles with captions per contracts/behavior-ui.md, after the command line section.
-- [ ] T005 [US5] Add the note under the key scheme picker in
+- [X] T005 [US5] Add the note under the key scheme picker in
   `Sources/AxolotlCommander/KeyboardSettings.swift`.
-- [ ] T006 [US5] Add the Czech strings for T004–T005 to `Resources/Localizable.xcstrings`.
+- [X] T006 [US5] Add the Czech strings for T004–T005 to `Resources/Localizable.xcstrings`.
   Build, test, commit.
 
 ## Phase 3: User Story 1 — Space marks and stays (P1)
 
-- [ ] T007 [US1] In `Sources/AxolotlCommander/PanelViewController.swift`, `.toggleSelectionAndSize`
+- [X] T007 [US1] In `Sources/AxolotlCommander/PanelViewController.swift`, `.toggleSelectionAndSize`
   moves the cursor only when `PanelBehavior(defaults: .standard).spaceMovesDown`. Build, test, commit.
 
 ## Phase 4: User Story 2 — Typing goes to the command line (P1)

@@ -444,6 +444,22 @@ import Foundation
         #expect(target("a.txt")?.focus == "a.txt")
         #expect(target("App.app")?.focus == "App.app")
     }
+
+    @Test func openTargetWithParentOpeningTheLocation() async throws {
+        let f = try Fixture()
+        let m = PanelModel(location: f.root)
+        await m.refresh()
+        m.moveCursor(to: 0)
+        #expect(m.cursorItem?.isParent == true)
+        #expect(m.openTarget(parentOpensLocation: false) == nil)
+        let parent = try #require(m.openTarget(parentOpensLocation: true))
+        #expect(parent.url.standardizedFileURL.path == f.root.standardizedFileURL.path)
+        #expect(parent.focus == nil)
+        // Other items are the same in both modes.
+        m.moveCursor(to: m.items.firstIndex { $0.name == "a.txt" } ?? 0)
+        #expect(m.openTarget(parentOpensLocation: true)?.focus == "a.txt")
+        #expect(m.openTarget(parentOpensLocation: true)?.url == m.otherPanelTarget?.url)
+    }
 }
 
 @Suite struct DirectoryWatcherTests {

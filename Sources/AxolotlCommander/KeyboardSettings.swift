@@ -30,10 +30,15 @@ struct KeyboardSettings: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Picker("Key scheme:", selection: schemeBinding) {
-                ForEach(KeyScheme.allCases, id: \.self) { Text($0.localizedTitle).tag($0) }
+            HStack(alignment: .firstTextBaseline) {
+                Picker("Key scheme:", selection: schemeBinding) {
+                    ForEach(KeyScheme.allCases, id: \.self) { Text($0.localizedTitle).tag($0) }
+                }
+                .fixedSize()
+                // The scheme changes keys only; the behavior options are separate (spec 011).
+                Text("Space, typing into the command line, ⌃← / ⌃→ and the volume buttons are set in General → Panels.")
+                    .font(.caption).foregroundStyle(.secondary)
             }
-            .fixedSize()
             HStack {
                 Picker("", selection: $context) {
                     Text("Panels").tag(CommandContext.panel)

@@ -669,7 +669,7 @@ final class PanelViewController: NSViewController {
                 startSizing([item])
             }
             model.toggleSelection(at: model.cursor)
-            model.moveCursor(by: 1)
+            if PanelBehavior(defaults: .standard).spaceMovesDown { model.moveCursor(by: 1) }
         case .selectByMask: Task { await askMask(title: String(localized: "Select"), action: { self.model.select(mask: $0, true) }) }
         case .deselectByMask: Task { await askMask(title: String(localized: "Deselect"), action: { self.model.select(mask: $0, false) }) }
         case .invertByMask: Task { await askMask(title: String(localized: "Invert Selection"), action: { self.model.invertSelection(mask: $0) }) }

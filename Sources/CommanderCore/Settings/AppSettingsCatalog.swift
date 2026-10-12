@@ -38,6 +38,10 @@ extension SettingsCatalog {
         PreferenceSpec("links.relativePath", .bool, default: .bool(false)),
         PreferenceSpec("ssh.extraArguments", .stringArray),
         PreferenceSpec("comparison", .json(validate: decodes(ComparisonOptions.self))),
+        PreferenceSpec(PanelBehavior.spaceKey, .bool, default: .bool(PanelBehavior().spaceMovesDown)),
+        PreferenceSpec(PanelBehavior.typingKey, .bool, default: .bool(PanelBehavior().typingToCommandLine)),
+        PreferenceSpec(PanelBehavior.arrowsKey, .bool, default: .bool(PanelBehavior().arrowsTargetPointedPanel)),
+        PreferenceSpec(PanelBehavior.volumesKey, .bool, default: .bool(PanelBehavior().volumeButtonsFollow)),
     ], toolbarKey: toolbarKey)
 
     /// AppKit's autosave key of the main window toolbar ("MainToolbar").

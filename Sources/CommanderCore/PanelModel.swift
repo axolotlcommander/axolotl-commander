@@ -346,8 +346,13 @@ public final class PanelModel {
 
     /// Where the other panel goes for the cursor item (⌃⇧← / ⌃⇧→): into a folder or an archive
     /// on disk, otherwise to the folder holding the item with the item focused. nil on "..".
-    public var otherPanelTarget: (url: URL, focus: String?)? {
-        guard let item = cursorItem, !item.isParent else { return nil }
+    public var otherPanelTarget: (url: URL, focus: String?)? { openTarget(parentOpensLocation: false) }
+
+    /// `otherPanelTarget`, with ".." opening this panel's folder when `parentOpensLocation`
+    /// (the classic ⌃← / ⌃→ logic).
+    public func openTarget(parentOpensLocation: Bool) -> (url: URL, focus: String?)? {
+        guard let item = cursorItem else { return nil }
+        if item.isParent { return parentOpensLocation ? (location, nil) : nil }
         if item.isDirectory, !item.isPackage { return (item.url, nil) }
         if !item.isDirectory, archive == nil, remote == nil, ArchiveFormat.detect(fileName: item.name) != nil {
             return (item.url, nil)

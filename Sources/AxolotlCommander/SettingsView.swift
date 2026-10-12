@@ -11,6 +11,17 @@ struct SettingsView: View {
     @AppStorage("settings.tab") private var tab = SettingsTab.general.rawValue
     @AppStorage(MainWindowController.showCommandLineKey) private var showCommandLine = true
     @AppStorage(MainWindowController.showFunctionKeyBarKey) private var showFunctionKeyBar = true
+    @AppStorage(PanelBehavior.spaceKey) private var spaceMovesDown = PanelBehavior().spaceMovesDown
+    @AppStorage(PanelBehavior.typingKey) private var typingToCommandLine = PanelBehavior().typingToCommandLine
+    @AppStorage(PanelBehavior.arrowsKey) private var arrowsTargetPointedPanel = PanelBehavior().arrowsTargetPointedPanel
+    @AppStorage(PanelBehavior.volumesKey) private var volumeButtonsFollow = PanelBehavior().volumeButtonsFollow
+
+    private func behavior(_ title: LocalizedStringKey, _ isOn: Binding<Bool>, _ caption: LocalizedStringKey) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Toggle(title, isOn: isOn)
+            Text(caption).font(.caption).foregroundStyle(.secondary)
+        }
+    }
 
     var body: some View {
         TabView(selection: $tab) {
@@ -25,6 +36,16 @@ struct SettingsView: View {
                     Toggle("Show function key bar", isOn: $showFunctionKeyBar)
                     Text("Also in the View menu. The bar shows what F1–F12 do; hold ⇧, ⌃, ⌥ or ⌘ to see the other commands.")
                         .font(.caption).foregroundStyle(.secondary)
+                }
+                Section("Panels") {
+                    behavior("Space moves the cursor down", $spaceMovesDown,
+                             "Off: Space marks the item and the cursor stays on it.")
+                    behavior("Typing goes to the command line", $typingToCommandLine,
+                             "Characters typed in a panel go to the command line; ⌥ + a character starts quick search.")
+                    behavior("⌃← / ⌃→ change the panel the arrow points to", $arrowsTargetPointedPanel,
+                             "Off: the item always goes to the other panel.")
+                    behavior("Volume buttons open the other panel's folder or the last folder used there", $volumeButtonsFollow,
+                             "Off: a volume button always opens the volume root.")
                 }
                 Section {
                     HStack {
