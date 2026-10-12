@@ -33,6 +33,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
   and toolbar. Passwords are never included. Import lets you choose the parts and reports anything it
   skipped.
 
+### Fixed
+
+- ⌃↩ in a panel inserts the name of the item under the cursor into the command line again; macOS
+  showed the context menu for it instead.
+
 ## [0.3.1] - 2026-10-11
 
 ### Changed
