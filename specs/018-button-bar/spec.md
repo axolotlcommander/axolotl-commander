@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-13
 
-**Status**: Draft
+**Status**: Implemented
 
 **Input**: User description: "An optional bar of buttons at the very top; any function can be put on it — a
 user button bar, with icons the user picks. Icons only, no labels; maybe it could also go at the bottom,
@@ -50,6 +50,13 @@ It ships with specs 010–017 in release 0.4.0 (maintainer, 2026-10-13).
     default) and off.
   - Q: Export? → A: The buttons are a new "buttonBar" section of the settings file; the placement is a
     preference. A file without them keeps the current buttons.
+- *Decided during implementation; to review*:
+  - Edit Button… and Add Button… open Settings → Button Bar with that button selected (Add first
+    puts a new command button after the clicked one) instead of a separate sheet: one editor only.
+  - The placement is three choices (Off, Top, "Bottom, after the function keys"); Restore Samples
+    is in the + menu of the list.
+  - The frozen format-1 fixture has no buttonBar section; the compatibility test lists it as added
+    later.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -130,8 +137,8 @@ Button Bar.
 
 1. **Given** the bar, **When** the user right-clicks a button and chooses Remove Button, **Then** the
    button goes away in every window.
-2. **When** the user chooses Edit Button…, **Then** a sheet with the button's fields and the icon picker
-   opens; saving changes the bar.
+2. **When** the user chooses Edit Button…, **Then** Settings → Button Bar opens with the button selected;
+   a change there changes the bar at once.
 
 ---
 

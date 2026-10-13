@@ -27,23 +27,24 @@ struct ButtonBarSettings: View {
                         ForEach(items) { item in row(item).tag(item.id) }
                             .onMove { items.move(fromOffsets: $0, toOffset: $1) }
                     }
-                    .frame(width: 230)
                     HStack(spacing: 4) {
                         Menu {
                             Button("Command") { insert(.command(.refresh)) }
                             Button("Program") { insert(.program(UserMenuItem(title: String(localized: "New Program")))) }
                             Button("Separator") { insert(.separator) }
+                            Divider()
+                            Button("Restore Samples") {
+                                items = ButtonBarStore.samples
+                                selection = nil
+                            }
                         } label: { Image(systemName: "plus") }
                         .menuIndicator(.hidden).fixedSize()
                         Button { remove() } label: { Image(systemName: "minus") }.disabled(selection == nil)
                         Button { move(-1) } label: { Image(systemName: "chevron.up") }.disabled(selection == nil)
                         Button { move(1) } label: { Image(systemName: "chevron.down") }.disabled(selection == nil)
-                        Spacer()
-                        Button("Restore Samples") { items = ButtonBarStore.samples }
-                            .disabled(items.map(\.kind) == ButtonBarStore.samples.map(\.kind)
-                                      && items.map(\.command) == ButtonBarStore.samples.map(\.command))
                     }
                 }
+                .frame(width: 240)
                 Group {
                     if let index = selection.flatMap({ id in items.firstIndex { $0.id == id } }) {
                         ButtonEditor(item: $items[index])
@@ -185,13 +186,19 @@ private struct CommandChooser: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             TextField("Command:", text: $query, prompt: Text("Search commands"))
-            List(rows, selection: Binding(get: { command }, set: { if let new = $0 { command = new } })) { row in
-                HStack {
-                    Text(row.title)
-                    Spacer()
-                    Text(row.place).foregroundStyle(.secondary)
+            ScrollViewReader { proxy in
+                List(rows, selection: Binding(get: { command }, set: { if let new = $0 { command = new } })) { row in
+                    HStack {
+                        Text(row.title)
+                        Spacer()
+                        Text(row.place).foregroundStyle(.secondary)
+                    }
+                    .tag(row.id)
+                    .id(row.id)
                 }
-                .tag(row.id)
+                // The chosen command is in view when another button is selected.
+                .onAppear { proxy.scrollTo(command, anchor: .center) }
+                .onChange(of: command) { proxy.scrollTo(command, anchor: .center) }
             }
         }
     }
