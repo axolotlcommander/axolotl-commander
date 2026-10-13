@@ -26,7 +26,7 @@ public enum ArchiveTester {
                     if reader.detectedFormat() == .zip, !hasZipEndRecord(archive) { throw ArchiveError.incomplete }
                 }
                 if Task.isCancelled { throw ArchiveError.cancelled }
-                let info = RawEntryInfo(e)
+                let info = RawEntryInfo(e, legacy: reader.legacyNames)
                 guard !info.isDirectory, !info.isSymlink else {
                     try reader.skip()
                     continue

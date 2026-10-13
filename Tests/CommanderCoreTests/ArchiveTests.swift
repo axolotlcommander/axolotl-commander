@@ -585,6 +585,73 @@ func updateOtherFormats(format: ArchiveFormat) async throws {
     }
 }
 
+// MARK: - Legacy names
+
+/// Writes a zip whose members have exactly the given name bytes and no UTF-8 flag,
+/// as old Windows tools make them.
+private func makeLegacyZip(_ archive: URL, names: [[UInt8]], in dir: URL) throws {
+    let script = """
+    import sys, zipfile, struct
+    path = sys.argv[1]
+    names = [bytes.fromhex(h) for h in sys.argv[2:]]
+    with zipfile.ZipFile(path, 'w') as z:
+        for i, n in enumerate(names):
+            z.writestr(zipfile.ZipInfo(chr(65 + i) * len(n)), b'data')
+    b = bytearray(open(path, 'rb').read())
+    for i, n in enumerate(names):
+        ph = (chr(65 + i) * len(n)).encode()
+        j = b.find(ph)
+        while j != -1:
+            b[j:j + len(n)] = n
+            j = b.find(ph, j + 1)
+    for sig, off in ((b'PK\\x03\\x04', 6), (b'PK\\x01\\x02', 8)):
+        j = b.find(sig)
+        while j != -1:
+            struct.pack_into('<H', b, j + off, struct.unpack_from('<H', b, j + off)[0] & ~0x800)
+            j = b.find(sig, j + 1)
+    open(path, 'wb').write(b)
+    """
+    try python(script, [archive.path] + names.map { $0.map { String(format: "%02x", $0) }.joined() }, in: dir)
+}
+
+@Test func legacyCodePagesFollowTheLanguage() {
+    // "Archivní návrat čřšžěů" in CP852.
+    var cp852: [UInt8] = Array("Archivn".utf8)
+    cp852 += [0xA1, 0x20, 0x6E, 0xA0]
+    cp852 += Array("vrat ".utf8)
+    cp852 += [0x9F, 0xFD, 0xE7, 0xA7, 0xD8, 0x85]
+    #expect(LegacyNames.decode(cp852, legacy: LegacyNames.codePages(language: "cs-CZ").oem) == "Archivní návrat čřšžěů")
+    #expect(LegacyNames.decode([0x8E, 0x72], legacy: LegacyNames.codePages(language: "en-US").oem) == "Är")
+    #expect(LegacyNames.decode([0x8E, 0x72], legacy: LegacyNames.codePages(language: "ru").oem) == "Оr")
+    #expect(LegacyNames.decode([0xE8], legacy: LegacyNames.codePages(language: "cs").ansi) == "č")
+    #expect(LegacyNames.decode([0xE8], legacy: LegacyNames.codePages(language: "de").ansi) == "è")
+    // Valid UTF-8 always wins.
+    #expect(LegacyNames.decode(Array("návrat".utf8), legacy: LegacyNames.codePages(language: "cs").oem) == "návrat")
+}
+
+/// Names without the UTF-8 flag: UTF-8 bytes stay UTF-8, other bytes come from the OEM code
+/// page, in the listing and on disk alike (never "?" or U+FFFD).
+@Test func zipWithoutUTF8FlagKeepsReadableNames() async throws {
+    try await withSandbox { root in
+        let utf8 = Array("Archivní dokumenty k návratu 01.pdf".utf8)
+        var oem: [UInt8] = Array("Archivn".utf8)
+        oem.append(0xA1)
+        oem += Array(" dokument.txt".utf8)
+        let archive = root.sub("legacy.zip")
+        try makeLegacyZip(archive, names: [utf8, oem], in: root)
+        let expectedOEM = LegacyNames.decode(oem, legacy: LegacyNames.current.oem)
+        #expect(!expectedOEM.contains("\u{FFFD}"))
+
+        let listed = try await index(archive).entries.map(\.name).sorted()
+        #expect(listed == ["Archivní dokumenty k návratu 01.pdf", expectedOEM].sorted())
+
+        let dest = root.sub("out")
+        _ = try await extractAll(archive, to: dest)
+        let disk = names(dest).map { $0.precomposedStringWithCanonicalMapping }
+        #expect(disk == listed.map { $0.precomposedStringWithCanonicalMapping })
+    }
+}
+
 // MARK: - Encryption and owners
 
 /// Zip with encrypted "a.txt" and "sub/big.bin" plus a plain "plain.txt" (password "secret").
@@ -708,7 +775,7 @@ private func hardLinks(_ archive: URL) throws -> [String: String] {
         let reader = try ArchiveReadHandle(path: archive.path)
         var links: [String: String] = [:]
         while let e = try reader.next() {
-            let info = RawEntryInfo(e)
+            let info = RawEntryInfo(e, legacy: reader.legacyNames)
             if let link = info.hardlink { links[normalizeMemberPath(info.path)] = normalizeMemberPath(link) }
             try reader.skip()
         }

@@ -114,7 +114,7 @@ public struct ArchiveIndex: Sendable {
             while let e = try reader.next() {
                 count += 1
                 if count % 256 == 0 { try Task.checkCancellation() }
-                let info = RawEntryInfo(e)
+                let info = RawEntryInfo(e, legacy: reader.legacyNames)
                 let path = normalizeMemberPath(info.path)
                 if !path.isEmpty {
                     raw.append(ArchiveEntry(

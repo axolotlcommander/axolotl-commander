@@ -63,7 +63,7 @@ public enum ArchiveExtractor {
             let reader = try ArchiveReadHandle(path: archive.path, passphrases: passphrases)
             while let e = try reader.next() {
                 if Task.isCancelled { throw ArchiveError.cancelled }
-                let info = RawEntryInfo(e)
+                let info = RawEntryInfo(e, legacy: reader.legacyNames)
                 let path = normalizeMemberPath(info.path)
                 guard info.isEncrypted, !info.isDirectory, !path.isEmpty,
                       members.contains(where: { memberPath(path, isAtOrBelow: $0) })
@@ -134,7 +134,7 @@ public enum ArchiveExtractor {
         while let e = try reader.next() {
             count += 1
             if count % 256 == 0, Task.isCancelled { throw ArchiveError.cancelled }
-            let info = RawEntryInfo(e)
+            let info = RawEntryInfo(e, legacy: reader.legacyNames)
             let path = normalizeMemberPath(info.path)
             guard !path.isEmpty, members.contains(where: { memberPath(path, isAtOrBelow: $0) }),
                   let target = targetPath(for: path)
