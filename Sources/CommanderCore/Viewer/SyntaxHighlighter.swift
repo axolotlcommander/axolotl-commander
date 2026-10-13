@@ -2757,7 +2757,7 @@ extension SyntaxEngine {
         var css = Definition("css", "CSS", ext: "css scss less", family: .css)
         css.cssLineComments = true
         d.append(css)
-        d.append(Definition("json", "JSON", ext: "json jsonc json5 geojson xcstrings", family: .json))
+        d.append(Definition("json", "JSON", ext: "json jsonc json5 geojson jsonl ndjson xcstrings", family: .json))
         d.append(Definition("yaml", "YAML", ext: "yml yaml", family: .yaml))
         d.append(Definition("ini", "INI", ext: "ini cfg conf properties toml editorconfig gitconfig", family: .ini))
         d.append(Definition("markdown", "Markdown", ext: "md markdown mdown", family: .markdown))

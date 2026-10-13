@@ -59,8 +59,8 @@ enum ViewerDefaults {
     static let tableExtensions: Set<String> = ["csv", "tsv", "tab"]
     static let jsonExtensions: Set<String> = ["json", "jsonc", "json5", "geojson", "jsonl", "ndjson"]
     static let jsonLinesExtensions: Set<String> = ["jsonl", "ndjson"]
-    /// Larger JSON files ask before the tree is built.
-    static let jsonTreeLimit = 20 << 20
+    /// Larger JSON files ask before they are formatted.
+    static let jsonFormatLimit = 20 << 20
 
     static func isJSON(_ url: URL) -> Bool {
         jsonExtensions.contains(url.pathExtension.lowercased())
@@ -107,7 +107,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         /// Shown in the web view (find, zoom, the internet bar).
         var isPage: Bool { self == .markdown || self == .html }
         /// The preview has a find bar.
-        var hasFind: Bool { isPage || self == .table || self == .json }
+        var hasFind: Bool { isPage || self == .table }
         /// Shown in the picture view (zoom, fit, picture stepping).
         var isPicture: Bool { self == .image || self == .vector }
     }
@@ -169,14 +169,17 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
     /// Bumped whenever the text view gets new text; stale highlighting is dropped.
     private var textGeneration = 0
     private var language: SyntaxLanguage? {
+        if showsFormattedJSON { return SyntaxLanguage.forFile(named: "formatted.json") }
         let name = sequence.current.lastPathComponent
         return SyntaxLanguage.forFile(named: sequence.current.pathExtension.lowercased() == "svgz" ? String(name.dropLast()) : name)
     }
-    /// The parsed JSON of the current file, or why it is not JSON.
-    private var jsonDocument: JSONDocument?
+    /// The current JSON file indented for Preview, or why it is not JSON.
+    private var jsonText: String?
     private var jsonError: JSONParseError?
-    /// A large JSON file asks before its tree is built.
-    private var asksForTree = false
+    /// The first bad line of a JSON Lines file; Preview keeps that line as written.
+    private var jsonLineError: JSONParseError?
+    /// A large JSON file asks before it is formatted.
+    private var asksToFormat = false
 
     private let textScroll = NSScrollView()
     private let textView = ViewerTextView(usingTextLayoutManager: true)
@@ -186,7 +189,6 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
     private let markdownPreview = MarkdownPreview()
     private let imagePreview = ImagePreview()
     private let tablePreview = TablePreview()
-    private let jsonPreview = JSONTreePreview()
     private let mediaPreview = MediaPreview()
     private let separatorPopup = NSPopUpButton(frame: .zero, pullsDown: false)
     private let headerBox = NSButton(checkboxWithTitle: String(localized: "Header"), target: nil, action: nil)
@@ -194,7 +196,9 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
     private var loadToken = 0
     private var isTable: Bool { mode == .preview && previewKind == .table }
     private var isMedia: Bool { mode == .preview && previewKind == .media }
-    private var isTree: Bool { mode == .preview && previewKind == .json }
+    /// Preview of a JSON file: the indented text in the text view.
+    private var showsFormattedJSON: Bool { mode == .preview && previewKind == .json }
+    private var usesTextView: Bool { mode == .text || showsFormattedJSON }
     private var keyMonitor: Any?
     private let modeControl = NSSegmentedControl(labels: [String(localized: "Text"), String(localized: "Hex"),
                                                           String(localized: "Preview")],
@@ -276,13 +280,11 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         imagePreview.onZoomChange = { [weak self] in self?.updateInfo() }
         tablePreview.onKey = { [weak self] in self?.handleKey($0) ?? false }
         tablePreview.onStatusChange = { [weak self] in self?.updateInfo() }
-        jsonPreview.onKey = { [weak self] in self?.handleKey($0) ?? false }
-        jsonPreview.onSelectionChange = { [weak self] in self?.updateInfo() }
         mediaPreview.onKey = { [weak self] in self?.handleKey($0) ?? false }
         mediaPreview.onDetails = { [weak self] in self?.updateInfo() }
 
         let lists = NSView()
-        for scroll in [textScroll, hexScroll, markdownPreview, imagePreview, tablePreview, jsonPreview, mediaPreview] as [NSView] {
+        for scroll in [textScroll, hexScroll, markdownPreview, imagePreview, tablePreview, mediaPreview] as [NSView] {
             (scroll as? NSScrollView)?.borderType = .noBorder
             // Shown by `show(at:)` once the window has its final layout: a scroll view visible from the
             // start keeps a title bar pocket (macOS 26) laid out a title bar too low, over the content.
@@ -375,10 +377,10 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         loadToken += 1
         if previewKind != .table { tablePreview.clear() }
         mediaPreview.clear()
-        jsonPreview.clear()
-        jsonDocument = nil
+        jsonText = nil
         jsonError = nil
-        asksForTree = false
+        jsonLineError = nil
+        asksToFormat = false
         modeControl.setEnabled(previewKind != nil, forSegment: 2)
         window?.title = url.lastPathComponent
         window?.subtitle = url.deletingLastPathComponent().displayPath
@@ -405,25 +407,24 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
                 mode = .text
             } else if let modeOverride, modeOverride != .preview || previewKind != nil {
                 mode = modeOverride
-            } else if previewKind == .json, data.count > ViewerDefaults.jsonTreeLimit {
+            } else if previewKind == .json, data.count > ViewerDefaults.jsonFormatLimit {
                 mode = .text
-                asksForTree = true
+                asksToFormat = true
             } else {
                 mode = previewKind != nil ? .preview : isBinary ? .hex : .text
             }
             show(at: position)
-            if asksForTree { Task { await askForTree() } }
+            if asksToFormat { Task { await askToFormat() } }
         }
     }
 
     /// Shows the current mode; `position` is the fraction of the file to scroll to.
     private func show(at position: Double) {
-        textScroll.isHidden = mode != .text
+        textScroll.isHidden = !usesTextView
         hexScroll.isHidden = mode != .hex
         markdownPreview.isHidden = !(mode == .preview && previewKind?.isPage == true)
         imagePreview.isHidden = !(mode == .preview && (previewKind == .image || previewKind == .vector))
         tablePreview.isHidden = !isTable
-        jsonPreview.isHidden = !(mode == .preview && previewKind == .json)
         mediaPreview.isHidden = !isMedia
         if !isMedia { mediaPreview.pause() }
         if mode == .text || mode == .preview && previewKind?.hasFind != true { findBar.isHidden = true }
@@ -475,35 +476,37 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         case .json?:
             markdownPreview.clear()
             imagePreview.clear()
-            window?.makeFirstResponder(jsonPreview.keyView)
-            if let jsonDocument {
-                if jsonPreview.document == nil { jsonPreview.show(jsonDocument) }
-                updateInfo()
+            window?.makeFirstResponder(textView)
+            if let jsonText {
+                showFormattedJSON(jsonText, at: position)
                 return
             }
-            jsonPreview.showBuilding()
-            infoField.stringValue = String(localized: "Building the tree…")
+            decodedAs = nil
+            setText("")
+            infoField.stringValue = String(localized: "Formatting…")
             let data = data, lines = ViewerDefaults.jsonLinesExtensions.contains(sequence.current.pathExtension.lowercased())
             previewTask = Task {
-                let result = await Task.detached(priority: .userInitiated) { () -> Result<JSONDocument, any Error> in
-                    Result { try JSONDocument.parse(data, lines: lines, isCancelled: { Task.isCancelled }) }
+                let result = await Task.detached(priority: .userInitiated) { () -> Result<(String, JSONParseError?), any Error> in
+                    Result {
+                        let document = try JSONDocument.parse(data, lines: lines, isCancelled: { Task.isCancelled })
+                        return (document.formatted(), document.firstLineError)
+                    }
                 }.value
                 guard !Task.isCancelled else { return }
                 switch result {
-                case .success(let document):
-                    jsonDocument = document
-                    jsonPreview.show(document)
-                    updateInfo()
+                case .success(let (text, lineError)):
+                    jsonText = text
+                    jsonLineError = lineError
+                    showFormattedJSON(text, at: position)
                 case .failure(let error as JSONParseError):
                     // Not JSON after all: the source with the place of the first error.
                     jsonError = error
-                    jsonPreview.clear()
                     modeControl.setEnabled(false, forSegment: 2)
                     modeOverride = nil
                     mode = .text
                     show(at: 0)
                 case .failure:
-                    jsonPreview.clear()
+                    break
                 }
             }
         case .media?:
@@ -529,6 +532,14 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         case nil:
             break
         }
+    }
+
+    /// The indented JSON in the text view; the source is decoded again when Text comes back.
+    private func showFormattedJSON(_ text: String, at position: Double) {
+        decodedAs = nil
+        setText(text)
+        scrollText(to: position)
+        updateStatus()
     }
 
     /// Where to put the text after decoding: a fraction of the text, or the same scroll origin.
@@ -590,11 +601,11 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
     /// Where the view is, as a fraction of the file (text: characters, hex: bytes).
     private func positionFraction() -> Double {
         switch mode {
-        case .preview:
+        case .preview where !showsFormattedJSON:
             return previewKind == .table ? tablePreview.topFraction : 0
         case .hex:
             return data.isEmpty ? 0 : Double(hexView.topOffset) / Double(data.count)
-        case .text:
+        case .text, .preview:
             let length = textView.string.utf16.count
             guard length > 0 else { return 0 }
             let index = textView.characterIndexForInsertion(at: NSPoint(x: textView.visibleRect.minX + 4,
@@ -625,9 +636,9 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         encodingPopup.selectItem(withTag: TextEncoding.allCases.firstIndex(of: encoding) ?? 0)
         encodingPopup.lastItem?.state = encodingOverride == nil ? .on : .off
         wrapBox.state = wrap ? .on : .off
-        wrapBox.isEnabled = mode == .text
+        wrapBox.isEnabled = usesTextView
         encodingPopup.isHidden = mode == .preview && [.image, .vector, .json, .media].contains(previewKind)
-        wrapBox.isHidden = mode == .preview
+        wrapBox.isHidden = mode == .preview && !showsFormattedJSON
         separatorPopup.isHidden = !isTable
         headerBox.isHidden = !isTable
         if isTable {
@@ -654,11 +665,9 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
             infoField.stringValue = parts.joined(separator: " · ")
             return
         }
-        if isTree {
-            if jsonDocument != nil {
-                parts.append(String(localized: "\(jsonPreview.nodeCount) nodes"))
-                if let path = jsonPreview.selectedPath { parts.append(path) }
-            }
+        if showsFormattedJSON {
+            parts.append(String(localized: "formatted JSON"))
+            if let jsonLineError { parts.append(String(localized: "not valid JSON: \(Self.message(jsonLineError))")) }
             infoField.stringValue = parts.joined(separator: " · ")
             return
         }
@@ -688,7 +697,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
                                                       : String(localized: "images from the internet blocked"))
         }
         if mode == .text, let jsonError {
-            parts.append(String(localized: "not valid JSON: \(JSONTreePreview.message(jsonError))"))
+            parts.append(String(localized: "not valid JSON: \(Self.message(jsonError))"))
         }
         if mode == .text, truncated {
             parts.append(String(localized: "text shows the first \(Format.bytes(Int64(ViewerDefaults.textLimit))), Hex shows all"))
@@ -744,18 +753,34 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         return mediaPreview.handleKey(event)
     }
 
-    /// A JSON file over the limit: the tree only when the user wants it.
-    private func askForTree() async {
+    /// A JSON file over the limit: formatted only when the user wants it.
+    private func askToFormat() async {
         guard let window, previewKind == .json, mode == .text else { return }
         let url = sequence.current
         let alert = NSAlert()
-        alert.messageText = String(localized: "This JSON file is \(Format.bytes(Int64(data.count))). Show it as a tree?")
-        alert.informativeText = String(localized: "Building the tree of a large file may take a while.")
-        alert.addButton(withTitle: String(localized: "Show Tree"))
+        alert.messageText = String(localized: "This JSON file is \(Format.bytes(Int64(data.count))). Format it?")
+        alert.informativeText = String(localized: "Formatting a large file may take a while.")
+        alert.addButton(withTitle: String(localized: "Show Formatted"))
         alert.addButton(withTitle: String(localized: "Text")).keyEquivalent = "\u{1b}"
         let answer = await alert.beginSheetModal(for: window)
         guard url == sequence.current, answer == .alertFirstButtonReturn else { return }
         setMode(.preview)
+    }
+
+    /// Where and why a file is not JSON, for the status line.
+    private static func message(_ error: JSONParseError) -> String {
+        let reason = switch error.reason {
+        case .unexpectedEnd: String(localized: "the text ends too early")
+        case .unexpectedCharacter: String(localized: "unexpected character")
+        case .unterminatedString: String(localized: "a string is not closed")
+        case .invalidEscape: String(localized: "invalid escape sequence")
+        case .invalidNumber: String(localized: "invalid number")
+        case .controlCharacter: String(localized: "control character in a string")
+        case .unsupportedJSON5: String(localized: "JSON5 syntax is not supported")
+        case .trailingData: String(localized: "more text after the end")
+        case .emptyDocument: String(localized: "the file is empty")
+        }
+        return String(localized: "line \(error.line), column \(error.column): \(reason)")
     }
 
     func perform(_ command: Command) {
@@ -779,12 +804,6 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         case .viewerHex: setMode(.hex)
         case .viewerPreview:
             if previewKind == nil || jsonError != nil { NSSound.beep() } else { setMode(.preview) }
-        case .viewerCopyPath:
-            if !isTree || !jsonPreview.copyPath() { NSSound.beep() }
-        case .viewerExpandAll:
-            if isTree { jsonPreview.expandAll() }
-        case .viewerCollapseAll:
-            if isTree { jsonPreview.collapseAll() }
         case .viewerHighlight:
             highlight.toggle()
             UserDefaults.standard.set(highlight, forKey: ViewerDefaults.highlightKey)
@@ -838,11 +857,9 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         case .viewerPreview:
             menuItem.state = mode == .preview ? .on : .off
             return previewKind != nil && loadError == nil && jsonError == nil
-        case .viewerCopyPath: return isTree && jsonPreview.selectedNode != nil
-        case .viewerExpandAll, .viewerCollapseAll: return isTree && jsonDocument != nil
         case .viewerHighlight:
             menuItem.state = highlight ? .on : .off
-            return mode == .text && language != nil
+            return usesTextView && language != nil
         case .viewerLoadRemote:
             return mode == .preview && previewKind?.isPage == true && !remoteAllowed && markdownPreview.remoteCount > 0
         case .viewerSaveImageAs: return previewKind == .image && loadError == nil
@@ -851,7 +868,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
             return !(mode == .preview && previewKind?.hasFind != true)
         case .viewerWrap:
             menuItem.state = wrap ? .on : .off
-            return mode == .text
+            return usesTextView
         case .viewerAutoEncoding: menuItem.state = encodingOverride == nil ? .on : .off
         case .viewerGoTo:
             if isTable {
@@ -1018,14 +1035,14 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
 
     private func find(_ action: NSTextFinder.Action) {
         switch mode {
-        case .preview:
+        case .preview where !showsFormattedJSON:
             guard previewKind?.hasFind == true else { NSSound.beep(); return }
             switch action {
             case .showFindInterface, .setSearchString: showFindBar()
             default:
                 if findBar.query.isEmpty { showFindBar() } else { findInBar(backward: action == .previousMatch) }
             }
-        case .text:
+        case .text, .preview:
             let item = NSMenuItem()
             item.tag = action.rawValue
             textView.performTextFinderAction(item)
@@ -1052,8 +1069,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
 
     private func closeFindBar() {
         findBar.isHidden = true
-        window?.makeFirstResponder(isTable ? tablePreview.keyView : isTree ? jsonPreview.keyView
-                                   : mode == .preview ? markdownPreview.webView : hexView)
+        window?.makeFirstResponder(isTable ? tablePreview.keyView : mode == .preview ? markdownPreview.webView : hexView)
     }
 
     private func findInBar(backward: Bool) {
@@ -1061,13 +1077,6 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         let query = findBar.query
         guard !query.isEmpty else { return }
         if isTable { return tablePreview.find(query, ignoreCase: findBar.ignoresCase, backward: backward) }
-        if isTree {
-            if !jsonPreview.find(query, ignoreCase: findBar.ignoresCase, backward: backward) {
-                NSSound.beep()
-                infoField.stringValue = String(localized: "Not found.")
-            }
-            return
-        }
         findTask?.cancel()
         findTask = Task {
             let found = await markdownPreview.find(query, backward: backward, ignoreCase: findBar.ignoresCase)
@@ -1219,7 +1228,6 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         markdownPreview.clear()
         imagePreview.clear()
         tablePreview.clear()
-        jsonPreview.clear()
         mediaPreview.clear()
         if let keyMonitor { NSEvent.removeMonitor(keyMonitor) }
         keyMonitor = nil

@@ -9,17 +9,13 @@ All core types live in `Sources/CommanderCore/Viewer/` and have no AppKit depend
 | `bytes` | `[UInt8]` | the file content (BOM skipped); ranges below point into it |
 | `nodes` | `[JSONNode]` | flat, in file order; index 0 is the root (a virtual root holding the lines for JSON Lines) |
 | `isLines` | `Bool` | parsed as JSON Lines |
-| `error` | `JSONParseError?` | set when a whole-file parse failed; then `nodes` is empty |
 
 - `static func parse(_ data: Data, lines: Bool, isCancelled: () -> Bool) throws -> JSONDocument`
-  (throws `CancellationError`).
-- `func children(of node: Int) -> Range<Int>`-like access through `firstChild`/`childCount` and
-  `nextSibling`.
-- `func keyText(_ node: Int) -> String?`, `func valueText(_ node: Int, limit: Int) -> String`
-  (short display text, strings decoded and cut at `limit` characters with "…").
-- `func path(of node: Int) -> String` (R2 format), `func copyValue(of node: Int) -> String` (R2 rules).
-- `func search(_ text: String, from node: Int, backward: Bool, ignoreCase: Bool) -> Int?` over keys and
-  value texts, wrapping around.
+  (throws `JSONParseError` for a broken document, `CancellationError` when cancelled).
+- Children are walked through `firstChild`/`childCount` and `nextSibling`.
+- `func formatted() -> String`: the indented text of research R2 (two spaces per level, at most
+  `maxIndentDepth` = 64 levels, tokens as written; JSON Lines one record after another).
+- `var firstLineError: JSONParseError?`: the first bad line of a JSON Lines file, for the status line.
 
 ## JSONNode
 
@@ -33,18 +29,12 @@ All core types live in `Sources/CommanderCore/Viewer/` and have no AppKit depend
 | `firstChild`, `childCount` | `Int` | children are contiguous by subtree: `nextSibling` is stored for O(1) walking |
 | `nextSibling` | `Int` | -1 when last |
 | `line`, `column` | `Int` | 1-based position of the value in the file (for errors and future "show in Text") |
-| `isDuplicate` | `Bool` | a later key with the same name in the same object |
-| `message` | `String?` | only for `error` nodes |
+| `error` | `JSONParseError?` | only for `error` nodes; line and column are absolute in the file |
 
 ## JSONParseError
 
 `line`, `column` (1-based, in characters of the line), `reason` (English source string, localized in
 the UI: unexpected character, unterminated string, unsupported JSON5 syntax, trailing data…).
-
-## JSONTreeGroup (UI only)
-
-The outline item for a range of 100 children of a large container: `parent`, `lower`, `upper`.
-Displayed as `[0 … 99]` (arrays) or `{0 … 99}` (objects).
 
 ## MediaDetails
 
@@ -62,6 +52,7 @@ Displayed as `[0 … 99]` (arrays) or `{0 … 99}` (objects).
 
 `markdown`, `html`, `image`, `table` (existing) + `json`, `vector`, `media`. Default mode is Preview for
 all of them except: invalid JSON → Text, Preview disabled; JSON above 20 MB → Text with the question.
+Preview of `json` is the formatted text in the viewer's text view.
 
 ## SVGData
 

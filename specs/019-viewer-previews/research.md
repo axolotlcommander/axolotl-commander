@@ -6,44 +6,41 @@
   It works on the UTF-8 bytes in one pass and builds a flat array of nodes (parent index, first child,
   child count). It keeps byte ranges for keys and values instead of strings, so a 10 MB file does not
   allocate millions of strings. It accepts `//` and `/* */` comments and trailing commas, keeps
-  duplicate keys in file order (marking the later ones), keeps number text exactly as written, and on
+  duplicate keys in file order, keeps number text exactly as written, and on
   the first error stops with the line, column and a short reason. A UTF-8 BOM is skipped.
 - **JSON Lines** (`.jsonl`, `.ndjson`): each non-empty line is parsed as its own top-level value. A bad
-  line becomes an error node with its message and the other lines still show.
+  line becomes an error node with its message and the other lines are still formatted.
 - **Rationale**: `JSONSerialization`/`JSONDecoder` lose key order and duplicates, reject comments and
   round big numbers; the existing `JSONValue` (settings) is an unordered dictionary. A hand-written
   byte scanner is fast enough for SC-001 (10 MB within 2 s) and fully testable.
 - **Alternatives**: a third-party parser (new dependency, no comment support guarantees); converting
   JSONC to JSON first and then using Foundation (still loses order and duplicates).
 
-## R2 JSON tree view
+## R2 JSON formatted view
 
-- **Decision**: `JSONTreePreview` in the UI, an `NSOutlineView` with three columns (Key, Value, Type)
-  over lightweight item objects created only for expanded nodes. Arrays and objects with more than 100
-  children show them in groups of 100 (`[0 … 99]`), each a collapsed node. The first two levels are
-  expanded on open.
-- **Keys**: → / ← expand and collapse (← on a collapsed or leaf node selects the parent); ⌥→ / ⌥←
-  expand or collapse the whole subtree (groups included); Return toggles the node. ⌘C goes through
-  the existing `viewerCopy` command and copies the value; new commands `viewerCopyPath` (⇧⌘C),
-  `viewerExpandAll` and `viewerCollapseAll` (View menu, no default key). Space, ⌫ and Esc reach the
-  viewer first through `onKey`, as in the other previews.
-- **Copy Value**: a string is copied decoded and without quotes; a number, boolean or null as written;
-  an object or array as indented JSON in file order (comments dropped).
-- **Copy Path**: `items[3].name`; a key that is not an identifier is written as `["two words"]`; a top
-  level line of JSON Lines starts with its zero-based index, `[4].name`. The root alone copies `$`.
-- **Find**: the existing `HexFindBar` (as for the table and page previews). The search runs over keys
-  and value texts in the core (`JSONDocument.search`), in file order, wraps around, expands the parents
-  of a match and selects it.
-- **Rationale**: `NSOutlineView` gives the standard keyboard behavior, accessibility and dark mode for
-  free; groups keep a 1 000 000-item array responsive.
+- **Decision** (revised 2026-10-13, spec Clarifications "review"; it replaces a tree view built first):
+  `JSONDocument.formatted()` writes the document indented by two spaces per level, members in file order,
+  keys, strings and numbers as their original tokens (escapes kept), comments, trailing commas and the
+  BOM dropped. Levels below 64 share the indentation of level 64, so a deeply nested file cannot make
+  the text grow quadratically. JSON Lines: each record formatted on its own, one after another, a bad
+  line copied as written, empty lines left out; `firstLineError` gives the first bad line for the
+  status line.
+- **View**: Preview of a JSON file shows the formatted text in the viewer's existing text view
+  (`showsFormattedJSON`), with JSON highlighting whatever the extension, the system find bar (⌘F, ⌘G),
+  selection and ⌘C, wrapping and zoom. The source is decoded again when Text mode comes back
+  (`decodedAs` is reset). Go to Line stays a Text mode command.
+- **Rationale**: the maintainer tried the tree and found formatted text enough; the text view already
+  has every reading tool, so no new view, keys or commands are needed.
+- **Alternatives**: the `NSOutlineView` tree with Key / Value / Type columns, Copy Path and Expand All
+  (built, then dropped); a separate text view for Preview (duplicates the text view setup).
 
 ## R3 Large JSON
 
-- **Decision**: above 20 MB (`ViewerDefaults.jsonTreeLimit`, a constant) the viewer opens the file in
-  Text mode and shows a sheet: "This JSON file is 34 MB. Show it as a tree? It may take a while." with
-  **Show Tree** and **Text** (Esc = Text). Show Tree switches to Preview. Choosing Preview later with
-  ⌘3 builds the tree without asking. Stepping to another large file asks again. The tree is always
-  built in a detached task with a progress indicator; stepping or closing cancels it.
+- **Decision**: above 20 MB (`ViewerDefaults.jsonFormatLimit`, a constant) the viewer opens the file in
+  Text mode and shows a sheet: "This JSON file is 34 MB. Format it?" with **Show Formatted** and
+  **Text** (Esc = Text). Show Formatted switches to Preview. Choosing Preview later with ⌘3 formats
+  without asking. Stepping to another large file asks again. Parsing and formatting always run in a
+  detached task ("Formatting…" in the status line); stepping or closing cancels it.
 - **Rationale**: the maintainer asked for a question rather than a silent limit or a setting.
 
 ## R4 SVG
@@ -107,9 +104,7 @@
 
 ## R7 Commands, menus and settings
 
-- New commands: `viewerCopyPath` ("Copy Path", Edit menu, ⇧⌘C), `viewerExpandAll` ("Expand All", View),
-  `viewerCollapseAll` ("Collapse All", View). ⇧⌘C is free in the viewer scope (the Find window's Copy
-  Name as Text is another scope). `viewerCopy` copies the JSON value when the tree is shown.
+- No new commands: the formatted JSON uses the text view's Copy, Find and Wrap commands.
 - No new user preference (FR-009): the 20 MB limit is a constant.
-- `validateMenuItem` gets the new kinds: zoom for `.vector`; find for `.json`; Copy Path / Expand All /
-  Collapse All only for `.json`; Save Image As only for raster images.
+- `validateMenuItem` gets the new kinds: zoom for `.vector`; find, wrap and highlighting for the
+  formatted JSON as in Text mode; Save Image As only for raster images.

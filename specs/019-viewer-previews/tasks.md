@@ -5,11 +5,10 @@
 
 ## Phase 1: Foundational
 
-- [X] T001 Commands `viewerCopyPath` ("Copy Path", `.edit`, ⇧⌘C), `viewerExpandAll` ("Expand All", `.view`),
-  `viewerCollapseAll` ("Collapse All", `.view`) in `Sources/CommanderCore/Command.swift`; the existing
-  key-map conflict tests stay green.
+- [X] T001 ~~Commands `viewerCopyPath`, `viewerExpandAll`, `viewerCollapseAll` in
+  `Sources/CommanderCore/Command.swift`~~ — added for the tree, removed again by T014.
 
-## Phase 2: User Story 1 — JSON tree (P1)
+## Phase 2: User Story 1 — formatted JSON (P1)
 
 - [X] T002 [US1] `JSONDocument`, `JSONNode`, `JSONKind`, `JSONParseError` in
   `Sources/CommanderCore/Viewer/JSONDocument.swift` (research R1, data-model): byte parser with
@@ -27,7 +26,7 @@
   detached load; invalid JSON → Text with the error in the status line and Preview disabled; above 20 MB
   (`ViewerDefaults.jsonTreeLimit`) open Text and ask (sheet: Show Tree / Text, Esc = Text); ⌘3 later
   builds without asking; cancellation on step/close.
-- [X] T005 [US1] `JSONTreePreview` in `Sources/AxolotlCommander/Viewer/JSONTreePreview.swift`:
+- [X] T005 [US1] ~~`JSONTreePreview`~~ (replaced by T014) in `Sources/AxolotlCommander/Viewer/JSONTreePreview.swift`:
   `NSOutlineView` with Key / Value / Type columns, items for expanded nodes only, groups of 100, first
   two levels expanded, `onKey` first, → ← ⌥→ ⌥← Return, duplicate mark, dark mode colors from
   `SyntaxColors`; wired into `show`/`showPreview`/`validateMenuItem`/`find` (HexFindBar)/`closeFindBar`/
@@ -35,6 +34,16 @@
   `viewerExpandAll`, `viewerCollapseAll`.
 
 **Checkpoint**: build without warnings, `swift test` green, commit "[Spec 019] JSON tree preview".
+
+- [X] T014 [US1] Formatted JSON instead of the tree (spec Clarifications "review", research R2/R3):
+  `JSONDocument.formatted()` (two spaces, `maxIndentDepth` 64, tokens as written, JSON Lines record by
+  record, bad lines as written) and `firstLineError` in `Sources/CommanderCore/Viewer/JSONDocument.swift`;
+  the tree-only API (`keyText`, `valueText`, `path`, `copyValue`, `search`, `children`, `ancestors`,
+  duplicate marks) removed; tests in `Tests/CommanderCoreTests/JSONDocumentTests.swift` for formatting,
+  escapes, JSON Lines and the indentation cap. `ViewerWindowController` shows the text in the text view
+  (`showsFormattedJSON`: JSON highlighting, find, wrap, copy; source decoded again for Text), the 20 MB
+  question becomes Show Formatted / Text (`jsonFormatLimit`); `JSONTreePreview.swift` and the three
+  commands deleted; `jsonl ndjson` highlighted as JSON; strings and CHANGELOG updated.
 
 ## Phase 3: User Story 2 — SVG (P1)
 
@@ -82,7 +91,7 @@
 
 ## Dependencies
 
-- T001 → T005. T002 → T003, T004 → T005. T006 → T007. T008 → T009. T010 → T011. T012 → T013.
+- T001 → T005. T002 → T003, T004 → T005 → T014. T006 → T007. T008 → T009. T010 → T011. T012 → T013.
 - The phases are independent apart from shared edits in `ViewerWindowController.swift` (do them in
   order).
 
@@ -92,4 +101,4 @@
 
 ## Implementation strategy
 
-- MVP: Phase 2 (JSON tree). Then SVG, .NET highlighting and media, each its own commit.
+- MVP: Phase 2 (formatted JSON). Then SVG, .NET highlighting and media, each its own commit.

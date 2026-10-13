@@ -543,40 +543,6 @@
         }
       }
     },
-    "%lld nodes": {
-      "localizations": {
-        "cs": {
-          "variations": {
-            "plural": {
-              "few": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld uzly"
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld uzly"
-                }
-              },
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld uzel"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld uzlů"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "%lld not readable…": {
       "localizations": {
         "cs": {
@@ -1275,26 +1241,6 @@
         }
       }
     },
-    "Building the tree of a large file may take a while.": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sestavení stromu velkého souboru může chvíli trvat."
-          }
-        }
-      }
-    },
-    "Building the tree…": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sestavuji strom…"
-          }
-        }
-      }
-    },
     "Button Bar": {
       "localizations": {
         "cs": {
@@ -1679,16 +1625,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zavřít okno"
-          }
-        }
-      }
-    },
-    "Collapse All": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sbalit vše"
           }
         }
       }
@@ -2660,16 +2596,6 @@
         }
       }
     },
-    "Duplicate key: an earlier member has the same name.": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Duplicitní klíč: dřívější položka má stejný název."
-          }
-        }
-      }
-    },
     "Eject": {
       "localizations": {
         "cs": {
@@ -2750,16 +2676,6 @@
         }
       }
     },
-    "Expand All": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Rozbalit vše"
-          }
-        }
-      }
-    },
     "External Disk": {
       "localizations": {
         "cs": {
@@ -2796,6 +2712,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Složky, z nichž jedna je uvnitř druhé, nelze synchronizovat: kopírování by pokračovalo do vlastní kopie."
+          }
+        }
+      }
+    },
+    "Formatting a large file may take a while.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Formátování velkého souboru může chvíli trvat."
+          }
+        }
+      }
+    },
+    "Formatting…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Formátuji…"
           }
         }
       }
@@ -2896,16 +2832,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vlevo: %@"
-          }
-        }
-      }
-    },
-    "Line %lld": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Řádek %lld"
           }
         }
       }
@@ -3160,12 +3086,12 @@
         }
       }
     },
-    "Show Tree": {
+    "Show Formatted": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zobrazit strom"
+            "value": "Naformátovat"
           }
         }
       }
@@ -3350,12 +3276,12 @@
         }
       }
     },
-    "This JSON file is %@. Show it as a tree?": {
+    "This JSON file is %@. Format it?": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tento soubor JSON má %@. Zobrazit ho jako strom?"
+            "value": "Tento soubor JSON má %@. Naformátovat ho?"
           }
         }
       }
@@ -3380,26 +3306,6 @@
         }
       }
     },
-    "Type": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Typ"
-          }
-        }
-      }
-    },
-    "Value": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hodnota"
-          }
-        }
-      }
-    },
     "a string is not closed": {
       "localizations": {
         "cs": {
@@ -3416,26 +3322,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "a dalších %lld"
-          }
-        }
-      }
-    },
-    "array": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "pole"
-          }
-        }
-      }
-    },
-    "boolean": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "logická hodnota"
           }
         }
       }
@@ -9075,16 +8961,6 @@
         }
       }
     },
-    "error": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "chyba"
-          }
-        }
-      }
-    },
     "external": {
       "localizations": {
         "cs": {
@@ -9101,6 +8977,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "složka"
+          }
+        }
+      }
+    },
+    "formatted JSON": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "naformátovaný JSON"
           }
         }
       }
@@ -9286,26 +9172,6 @@
         }
       }
     },
-    "number": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "číslo"
-          }
-        }
-      }
-    },
-    "object": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "objekt"
-          }
-        }
-      }
-    },
     "offset %@ (%@)": {
       "localizations": {
         "cs": {
@@ -9352,16 +9218,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "velikost"
-          }
-        }
-      }
-    },
-    "string": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "řetězec"
           }
         }
       }

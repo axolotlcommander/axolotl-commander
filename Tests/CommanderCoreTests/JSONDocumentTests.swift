@@ -22,13 +22,33 @@ private func parseError(_ text: String) -> JSONParseError? {
     }
 }
 
+private extension JSONDocument {
+    func kids(_ node: Int) -> [Int] {
+        var result: [Int] = []
+        var child = nodes[node].firstChild
+        while child >= 0 {
+            result.append(child)
+            child = nodes[child].nextSibling
+        }
+        return result
+    }
+
+    /// The key token without its quotes, as written.
+    func key(_ node: Int) -> String? {
+        nodes[node].key.map { String(decoding: bytes[($0.lowerBound + 1)..<($0.upperBound - 1)], as: UTF8.self) }
+    }
+
+    /// The value text as written.
+    func raw(_ node: Int) -> String { String(decoding: bytes[nodes[node].value], as: UTF8.self) }
+}
+
 /// The node reached by following keys (objects) or indices (arrays) from the root.
 private func node(_ d: JSONDocument, _ steps: Any...) -> Int {
     var current = 0
     for step in steps {
-        let kids = d.children(of: current)
+        let kids = d.kids(current)
         if let key = step as? String {
-            current = kids.first { d.keyText($0) == key }!
+            current = kids.first { d.key($0) == key }!
         } else {
             current = kids[step as! Int]
         }
@@ -40,11 +60,10 @@ private func node(_ d: JSONDocument, _ steps: Any...) -> Int {
     @Test func everyValueKind() throws {
         let d = try doc(#"{"o": {}, "a": [], "s": "x", "n": -1.5e3, "t": true, "f": false, "z": null}"#)
         #expect(d.nodes.map(\.kind) == [.object, .object, .array, .string, .number, .bool, .bool, .null])
-        #expect(d.valueText(node(d, "n")) == "-1.5e3")
-        #expect(d.valueText(node(d, "s")) == "x")
-        #expect(d.valueText(node(d, "t")) == "true")
-        #expect(d.valueText(node(d, "z")) == "null")
-        #expect(d.valueText(0) == "")
+        #expect(d.raw(node(d, "n")) == "-1.5e3")
+        #expect(d.raw(node(d, "s")) == #""x""#)
+        #expect(d.raw(node(d, "t")) == "true")
+        #expect(d.raw(node(d, "z")) == "null")
         #expect(!d.isLines)
         for top in [#""text""#, "42", "true", "null", "[]"] {
             #expect(try doc(top).nodes.count == 1)
@@ -60,9 +79,7 @@ private func node(_ d: JSONDocument, _ steps: Any...) -> Int {
         #expect(d.nodes.map(\.childCount) == [2, 2, 0, 1, 0, 0])
         #expect(d.nodes.map(\.nextSibling) == [-1, 5, 3, -1, -1, -1])
         #expect(d.nodes.map(\.index) == [0, 0, 0, 1, 0, 1])
-        #expect(d.children(of: 0) == [1, 5])
-        #expect(d.ancestors(of: 4) == [3, 1, 0])
-        #expect(d.ancestors(of: 0) == [])
+        #expect(d.kids(0) == [1, 5])
         #expect(d.nodes[1].key.map { Array(d.bytes[$0]) } == Array(#""a""#.utf8))
         #expect(d.nodes[2].key == nil)
         #expect(String(decoding: d.bytes[d.nodes[3].value], as: UTF8.self) == #"{"b": 2}"#)
@@ -75,45 +92,28 @@ private func node(_ d: JSONDocument, _ steps: Any...) -> Int {
         #expect(d.nodes.map(\.column) == [1, 8, 9, 5])
     }
 
-    @Test func keyOrderAndDuplicates() throws {
+    @Test func keyOrderKeepsDuplicates() throws {
         let d = try doc(#"{"z": 1, "a": 2, "m": 3, "a": 4, "\u0061": 5}"#)
-        #expect(d.children(of: 0).map { d.keyText($0)! } == ["z", "a", "m", "a", "a"])
-        #expect(d.nodes.map(\.isDuplicate) == [false, false, false, false, true, true])
-        #expect(d.children(of: 0).map { d.valueText($0) } == ["1", "2", "3", "4", "5"])
-        // Large objects use a set; duplicates in different objects do not count.
-        let members = (0..<20).map { "\"k\($0 % 10)\": \($0)" }.joined(separator: ",")
-        let big = try doc("[{\(members)}, {\"k0\": 1}]")
-        let flags = big.children(of: node(big, 0)).map { big.nodes[$0].isDuplicate }
-        #expect(flags == Array(repeating: false, count: 10) + Array(repeating: true, count: 10))
-        #expect(!big.nodes[node(big, 1, 0)].isDuplicate)
+        #expect(d.kids(0).map { d.key($0)! } == ["z", "a", "m", "a", "\\u0061"])
+        #expect(d.kids(0).map { d.raw($0) } == ["1", "2", "3", "4", "5"])
     }
 
     @Test func bigNumberKeptExactly() throws {
         let d = try doc(#"[12345678901234567890.5, -0, 0.0e-0, 1E+400]"#)
-        #expect(d.children(of: 0).map { d.valueText($0) } == ["12345678901234567890.5", "-0", "0.0e-0", "1E+400"])
-        #expect(d.copyValue(of: 1) == "12345678901234567890.5")
+        #expect(d.kids(0).map { d.raw($0) } == ["12345678901234567890.5", "-0", "0.0e-0", "1E+400"])
+        #expect(d.formatted() == "[\n  12345678901234567890.5,\n  -0,\n  0.0e-0,\n  1E+400\n]")
     }
 
-    @Test func escapesInKeysAndValues() throws {
-        let d = try doc(#"{"caf\u00e9 \ud83d\ude00": "\"q\" \\ \/ \b\f\n\r\t \u00e9\ud83d\ude00", "raw é😀": "é😀"}"#)
-        let first = node(d, 0)
-        #expect(d.keyText(first) == "café 😀")
-        #expect(d.valueText(first) == "\"q\" \\ / \u{8}\u{C}\n\r\t é😀")
-        #expect(d.copyValue(of: first) == "\"q\" \\ / \u{8}\u{C}\n\r\t é😀")
-        #expect(d.keyText(node(d, 1)) == "raw é😀")
-        #expect(d.valueText(node(d, 1)) == "é😀")
-        // A lone surrogate decodes to U+FFFD.
-        #expect(try doc(#"["\ud83d x"]"#).valueText(1) == "\u{FFFD} x")
-    }
-
-    @Test func valueTextIsCut() throws {
-        let long = String(repeating: "abc", count: 100)
-        let d = try doc("[\"\(long)\", \"\(String(repeating: "é", count: 10))\", \"a\\nb\(long)\"]")
-        #expect(d.valueText(1, limit: 5) == "abcab…")
-        #expect(d.valueText(1).count == 201)
-        #expect(d.valueText(2, limit: 10) == String(repeating: "é", count: 10))
-        #expect(d.valueText(2, limit: 3) == "ééé…")
-        #expect(d.valueText(3, limit: 4) == "a\nba…")
+    @Test func escapesAreKeptAsWritten() throws {
+        let text = #"{"caf\u00e9 \ud83d\ude00": "\"q\" \\ \/ \b\f\n\r\t é😀", "raw é😀": "\ud83d x"}"#
+        let d = try doc(text)
+        #expect(d.key(node(d, 0)) == #"caf\u00e9 \ud83d\ude00"#)
+        #expect(d.formatted() == """
+            {
+              "caf\\u00e9 \\ud83d\\ude00": "\\"q\\" \\\\ \\/ \\b\\f\\n\\r\\t é😀",
+              "raw é😀": "\\ud83d x"
+            }
+            """)
     }
 
     @Test func commentsAndTrailingCommas() throws {
@@ -124,8 +124,8 @@ private func node(_ d: JSONDocument, _ steps: Any...) -> Int {
             /* trailing */
             """
         let d = try doc(text)
-        #expect(d.children(of: 0).count == 2)
-        #expect(d.children(of: node(d, "a")).count == 2)
+        #expect(d.kids(0).count == 2)
+        #expect(d.kids(node(d, "a")).count == 2)
         #expect(d.nodes[node(d, "b", "c")].line == 3)
     }
 
@@ -133,7 +133,7 @@ private func node(_ d: JSONDocument, _ steps: Any...) -> Int {
         let d = try JSONDocument.parse(Data([0xEF, 0xBB, 0xBF] + Array(#"{"a":1}"#.utf8)), lines: false)
         #expect(d.bytes.first == 0x7B)
         #expect(d.nodes[0].column == 1)
-        #expect(d.keyText(1) == "a")
+        #expect(d.key(1) == "a")
     }
 
     @Test func json5IsRejected() {
@@ -191,7 +191,6 @@ private func node(_ d: JSONDocument, _ steps: Any...) -> Int {
         let d = try doc(String(repeating: "[", count: depth) + String(repeating: "]", count: depth))
         #expect(d.nodes.count == depth)
         #expect(d.nodes[depth - 1].parent == depth - 2)
-        #expect(d.path(of: 2) == "[0][0]")
     }
 
     @Test func cancellation() {
@@ -215,7 +214,7 @@ private func node(_ d: JSONDocument, _ steps: Any...) -> Int {
         #expect(text.utf8.count > 5_000_000)
         let d = try doc(text)
         #expect(d.nodes.count == 1 + 50_000 * 10)
-        #expect(d.path(of: d.nodes.count - 1) == "[49999].note")
+        #expect(d.formatted().hasPrefix("[\n  {\n    \"id\": 0,\n    \"name\": \"item 0 with some padding text\","))
     }
 }
 
@@ -226,14 +225,14 @@ private func node(_ d: JSONDocument, _ steps: Any...) -> Int {
         #expect(d.isLines)
         let root = d.nodes[0]
         #expect(root.kind == .array && root.value == 0..<d.bytes.count && root.line == 1 && root.column == 1)
-        let lines = d.children(of: 0)
+        let lines = d.kids(0)
         #expect(lines.map { d.nodes[$0].kind } == [.object, .array, .error, .string, .number])
         #expect(lines.map { d.nodes[$0].index } == [0, 1, 2, 3, 4])
         #expect(lines.map { d.nodes[$0].line } == [1, 4, 5, 6, 8])
         let bad = d.nodes[lines[2]]
         #expect(bad.error == JSONParseError(line: 5, column: 7, reason: .unexpectedCharacter))
-        #expect(d.valueText(lines[2]) == "{\"b\": tru}")
-        #expect(d.copyValue(of: lines[2]) == "{\"b\": tru}")
+        #expect(d.raw(lines[2]) == "{\"b\": tru}")
+        #expect(d.firstLineError == JSONParseError(line: 5, column: 7, reason: .unexpectedCharacter))
         #expect(String(decoding: d.bytes[d.nodes[lines[0]].value], as: UTF8.self) == "{\"a\": 1}")
         #expect(d.nodes[node(d, 1, 1)].line == 4 && d.nodes[node(d, 1, 1)].column == 5)
         #expect(root.childCount == 5)
@@ -242,47 +241,30 @@ private func node(_ d: JSONDocument, _ steps: Any...) -> Int {
     @Test func emptyAndTrailingData() throws {
         #expect(try doc("", lines: true).nodes.count == 1)
         let d = try doc("1 2\n{\"x\":", lines: true)
-        let errors = d.children(of: 0).map { d.nodes[$0].error }
+        let errors = d.kids(0).map { d.nodes[$0].error }
         #expect(errors == [JSONParseError(line: 1, column: 3, reason: .trailingData),
                            JSONParseError(line: 2, column: 6, reason: .unexpectedEnd)])
     }
 }
 
-@Suite struct JSONPathAndCopyTests {
-    @Test func paths() throws {
-        let d = try doc(#"{"items": [{"name": 1}, [[0, {"x": 2}]]], "two words": {"q\"t": 3, "_ok$1": 4, "1a": 5}}"#)
-        #expect(d.path(of: 0) == "$")
-        #expect(d.path(of: node(d, "items")) == "items")
-        #expect(d.path(of: node(d, "items", 0, "name")) == "items[0].name")
-        #expect(d.path(of: node(d, "items", 1, 0, 1, "x")) == "items[1][0][1].x")
-        #expect(d.path(of: node(d, "two words")) == #"["two words"]"#)
-        #expect(d.path(of: node(d, "two words", "q\"t")) == #"["two words"]["q\"t"]"#)
-        #expect(d.path(of: node(d, "two words", "_ok$1")) == #"["two words"]._ok$1"#)
-        #expect(d.path(of: node(d, "two words", "1a")) == #"["two words"]["1a"]"#)
-        let array = try doc(#"[0, 1, {"a": true}]"#)
-        #expect(array.path(of: node(array, 2, "a")) == "[2].a")
-        let lines = try doc("1\n2\n3\n\n4\n{\"name\": 5}", lines: true)
-        #expect(lines.path(of: node(lines, 4, "name")) == "[4].name")
-        #expect(lines.path(of: 0) == "$")
+@Suite struct JSONFormattingTests {
+    @Test func scalarDocuments() throws {
+        for text in [#""a\"b\u00e9""#, "1.50", "true", "null", "{}", "[ ]"] {
+            #expect(try doc(" \(text) ").formatted() == (text == "[ ]" ? "[]" : text))
+        }
     }
 
-    @Test func copyScalars() throws {
-        let d = try doc(#"["a\"b\u00e9", 1.50, true, null]"#)
-        #expect(d.children(of: 0).map { d.copyValue(of: $0) } == ["a\"bé", "1.50", "true", "null"])
-    }
-
-    @Test func copyContainerPrettyPrints() throws {
+    @Test func containersAreIndented() throws {
         let text = """
-            {"b": [1, "x\\u0041\\"", {}, [], {"n": null}], // note
-             /* c */ "a": {"z": 2.0e1, "t": "tab\\tq"}, "e": [ ],
+            \u{FEFF}{"b": [1, "x\\u0041\\"", {}, [], {"n": null}], // note
+             /* c */ "a": {"z": 2.0e1, "t": "tab\\tq",}, "e": [ ],
              "dup": 1, "dup": 2}
             """
-        let d = try doc(text)
         let expected = """
             {
               "b": [
                 1,
-                "xA\\"",
+                "x\\u0041\\"",
                 {},
                 [],
                 {
@@ -298,45 +280,22 @@ private func node(_ d: JSONDocument, _ steps: Any...) -> Int {
               "dup": 2
             }
             """
-        #expect(d.copyValue(of: 0) == expected)
-        #expect(d.copyValue(of: node(d, "e")) == "[]")
-        #expect(d.copyValue(of: node(d, "a")) == "{\n  \"z\": 2.0e1,\n  \"t\": \"tab\\tq\"\n}")
-        #expect(try doc(#"{"k\u0001": "\/"}"#).copyValue(of: 0) == "{\n  \"k\\u0001\": \"/\"\n}")
-    }
-}
-
-@Suite struct JSONSearchTests {
-    // 0 root, 1 alpha, 2 beta, 3 "Gamma", 4 {delta}, 5 delta "alphabet", 6 n 42
-    private let text = #"{"alpha": 1, "beta": ["Gamma", {"delta": "alphabet"}], "n": 42}"#
-
-    @Test func forwardBackwardAndWrap() throws {
-        let d = try doc(text)
-        #expect(d.search("alpha", from: 0, backward: false, ignoreCase: false) == 1)
-        #expect(d.search("alpha", from: 1, backward: false, ignoreCase: false) == 5)
-        #expect(d.search("alpha", from: 5, backward: false, ignoreCase: false) == 1)
-        #expect(d.search("alpha", from: 1, backward: true, ignoreCase: false) == 5)
-        #expect(d.search("alpha", from: 5, backward: true, ignoreCase: false) == 1)
-        #expect(d.search("42", from: 0, backward: true, ignoreCase: false) == 6)
-        // The starting node is checked last.
-        #expect(d.search("beta", from: 2, backward: false, ignoreCase: false) == 2)
+        #expect(try doc(text).formatted() == expected)
+        #expect(try doc(text).firstLineError == nil)
     }
 
-    @Test func caseAndMisses() throws {
-        let d = try doc(text)
-        #expect(d.search("gamma", from: 0, backward: false, ignoreCase: false) == nil)
-        #expect(d.search("gamma", from: 0, backward: false, ignoreCase: true) == 3)
-        #expect(d.search("ALPHABET", from: 0, backward: false, ignoreCase: true) == 5)
-        #expect(d.search("missing", from: 0, backward: false, ignoreCase: true) == nil)
-        #expect(d.search("", from: 0, backward: false, ignoreCase: true) == nil)
-        let escaped = try doc(#"["caf\u00e9", "CAFÉ"]"#)
-        #expect(escaped.search("café", from: 0, backward: false, ignoreCase: false) == 1)
-        #expect(escaped.search("café", from: 1, backward: false, ignoreCase: true) == 2)
-        #expect(escaped.search("\n", from: 0, backward: false, ignoreCase: false) == nil)
+    @Test func linesAreFormattedOneAfterAnother() throws {
+        let d = try doc("{\"a\": [1]}\n\n  42 \n{\"b\": tru}\n[]", lines: true)
+        #expect(d.formatted() == "{\n  \"a\": [\n    1\n  ]\n}\n42\n{\"b\": tru}\n[]")
+        #expect(d.firstLineError == JSONParseError(line: 4, column: 7, reason: .unexpectedCharacter))
+        #expect(try doc("", lines: true).formatted() == "")
     }
 
-    @Test func virtualRootNeverMatches() throws {
-        let d = try doc("\"x\"\n\"y\"", lines: true)
-        #expect(d.search("x", from: 1, backward: false, ignoreCase: false) == 1)
-        #expect(d.search("y", from: 0, backward: false, ignoreCase: false) == 2)
+    @Test func deepIndentationIsCapped() throws {
+        let depth = JSONDocument.maxIndentDepth + 10
+        let text = try doc(String(repeating: "[", count: depth) + String(repeating: "]", count: depth)).formatted()
+        let rows = text.components(separatedBy: "\n")
+        #expect(rows.map { $0.prefix { $0 == " " }.count }.max() == JSONDocument.maxIndentDepth * 2)
+        #expect(rows.count == depth * 2 - 1)
     }
 }

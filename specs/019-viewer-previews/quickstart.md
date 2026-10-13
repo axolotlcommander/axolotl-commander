@@ -19,15 +19,16 @@ session's scratch folder; the check only reads them.
 
 ## Checks
 
-1. **JSON tree**: F3 on `small.json` → Preview with two levels expanded; → / ← / ⌥→ / ⌥← / Return;
-   ⌘C on a string copies it without quotes, ⇧⌘C copies `a["two words"][1]`; the duplicate key is
-   marked; the big number shows as written; ⌘F finds a nested key and expands its parents; ⌘1 shows the
-   highlighted source; Space moves to the next file.
-2. **Speed**: F3 on `min.json` shows the tree within 2 s and the window stays responsive.
-3. **Large**: F3 on `big.json` → Text with the question; Show Tree builds the tree with progress; Esc on
-   the question keeps Text.
+1. **Formatted JSON**: F3 on `small.json` → Preview with the document indented and highlighted, keys
+   in file order, the duplicate key twice, the big number as written; ⌘F / ⌘G find a nested key; a
+   selection copies with ⌘C; Wrap Lines and zoom work; ⌘1 shows the source as written; Space moves to
+   the next file.
+2. **Speed**: F3 on `min.json` shows the formatted text within 2 s and the window stays responsive.
+3. **Large**: F3 on `big.json` → Text with the question; Show Formatted formats it ("Formatting…" in
+   the status line); Esc on the question keeps Text.
 4. **Errors**: `bad.json` opens in Text with "line 3, column …" and Preview disabled; `comments.jsonc`
-   shows a tree; `items.ndjson` shows lines 1 and 3 and an error node for line 2.
+   is formatted without its comments; `items.ndjson` formats lines 1 and 3, keeps line 2 as written and
+   names it in the status line.
 5. **SVG**: F3 on `icon.svg` opens the viewer (not Quick Look), fitted; ⌘+ / ⌘- / ⌘0 / ⌘9; ⌘1 shows XML;
    `script.svg` draws without the script and the local server logs no request; `icon.svgz` draws;
    `broken.svg` says it cannot be shown.
@@ -38,5 +39,5 @@ session's scratch folder; the check only reads them.
 7. **.NET**: ⌘1 on each .NET file shows highlighting (F# comments `(* *)`, Razor `@` code as C#, `.sln`
    sections, XML for props/fsproj/nuspec).
 8. **Stepping**: Space through the folder stays in one viewer window across JSON, SVG, media and text.
-9. **Dark mode**: tree and player follow the system appearance (check with the test copy only).
+9. **Dark mode**: highlighting and player follow the system appearance (check with the test copy only).
 10. Remove `prev/` at the end.

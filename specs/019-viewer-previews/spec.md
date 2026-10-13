@@ -80,36 +80,49 @@ Found while planning and confirmed by the maintainer ("pokracuj jak doporucujes"
 - Media details are shown in the status line, as image details are.
 - Expand All and Collapse All are in the View menu without a default key.
 
+### Session 2026-10-13 (review)
+
+After trying the tree the maintainer decided that formatted text is enough ("showing the JSON formatted
+would be quite enough"; the Type column is not needed). This replaces the tree answers above:
+
+- Q: How is JSON shown? → A: Preview shows the document as indented, highlighted text in the text view,
+  with the text view's find, selection, copy (⌘C copies the selected text), wrapping and zoom. There is no
+  tree: the tree keys (→/← expand, ⌥→/⌥←, Return), Copy Value, Copy Path (⇧⌘C), Expand All and Collapse
+  All are dropped, and so are the Type column, duplicate marks and item counts.
+- Formatting: two spaces per level (deeper than 64 levels share the indentation of level 64), members in
+  file order, keys, strings and numbers exactly as written (escapes are kept), comments, trailing commas
+  and a BOM dropped, duplicate keys kept as they are.
+- JSON Lines: one record after another, each indented; a bad line is kept as written and the status line
+  names the first bad line; empty lines are left out.
+- Large files: above 20 MB the viewer opens Text and asks whether to format the file (Show Formatted /
+  Text, Esc = Text). ⌘3 later formats without asking.
+- Invalid JSON is unchanged: Text with the place of the first error in the status line, Preview disabled.
+
 ## User Scenarios & Testing *(mandatory)*
 
-### User Story 1 - Read a JSON file as a tree (Priority: P1)
+### User Story 1 - Read a JSON file formatted (Priority: P1)
 
 A user presses F3 on a JSON file, for example a minified API response or a settings export. The viewer
-opens in Preview mode with a tree: objects and arrays can be expanded and collapsed, every node shows
-its key, a short value or the item count, and its type. The user moves through the tree with the
-keyboard, copies a value or its path, and switches to Text mode for the source.
+opens in Preview mode with the document indented and highlighted, one member per line. The user scrolls,
+finds and copies text as in Text mode, and switches to Text mode for the source as written.
 
-**Why this priority**: JSON is the most common structured text a developer opens, and the tree is the
-largest gain in readability.
+**Why this priority**: JSON is the most common structured text a developer opens, and a minified file is
+unreadable without formatting.
 
-**Independent Test**: open a minified 1 MB JSON file and a settings export; expand, collapse, copy a
-path and a value, find a key, switch to Text and back.
+**Independent Test**: open a minified 1 MB JSON file and a settings export; scroll, find a key, copy a
+selection, switch to Text and back.
 
 **Acceptance Scenarios**:
 
-1. **Given** a valid JSON file, **When** the user presses F3, **Then** Preview mode shows the tree with
-   the first two levels expanded, and Text mode still shows the highlighted source.
-2. **Given** the tree has focus, **When** the user presses → or ←, **Then** the node under the cursor
-   expands or collapses (on a collapsed or leaf node ← moves to the parent). ⌥→ / ⌥← do the same for
-   the whole subtree, Return toggles the node. ↑/↓, Page Up/Down, Home/End move as in other lists;
-   Space stays Next File.
-3. **Given** a node, **When** the user presses ⌘C (Copy Value) or ⇧⌘C (Copy Path), **Then** the
-   clipboard holds the value as JSON text or the path in the form `items[3].name`.
-4. **Given** the tree, **When** the user searches for text (⌘F), **Then** matching keys and values are
-   found one after another and their parents are expanded to show them.
-5. **Given** invalid JSON, **Then** the viewer opens in Text mode and says where the first error is
+1. **Given** a valid JSON file, **When** the user presses F3, **Then** Preview mode shows the indented,
+   highlighted document, and Text mode still shows the highlighted source as written.
+2. **Given** the formatted text, **When** the user presses ⌘F, ⌘G or ⌘C, wraps lines or zooms, **Then** it
+   behaves as in Text mode; Space stays Next File.
+3. **Given** keys, strings or numbers with escapes or beyond double precision, **Then** they appear
+   exactly as written in the file.
+4. **Given** invalid JSON, **Then** the viewer opens in Text mode and says where the first error is
    (line and column); Preview is disabled for that file.
-6. **Given** the user moves to the next file (the viewer's next-file key), **Then** the next JSON file
+5. **Given** the user moves to the next file (the viewer's next-file key), **Then** the next JSON file
    opens in Preview mode too.
 
 ---
@@ -185,15 +198,15 @@ A user opens F#, Razor, solution and MSBuild files with F3 and sees them highlig
 
 ### Edge Cases
 
-- **Large JSON** (tens of MB): the tree is built off the main thread with progress, and the viewer stays
-  responsive. Above 20 MB the viewer asks first whether to show the tree or the text; stepping to such
-  a file asks again.
-- **Very deep or very long arrays**: long arrays show their items in groups (for example 100 at a time)
-  so expanding one does not freeze the viewer.
-- **Duplicate keys** in an object: all are shown in file order, and the duplicates are marked.
+- **Large JSON** (tens of MB): formatting runs off the main thread, and the viewer stays responsive.
+  Above 20 MB the viewer asks first whether to format the file or show the text; stepping to such a
+  file asks again.
+- **Very deep nesting**: indentation stops growing after 64 levels, so the formatted text stays about as
+  long as the source.
+- **Duplicate keys** in an object: all are shown in file order.
 - **Numbers beyond double precision**: shown exactly as written in the file.
-- **JSON Lines** (`.jsonl`, `.ndjson`): each line is a top-level node. A bad line is marked and the
-  others still show.
+- **JSON Lines** (`.jsonl`, `.ndjson`): each record is formatted on its own. A bad line is kept as
+  written, the status line names the first one, and the others are still formatted.
 - **JSON in an archive or on a server**: opens as F3 opens such files today.
 - **An SVG that is huge or slow to draw**: drawing can be cancelled by closing or moving to another
   file.
@@ -202,20 +215,21 @@ A user opens F#, Razor, solution and MSBuild files with F3 and sees them highlig
   Hex works.
 - **Text files that the system types as media** (the ".ts" TypeScript/MPEG-2 case): the existing rule
   stays. A file with a source code extension that starts as text opens as text.
-- **Dark mode**: the tree and the player follow the system appearance. An SVG keeps its own colors on a
+- **Dark mode**: the highlighting and the player follow the system appearance. An SVG keeps its own colors on a
   neutral background.
 
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
 
-- **FR-001**: The viewer MUST offer a JSON tree in Preview mode for `.json`, `.jsonc`, `.json5`
+- **FR-001**: The viewer MUST offer formatted JSON in Preview mode for `.json`, `.jsonc`, `.json5`
   (comments and trailing commas only), `.geojson`, `.jsonl`, `.ndjson` and other files whose content
   type is JSON. Preview MUST be the default mode for them; above 20 MB the viewer MUST ask before
-  building the tree.
-- **FR-002**: The tree MUST show key, type, a short value or item count per node. It MUST support
-  keyboard expand/collapse (→/←, ⌥→/⌥← for a subtree, Return), Copy Value (⌘C), Copy Path (⇧⌘C),
-  Expand All and Collapse All (View menu), and find. Space MUST stay Next File.
+  formatting.
+- **FR-002**: The formatted text MUST be indented by two spaces per level (at most 64 levels), keep
+  members in file order and keys, strings and numbers exactly as written, and drop comments and
+  trailing commas. It MUST be highlighted and offer the text view's find, selection, copy, wrapping and
+  zoom. Space MUST stay Next File.
 - **FR-003**: Invalid JSON MUST open in Text mode with the position of the first error; Preview is then
   disabled.
 - **FR-004**: The viewer MUST render SVG (`.svg`, `.svgz`) in Preview mode with the image zoom commands.
@@ -234,31 +248,31 @@ A user opens F#, Razor, solution and MSBuild files with F3 and sees them highlig
 
 ### Key Entities
 
-- **JSON node**: key or index, type (object, array, string, number, boolean, null), value text, children,
-  path, position in the source.
+- **JSON document**: the parsed values in file order with their position in the source, used to check
+  the file and to write the formatted text.
 - **Media details**: duration, container format, codecs, sample rate, channels, frame size.
 
 ## Success Criteria *(mandatory)*
 
 ### Measurable Outcomes
 
-- **SC-001**: A 10 MB minified JSON file shows its tree within 2 seconds on the maintainer's machine,
-  and the viewer stays responsive while it builds.
+- **SC-001**: A 10 MB minified JSON file shows formatted within 2 seconds on the maintainer's machine,
+  and the viewer stays responsive while it is formatted.
 - **SC-002**: F3 on SVG, WAV, MP3 and MP4 files never opens Quick Look; stepping through a folder of
   mixed files stays in one viewer window.
-- **SC-003**: The JSON parser and tree model (comments, trailing commas, duplicates, big numbers, error
-  positions, JSON Lines, paths) and the new highlighting rules have automated tests.
+- **SC-003**: The JSON parser and formatter (comments, trailing commas, duplicates, big numbers, escapes,
+  error positions, JSON Lines, deep nesting) and the new highlighting rules have automated tests.
 
 ## Assumptions
 
 - The system's own media playback and web rendering are good enough for the formats in scope. No
   third-party decoders are added.
-- The JSON tree is read-only.
+- The formatted JSON is read-only and never written to disk.
 
 ## Out of Scope
 
 - Editing JSON or SVG in the viewer.
-- JSON Schema validation, JSONPath queries, and formatting/minifying a file on disk.
+- A JSON tree, JSON Schema validation, JSONPath queries, and formatting/minifying a file on disk.
 - Full JSON5 (unquoted keys, single quotes, hexadecimal numbers): such files open in Text mode.
 - Playlists, subtitles chosen by the user, or audio waveforms and spectrograms.
 - Previews of PDF, fonts, Office documents or 3D models (they stay with Quick Look).
