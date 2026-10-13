@@ -25,7 +25,7 @@ enum MainMenuBuilder {
     ]
 
     /// Menus whose items depend on the context; the rest hold app-scope items only.
-    private static let contextMenus: Set<MenuID> = [.file, .edit, .view, .go, .left, .right, .commands, .options]
+    private static let contextMenus: Set<MenuID> = [.file, .edit, .view, .go, .commands, .options]
     private static var holders: [MenuID: NSMenuItem] = [:]
     private static var context: CommandContext = .panel
     private static var observer: (any NSObjectProtocol)?
@@ -124,7 +124,6 @@ enum MainMenuBuilder {
         let titles: [MenuID: String] = [
             .app: "Axolotl Commander", .file: String(localized: "File"), .edit: String(localized: "Edit Menu"),
             .view: String(localized: "View Menu"), .go: String(localized: "Go"),
-            .left: String(localized: "Left"), .right: String(localized: "Right"),
             .commands: String(localized: "Commands"), .options: String(localized: "Options"),
             .window: String(localized: "Window"), .help: String(localized: "Help"),
         ]

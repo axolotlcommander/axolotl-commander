@@ -323,7 +323,8 @@ extension OperationsController {
     /// only the members whose copy fully arrived.
     private func extractOut(_ kind: TransferKind, groups: [(source: ArchivePath, names: [String])], to destination: URL,
                             mask: String, panel: PanelViewController) {
-        let state = OperationState(title: kind == .copy ? String(localized: "Copying…") : String(localized: "Moving…"))
+        let state = OperationState(title: kind == .copy ? String(localized: "Copying…") : String(localized: "Moving…"),
+                                   urls: groups.map(\.source.archive) + [destination])
         perform(state) { [operations] in
             // One staging folder per archive folder, so members of subfolders arrive flat.
             var staged: [(source: ArchivePath, names: [String], members: [String], staging: URL)] = []
@@ -398,7 +399,8 @@ extension OperationsController {
         } catch {
             return report(error)
         }
-        let state = OperationState(title: kind == .copy ? String(localized: "Copying…") : String(localized: "Moving…"))
+        let state = OperationState(title: kind == .copy ? String(localized: "Copying…") : String(localized: "Moving…"),
+                                   urls: sources + [target.archive])
         perform(state) {
             var files = sources
             var staging: URL?
@@ -495,7 +497,7 @@ extension OperationsController {
             confirm.keyEquivalent = ""
             alert.buttons[1].keyEquivalent = "\r"
             guard let window, await alert.beginSheetModal(for: window) == .alertFirstButtonReturn else { return }
-            let state = OperationState(title: String(localized: "Deleting…"))
+            let state = OperationState(title: String(localized: "Deleting…"), urls: [archive.archive])
             perform(state) {
                 // Branch view lists members of subfolders too: each URL names its own member.
                 try await ArchiveWriter.update(archive.archive, removing: Set(urls.map { ArchivePath.split($0)?.inner ?? archive.member($0.lastPathComponent) }),
@@ -508,7 +510,7 @@ extension OperationsController {
     func makeDirectory(named name: String, in archive: ArchivePath, panel: PanelViewController) {
         guard archive.format.isWritable else { return report(ArchiveError.readOnly) }
         guard !name.contains("/"), name != ".", name != ".." else { return report(OperationError.invalidName(name)) }
-        let state = OperationState(title: String(localized: "Creating folder…"))
+        let state = OperationState(title: String(localized: "Creating folder…"), urls: [archive.archive])
         perform(state) {
             let index = try await ArchiveCatalog.shared.index(of: archive.archive)
             if index.entry(at: archive.member(name)) != nil { throw ArchiveError.alreadyExists(name) }
@@ -525,7 +527,7 @@ extension OperationsController {
     func rename(_ name: String, to newName: String, in archive: ArchivePath, panel: PanelViewController, focusing old: URL) {
         guard archive.format.isWritable else { return report(ArchiveError.readOnly) }
         guard !newName.contains("/"), newName != ".", newName != ".." else { return report(OperationError.invalidName(newName)) }
-        let state = OperationState(title: String(localized: "Renaming…"))
+        let state = OperationState(title: String(localized: "Renaming…"), urls: [archive.archive])
         perform(state) {
             let index = try await ArchiveCatalog.shared.index(of: archive.archive)
             if index.entry(at: archive.member(newName)) != nil { throw ArchiveError.alreadyExists(newName) }
@@ -564,7 +566,8 @@ extension OperationsController {
                                   to: ArchivePath(archive: url, format: format), panel: panel)
                 return
             }
-            let state = OperationState(title: String(localized: "Packing into “\(url.lastPathComponent)”…"))
+            let state = OperationState(title: String(localized: "Packing into “\(url.lastPathComponent)”…"),
+                                       urls: items.map(\.url) + [url])
             self.perform(state) {
                 try await ArchiveWriter.create(url, format: format, adding: sources,
                                                progress: { done in Task { @MainActor in state.progress.doneBytes = done } })
@@ -590,7 +593,7 @@ extension OperationsController {
     /// per archive. Nothing is written. Encrypted archives ask for the password as Unpack does.
     func testArchives(_ archives: [URL], from panel: PanelViewController) {
         guard !isBusy, !archives.isEmpty else { return }
-        let state = OperationState(title: String(localized: "Testing archives…"))
+        let state = OperationState(title: String(localized: "Testing archives…"), urls: archives)
         perform(state) {
             var lines: [String] = []
             var failed = 0
@@ -641,7 +644,7 @@ extension OperationsController {
         showTargetSheet(title: String(localized: "Unpack \(Self.describe(archives)) to:"), path: folder.displayPath, showsFormat: false) { path in
             let destination = try PathRules.resolve(path, relativeTo: panel.model.location)
             guard ArchivePath.split(destination) == nil else { throw ArchiveError.unsupportedFormat }
-            let state = OperationState(title: String(localized: "Unpacking…"))
+            let state = OperationState(title: String(localized: "Unpacking…"), urls: archives + [destination])
             self.perform(state) { [operations = self.operations] in
                 for archive in archives {
                     let staging = try await self.unpack(archive, members: [""], base: "", into: destination, state: state)

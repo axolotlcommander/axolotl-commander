@@ -41,6 +41,9 @@ This spec ships in release 0.5.0, on top of spec 021.
 - Q: Safety? → A: Panels on the volume go to the home folder and stop watching it before the eject; the
   eject is refused while an operation uses the volume; the system's reason is shown when it refuses; the
   startup disk can never be ejected (greyed out, no ⏏).
+- *Decided while implementing (2026-10-13), to be confirmed by the maintainer*: the context menu of a
+  server button keeps its existing items (Open in Other Panel, Copy Address, Disconnect); only volume
+  buttons get the new Eject “X” / Volume Information… menu.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -115,8 +118,8 @@ Information…".
 3. **Given** the startup disk or an internal volume that cannot be ejected, **When** the pointer is over
    its button, **Then** no ⏏ appears.
 4. **Given** any volume button, **When** the user right clicks or ⌃clicks it, **Then** a menu offers
-   "Eject “X”" (disabled when it cannot be ejected) and "Volume Information…" for that volume; on a server
-   button the first item is "Disconnect “X”".
+   "Eject “X”" (disabled when it cannot be ejected) and "Volume Information…" for that volume; a server
+   button keeps its menu, which already has Disconnect.
 
 ---
 
@@ -185,8 +188,9 @@ above.
   mounted in macOS, and is not the startup disk.
 - **FR-007**: Volume buttons of ejectable volumes MUST show a ⏏ while the pointer is over them; clicking
   it MUST eject that volume. Server buttons keep their ⏏.
-- **FR-008**: A right click or ⌃click on a volume button MUST open a menu with "Eject “X”" (or
-  "Disconnect “X”" for a server; disabled when not possible) and "Volume Information…" for that volume.
+- **FR-008**: A right click or ⌃click on a volume button MUST open a menu with "Eject “X”" (disabled when
+  not possible) and "Volume Information…" for that volume; a server button keeps its existing menu with
+  Disconnect.
 - **FR-009**: "Disconnect…" (F12) MUST list server connections, network volumes and ejectable disks in
   sections; it MUST pre-check the item of the active panel's location when listed and nothing else; its
   confirm button MUST read "Disconnect" when only servers are checked and "Eject" otherwise.

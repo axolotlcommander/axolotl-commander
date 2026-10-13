@@ -13,8 +13,8 @@ public enum FunctionKeyBar {
 }
 
 extension CommandRegistry {
-    /// English name for the function key bar when the menu title is not clear on its own (both
-    /// volume menus are "Volume…" in their Left/Right menus); nil = use the title.
+    /// English name for the function key bar when the menu title is too long or not clear on its
+    /// own; nil = use the title.
     public static func barTitle(_ command: Command) -> String? { barTitles[command] }
 
     /// English short name for the function key bar when the title is too long; nil = use the title.

@@ -33,6 +33,11 @@ final class DiskMapWindowController: NSWindowController, NSWindowDelegate {
     private let stopButton = NSButton()
     private var scanTask: Task<Void, Never>?
 
+    /// A running scan reads its folder (spec 022: an eject waits for it).
+    var volumeUser: VolumeUser? {
+        scanTask == nil ? nil : VolumeUser(title: String(localized: "Disk Map"), urls: [folder])
+    }
+
     init(folder: URL, main: MainWindowController) {
         self.folder = folder
         self.main = main

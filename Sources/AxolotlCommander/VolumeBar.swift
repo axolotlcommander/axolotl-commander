@@ -19,6 +19,10 @@ final class VolumeBar: NSView {
     var onOpenServerInOtherPanel: ((RemoteEndpoint) -> Void)?
     var onCopyServerAddress: ((RemoteEndpoint) -> Void)?
     var onDisconnectServer: ((RemoteEndpoint) -> Void)?
+    /// The ⏏ of an ejectable volume, or Eject in its menu (spec 022).
+    var onEjectVolume: ((VolumeInfo) -> Void)?
+    /// Volume Information… in a volume button's menu.
+    var onVolumeInfo: ((URL) -> Void)?
     var onConnectToServer: (() -> Void)?
     /// The pressed item changed (the drive row shows it).
     var onPressedChange: (() -> Void)?
@@ -77,6 +81,9 @@ final class VolumeBar: NSView {
         let center = NotificationCenter.default
         observers.append(center.addObserver(forName: ServerConnectionsUI.didChange, object: nil, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated { self?.reload() }
+        })
+        observers.append(center.addObserver(forName: VolumeEjector.busyChanged, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.updateBusy() }
         })
         observers.append(center.addObserver(forName: UserDefaults.didChangeNotification, object: nil, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated { self?.settingsChanged() }
@@ -154,9 +161,16 @@ final class VolumeBar: NSView {
         case .volume(let volume):
             let icon = NSWorkspace.shared.icon(forFile: volume.url.path)
             icon.size = NSSize(width: 14, height: 14)
-            let button = configured(BarButton(), title: volume.name, image: icon)
+            let ejectable = Ejectability.canEject(volume)
+            let button: BarButton = ejectable ? EjectableButton(ejectTitle: EjectTarget.title(for: .volume(volume))) : BarButton()
+            configured(button, title: volume.name, image: icon)
             button.toolTip = volume.availableCapacity.map { String(localized: "\(volume.url.path) — \(Format.bytes($0)) free") }
                 ?? volume.url.path
+            if let button = button as? EjectableButton {
+                button.onEject = { [weak self] in self?.onEjectVolume?(volume) }
+                button.isBusy = VolumeEjector.busy.contains(volume.url)
+            }
+            button.menuProvider = { [weak self] in self?.volumeMenu(volume) }
             return button
         case .home(let url):
             let button = configured(BarButton(), title: String(localized: "Home"), image: Self.symbol("house"))
@@ -171,7 +185,7 @@ final class VolumeBar: NSView {
             button.menuProvider = { [weak self] in self?.networkMenu() }
             return button
         case .server(let endpoint, let label):
-            let button = ServerButton(label: label)
+            let button = EjectableButton(ejectTitle: String(localized: "Disconnect \(label)"))
             configured(button, title: label, image: Self.symbol("network"))
             button.toolTip = ServerConnectionsUI.shared.address(of: endpoint)
             button.onEject = { [weak self] in self?.onDisconnectServer?(endpoint) }
@@ -201,6 +215,13 @@ final class VolumeBar: NSView {
     private static func symbol(_ name: String) -> NSImage? {
         NSImage(systemSymbolName: name, accessibilityDescription: nil)?
             .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: 11, weight: .regular))
+    }
+
+    /// Volumes being ejected show a spinner in place of the ⏏.
+    private func updateBusy() {
+        for case let button as EjectableButton in stack.arrangedSubviews where items.indices.contains(button.tag) {
+            if case .volume(let volume) = items[button.tag] { button.isBusy = VolumeEjector.busy.contains(volume.url) }
+        }
     }
 
     private func updateStates() {
@@ -258,6 +279,19 @@ final class VolumeBar: NSView {
         return menu
     }
 
+    /// Eject “X” (greyed out when the volume cannot be ejected) and Volume Information…
+    private func volumeMenu(_ volume: VolumeInfo) -> NSMenu {
+        let menu = NSMenu()
+        menu.autoenablesItems = false
+        let eject = actionItem(EjectTarget.title(for: .volume(volume))) { [weak self] in self?.onEjectVolume?(volume) }
+        eject.isEnabled = Ejectability.canEject(volume) && !VolumeEjector.busy.contains(volume.url)
+        menu.addItem(eject)
+        menu.addItem(actionItem(CommandRegistry.spec(.volumeInfo).localizedTitle) { [weak self] in
+            self?.onVolumeInfo?(volume.url)
+        })
+        return menu
+    }
+
     private func serverMenu(_ endpoint: RemoteEndpoint) -> NSMenu {
         let menu = NSMenu()
         menu.addItem(actionItem(String(localized: "Open in Other Panel")) { [weak self] in
@@ -285,19 +319,30 @@ private class BarButton: NSButton {
     }
 }
 
-/// A server connection: while the pointer is over it, an eject symbol at the trailing edge
-/// disconnects (as Finder shows for ejectable volumes).
-private final class ServerButton: BarButton {
+/// A server connection or an ejectable volume: while the pointer is over it, an eject symbol at
+/// the trailing edge disconnects or ejects it (as Finder shows for ejectable volumes); while an
+/// eject runs, a spinner takes its place.
+private final class EjectableButton: BarButton {
     var onEject: (() -> Void)?
+    var isBusy = false {
+        didSet {
+            guard isBusy != oldValue else { return }
+            if isBusy { spinner.startAnimation(nil) } else { spinner.stopAnimation(nil) }
+            spinner.isHidden = !isBusy
+            eject.isHidden = isBusy || !isHovered
+        }
+    }
     private let eject = NSButton()
+    private let spinner = NSProgressIndicator()
     private var hoverArea: NSTrackingArea?
+    private var isHovered = false
 
     override class var cellClass: AnyClass? {
         get { ServerButtonCell.self }
         set {}
     }
 
-    init(label: String) {
+    init(ejectTitle title: String) {
         super.init(frame: .zero)
         let image = NSImage(systemSymbolName: "eject.fill", accessibilityDescription: nil)?
             .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: 9, weight: .regular))
@@ -309,7 +354,6 @@ private final class ServerButton: BarButton {
         eject.refusesFirstResponder = true
         eject.target = self
         eject.action = #selector(ejectClicked)
-        let title = String(localized: "Disconnect \(label)")
         eject.setAccessibilityLabel(title)
         eject.toolTip = title
         eject.isHidden = true
@@ -320,6 +364,16 @@ private final class ServerButton: BarButton {
             eject.centerYAnchor.constraint(equalTo: centerYAnchor),
             eject.widthAnchor.constraint(equalToConstant: ServerButtonCell.ejectWidth - 2),
             eject.heightAnchor.constraint(equalToConstant: ServerButtonCell.ejectWidth - 2),
+        ])
+        spinner.style = .spinning
+        spinner.controlSize = .mini
+        spinner.isDisplayedWhenStopped = false
+        spinner.isHidden = true
+        spinner.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(spinner)
+        NSLayoutConstraint.activate([
+            spinner.centerXAnchor.constraint(equalTo: eject.centerXAnchor),
+            spinner.centerYAnchor.constraint(equalTo: eject.centerYAnchor),
         ])
     }
 
@@ -338,12 +392,16 @@ private final class ServerButton: BarButton {
 
     override func mouseEntered(with event: NSEvent) {
         super.mouseEntered(with: event)
-        if event.trackingArea === hoverArea { eject.isHidden = false }
+        guard event.trackingArea === hoverArea else { return }
+        isHovered = true
+        eject.isHidden = isBusy
     }
 
     override func mouseExited(with event: NSEvent) {
         super.mouseExited(with: event)
-        if event.trackingArea === hoverArea { eject.isHidden = true }
+        guard event.trackingArea === hoverArea else { return }
+        isHovered = false
+        eject.isHidden = true
     }
 
     // The accessory bar bezel sizes the button without asking the cell's `cellSize`, so the
@@ -354,7 +412,9 @@ private final class ServerButton: BarButton {
         return size
     }
 
-    @objc private func ejectClicked() { onEject?() }
+    @objc private func ejectClicked() {
+        if !isBusy { onEject?() }
+    }
 
     override func accessibilityChildren() -> [Any]? {
         (super.accessibilityChildren() ?? []) + (eject.isHidden ? [] : [eject])

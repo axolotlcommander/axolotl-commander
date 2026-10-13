@@ -11,8 +11,14 @@ import SwiftUI
     var title: String
     var progress = OperationProgress(totalBytes: 0, doneBytes: 0, totalItems: 0, doneItems: 0, currentName: "")
     var task: Task<Void, Never>?
+    /// The files and folders the operation reads or writes (sources and destination), so a volume
+    /// they are on is not ejected under it.
+    let urls: [URL]
 
-    init(title: String) { self.title = title }
+    init(title: String, urls: [URL] = []) {
+        self.title = title
+        self.urls = urls
+    }
 
     var fraction: Double {
         progress.totalBytes > 0 ? Double(progress.doneBytes) / Double(progress.totalBytes)
@@ -165,7 +171,8 @@ final class OperationsController {
         if ArchivePath.split(sources[0].deletingLastPathComponent()) != nil || ArchivePath.split(destination) != nil {
             return transferArchive(kind, sources: sources, destination: destination, mask: mask, panel: panel)
         }
-        let state = OperationState(title: kind == .copy ? String(localized: "Copying…") : String(localized: "Moving…"))
+        let state = OperationState(title: kind == .copy ? String(localized: "Copying…") : String(localized: "Moving…"),
+                                   urls: sources + [destination])
         let request = TransferRequest(kind: kind, sources: sources, destinationDirectory: destination, nameMask: mask,
                                       targetName: targetName)
         perform(state) { [operations] in
@@ -185,7 +192,7 @@ final class OperationsController {
     /// the cursor on the copy. The planner refuses the item's own name and asks before overwriting.
     func copyAs(_ source: URL, name: String, panel: PanelViewController) {
         guard !isBusy else { return }
-        let state = OperationState(title: String(localized: "Copying…"))
+        let state = OperationState(title: String(localized: "Copying…"), urls: [source])
         let request = TransferRequest(kind: .copy, sources: [source],
                                       destinationDirectory: source.deletingLastPathComponent(), targetName: name)
         perform(state) { [operations] in
@@ -222,7 +229,8 @@ final class OperationsController {
                 alert.buttons[1].keyEquivalent = "\r"
             }
             guard let window, await alert.beginSheetModal(for: window) == .alertFirstButtonReturn else { return }
-            let state = OperationState(title: permanently ? String(localized: "Deleting…") : String(localized: "Moving to Trash…"))
+            let state = OperationState(title: permanently ? String(localized: "Deleting…") : String(localized: "Moving to Trash…"),
+                                       urls: urls)
             perform(state) { [operations] in
                 try await operations.deletePermanently(urls, progress: { p in Task { @MainActor in state.progress = p } })
             }
@@ -237,7 +245,7 @@ final class OperationsController {
         Task {
             let plan = await operations.planDelete(urls)
             guard await Self.confirmTrash(plan, in: window) else { return }
-            let state = OperationState(title: String(localized: "Moving to Trash…"))
+            let state = OperationState(title: String(localized: "Moving to Trash…"), urls: urls)
             perform(state) { [operations] in
                 let outcome = try await Self.runTrash(plan, with: operations) { p in Task { @MainActor in state.progress = p } }
                 if let text = Self.describe(outcome) { await self.inform(String(localized: "Not everything was deleted"), text) }

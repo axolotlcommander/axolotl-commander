@@ -77,6 +77,13 @@ final class FindWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
     private let preview = FindPreview()
 
     private var isSearching: Bool { searchTask != nil }
+    /// The folders the running search walks.
+    private var searchRoots: [URL] = []
+
+    /// A running search reads its folders (spec 022: an eject waits for it).
+    var volumeUser: VolumeUser? {
+        isSearching ? VolumeUser(title: String(localized: "Find Files"), urls: searchRoots) : nil
+    }
 
     init(main: MainWindowController, directory: URL, showHidden: Bool) {
         self.main = main
@@ -219,6 +226,7 @@ final class FindWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         window.makeFirstResponder(table)
         let started = Date()
         let encoding = ViewerDefaults.encoding
+        searchRoots = criteria.roots.map { URL(filePath: $0, directoryHint: .isDirectory) }
         searchTask = Task { [weak self] in
             var found: [FileItem] = []
             do {

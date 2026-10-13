@@ -64,7 +64,7 @@ enum RenameRunner {
         let previous = tail
         let (finished, signal) = AsyncStream<Void>.makeStream()
         tail = Task { for await _ in finished {} }
-        let state = OperationState(title: title)
+        let state = OperationState(title: title, urls: [panel.model.location])
         operations.perform(state) {
             defer { signal.finish() }
             await previous?.value

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 The Axolotl Commander Authors
 
-import Foundation
+public import Foundation
 
 /// The tabs of one panel. Never empty; the last tab cannot be closed.
 public struct TabList: Codable, Hashable, Sendable {
@@ -61,6 +61,22 @@ public struct TabList: Codable, Hashable, Sendable {
     public mutating func select(_ index: Int) {
         guard tabs.indices.contains(index) else { return }
         active = index
+    }
+
+    /// Sends every tab except the active one whose location matches to `location`, with an empty
+    /// cursor and selection; history is kept. Returns how many tabs changed.
+    @discardableResult
+    public mutating func redirect(where match: (URL) -> Bool, to location: URL) -> Int {
+        var changed = 0
+        for i in tabs.indices where i != active && match(tabs[i].location) {
+            tabs[i].location = location
+            tabs[i].cursorName = nil
+            tabs[i].selectedNames = []
+            tabs[i].results = nil
+            tabs[i].branch = nil
+            changed += 1
+        }
+        return changed
     }
 
     /// Cycles to the next tab.

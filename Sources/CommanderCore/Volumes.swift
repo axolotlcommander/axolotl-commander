@@ -2,6 +2,7 @@
 // Copyright (C) 2026 The Axolotl Commander Authors
 
 public import Foundation
+import DiskArbitration
 
 public struct VolumeInfo: Identifiable, Hashable, Sendable {
     public let url: URL
@@ -11,12 +12,19 @@ public struct VolumeInfo: Identifiable, Hashable, Sendable {
     public let isInternal: Bool
     public let totalCapacity: Int64?
     public let availableCapacity: Int64?
+    /// The system's "ejectable" flag.
+    public let isEjectable: Bool
+    /// The startup disk.
+    public let isRootFileSystem: Bool
+    /// BSD name of the physical disk (e.g. `disk4`); nil for network volumes or when unknown.
+    public let wholeDisk: String?
 
     public var id: URL { url }
 
     public init(
         url: URL, name: String, isRemovable: Bool = false, isNetwork: Bool = false,
-        isInternal: Bool = true, totalCapacity: Int64? = nil, availableCapacity: Int64? = nil
+        isInternal: Bool = true, totalCapacity: Int64? = nil, availableCapacity: Int64? = nil,
+        isEjectable: Bool = false, isRootFileSystem: Bool = false, wholeDisk: String? = nil
     ) {
         self.url = url
         self.name = name
@@ -25,6 +33,9 @@ public struct VolumeInfo: Identifiable, Hashable, Sendable {
         self.isInternal = isInternal
         self.totalCapacity = totalCapacity
         self.availableCapacity = availableCapacity
+        self.isEjectable = isEjectable
+        self.isRootFileSystem = isRootFileSystem
+        self.wholeDisk = wholeDisk
     }
 }
 
@@ -34,8 +45,10 @@ public enum Volumes {
         let keys: [URLResourceKey] = [
             .volumeNameKey, .volumeIsRemovableKey, .volumeIsLocalKey, .volumeIsInternalKey,
             .volumeTotalCapacityKey, .volumeAvailableCapacityForImportantUsageKey,
+            .volumeIsEjectableKey, .volumeIsRootFileSystemKey,
         ]
         let urls = FileManager.default.mountedVolumeURLs(includingResourceValuesForKeys: keys, options: [.skipHiddenVolumes]) ?? []
+        let session = DASessionCreate(kCFAllocatorDefault)
         var infos = urls.map { url -> VolumeInfo in
             let v = try? url.resourceValues(forKeys: Set(keys))
             return VolumeInfo(
@@ -45,13 +58,24 @@ public enum Volumes {
                 isNetwork: !(v?.volumeIsLocal ?? true),
                 isInternal: v?.volumeIsInternal ?? true,
                 totalCapacity: v?.volumeTotalCapacity.map(Int64.init),
-                availableCapacity: v?.volumeAvailableCapacityForImportantUsage
+                availableCapacity: v?.volumeAvailableCapacityForImportantUsage,
+                isEjectable: v?.volumeIsEjectable ?? false,
+                isRootFileSystem: v?.volumeIsRootFileSystem ?? false,
+                wholeDisk: (v?.volumeIsLocal ?? true) ? wholeDiskName(of: url, session: session) : nil
             )
         }
         if let boot = infos.firstIndex(where: { $0.url.path == "/" }), boot != 0 {
             infos.insert(infos.remove(at: boot), at: 0)
         }
         return infos
+    }
+
+    /// BSD name of the physical disk under the volume at `url`, nil when it has none.
+    private static func wholeDiskName(of url: URL, session: DASession?) -> String? {
+        guard let session, let disk = DADiskCreateFromVolumePath(kCFAllocatorDefault, session, url as CFURL),
+            let whole = DADiskCopyWholeDisk(disk), let name = DADiskGetBSDName(whole)
+        else { return nil }
+        return String(cString: name)
     }
 
     /// Mount point of the volume containing `url` ("/" if it cannot be determined).

@@ -125,8 +125,6 @@ struct KeyboardSettings: View {
         case .edit: String(localized: "Edit Menu")
         case .view: String(localized: "View Menu")
         case .go: String(localized: "Go")
-        case .left: String(localized: "Left")
-        case .right: String(localized: "Right")
         case .commands: String(localized: "Commands")
         case .options: String(localized: "Options")
         case .window: String(localized: "Window")
