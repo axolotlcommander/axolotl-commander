@@ -103,6 +103,20 @@
   `jsonFormatLimit` and their strings removed from
   `Sources/AxolotlCommander/Viewer/ViewerWindowController.swift`; JSON over `ViewerDefaults.textLimit`
   opens in Text (also when stepping from Preview, Hex kept), ⌘3 formats it.
+- [X] T016 [US1] Streaming formatter (spec Clarifications "memory", research R1, data-model):
+  `JSONDocument`/`JSONNode` replaced by `JSONFormatter.format(_:lines:isCancelled:)` in
+  `Sources/CommanderCore/Viewer/JSONFormatter.swift`, tests in
+  `Tests/CommanderCoreTests/JSONFormatterTests.swift` (errors, JSON5, escapes, comments, JSON Lines,
+  indentation cap, 20 000 levels without recursion, 5 MB document).
+- [X] T017 [US1] Display-only line splitting (spec Clarifications "memory", research R3): `SplitText` in
+  `Sources/CommanderCore/Viewer/SplitText.swift` with tests in
+  `Tests/CommanderCoreTests/SplitTextTests.swift`; the viewer shows `display`, copies, saves, goes to
+  lines and highlights through the source, and says "long lines split for display".
+- [X] T018 GUI check of `big.json` (26 MB, one line) on the test copy, 2026-10-13: Preview formatted
+  within a few seconds at 270 MB (before about 5 s and 1 GB; the formatter alone 0.1 s); Text in
+  about 3 s at 375 MB (before about 90 s and 4.6 GB); select all + copy gives the 25 954 043 source
+  bytes with no line breaks; find jumps to a match; a match across an inserted break is not found
+  (documented limit).
 
 ## Dependencies
 

@@ -111,6 +111,17 @@ The maintainer chose to format without asking:
   file opens in Text mode (the start of the source, as for other large text), and ⌘3 formats it on
   request.
 
+### Session 2026-10-13 (memory)
+
+After the GUI check the maintainer asked that a 26 MB file must not take gigabytes ("a 26 MB file cannot
+take GB"):
+
+- Text mode with a huge line: lines over 10 000 characters are split for display only (a change of the
+  earlier edge case that left Text mode as it was). Copying, saving and Go to Line keep the source text;
+  the status line says the long lines are split. A find match across a split is not found (accepted
+  limit for now).
+- Formatting no longer builds a node list: the formatter writes the text during its validating pass.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Read a JSON file formatted (Priority: P1)
@@ -213,8 +224,10 @@ A user opens F#, Razor, solution and MSBuild files with F3 and sees them highlig
 
 - **Large JSON** (tens of MB): formatting runs off the main thread, and the viewer stays responsive.
   Above 64 MB (the Text mode limit) the file opens in Text mode, and ⌘3 formats it on request.
-- **A huge minified file in Text mode** (one line of tens of MB): laying it out takes long (about
-  90 seconds for 26 MB with wrapping). This is a limit of Text mode that this spec does not change.
+- **A huge minified file in Text mode** (one line of tens of MB): lines longer than 10 000 characters are
+  split on screen only, so the file opens in seconds; copy, Save Copy and Go to Line use the original
+  text, and the status line says "long lines split for display". Find does not match text across such a
+  split.
 - **Very deep nesting**: indentation stops growing after 64 levels, so the formatted text stays about as
   long as the source.
 - **Duplicate keys** in an object: all are shown in file order.

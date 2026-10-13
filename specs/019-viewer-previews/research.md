@@ -2,14 +2,16 @@
 
 ## R1 JSON parser
 
-- **Decision**: a new order-preserving parser in the core (`JSONDocument.parse(_ data: Data, lines: Bool)`).
-  It works on the UTF-8 bytes in one pass and builds a flat array of nodes (parent index, first child,
-  child count). It keeps byte ranges for keys and values instead of strings, so a 10 MB file does not
-  allocate millions of strings. It accepts `//` and `/* */` comments and trailing commas, keeps
+- **Decision**: a new order-preserving parser in the core
+  (`JSONFormatter.format(_ data: Data, lines: Bool)`). It works on the UTF-8 bytes in one pass and writes
+  the formatted text while it validates, copying keys, strings and numbers as byte ranges, so a 10 MB file
+  does not allocate millions of strings. (The first version built a flat node array first; for the 26 MB
+  test file that peaked near 1 GB, so it was replaced by the streaming formatter, spec Clarifications
+  "memory".) It accepts `//` and `/* */` comments and trailing commas, keeps
   duplicate keys in file order, keeps number text exactly as written, and on
   the first error stops with the line, column and a short reason. A UTF-8 BOM is skipped.
 - **JSON Lines** (`.jsonl`, `.ndjson`): each non-empty line is parsed as its own top-level value. A bad
-  line becomes an error node with its message and the other lines are still formatted.
+  line is copied as written, the first one is reported, and the other lines are still formatted.
 - **Rationale**: `JSONSerialization`/`JSONDecoder` lose key order and duplicates, reject comments and
   round big numbers; the existing `JSONValue` (settings) is an unordered dictionary. A hand-written
   byte scanner is fast enough for SC-001 (10 MB within 2 s) and fully testable.
@@ -19,7 +21,7 @@
 ## R2 JSON formatted view
 
 - **Decision** (revised 2026-10-13, spec Clarifications "review"; it replaces a tree view built first):
-  `JSONDocument.formatted()` writes the document indented by two spaces per level, members in file order,
+  `JSONFormatter.format` writes the document indented by two spaces per level, members in file order,
   keys, strings and numbers as their original tokens (escapes kept), comments, trailing commas and the
   BOM dropped. Levels below 64 share the indentation of level 64, so a deeply nested file cannot make
   the text grow quadratically. JSON Lines: each record formatted on its own, one after another, a bad
@@ -41,8 +43,18 @@
   larger than `ViewerDefaults.textLimit` (64 MB) opens in Text mode like other large text, even when the
   previous file was in Preview; ⌘3 formats it on request.
 - **Rationale**: formatting 26 MB took about 5 s, while laying out the same single-line file in Text mode
-  took about 90 s, so opening Text first and asking was the slow path. The 64 MB cap keeps the parser's
-  node list and the formatted text within reasonable memory.
+  took about 90 s, so opening Text first and asking was the slow path. The 64 MB cap keeps the source and
+  the formatted text within reasonable memory.
+- **Long lines** (spec Clarifications "memory"): TextKit 2 lays out a whole paragraph at once, so the
+  26 MB single line needed about 90 s and 4.6 GB. `SplitText` (data-model) inserts display-only line
+  breaks into lines longer than 10 000 UTF-16 units; an experiment showed lines of 2 000–30 000 lay out
+  instantly. Copy, Save Copy, Go to Line and highlighting map back to the source. Measured on the 26 MB
+  file after the change: Preview formatted within a few seconds at 270 MB (the formatter alone 0.1 s), Text in about 3 s at 375 MB.
+  Limit: the system find bar searches the displayed text, so a match that spans an inserted break is
+  not found.
+- **Alternatives for long lines**: a custom layout for one huge line (much more code); no wrapping for
+  long lines (TextKit 2 still lays out the paragraph); a find client over the source text (possible
+  later if the find limit matters).
 - **Alternatives**: the first design (above 20 MB open Text and ask "Format it?") — dropped for the
   reason above; asking before anything is shown (still slow when Text is chosen).
 

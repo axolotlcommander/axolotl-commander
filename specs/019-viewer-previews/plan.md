@@ -7,9 +7,10 @@
 Four parts, each shipped with its own commit, in the order JSON → SVG → .NET → media (Clarifications).
 
 - **Core** (`Sources/CommanderCore/Viewer/`, tested):
-  - `JSONDocument` / `JSONNode` / `JSONParseError` (NEW): an order-preserving byte parser with comments,
-    trailing commas, duplicates, exact numbers, JSON Lines and error positions, and the formatter
-    `formatted()` (research R1, R2; FR-001 to FR-003).
+  - `JSONFormatter` / `JSONParseError` (NEW): an order-preserving byte parser with comments, trailing
+    commas, duplicates, exact numbers, JSON Lines and error positions that writes the formatted text in
+    the same pass (research R1, R2; FR-001 to FR-003).
+  - `SplitText` (NEW): display-only breaks in lines over 10 000 characters (research R3).
   - `SVGData.unpack` (NEW) for `.svgz` through the Compression framework (R4).
   - `MediaDetails` (NEW) with the status line formatting (R5).
   - `SyntaxHighlighter.swift`: F#, solution files, Razor, more XML extensions (R6; FR-007).
@@ -51,12 +52,12 @@ Four parts, each shipped with its own commit, in the order JSON → SVG → .NET
 ```text
 specs/019-viewer-previews/{plan,research,data-model,quickstart,tasks}.md
 
-Sources/CommanderCore/Viewer/{JSONDocument,SVGData,MediaDetails}.swift      NEW
+Sources/CommanderCore/Viewer/{JSONFormatter,SplitText,SVGData,MediaDetails}.swift      NEW
 Sources/CommanderCore/Viewer/SyntaxHighlighter.swift                        F#, sln, Razor, XML extensions
 Sources/AxolotlCommander/Viewer/MediaPreview.swift                          NEW
 Sources/AxolotlCommander/Viewer/{ViewerWindowController,ImagePreview}.swift
 Resources/Localizable.xcstrings, CHANGELOG.md
-Tests/CommanderCoreTests/{JSONDocumentTests,SVGDataTests,MediaDetailsTests}.swift   NEW
+Tests/CommanderCoreTests/{JSONFormatterTests,SplitTextTests,SVGDataTests,MediaDetailsTests}.swift   NEW
 Tests/CommanderCoreTests/SyntaxHighlighterTests.swift
 ```
 
