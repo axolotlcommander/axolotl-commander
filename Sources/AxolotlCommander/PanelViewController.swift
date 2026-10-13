@@ -38,10 +38,30 @@ final class PanelTableView: NSTableView, NSServicesMenuRequestor {
         super.keyDown(with: event)
     }
 
+    /// A click below the last row. AppKit handles it inside the table and it never reaches the
+    /// panel's root view, so the panel is told here.
+    var onBackgroundClick: (() -> Void)?
+
+    override func mouseDown(with event: NSEvent) {
+        if row(at: convert(event.locationInWindow, from: nil)) < 0 { onBackgroundClick?() }
+        super.mouseDown(with: event)
+    }
+
     override func becomeFirstResponder() -> Bool {
         let ok = super.becomeFirstResponder()
         if ok { onFocus?() }
         return ok
+    }
+}
+
+/// The root view of a panel. A click that no control inside handles itself (the gaps between
+/// the bars, the info line) reaches it and makes the panel the active one.
+final class PanelRootView: NSView {
+    var onClick: (() -> Void)?
+
+    override func mouseDown(with event: NSEvent) {
+        onClick?()
+        super.mouseDown(with: event)
     }
 }
 
@@ -130,7 +150,8 @@ final class PanelViewController: NSViewController {
     // MARK: View
 
     override func loadView() {
-        let root = NSView()
+        let root = PanelRootView()
+        root.onClick = { [weak self] in self?.activateFromClick() }
 
         pathField.font = .monospacedSystemFont(ofSize: NSFont.smallSystemFontSize, weight: .regular)
         pathField.isBordered = false
@@ -182,6 +203,7 @@ final class PanelViewController: NSViewController {
             guard let self else { return }
             router?.panelDidBecomeFirstResponder(self)
         }
+        tableView.onBackgroundClick = { [weak self] in self?.activateFromClick() }
 
         let scroll = tableScroll
         scroll.documentView = tableView
@@ -1057,6 +1079,15 @@ final class PanelViewController: NSViewController {
         model.remote == nil && model.archive == nil && !model.isNetwork ? model.location : nil
     }
 
+    /// A click on the panel itself rather than on a row (empty space, a column header, a tab):
+    /// makes it the active panel and gives the list the keyboard, also back from the command
+    /// line. Does nothing when the panel already has both.
+    func activateFromClick() {
+        guard let router else { return }
+        if isActive, view.window?.firstResponder === listView { return }
+        router.activate(side)
+    }
+
     /// A server button: this panel's last folder on the connection (else any panel's, else the
     /// login folder), with the panel made active.
     func openServer(_ endpoint: RemoteEndpoint) {
@@ -1673,6 +1704,7 @@ extension PanelViewController: NSTableViewDataSource, NSTableViewDelegate {
 
     func tableView(_ tableView: NSTableView, didClick tableColumn: NSTableColumn) {
         guard let column = Column(rawValue: tableColumn.identifier.rawValue) else { return }
+        activateFromClick()
         resort(column.sortField)
     }
 

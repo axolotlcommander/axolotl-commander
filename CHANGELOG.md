@@ -5,6 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 
 ## [Unreleased]
 
+### Fixed
+
+- Clicking anywhere on a panel makes it the active one, not only clicking a file: the empty rows
+  below the last file, the gaps and the info line, a column header, and a tab all do. Clicking
+  into a panel also takes the keyboard back from the command line.
+
 ## [0.4.0] - 2026-10-13
 
 ### Added
