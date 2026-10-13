@@ -9,7 +9,10 @@ extension PanelViewController {
     // MARK: Tabs
 
     func configureTabStrip() {
-        tabStrip.onSelect = { [weak self] index in self?.switchTab { $0.select(index) } }
+        tabStrip.onSelect = { [weak self] index in
+            self?.activateFromClick()
+            self?.switchTab { $0.select(index) }
+        }
         tabStrip.onClose = { [weak self] index in self?.closeTab(at: index) }
         tabStrip.onCloseOthers = { [weak self] index in self?.closeOtherTabs(keeping: index) }
         tabStrip.onNew = { [weak self] in self?.newTab() }
