@@ -7,6 +7,13 @@ import CommanderCore
 /// A sheet window that offers key presses to a handler before its controls see them.
 final class KeySheetWindow: NSWindow {
     var onKey: ((NSEvent) -> Bool)?
+    /// The controller of the sheet, kept alive while the sheet is shown.
+    var owner: AnyObject?
+
+    override init(contentRect: NSRect, styleMask: NSWindow.StyleMask, backing: NSWindow.BackingStoreType, defer flag: Bool) {
+        super.init(contentRect: contentRect, styleMask: styleMask, backing: backing, defer: flag)
+        isReleasedWhenClosed = false
+    }
 
     override func sendEvent(_ event: NSEvent) {
         if event.type == .keyDown, onKey?(event) == true { return }
@@ -59,6 +66,7 @@ final class ConflictSheet: NSObject {
         while let attached = host.attachedSheet { host = attached }
         return await withCheckedContinuation { continuation in
             question.continuation = continuation
+            question.sheet.owner = question
             host.beginSheet(question.sheet, completionHandler: nil)
         }
     }
@@ -124,6 +132,7 @@ final class ConflictSheet: NSObject {
         ])
         for label in [title, info] { label.preferredMaxLayoutWidth = 260 }
         sheet.contentView = content
+        sheet.setContentSize(content.fittingSize)
     }
 
     private static func describe(_ item: FileItemInfo) -> String {
@@ -170,7 +179,13 @@ final class ConflictSheet: NSObject {
 
     @objc private func renameByHand() {
         Task {
-            let first = AutoName.name(for: conflict.destination.name, isDirectory: conflict.source.isDirectory, attempt: 2)
+            // The first free automatic name; on a server the question comes back if it is taken.
+            var attempt = 2
+            var first = AutoName.name(for: conflict.destination.name, isDirectory: conflict.source.isDirectory, attempt: attempt)
+            while isTaken(first), attempt < 1000 {
+                attempt += 1
+                first = AutoName.name(for: conflict.destination.name, isDirectory: conflict.source.isDirectory, attempt: attempt)
+            }
             if let name = await askName(initial: first) { finish(.rename(name)) }
         }
     }
@@ -209,20 +224,23 @@ final class ConflictSheet: NSObject {
     private func problem(with name: String) -> String? {
         if name.trimmingCharacters(in: .whitespaces).isEmpty { return String(localized: "The name can’t be empty.") }
         if name.contains("/") { return String(localized: "The name can’t contain “/”.") }
-        let destination = conflict.destination.url
-        if destination.isFileURL, !RemoteURL.isRemote(destination) {
-            let target = destination.deletingLastPathComponent().appending(path: name)
-            if FileManager.default.fileExists(atPath: target.path(percentEncoded: false)) {
-                return String(localized: "“\(name)” already exists.")
-            }
-        }
+        if isTaken(name) { return String(localized: "“\(name)” already exists.") }
         return nil
+    }
+
+    /// Whether `name` exists next to the destination; known for local destinations only.
+    private func isTaken(_ name: String) -> Bool {
+        let destination = conflict.destination.url
+        guard destination.isFileURL, !RemoteURL.isRemote(destination) else { return false }
+        let target = destination.deletingLastPathComponent().appending(path: name)
+        return FileManager.default.fileExists(atPath: target.path(percentEncoded: false))
     }
 
     private func finish(_ choice: ConflictPolicy.Choice) {
         guard let continuation else { return }
         self.continuation = nil
         sheet.sheetParent?.endSheet(sheet)
+        sheet.owner = nil
         continuation.resume(returning: choice)
     }
 

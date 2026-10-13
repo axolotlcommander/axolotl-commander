@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-13
 
-**Status**: Draft
+**Status**: Implemented
 
 **Input**: User description: "Copy dialog and replace question: richer choices when a file already
 exists, and a faster way to pick and name the destination of F5/F6." (Proposal written in chat from the

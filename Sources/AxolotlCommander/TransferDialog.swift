@@ -48,9 +48,10 @@ final class TransferDialog: NSObject {
         let dialog = TransferDialog(title: title, text: text, single: single, cycleKey: cycleKey, entries: entries)
         return await withCheckedContinuation { continuation in
             dialog.continuation = continuation
+            dialog.sheet.owner = dialog
             window.beginSheet(dialog.sheet, completionHandler: nil)
-            dialog.sheet.makeFirstResponder(dialog.field)
-            dialog.select(dialog.single == nil ? .all : .name)
+            // The field editor exists once the sheet is key.
+            DispatchQueue.main.async { dialog.select(dialog.single == nil ? .all : .name) }
         }
     }
 
@@ -97,11 +98,13 @@ final class TransferDialog: NSObject {
             stack.bottomAnchor.constraint(equalTo: content.bottomAnchor),
             content.widthAnchor.constraint(equalToConstant: 560),
             field.widthAnchor.constraint(equalToConstant: 420),
-            maskField.widthAnchor.constraint(equalTo: field.widthAnchor),
             heading.widthAnchor.constraint(lessThanOrEqualToConstant: 520),
             buttons.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -40),
         ])
+        // The mask field is in the window only for several items.
+        if single == nil { maskField.widthAnchor.constraint(equalTo: field.widthAnchor).isActive = true }
         sheet.contentView = content
+        sheet.setContentSize(content.fittingSize)
     }
 
     private static func label(_ text: String) -> NSTextField {
@@ -133,7 +136,9 @@ final class TransferDialog: NSObject {
         let range = single.flatMap { TransferTarget.range(of: part, in: text, isDirectory: $0.isDirectory) }
             ?? NSRange(location: 0, length: (text as NSString).length)
         if sheet.firstResponder !== field.currentEditor() { sheet.makeFirstResponder(field) }
-        field.currentEditor()?.selectedRange = range
+        guard let editor = field.currentEditor() as? NSTextView else { return }
+        editor.selectedRange = range
+        editor.scrollRangeToVisible(range)
     }
 
     // MARK: Destinations
@@ -197,6 +202,7 @@ final class TransferDialog: NSObject {
         guard let continuation else { return }
         self.continuation = nil
         sheet.sheetParent?.endSheet(sheet)
+        sheet.owner = nil
         continuation.resume(returning: result)
     }
 }

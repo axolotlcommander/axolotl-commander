@@ -5,6 +5,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 
 ## [Unreleased]
 
+### Added
+
+- The replace question marks the newer and the larger file; F3 / ⇧F3 open the existing / new file
+  in the viewer and ⌥F3 compares them, also for files in archives and on servers.
+- More… in the replace question: Overwrite All Older, Rename…, Rename Automatically ("x 2.txt")
+  and Rename All Automatically.
+- The F5/F6 dialog has a destination menu (button or ⌥↓) with the other panel, tabs, hot paths and
+  the last 10 destinations; ⌃D opens the hot paths directly.
+- Copying or moving one item puts its name in "To:", so it can be renamed on the way; F5/F6 again
+  selects the name, the extension, the folder or the whole text.
+
 ### Changed
 
 - Arrow keys in a question with buttons (such as the replace question while copying) move the
