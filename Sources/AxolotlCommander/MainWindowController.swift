@@ -66,6 +66,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         commandLine.onLeave = { [weak self] in self.map { $0.activate($0.activeSide) } }
         functionKeyBar.onClick = { [weak self] command in self?.performFromBar(command) }
         functionKeyBar.onHide = { UserDefaults.standard.set(false, forKey: Self.showFunctionKeyBarKey) }
+        functionKeyBar.onChooseButtons = { (NSApp.delegate as? AppDelegate)?.showSettings(tab: .general) }
         applyChromeSettings()
         refreshFunctionKeyBar()
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
@@ -414,6 +415,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
             commandLine.isHidden = !showCommandLine
             commandLineSeparator.isHidden = !showCommandLine
         }
+        functionKeyBar.choice = FunctionKeyChoice(storage: UserDefaults.standard.string(forKey: FunctionKeyChoice.key))
         let showBar = Self.isShown(Self.showFunctionKeyBarKey)
         if functionKeyBar.isHidden == showBar {
             functionKeyBar.isHidden = !showBar

@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-13
 
-**Status**: Draft (written on request; implementation waits for the maintainer)
+**Status**: Implemented
 
 **Input**: User description: "In Settings, tick which F1–F12 buttons the function key bar at the bottom
 shows, so chosen ones can be turned off. When many are turned off, the buttons should have a maximum
@@ -18,7 +18,7 @@ shown or hidden as a whole (View menu, Settings → General, the bar's context m
 keys by heart and want the bar to show only the others. With fewer buttons the even sharing makes each
 button very wide; one button would fill the whole window.
 
-This spec is written now and implemented later. It is not part of release 0.4.0 (specs 010–016).
+It ships with specs 010–016 in release 0.4.0 (maintainer, 2026-10-13).
 
 ## Clarifications
 
@@ -40,6 +40,13 @@ This spec is written now and implemented later. It is not part of release 0.4.0 
     shown in a 1,700-point wide window. Below that width the buttons share the bar evenly as today.
   - Q: Is the choice exported? → A: Yes, as a user preference in the settings file; a file or a
     configuration without it shows all twelve buttons.
+- Q: Which release? → A: 0.4.0, together with specs 010–016 (maintainer, 2026-10-13).
+- Q: Where does the first button start? → A: The bar leaves a small margin at both ends, so F1 does
+  not sit in the window's rounded corner (maintainer, 2026-10-13); the first key cap lines up with
+  the command line field above it.
+- *Decided during planning; to review*: the preference stores the hidden positions as text
+  (`functionKeyBar.hidden`, for example "5,6,8"), so a missing or empty value shows all twelve and
+  a value that would hide every position also shows all twelve.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -123,7 +130,8 @@ General at the tick boxes.
 - **FR-003**: Hiding a button MUST NOT change what its key does.
 - **FR-004**: The last ticked box MUST NOT be uncheckable.
 - **FR-005**: Each button MUST be at most 140 points wide; the buttons MUST stand from the left edge of
-  the bar, and narrower space MUST be shared evenly as today.
+  the bar, and narrower space MUST be shared evenly as today. The bar MUST leave a small margin at
+  both ends.
 - **FR-006**: The bar's context menu MUST offer "Choose Buttons…", which opens Settings → General.
 - **FR-007**: The choice MUST be a user preference in the settings export (catalog of preferences, with
   the compatibility guards); a missing value MUST mean all twelve buttons.

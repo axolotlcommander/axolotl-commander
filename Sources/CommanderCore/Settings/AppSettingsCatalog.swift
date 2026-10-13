@@ -14,6 +14,7 @@ extension SettingsCatalog {
     public static let app = SettingsCatalog.standard(preferences: [
         PreferenceSpec("showCommandLine", .bool, default: .bool(true)),
         PreferenceSpec("showFunctionKeyBar", .bool, default: .bool(true)),
+        PreferenceSpec(FunctionKeyChoice.key, .string(allowed: nil), default: .string("")),
         PreferenceSpec("terminal.bundleID", .string(allowed: nil), default: .string("com.apple.Terminal")),
         PreferenceSpec("editor.bundleID", .string(allowed: nil), default: .string("com.apple.TextEdit")),
         PreferenceSpec("viewer.encoding", .string(allowed: values(TextEncoding.self))),

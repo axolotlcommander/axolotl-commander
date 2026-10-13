@@ -11,6 +11,7 @@ struct SettingsView: View {
     @AppStorage("settings.tab") private var tab = SettingsTab.general.rawValue
     @AppStorage(MainWindowController.showCommandLineKey) private var showCommandLine = true
     @AppStorage(MainWindowController.showFunctionKeyBarKey) private var showFunctionKeyBar = true
+    @AppStorage(FunctionKeyChoice.key) private var hiddenFunctionKeys = ""
     @AppStorage(PanelBehavior.spaceKey) private var spaceMovesDown = PanelBehavior().spaceMovesDown
     @AppStorage(PanelBehavior.typingKey) private var typingToCommandLine = PanelBehavior().typingToCommandLine
     @AppStorage(PanelBehavior.arrowsKey) private var arrowsTargetPointedPanel = PanelBehavior().arrowsTargetPointedPanel
@@ -21,6 +22,20 @@ struct SettingsView: View {
             Toggle(title, isOn: isOn)
             Text(caption).font(.caption).foregroundStyle(.secondary)
         }
+    }
+
+    /// One F-key position on the bar; the last shown one cannot be turned off (spec 017).
+    private func functionKeyToggle(_ number: Int) -> some View {
+        let choice = FunctionKeyChoice(storage: hiddenFunctionKeys)
+        let title = "F\(number)"
+        return Toggle(title, isOn: Binding(
+            get: { choice.isVisible(number) },
+            set: { visible in
+                var changed = FunctionKeyChoice(storage: hiddenFunctionKeys)
+                changed.set(number, visible: visible)
+                hiddenFunctionKeys = changed.storage
+            }))
+            .disabled(!choice.canHide(number))
     }
 
     var body: some View {
@@ -34,7 +49,12 @@ struct SettingsView: View {
                 Section {
                     Toggle("Show command line", isOn: $showCommandLine)
                     Toggle("Show function key bar", isOn: $showFunctionKeyBar)
-                    Text("Also in the View menu. The bar shows what F1–F12 do; hold ⇧, ⌃, ⌥ or ⌘ to see the other commands.")
+                    LabeledContent("Buttons on the bar:") {
+                        HStack(spacing: 10) {
+                            ForEach(1...FunctionKeyBar.count, id: \.self) { functionKeyToggle($0) }
+                        }
+                    }
+                    Text("Also in the View menu. The bar shows what F1–F12 do; hold ⇧, ⌃, ⌥ or ⌘ to see the other commands. A key whose button is turned off still works.")
                         .font(.caption).foregroundStyle(.secondary)
                 }
                 Section("Panels") {

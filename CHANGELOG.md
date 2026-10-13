@@ -64,6 +64,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
   - in Classic Commander ⌃L calculates the size of the marked items.
 - View → Quick View Panel (⌃Q): the other panel shows the preview of the item under the cursor and
   follows the cursor; ⌃Q again, Tab or a click on it brings the panel back (spec 016).
+- Settings → General → Buttons on the bar: tick boxes F1–F12 choose which buttons the function key
+  bar shows; a key whose button is off still works. A button is at most 140 points wide, so a few
+  buttons stand at the left instead of filling the bar. The bar's context menu has Choose Buttons…
+  (spec 017).
+
+### Changed
+
+- The function key bar leaves a small margin at both ends, so F1 no longer sits in the window's
+  rounded corner.
 
 ### Fixed
 
