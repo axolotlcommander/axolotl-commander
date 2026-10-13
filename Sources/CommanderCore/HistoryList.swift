@@ -64,7 +64,15 @@ public enum FolderHistory {
         return current
     }
 
-    private static func key(_ text: String) -> String { PathText.trimmingTrailingSlashes(text) }
+    /// The same folder under one key: without a trailing slash, and with `/private/tmp` and `/tmp`
+    /// (also `var`, `etc`) together, since the system links the short paths to the long ones.
+    static func key(_ text: String) -> String {
+        let trimmed = PathText.trimmingTrailingSlashes(text)
+        for short in ["/tmp", "/var", "/etc"] where trimmed == "/private" + short || trimmed.hasPrefix("/private" + short + "/") {
+            return String(trimmed.dropFirst("/private".count))
+        }
+        return trimmed
+    }
 }
 
 /// Filtering of the history lists: every space-separated word must appear, ignoring case and

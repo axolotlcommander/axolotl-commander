@@ -30,17 +30,18 @@ final class HistoryListSheet: NSObject, NSSearchFieldDelegate, NSTableViewDataSo
 
     /// Shows the sheet on `window`; `onChoose` gets the index into `rows`.
     static func present(on window: NSWindow, title: String, rows: [Row], selection: Int?, hint: String,
-                        allowsModifiers: Bool, onChoose: @escaping (Int, Choice) -> Void) {
+                        chooseTitle: String = String(localized: "Open"), allowsModifiers: Bool,
+                        onChoose: @escaping (Int, Choice) -> Void) {
         guard open == nil, window.attachedSheet == nil else { NSSound.beep(); return }
-        let list = HistoryListSheet(title: title, rows: rows, hint: hint, allowsModifiers: allowsModifiers,
-                                    onChoose: onChoose)
+        let list = HistoryListSheet(title: title, rows: rows, hint: hint, chooseTitle: chooseTitle,
+                                    allowsModifiers: allowsModifiers, onChoose: onChoose)
         open = list
         list.select(selection ?? 0)
         window.beginSheet(list.sheet) { _ in open = nil }
         list.sheet.makeFirstResponder(list.searchField)
     }
 
-    private init(title: String, rows: [Row], hint: String, allowsModifiers: Bool,
+    private init(title: String, rows: [Row], hint: String, chooseTitle: String, allowsModifiers: Bool,
                  onChoose: @escaping (Int, Choice) -> Void) {
         self.rows = rows
         self.shown = Array(rows.indices)
@@ -81,7 +82,7 @@ final class HistoryListSheet: NSObject, NSSearchFieldDelegate, NSTableViewDataSo
         hintLabel.textColor = .secondaryLabelColor
         let cancel = NSButton(title: String(localized: "Cancel"), target: self, action: #selector(cancel))
         cancel.keyEquivalent = "\u{1b}"
-        let openButton = NSButton(title: String(localized: "Open"), target: self, action: #selector(openClicked))
+        let openButton = NSButton(title: chooseTitle, target: self, action: #selector(openClicked))
         openButton.keyEquivalent = "\r"
         let buttons = NSStackView(views: [hintLabel, cancel, openButton])
         buttons.orientation = .horizontal

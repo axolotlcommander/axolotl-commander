@@ -37,6 +37,14 @@ import Testing
         #expect(entries[1].target == .location(url("/a")))
     }
 
+    @Test func linkedSystemFoldersAreOneEntry() {
+        let entries = build(back: ["/tmp/w", "/private/tmp/w/c"], current: "/private/tmp/w",
+                            recent: ["/tmp/w/c", "/private/var/log"])
+        #expect(texts(entries) == ["/private/tmp/w", "/private/tmp/w/c", "/private/var/log"])
+        #expect(FolderHistory.key("/private") == "/private")
+        #expect(FolderHistory.key("/private/tmpfiles") == "/private/tmpfiles")
+    }
+
     @Test func selectionStaysOnTheCurrentFolderWithoutBackHistory() {
         #expect(FolderHistory.initialSelection(in: build(back: [], current: "/a")) == 0)
         #expect(FolderHistory.initialSelection(in: build(back: [], current: "/a", recent: ["/r"])) == 0)

@@ -568,7 +568,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         let rows = lines.map { HistoryListSheet.Row(text: $0, symbol: "terminal") }
         HistoryListSheet.present(on: window, title: String(localized: "Command Line History"), rows: rows,
                                  selection: 0, hint: String(localized: "Return puts the command into the command line."),
-                                 allowsModifiers: false) { [weak self] index, _ in
+                                 chooseTitle: String(localized: "Insert"), allowsModifiers: false) { [weak self] index, _ in
             guard let self else { return }
             showCommandLine()
             commandLine.setFromHistory(lines[index])
