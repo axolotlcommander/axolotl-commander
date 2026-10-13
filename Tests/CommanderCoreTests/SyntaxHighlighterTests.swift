@@ -292,6 +292,163 @@ private func isWellFormed(_ spans: [SyntaxSpan], length: Int) -> Bool {
         ])
     }
 
+    // MARK: .NET
+
+    @Test func lookupOfDotNetExtensions() {
+        let expected = [
+            "fs": "fsharp", "fsi": "fsharp", "fsx": "fsharp", "sln": "sln",
+            "props": "xml", "targets": "xml", "vbproj": "xml", "fsproj": "xml", "nuspec": "xml", "slnx": "xml",
+            "cshtml": "razor", "razor": "razor",
+        ]
+        for (ext, id) in expected {
+            #expect(SyntaxLanguage.forFile(named: "File.\(ext)")?.id == id, "\(ext)")
+        }
+        #expect(SyntaxLanguage.forFile(named: "Program.fs")?.name == "F#")
+        #expect(SyntaxLanguage.forFile(named: "App.sln")?.name == "Solution")
+        #expect(SyntaxLanguage.forFile(named: "Index.cshtml")?.name == "Razor")
+    }
+
+    @Test func fsharpComments() {
+        #expect(tokens("let x = 1 // tail", "fsharp") == [tok("let", .keyword), tok("1", .number), tok("// tail", .comment)])
+        #expect(tokens("(* a (* b *) c *) x", "fsharp") == [tok("(* a (* b *) c *)", .comment)])
+        #expect(tokens("(* one\ntwo *)", "fsharp") == [tok("(* one\ntwo *)", .comment)])
+        #expect(tokens("let f = List.fold (*) 1 xs", "fsharp")
+            == [tok("let", .keyword), tok("1", .number)])
+        #expect(tokens("(* a (*) b *) c", "fsharp") == [tok("(* a (*) b *)", .comment)])
+    }
+
+    @Test func fsharpStringsAndChars() {
+        #expect(tokens(#"let p = @"C:\dir\""x" in p"#, "fsharp")
+            == [tok("let", .keyword), tok(#"@"C:\dir\""x""#, .string), tok("in", .keyword)])
+        #expect(tokens("let t = \"\"\"say \"hi\"\n\"\"\" in t", "fsharp")
+            == [tok("let", .keyword), tok("\"\"\"say \"hi\"\n\"\"\"", .string), tok("in", .keyword)])
+        #expect(tokens(#"let s = $"n = {n}\n" in s"#, "fsharp")
+            == [tok("let", .keyword), tok(#"$"n = {n}\n""#, .string), tok("in", .keyword)])
+        #expect(tokens(#"let c = 'a' in '\n'"#, "fsharp")
+            == [tok("let", .keyword), tok("'a'", .string), tok("in", .keyword), tok(#"'\n'"#, .string)])
+        let generic = tokens("let id<'T> (x: 'T) : 'T = x", "fsharp")
+        #expect(!generic.contains { $0.kind == .string })
+        #expect(generic.contains(tok("'T", .type)))
+        #expect(tokens("let x' = x", "fsharp") == [tok("let", .keyword)])
+    }
+
+    @Test func csharpInterpolatedStringEndsAtQuote() {
+        #expect(tokens(#"var s = $"a {b}" + c; return"#, "csharp")
+            == [tok("var", .keyword), tok(#"$"a {b}""#, .string), tok("return", .keyword)])
+    }
+
+    @Test func fsharpKeywordsAndDirectives() {
+        let t = tokens("#if DEBUG\nmodule M\nlet! v = f ()\nmatch x with | _ -> ()\n#endif", "fsharp")
+        #expect(t == [
+            tok("#if DEBUG", .preprocessor), tok("module", .keyword), tok("let!", .keyword),
+            tok("match", .keyword), tok("with", .keyword), tok("#endif", .preprocessor),
+        ])
+        #expect(tokens("#light \"off\"\nopen System", "fsharp")
+            == [tok("#light \"off\"", .preprocessor), tok("open", .keyword)])
+    }
+
+    @Test func solutionSectionsGuidsAndKeys() {
+        let text = """
+        Microsoft Visual Studio Solution File, Format Version 12.00
+        # Visual Studio Version 17
+        VisualStudioVersion = 17.0
+        Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "App", "App.csproj", "{1A2B3C4D-0000-1111-2222-333344445555}"
+        EndProject
+        Global
+        \tGlobalSection(ProjectConfigurationPlatforms) = postSolution
+        \t\t{1A2B3C4D-0000-1111-2222-333344445555}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        \tEndGlobalSection
+        EndGlobal
+        """
+        let t = tokens(text, "sln")
+        #expect(t.contains(tok("# Visual Studio Version 17", .comment)))
+        #expect(t.contains(tok("VisualStudioVersion", .attribute)))
+        #expect(t.contains(tok("Project", .keyword)))
+        #expect(t.contains(tok("\"{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}\"", .string)))
+        #expect(t.contains(tok("\"App.csproj\"", .string)))
+        #expect(t.contains(tok("EndProject", .keyword)))
+        #expect(t.contains(tok("GlobalSection", .keyword)))
+        #expect(t.contains(tok("postSolution", .type)))
+        #expect(t.contains(tok("{1A2B3C4D-0000-1111-2222-333344445555}", .number)))
+        #expect(t.contains(tok(".Debug|Any CPU.ActiveCfg", .attribute)))
+        #expect(t.contains(tok("EndGlobalSection", .keyword)))
+        #expect(t.contains(tok("EndGlobal", .keyword)))
+        #expect(!t.contains { $0.text.contains("Microsoft") })
+        #expect(tokens("{not-a-guid}", "sln").isEmpty)
+    }
+
+    @Test func msbuildFilesAreXML() {
+        let t = tokens("<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup/></Project>", "xml")
+        #expect(t.contains(tok("<Project", .tag)))
+        #expect(t.contains(tok("Sdk", .attribute)))
+    }
+
+    @Test func razorComment() {
+        #expect(tokens("<p>a</p>@* one\ntwo @x *@b", "razor") == [
+            tok("<p", .tag), tok(">", .tag), tok("</p", .tag), tok(">", .tag), tok("@* one\ntwo @x *@", .comment),
+        ])
+        #expect(tokens("@@Model.Name", "razor").isEmpty)
+    }
+
+    @Test func razorImplicitExpression() {
+        #expect(tokens("<b>@Model.Name</b>", "razor") == [
+            tok("<b", .tag), tok(">", .tag), tok("@", .preprocessor), tok("</b", .tag), tok(">", .tag),
+        ])
+        #expect(tokens("<p>@item.Format(\"x\", 1)[0].Length.</p>", "razor") == [
+            tok("<p", .tag), tok(">", .tag), tok("@", .preprocessor), tok("\"x\"", .string), tok("1", .number),
+            tok("0", .number), tok("</p", .tag), tok(">", .tag),
+        ])
+        #expect(tokens("Now: @DateTime.Now true", "razor") == [tok("@", .preprocessor), tok("DateTime", .type)])
+        #expect(tokens("<a href=\"@Url.Action(\"Index\")\">x</a>", "razor") == [
+            tok("<a", .tag), tok("href", .attribute), tok("\"", .string), tok("@", .preprocessor),
+            tok("\"Index\"", .string), tok("\"", .string), tok(">", .tag), tok("</a", .tag), tok(">", .tag),
+        ])
+    }
+
+    @Test func razorExplicitExpressionAndBlock() {
+        #expect(tokens("<i>@(1 + 2)</i>", "razor") == [
+            tok("<i", .tag), tok(">", .tag), tok("@", .preprocessor), tok("1", .number), tok("2", .number),
+            tok("</i", .tag), tok(">", .tag),
+        ])
+        #expect(tokens("@{ var x = \"a\"; }", "razor") == [
+            tok("@", .preprocessor), tok("var", .keyword), tok("\"a\"", .string),
+        ])
+        #expect(tokens("@{ var s = \"}\"; } true", "razor") == [
+            tok("@", .preprocessor), tok("var", .keyword), tok("\"}\"", .string),
+        ])
+    }
+
+    @Test func razorCodeBlockWithHTMLLine() {
+        let text = """
+        @foreach (var item in Model.Items) {
+            <li class="x">@item.Name</li>
+            var n = 1;
+        } else
+        """
+        #expect(tokens(text, "razor") == [
+            tok("@foreach", .keyword), tok("var", .keyword), tok("in", .keyword),
+            tok("<li", .tag), tok("class", .attribute), tok("\"x\"", .string), tok(">", .tag),
+            tok("@", .preprocessor), tok("</li", .tag), tok(">", .tag),
+            tok("var", .keyword), tok("1", .number),
+        ])
+        let branches = tokens("@if (a) { <b>y</b> } else if (b) { return; } else { }", "razor")
+        #expect(branches.filter { $0.kind == .keyword }.map(\.text) == ["@if", "else", "if", "return", "else"])
+        #expect(branches.contains(tok("<b", .tag)))
+        let code = tokens("@code {\n    private int count = 0;\n}", "razor")
+        #expect(code == [tok("@code", .keyword), tok("private", .keyword), tok("int", .type), tok("0", .number)])
+    }
+
+    @Test func razorDirectivesAndEmail() {
+        #expect(tokens("@page \"/x\"\n@using System.Linq\n<p>user@example.com</p>", "razor") == [
+            tok("@page", .keyword), tok("\"/x\"", .string), tok("@using", .keyword),
+            tok("<p", .tag), tok(">", .tag), tok("</p", .tag), tok(">", .tag),
+        ])
+        #expect(tokens("<a href=\"mailto:me@example.com\">", "razor") == [
+            tok("<a", .tag), tok("href", .attribute), tok("\"mailto:me@example.com\"", .string), tok(">", .tag),
+        ])
+        #expect(tokens("@using (Html.BeginForm()) { <form/> }", "razor").first == tok("@using", .keyword))
+    }
+
     // MARK: Offsets, robustness
 
     @Test func utf16OffsetsAfterDiacriticsAndEmoji() {
@@ -345,6 +502,8 @@ private func isWellFormed(_ spans: [SyntaxSpan], length: Int) -> Bool {
         key: value = 1.5e3 0xFF 😀 ž
         ```
         +x -y @@ :: rem
+        @if (a) { <i title="@x.y(1)[2]">@(z)</i> } else { @{ "}" } (*) let! 'T @"v\"\"\" } @* r *@
+        {1A2B3C4D-0000-1111-2222-333344445555}.Debug = k @page "/p" a@b.c @code { (
         """
         let length = (sample as NSString).length
         for lang in SyntaxLanguage.all {

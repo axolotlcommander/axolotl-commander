@@ -109,6 +109,8 @@ enum SyntaxEngine {
         var nests = false
         var kind: SyntaxTokenKind = .comment
         var lineStartOnly = false
+        /// The opener does not count when this character follows it (F# `(*)` is an operator).
+        var notFollowedBy: UInt16 = 0
     }
 
     struct StringRule: Sendable {
@@ -150,6 +152,12 @@ enum SyntaxEngine {
         var longBrackets = false
         var haskellDashes = false
         var targetLines = false
+        /// Keywords that may carry a `!` suffix (F# `let!`).
+        var bangKeywords: Set<String> = []
+        /// `{XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}` is a number (solution files).
+        var guids = false
+        /// The text before `=` on a `key = value` line is an attribute (solution files).
+        var keyLines = false
 
         // Derived by `finalize()`.
         var special = [Bool](repeating: false, count: 128)
@@ -165,9 +173,11 @@ enum SyntaxEngine {
         }
 
         mutating func block(_ open: String, _ close: String, nests: Bool = false,
-                            kind: SyntaxTokenKind = .comment, lineStart: Bool = false) {
+                            kind: SyntaxTokenKind = .comment, lineStart: Bool = false,
+                            notFollowedBy: Unicode.Scalar? = nil) {
             blockComments.append(BlockCommentRule(
-                open: units(open), close: units(close), nests: nests, kind: kind, lineStartOnly: lineStart))
+                open: units(open), close: units(close), nests: nests, kind: kind, lineStartOnly: lineStart,
+                notFollowedBy: notFollowedBy.map(ch) ?? 0))
         }
 
         mutating func string(_ open: String, close: String? = nil, esc: Unicode.Scalar? = "\\", doubled: Bool = false,
@@ -209,6 +219,7 @@ enum SyntaxEngine {
             if percentVariables { mark(ch("%")); mark(ch("!")) }
             if charMode != .none { mark(ch("'")) }
             if longBrackets { mark(ch("[")) }
+            if guids { mark(ch("{")) }
             special = sp
 
             var f = [UInt8](repeating: 0, count: 128)
@@ -231,6 +242,8 @@ enum SyntaxEngine {
         var code = CodeRules()
         /// Markup: highlight `<script>`/`<style>` contents.
         var embedScripts = false
+        /// Markup: Razor `@` transitions to C#.
+        var razor = false
         /// CSS: `//` line comments (SCSS, LESS).
         var cssLineComments = false
         /// CSS: unknown `@name` is a LESS variable.
@@ -269,7 +282,7 @@ enum SyntaxEngine {
             var l = CodeLexer(s, lo, hi, d.code)
             return l.run()
         case .markup:
-            var l = MarkupLexer(s, lo, hi, embed: d.embedScripts)
+            var l = MarkupLexer(s, lo, hi, embed: d.embedScripts, razor: d.razor)
             return l.run()
         case .css:
             var l = CSSLexer(s, lo, hi, lineComments: d.cssLineComments, less: d.cssLess)
@@ -366,6 +379,7 @@ extension SyntaxEngine {
         mutating func run() -> [SyntaxSpan] {
             var nextCheck = lo + 65536
             if r.targetLines { detectTarget(lo) }
+            if r.keyLines { detectKey(lo) }
             while i < hi {
                 if i >= nextCheck {
                     if Task.isCancelled { break }
@@ -376,9 +390,10 @@ extension SyntaxEngine {
                 if c == 0x0A {
                     i += 1
                     if r.targetLines { detectTarget(i) }
+                    if r.keyLines { detectKey(i) }
                     continue
                 }
-                if i < regionEnd, lexTargetRegion(c) { continue }
+                if i < regionEnd, r.keyLines ? lexKeyRegion(c) : lexTargetRegion(c) { continue }
                 if c < 128 {
                     if r.special[Int(c)], lexSpecial(c) { continue }
                     if r.identFlags[Int(c)] & 1 != 0 { lexIdentifier(); continue }
@@ -412,6 +427,8 @@ extension SyntaxEngine {
                 if r.percentVariables { return lexBatchVariable(c) }
             case ch("'"):
                 if r.charMode != .none { return lexApostrophe() }
+            case ch("{"):
+                if r.guids { return lexGuid() }
             case ch("["):
                 if r.longBrackets, let level = longBracketLevel(i) {
                     lexLongBracket(start: i, open: i, level: level, kind: .string)
@@ -462,12 +479,17 @@ extension SyntaxEngine {
             for b in r.blockComments where b.open[0] == c {
                 if !matches(b.open, i) { continue }
                 if b.lineStartOnly, !atLineStart(i) { continue }
+                if b.notFollowedBy != 0, at(i + b.open.count) == b.notFollowedBy { continue }
                 var j = i + b.open.count
                 var depth = 1
                 let closeFirst = b.close[0]
                 while j < hi {
                     let d = s[j]
                     if b.nests, d == b.open[0], matches(b.open, j) {
+                        if b.notFollowedBy != 0, at(j + b.open.count) == b.notFollowedBy {
+                            j += b.open.count + 1
+                            continue
+                        }
                         depth += 1
                         j += b.open.count
                         continue
@@ -873,6 +895,53 @@ extension SyntaxEngine {
             return true
         }
 
+        // MARK: Solution files
+
+        /// Marks the text before `=` on a plain `key = value` line (no quotes, parens or `#` before `=`).
+        mutating func detectKey(_ ls: Int) {
+            var j = ls
+            while j < hi, isSpace(s[j]) { j += 1 }
+            let ks = j
+            while j < hi, !isNewline(s[j]) {
+                let d = s[j]
+                if d == ch("\"") || d == ch("(") || d == ch("#") { return }
+                if d == ch("=") {
+                    var end = j
+                    while end > ks, isSpace(s[end - 1]) { end -= 1 }
+                    regionEnd = end
+                    return
+                }
+                j += 1
+            }
+        }
+
+        mutating func lexKeyRegion(_ c: UInt16) -> Bool {
+            if c == ch("{"), lexGuid() { return true }
+            let a = i
+            while i < regionEnd, s[i] != ch("{") || i == a { i += 1 }
+            out.add(a, i, .attribute)
+            return true
+        }
+
+        /// `{XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}` as a number.
+        mutating func lexGuid() -> Bool {
+            var j = i + 1
+            for (n, group) in [8, 4, 4, 4, 12].enumerated() {
+                if n > 0 {
+                    guard at(j) == ch("-") else { return false }
+                    j += 1
+                }
+                for _ in 0..<group {
+                    guard isHex(at(j)) else { return false }
+                    j += 1
+                }
+            }
+            guard at(j) == ch("}") else { return false }
+            out.add(i, j + 1, .number)
+            i = j + 1
+            return true
+        }
+
         // MARK: Numbers and identifiers
 
         mutating func lexNumber() {
@@ -934,7 +1003,10 @@ extension SyntaxEngine {
             var word = String(decoding: UnsafeBufferPointer(rebasing: s[a..<j]), as: UTF16.self)
             if r.caseInsensitive { word = word.lowercased() }
             if r.keywords.contains(word) {
-                out.add(a, j, .keyword)
+                if !r.bangKeywords.isEmpty, at(j) == ch("!"), at(j + 1) != ch("="), r.bangKeywords.contains(word) {
+                    i = j + 1
+                }
+                out.add(a, i, .keyword)
             } else if r.types.contains(word) {
                 out.add(a, j, .type)
             } else if !r.lineStartKeywords.isEmpty, r.lineStartKeywords.contains(word), atLineStart(a, allowDash: true) {
@@ -957,13 +1029,15 @@ extension SyntaxEngine {
         let lo: Int
         let hi: Int
         let embed: Bool
+        let razor: Bool
         var out = SpanWriter()
 
-        init(_ s: Buf, _ lo: Int, _ hi: Int, embed: Bool) {
+        init(_ s: Buf, _ lo: Int, _ hi: Int, embed: Bool, razor: Bool = false) {
             self.s = s
             self.lo = lo
             self.hi = hi
             self.embed = embed
+            self.razor = razor
         }
 
         @inline(__always) func at(_ j: Int) -> UInt16 { (j >= lo && j < hi) ? s[j] : 0 }
@@ -1006,6 +1080,8 @@ extension SyntaxEngine {
                     i = lexAngle(i)
                 } else if c == ch("&") {
                     i = lexEntity(i)
+                } else if razor, c == ch("@"), let e = lexRazor(i) {
+                    i = e
                 } else {
                     i += 1
                 }
@@ -1094,6 +1170,8 @@ extension SyntaxEngine {
                         let q = at(k)
                         if q == ch("\"") || q == ch("'") {
                             j = lexQuoted(k)
+                        } else if razor, q == ch("@"), let e = lexRazor(k) {
+                            j = e
                         } else {
                             let v = k
                             while k < hi, !isWS(s[k]), s[k] != ch(">") { k += 1 }
@@ -1122,14 +1200,255 @@ extension SyntaxEngine {
         mutating func lexQuoted(_ j: Int) -> Int {
             let q = s[j]
             var k = j + 1
-            while k < hi, s[k] != q { k += 1 }
+            var from = j
+            while k < hi, s[k] != q {
+                if razor, s[k] == ch("@") {
+                    if at(k + 1) == ch("@") { k += 2; continue }
+                    if let e = lexRazor(k, stringFrom: from) {
+                        k = e
+                        from = e
+                        continue
+                    }
+                }
+                k += 1
+            }
             var end = k < hi ? k + 1 : hi
             if k >= hi {
-                end = SyntaxEngine.lineEnd(s, j, hi)
-                if end <= j { end = j + 1 }
+                end = min(max(SyntaxEngine.lineEnd(s, from, hi), from + 1), hi)
             }
-            out.add(j, end, .string)
+            out.add(from, end, .string)
             return end
+        }
+    }
+}
+
+// MARK: - Razor
+
+extension SyntaxEngine.MarkupLexer {
+    private static let razorStatements: Set<String> = [
+        "if", "foreach", "for", "while", "switch", "using", "try", "lock", "do",
+    ]
+    private static let razorDirectives: Set<String> = [
+        "page", "model", "using", "inject", "inherits", "namespace", "layout", "attribute", "implements",
+        "rendermode", "typeparam", "addTagHelper", "removeTagHelper", "tagHelperPrefix", "preservewhitespace",
+    ]
+
+    func isIdentStart(_ c: UInt16) -> Bool { isAlpha(c) || c == ch("_") || c >= 128 }
+    func isIdentChar(_ c: UInt16) -> Bool { isIdentStart(c) || isDigit(c) }
+
+    func identEnd(_ j: Int) -> Int {
+        var k = j
+        while isIdentChar(at(k)) { k += 1 }
+        return k
+    }
+
+    func word(_ a: Int, _ b: Int) -> String {
+        String(decoding: UnsafeBufferPointer(rebasing: s[a..<b]), as: UTF16.self)
+    }
+
+    func skipWS(_ j: Int) -> Int {
+        var k = j
+        while k < hi, isWS(s[k]) { k += 1 }
+        return k
+    }
+
+    func atLineStart(_ j: Int) -> Bool {
+        var k = j - 1
+        while k >= lo, isSpace(s[k]) { k -= 1 }
+        return k < lo || isNewline(s[k])
+    }
+
+    /// Index after the bracket matching the one at `j` (or `hi`), skipping C# strings, characters
+    /// and comments.
+    func matchClose(_ j: Int) -> Int {
+        let open = s[j]
+        let close: UInt16 = open == ch("(") ? ch(")") : open == ch("[") ? ch("]") : ch("}")
+        var depth = 0
+        var k = j
+        while k < hi {
+            let c = s[k]
+            if c == open {
+                depth += 1
+            } else if c == close {
+                depth -= 1
+                if depth == 0 { return k + 1 }
+            } else if c == ch("\"") {
+                let verbatim = at(k - 1) == ch("@") || (at(k - 1) == ch("$") && at(k - 2) == ch("@"))
+                k += 1
+                while k < hi {
+                    let d = s[k]
+                    if d == ch("\"") {
+                        if verbatim, at(k + 1) == ch("\"") { k += 2; continue }
+                        break
+                    }
+                    if !verbatim {
+                        if d == ch("\\") { k += 2; continue }
+                        if isNewline(d) { break }
+                    }
+                    k += 1
+                }
+            } else if c == ch("'") {
+                if at(k + 1) == ch("\\") {
+                    var e = k + 2
+                    while e < hi, e < k + 10, s[e] != ch("'"), !isNewline(s[e]) { e += 1 }
+                    if at(e) == ch("'") { k = e }
+                } else if at(k + 2) == ch("'") {
+                    k += 2
+                }
+            } else if c == ch("/"), at(k + 1) == ch("/") {
+                k = SyntaxEngine.lineEnd(s, k, hi)
+                continue
+            } else if c == ch("/"), at(k + 1) == ch("*") {
+                k += 2
+                while k < hi, !(s[k] == ch("*") && at(k + 1) == ch("/")) { k += 1 }
+                k += 1
+            }
+            k += 1
+        }
+        return hi
+    }
+
+    mutating func csharp(_ a: Int, _ b: Int) {
+        guard b > a, let def = SyntaxEngine.definitionsByID["csharp"] else { return }
+        out.append(SyntaxEngine.lex(def, s, a, b))
+    }
+
+    /// C# block contents; a line whose first non-blank character is `<` is HTML again.
+    mutating func codeBlock(_ a: Int, _ b: Int) {
+        var segment = a
+        var p = a
+        while p < b {
+            var k = p
+            while k < b, isSpace(s[k]) { k += 1 }
+            let le = min(SyntaxEngine.lineEnd(s, p, b), b)
+            if k < b, s[k] == ch("<") {
+                csharp(segment, p)
+                var m = SyntaxEngine.MarkupLexer(s, k, le, embed: false, razor: true)
+                out.append(m.run())
+                segment = le
+            }
+            p = le < b ? SyntaxEngine.nextLine(s, le, b) : b
+        }
+        csharp(segment, b)
+    }
+
+    /// `{ … }` at `j`: C# block; returns the index after the closing brace.
+    mutating func braceBlock(_ j: Int) -> Int {
+        let end = matchClose(j)
+        codeBlock(j + 1, end - 1 > j && at(end - 1) == ch("}") ? end - 1 : end)
+        return end
+    }
+
+    /// A Razor transition at `i` (an `@`). Returns the index after it, or `nil` when the `@` is text.
+    /// Text before it that belongs to a quoted attribute value starting at `stringFrom` becomes a string.
+    mutating func lexRazor(_ i: Int, stringFrom: Int? = nil) -> Int? {
+        let prev = at(i - 1)
+        if isAlpha(prev) || isDigit(prev) { return nil }
+        let n = at(i + 1)
+        if n == ch("@") {
+            return i + 2
+        }
+        guard n == ch("*") || n == ch("(") || n == ch("{") || isIdentStart(n) else { return nil }
+        if let from = stringFrom { out.add(from, i, .string) }
+        if n == ch("*") {
+            var k = i + 2
+            while k < hi, !(s[k] == ch("*") && at(k + 1) == ch("@")) { k += 1 }
+            let end = min(k + 2, hi)
+            out.add(i, end, .comment)
+            return end
+        }
+        if n == ch("(") {
+            out.add(i, i + 1, .preprocessor)
+            let end = matchClose(i + 1)
+            csharp(i + 1, end)
+            return end
+        }
+        if n == ch("{") {
+            out.add(i, i + 1, .preprocessor)
+            return braceBlock(i + 1)
+        }
+        let we = identEnd(i + 1)
+        let w = word(i + 1, we)
+        let next = skipWS(we)
+        if w == "code" || w == "functions", at(next) == ch("{") {
+            out.add(i, we, .keyword)
+            return braceBlock(next)
+        }
+        if Self.razorStatements.contains(w), w != "using" || at(next) == ch("(") {
+            out.add(i, we, .keyword)
+            return statement(w, from: we)
+        }
+        if atLineStart(i), Self.razorDirectives.contains(w) {
+            out.add(i, we, .keyword)
+            let le = SyntaxEngine.lineEnd(s, we, hi)
+            csharp(we, le)
+            return le
+        }
+        if w == "section", atLineStart(i) {
+            out.add(i, we, .keyword)
+            return we
+        }
+        // Implicit expression: identifier(.identifier | (…) | […])*, `await` may lead.
+        var j = we
+        if w == "await", at(j) == ch(" "), isIdentStart(at(j + 1)) { j = identEnd(j + 1) }
+        while j < hi {
+            let c = s[j]
+            if c == ch("."), isIdentStart(at(j + 1)) {
+                j = identEnd(j + 1)
+            } else if c == ch("(") || c == ch("[") {
+                j = matchClose(j)
+            } else {
+                break
+            }
+        }
+        out.add(i, i + 1, .preprocessor)
+        csharp(i + 1, j)
+        return j
+    }
+
+    /// The `( … ) { … }` parts of `@if`, `@foreach`… and `else` / `catch` / `finally` continuations.
+    mutating func statement(_ keyword: String, from: Int) -> Int {
+        var j = from
+        while true {
+            var k = skipWS(j)
+            if at(k) == ch("(") {
+                j = matchClose(k)
+                csharp(k, j)
+                k = skipWS(j)
+            }
+            guard at(k) == ch("{") else { return j }
+            j = braceBlock(k)
+            let c = skipWS(j)
+            guard isIdentStart(at(c)) else { return j }
+            let ce = identEnd(c)
+            let cw = word(c, ce)
+            let follows = switch keyword {
+            case "if": cw == "else"
+            case "try": cw == "catch" || cw == "finally"
+            case "do": cw == "while"
+            default: false
+            }
+            guard follows else {
+                return j
+            }
+            out.add(c, ce, .keyword)
+            j = ce
+            if cw == "else" {
+                let f = skipWS(j)
+                let fe = identEnd(f)
+                if fe > f, word(f, fe) == "if" {
+                    out.add(f, fe, .keyword)
+                    j = fe
+                }
+            }
+            if cw == "while" {
+                let p = skipWS(j)
+                if at(p) == ch("(") {
+                    j = matchClose(p)
+                    csharp(p, j)
+                }
+                return j
+            }
         }
     }
 }
@@ -2074,7 +2393,7 @@ extension SyntaxEngine {
             r.string("@$\"", close: "\"", esc: nil, doubled: true, multi: true)
             r.string("@\"", close: "\"", esc: nil, doubled: true, multi: true)
             r.string("\"\"\"", esc: nil, multi: true)
-            r.string("$\"")
+            r.string("$\"", close: "\"")
             quotes(&r)
             r.preprocessorLine = true
             r.kw("""
@@ -2388,11 +2707,52 @@ extension SyntaxEngine {
                 """)
         })
 
+        d.append(code("fsharp", "F#", ext: "fs fsi fsx") { r in
+            r.line("//")
+            r.block("(*", "*)", nests: true, notFollowedBy: ")")
+            r.string("$\"\"\"", close: "\"\"\"", esc: nil, multi: true)
+            r.string("\"\"\"", esc: nil, multi: true)
+            r.string("$@\"", close: "\"", esc: nil, doubled: true, multi: true)
+            r.string("@$\"", close: "\"", esc: nil, doubled: true, multi: true)
+            r.string("@\"", close: "\"", esc: nil, doubled: true, multi: true)
+            r.string("$\"", close: "\"")
+            r.string("\"")
+            r.charMode = .charOrLifetime
+            r.identContinueExtra = [ch("'")]
+            r.preprocessorLine = true
+            r.bangKeywords = ["let", "use", "do", "match", "return", "yield"]
+            r.kw("""
+                abstract and as assert base begin class default delegate do done downcast downto elif else end \
+                exception extern false finally fixed for fun function global if in inherit inline interface internal \
+                lazy let match member module mutable namespace new not null of open or override private public rec \
+                return select sig static struct then to true try type upcast use val void when while with yield
+                """)
+            r.ty("""
+                int int8 int16 int32 int64 uint8 uint16 uint32 uint64 nativeint unativeint float float32 double \
+                decimal byte sbyte char string bool unit obj exn bigint list option voption seq array Result Async \
+                Task Map Set
+                """)
+        })
+
+        d.append(code("sln", "Solution", ext: "sln") { r in
+            r.line("#", lineStart: true)
+            r.string("\"", esc: nil)
+            r.guids = true
+            r.keyLines = true
+            r.kw("Project EndProject Global EndGlobal GlobalSection EndGlobalSection ProjectSection EndProjectSection")
+            r.ty("preSolution postSolution preProject postProject")
+        })
+
         var html = Definition("html", "HTML", ext: "html htm xhtml", family: .markup)
         html.embedScripts = true
         d.append(html)
-        d.append(Definition("xml", "XML",
-                            ext: "xml plist svg xsd xsl xslt xaml csproj vcxproj storyboard xib resx", family: .markup))
+        var razor = Definition("razor", "Razor", ext: "cshtml razor", family: .markup)
+        razor.embedScripts = true
+        razor.razor = true
+        d.append(razor)
+        d.append(Definition("xml", "XML", ext: """
+            xml plist svg xsd xsl xslt xaml csproj vcxproj vbproj fsproj props targets nuspec slnx storyboard xib resx
+            """, family: .markup))
 
         var css = Definition("css", "CSS", ext: "css scss less", family: .css)
         css.cssLineComments = true
