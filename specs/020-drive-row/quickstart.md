@@ -11,5 +11,5 @@ In the test copy of the app (own bundle id), panels on scratchpad folders; readi
 6. View → Show Drive Row off: the space moves to the right end of the volume bar. Narrow the window: the
    text shortens and hides before volume buttons.
 7. View → Show Volume Bar off: the space is at the right end of the status line.
-8. Settings → Appearance → "Show free space when the drive row is hidden" off: the space disappears.
+8. Settings → General → "Show free space when the drive row is hidden" off: the space disappears.
 9. Open an SFTP folder or Network: the combo shows the server or Network, no space.

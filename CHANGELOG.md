@@ -76,7 +76,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 - A drive row below the volume bar of each panel (spec 020): a drive combo with the same list as
   ⌥F1/⌥F2 and the free and total space of the panel's disk ("273.9 GB free of 994.7 GB"); clicking
   the space opens Volume Info. When the row is hidden the free space moves to the right end of the
-  volume bar, or of the status line when the volume bar is hidden too (Settings → Appearance; View →
+  volume bar, or of the status line when the volume bar is hidden too (Settings → General; View →
   Show Drive Row, Show Volume Bar). The volume bar can be hidden now.
 
 ### Changed

@@ -11,6 +11,9 @@ struct SettingsView: View {
     @AppStorage("settings.tab") private var tab = SettingsTab.general.rawValue
     @AppStorage(MainWindowController.showCommandLineKey) private var showCommandLine = true
     @AppStorage(MainWindowController.showFunctionKeyBarKey) private var showFunctionKeyBar = true
+    @AppStorage(DriveRowSettings.showVolumeBarKey) private var showVolumeBar = DriveRowSettings().showVolumeBar
+    @AppStorage(DriveRowSettings.showRowKey) private var showDriveRow = DriveRowSettings().showRow
+    @AppStorage(DriveRowSettings.freeSpaceElsewhereKey) private var freeSpaceElsewhere = DriveRowSettings().freeSpaceElsewhere
     @AppStorage(FunctionKeyChoice.key) private var hiddenFunctionKeys = ""
     @AppStorage(PanelBehavior.spaceKey) private var spaceMovesDown = PanelBehavior().spaceMovesDown
     @AppStorage(PanelBehavior.typingKey) private var typingToCommandLine = PanelBehavior().typingToCommandLine
@@ -46,7 +49,17 @@ struct SettingsView: View {
                 }
                 Text("Used by Open Terminal Here (⌃/) and by commands typed in the command line.")
                     .font(.caption).foregroundStyle(.secondary)
+                // What the window shows, from the top down; the View menu has the same switches.
                 Section {
+                    Toggle("Show volume bar", isOn: $showVolumeBar)
+                    Toggle("Show drive row with free space", isOn: $showDriveRow)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Toggle("Show free space when the drive row is hidden", isOn: $freeSpaceElsewhere)
+                            .disabled(showDriveRow)
+                        Text("At the right end of the volume bar, or of the status line when the volume bar is hidden too.")
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
+                    .padding(.leading, 20)
                     Toggle("Show command line", isOn: $showCommandLine)
                     Toggle("Show function key bar", isOn: $showFunctionKeyBar)
                     Text("Also in the View menu. The bar shows what F1–F12 do; hold ⇧, ⌃, ⌥ or ⌘ to see the other commands.")
@@ -110,7 +123,7 @@ struct SettingsView: View {
                 .tabItem { Label("Keyboard", systemImage: "keyboard") }
                 .tag(SettingsTab.keyboard.rawValue)
         }
-        .frame(width: 720, height: 500)
+        .frame(width: 720, height: 590)
     }
 }
 
@@ -161,8 +174,6 @@ private struct AppearanceSettings: View {
     @AppStorage(VolumeBarSettings.networkKey) private var volumeBarNetwork = VolumeBarSettings().showNetwork
     @AppStorage(VolumeBarSettings.serversKey) private var volumeBarServers = VolumeBarSettings().showServers
     @AppStorage(DriveRowSettings.showVolumeBarKey) private var showVolumeBar = DriveRowSettings().showVolumeBar
-    @AppStorage(DriveRowSettings.showRowKey) private var showDriveRow = DriveRowSettings().showRow
-    @AppStorage(DriveRowSettings.freeSpaceElsewhereKey) private var freeSpaceElsewhere = DriveRowSettings().freeSpaceElsewhere
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -192,21 +203,15 @@ private struct AppearanceSettings: View {
                 .frame(width: 240)
             }
             // Volumes are always shown; these items follow them.
+            // Whether the bar is shown is in General, with the other bars.
             HStack(spacing: 16) {
-                Toggle("Show volume bar with:", isOn: $showVolumeBar)
-                Group {
-                    Toggle("Home", isOn: $volumeBarHome)
-                    Toggle("iCloud Drive", isOn: $volumeBarICloud)
-                    Toggle("Network", isOn: $volumeBarNetwork)
-                    Toggle("Server connections", isOn: $volumeBarServers)
-                }
-                .disabled(!showVolumeBar)
+                Text("Volume bar shows:")
+                Toggle("Home", isOn: $volumeBarHome)
+                Toggle("iCloud Drive", isOn: $volumeBarICloud)
+                Toggle("Network", isOn: $volumeBarNetwork)
+                Toggle("Server connections", isOn: $volumeBarServers)
             }
-            HStack(spacing: 16) {
-                Toggle("Show drive row with free space", isOn: $showDriveRow)
-                Toggle("Show free space when the drive row is hidden", isOn: $freeSpaceElsewhere)
-                    .disabled(showDriveRow)
-            }
+            .disabled(!showVolumeBar)
             Text("Highlighting — the first matching rule from the top wins:").font(.headline)
             Table($settings.appearance.highlights, selection: $selection) {
                 TableColumn("On") { $rule in Toggle("", isOn: $rule.isEnabled).labelsHidden() }.width(28)

@@ -57,8 +57,10 @@ free and total space of the current one. The maintainer sent a mockup of this ro
   - The free space refreshes every 3 seconds while the window is visible (and at once on a folder
     change), which covers changes by the other panel and other apps.
   - The volume menu (⌥F1/⌥F2 and the combo) now checks the current item.
-  - The Settings row reads "Show volume bar with:" followed by the items it shows; the items are
-    disabled while the bar is hidden.
+  - The three switches are in Settings → General with the other bars of the window (volume bar, drive
+    row, free space, command line, function key bar), at the maintainer's request to arrange them
+    sensibly (2026-10-13); Settings → Appearance keeps what the volume bar shows, disabled while the bar
+    is hidden. This replaces "Settings → Appearance" in the answers above and in FR-007.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -162,7 +164,7 @@ check where the text is in both panels.
 - **FR-006**: When the drive row is hidden and the option "Show free space when the drive row is hidden"
   is on (default), the free space MUST be shown at the right end of the volume bar, or, when that is
   hidden too, at the right end of the panel's status line. It MUST never be shown twice.
-- **FR-007**: Settings → Appearance MUST hold the three options; the View menu MUST have Show Drive Row
+- **FR-007**: Settings → General MUST hold the three options; the View menu MUST have Show Drive Row
   and Show Volume Bar. Changes MUST apply at once to both panels of every window.
 - **FR-008**: The new options MUST be user preferences in the settings export, with the existing
   compatibility guards.

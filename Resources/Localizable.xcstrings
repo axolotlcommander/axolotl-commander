@@ -10202,7 +10202,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zobrazit lištu svazků"
+            "value": "Zobrazit lištu disků"
           }
         }
       }
@@ -10213,16 +10213,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zobrazit řádek disku"
-          }
-        }
-      }
-    },
-    "Show volume bar with:": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zobrazit lištu svazků s položkami:"
           }
         }
       }
@@ -10243,6 +10233,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ukázat volné místo, když je řádek disku skrytý"
+          }
+        }
+      }
+    },
+    "Volume bar shows:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lišta disků zobrazuje:"
+          }
+        }
+      }
+    },
+    "Show volume bar": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zobrazit lištu disků"
+          }
+        }
+      }
+    },
+    "At the right end of the volume bar, or of the status line when the volume bar is hidden too.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vpravo na liště disků, nebo ve stavovém řádku, když je skrytá i lišta disků."
           }
         }
       }

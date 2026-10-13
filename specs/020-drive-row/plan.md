@@ -28,8 +28,8 @@
     folder holding an archive, the root of a flat listing; none for servers and the Network folder. Space
     refresh on every location update, on mount/unmount and every 3 s while the window is visible.
   - `MainWindowController`: the two View commands with check marks; panels observe the defaults.
-  - Settings → Appearance: "Show volume bar", "Show drive row", "Show free space when the drive row is
-    hidden" next to the volume bar options.
+  - Settings → General: "Show volume bar", "Show drive row", "Show free space when the drive row is
+    hidden" with the other bars; Appearance keeps the volume bar's items.
 
 ## Technical Context
 
