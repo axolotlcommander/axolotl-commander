@@ -46,6 +46,10 @@ final class ImagePreview: NSScrollView {
     /// The view to focus for the viewer keys.
     var keyView: NSView { imageView }
     private(set) var info: ImageInfo?
+    /// The size of a vector drawing (SVG); nil for pictures with pixels.
+    private(set) var vectorSize: NSSize?
+    /// The last file could not be drawn.
+    private(set) var failed = false
     /// True while the picture follows the window size.
     private(set) var fits = true
     private var loadTask: Task<Void, Never>?
@@ -81,18 +85,44 @@ final class ImagePreview: NSScrollView {
             let decoded = await Task.detached(priority: .userInitiated) { Self.decode(url) }.value
             guard !Task.isCancelled else { return }
             info = decoded.info
-            imageView.image = decoded.image
-            let size = decoded.info.map { NSSize(width: $0.width, height: $0.height) } ?? decoded.image?.size ?? .zero
-            imageView.frame = NSRect(origin: .zero, size: size)
-            fits = true
-            fit()
+            vectorSize = nil
+            present(decoded.image, size: decoded.info.map { NSSize(width: $0.width, height: $0.height) } ?? decoded.image?.size)
         }
+    }
+
+    /// An SVG drawing (`.svgz` unpacked first), drawn by the system's SVG renderer: no scripts run and
+    /// nothing is loaded from the network.
+    func showVector(_ url: URL) {
+        loadTask?.cancel()
+        loadTask = Task {
+            let decoded = await Task.detached(priority: .userInitiated) { () -> Decoded in
+                guard let data = try? Data(contentsOf: url, options: .mappedIfSafe),
+                      let svg = try? SVGData.unpack(data) else { return Decoded(image: nil, info: nil) }
+                return Decoded(image: NSImage(data: svg), info: nil)
+            }.value
+            guard !Task.isCancelled else { return }
+            info = nil
+            let size = decoded.image?.size
+            vectorSize = size.flatMap { $0.width > 0 && $0.height > 0 ? $0 : nil }
+            present(vectorSize == nil ? nil : decoded.image, size: vectorSize)
+        }
+    }
+
+    private func present(_ image: NSImage?, size: NSSize?) {
+        failed = image == nil
+        imageView.image = image
+        imageView.frame = NSRect(origin: .zero, size: image == nil ? .zero : size ?? .zero)
+        fits = true
+        fit()
+        onZoomChange?()
     }
 
     func clear() {
         loadTask?.cancel()
         imageView.image = nil
         info = nil
+        vectorSize = nil
+        failed = false
     }
 
     /// Animations (several frames) go through NSImage; still pictures are decoded by ImageIO
@@ -118,13 +148,13 @@ final class ImagePreview: NSScrollView {
 
     var zoom: Double { magnification }
 
-    /// Large pictures shrink to the window; small ones stay at 100 %.
+    /// Large pictures shrink to the window; small ones stay at 100 %. A drawing fills the window.
     func fit() {
         fits = true
         let size = imageView.frame.size
         guard size.width > 0, size.height > 0 else { return }
         let area = contentSize
-        let scale = min(1, area.width / size.width, area.height / size.height)
+        let scale = min(vectorSize == nil ? 1 : maxMagnification, area.width / size.width, area.height / size.height)
         magnification = max(scale, minMagnification)
         onZoomChange?()
     }

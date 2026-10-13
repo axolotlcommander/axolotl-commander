@@ -241,6 +241,40 @@
         }
       }
     },
+    "%lld channels": {
+      "localizations": {
+        "cs": {
+          "variations": {
+            "plural": {
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld kanály"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld kanály"
+                }
+              },
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld kanál"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld kanálů"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld checksums saved to “%@”.": {
       "localizations": {
         "cs": {
@@ -2682,6 +2716,16 @@
         }
       }
     },
+    "Formatting…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Formátuji…"
+          }
+        }
+      }
+    },
     "Ignore a difference of exactly one hour": {
       "localizations": {
         "cs": {
@@ -2718,6 +2762,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Položky, které se před zkopírováním změní, se přeskočí."
+          }
+        }
+      }
+    },
+    "JSON5 syntax is not supported": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "syntaxe JSON5 není podporovaná"
           }
         }
       }
@@ -2768,6 +2822,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vlevo: %@"
+          }
+        }
+      }
+    },
+    "Mono": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mono"
           }
         }
       }
@@ -3042,6 +3106,16 @@
         }
       }
     },
+    "Stereo": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stereo"
+          }
+        }
+      }
+    },
     "Synchronize": {
       "localizations": {
         "cs": {
@@ -3122,6 +3196,16 @@
         }
       }
     },
+    "The drawing cannot be shown.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kresbu nelze zobrazit."
+          }
+        }
+      }
+    },
     "The file could not be opened.": {
       "localizations": {
         "cs": {
@@ -3172,12 +3256,32 @@
         }
       }
     },
+    "This file cannot be played.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tento soubor nelze přehrát."
+          }
+        }
+      }
+    },
     "This volume can’t be ejected.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Tento svazek nelze vysunout."
+          }
+        }
+      }
+    },
+    "a string is not closed": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "řetězec není uzavřený"
           }
         }
       }
@@ -3228,6 +3332,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "obsah"
+          }
+        }
+      }
+    },
+    "control character in a string": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "řídicí znak v řetězci"
           }
         }
       }
@@ -8837,6 +8951,16 @@
         }
       }
     },
+    "formatted JSON": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "naformátovaný JSON"
+          }
+        }
+      }
+    },
     "from": {
       "localizations": {
         "cs": {
@@ -8898,6 +9022,26 @@
         }
       }
     },
+    "invalid escape sequence": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "neplatná escape sekvence"
+          }
+        }
+      }
+    },
+    "invalid number": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "neplatné číslo"
+          }
+        }
+      }
+    },
     "larger": {
       "localizations": {
         "cs": {
@@ -8918,6 +9062,26 @@
         }
       }
     },
+    "line %lld, column %lld: %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "řádek %lld, sloupec %lld: %@"
+          }
+        }
+      }
+    },
+    "long lines split for display": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "dlouhé řádky rozdělené pro zobrazení"
+          }
+        }
+      }
+    },
     "lowercase": {
       "localizations": {
         "cs": {
@@ -8934,6 +9098,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "smíšeně"
+          }
+        }
+      }
+    },
+    "more text after the end": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "za koncem následuje další text"
           }
         }
       }
@@ -8964,6 +9138,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "neplatný název"
+          }
+        }
+      }
+    },
+    "not valid JSON: %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "neplatný JSON: %@"
           }
         }
       }
@@ -9028,12 +9212,32 @@
         }
       }
     },
+    "the file is empty": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "soubor je prázdný"
+          }
+        }
+      }
+    },
     "the new name would contain * or ?": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "nový název by obsahoval * nebo ?"
+          }
+        }
+      }
+    },
+    "the text ends too early": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "text končí předčasně"
           }
         }
       }
@@ -9074,6 +9278,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "beze změny"
+          }
+        }
+      }
+    },
+    "unexpected character": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "neočekávaný znak"
           }
         }
       }

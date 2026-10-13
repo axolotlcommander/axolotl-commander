@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-13
+
 ### Added
 
 - The replace question marks the newer and the larger file; F3 / ⇧F3 open the existing / new file
@@ -23,6 +25,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
   size or content and lists what differs with the direction of each copy. Space, ← and → change
   single items, F3 compares two files, and nothing is copied before the summary is confirmed.
   A one-way sync can also move extra items to the Trash (off by default).
+- The viewer (F3) shows JSON formatted: indented and highlighted, keys in file order, values exactly as
+  written, with the usual find, copy and wrapping; comments, trailing commas and JSON Lines work, and
+  broken JSON opens as text with the place of the first error.
+- SVG drawings open in the viewer as pictures (with zoom) instead of Quick Look, without running
+  scripts or loading anything from the internet.
+- Sound and video files the Mac can play open in the viewer with a player: Return plays and pauses,
+  ← → seek, ↑ ↓ change the volume, and Space still goes to the next file.
+- Syntax colors for F#, Razor (.cshtml, .razor), solution files (.sln) and MSBuild files
+  (.props, .targets, .fsproj, .vbproj, .nuspec).
 
 ### Changed
 
@@ -35,10 +46,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 
 ### Fixed
 
+- The viewer opens files with very long lines (such as minified JSON of tens of MB) in seconds
+  instead of minutes and gigabytes of memory: lines longer than 10 000 characters are split on
+  screen only, while find, copying, saving and Go to Line work on the original text.
 - Clicking anywhere on a panel makes it the active one, not only clicking a file: the empty rows
   below the last file, the gaps and the info line, a column header, and a tab all do. Clicking
   into a panel also takes the keyboard back from the command line.
 - The explanation in Compare Panels wraps instead of being cut off.
+- An interpolated C# string (`$"…"`) in the viewer ends at its closing quote instead of coloring the
+  rest of the line.
 
 ## [0.4.0] - 2026-10-13
 
