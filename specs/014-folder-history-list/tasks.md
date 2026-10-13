@@ -13,4 +13,5 @@
 - [X] T006 [US3] UI: Command Line History in `MainWindowController` and `CommandLineBar`, also while the
   line edits. Commit.
 - [X] T007 Czech strings, CHANGELOG, quickstart. Commit.
-- [ ] T008 GUI check in the test copy (when the maintainer is away); install after asking.
+- [X] T008 GUI check in the test copy (2026-10-13; fixed: /tmp and /private/tmp listed twice, the command line history button now says Insert).
+- [ ] T009 Install for the maintainer, after asking.

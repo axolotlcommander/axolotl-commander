@@ -87,7 +87,7 @@
 ## Phase 7: Polish
 
 - [X] T020 Add a CHANGELOG "Unreleased" entry.
-- [ ] T021 Run the GUI check from quickstart.md in the test copy, when the maintainer is not at the
+- [X] T021 Run the GUI check from quickstart.md in the test copy, when the maintainer is not at the
   computer.
 - [ ] T022 Install for the maintainer, after asking if the app is running.
 

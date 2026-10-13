@@ -13,4 +13,5 @@
 - [X] T009 [US5] UI: Test Archives in `ArchiveOperations.swift`.
 - [X] T010 [US6] UI: selection commands and enabling rules. Commit.
 - [X] T011 Czech strings, CHANGELOG, quickstart. Commit.
-- [ ] T012 GUI check in the test copy (when the maintainer is away); install after asking.
+- [X] T012 GUI check in the test copy (2026-10-13; fixed: a zip cut short before its central directory passed the test; ⌃⇧J not tried, the display utility takes ⌃⇧).
+- [ ] T013 Install for the maintainer, after asking.

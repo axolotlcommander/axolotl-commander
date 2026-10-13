@@ -11,4 +11,5 @@
 - [X] T005 [US2] [US3] UI: `lastQuickFilter`, Quick Filter with Last Text, and quick search turning into
   the filter. Commit.
 - [X] T006 Czech strings, CHANGELOG, quickstart. Commit.
-- [ ] T007 GUI check in the test copy (when the maintainer is away); install after asking.
+- [X] T007 GUI check in the test copy (2026-10-13; fixed: Quick Filter from the menu dropped the quick search text).
+- [ ] T008 Install for the maintainer, after asking.
