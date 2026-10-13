@@ -40,7 +40,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
     panel keeps the focus; with text in the line, Return runs it, Backspace and Esc edit it, and ⌥ +
     a character starts quick search;
   - ⌃← / ⌃→ change the panel the arrow points to, and ".." opens the other panel's folder;
-  - Volume buttons open the other panel's folder on that volume, or the last folder used there.
+  - Volume buttons open the other panel's folder on that volume, or the last folder used there; the
+    button of the volume the panel is on refreshes its folder when the other panel is elsewhere.
 - Tabs from the keyboard (spec 012), all in the Go and View menus:
   - Open in New Tab (⌃↑, ⌥⌘↓), Open in Background Tab (⌥⌘⇧↓) and Open in New Tab of Other Panel
     (⌃⇧↑) open the folder under the cursor without leaving the current tab;
@@ -88,6 +89,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 
 ### Fixed
 
+- The status line and Properties count files and folders with the right plural form ("1 file",
+  "3 soubory") instead of "1 files".
 - ⌃↩ in a panel inserts the name of the item under the cursor into the command line again; macOS
   showed the context menu for it instead.
 - ⌘X cuts the selected text in the command line and other text fields; the Edit menu had no Cut

@@ -151,9 +151,15 @@ import Testing
         }
     }
 
-    @Test func sameVolumeAsThisPanelRefreshesTheFolder() {
+    @Test func bothPanelsOnTheVolumeMirrorTheOtherPanel() {
         let other = URL(fileURLWithPath: "/Volumes/Disk/Photos")
-        #expect(choose(disk, panel: disk, other: other, otherVolume: disk) == "refresh")
+        #expect(choose(disk, panel: disk, other: other, otherVolume: disk) == "/Volumes/Disk/Photos")
+    }
+
+    @Test func onlyThisPanelOnTheVolumeRefreshesTheFolder() {
+        let remembered = URL(fileURLWithPath: "/Volumes/Disk/Music")
+        #expect(choose(disk, panel: disk, other: URL(fileURLWithPath: "/Users/someone"), otherVolume: root,
+                       remembered: remembered, existing: [remembered.path]) == "refresh")
     }
 
     @Test func otherPanelsFolderOnTheVolumeWins() {

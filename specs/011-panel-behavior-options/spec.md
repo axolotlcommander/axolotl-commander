@@ -55,9 +55,9 @@ This spec ships with specs 010–016 in one release.
 ### Session 2026-10-13
 
 - Q: (Review of the answer above.) A volume button for the volume the panel already shows, with the
-  setting on? → A: The panel stays in its folder and reads it again (a refresh); it opens neither the
-  root nor the other panel's folder (maintainer, 2026-10-13). With the setting off it opens the root,
-  as before.
+  setting on? → A: When the other panel is on that volume too, the panel mirrors the other panel's
+  folder; otherwise it stays in its folder and reads it again (a refresh) instead of opening the root
+  (maintainer, 2026-10-13). With the setting off a volume button opens the root, as before.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -169,9 +169,10 @@ buttons and the volume menu; check rules a–d (FR-018); switch it off and check
 **Acceptance Scenarios**:
 
 1. **Given** the setting is on and the other panel shows folder F on volume V, **When** the user picks V
-   for this panel (which is not on V), **Then** this panel opens F.
-2. **Given** the setting is on and this panel already shows a folder on V, **When** the user picks V,
-   **Then** this panel stays in its folder and refreshes it.
+   for this panel, **Then** this panel opens F.
+2. **Given** the setting is on, this panel already shows a folder on V and the other panel does not,
+   **When** the user picks V, **Then** this panel stays in its folder and refreshes it. When the other
+   panel shows folder F on V too, this panel opens F.
 3. **Given** the setting is on, this panel showed folder G on V earlier in this window, and the other
    panel is not on V, **When** the user picks V for this panel, **Then** it opens G.
 4. **Given** the remembered folder G no longer exists, **When** the user picks V, **Then** the panel
@@ -290,8 +291,8 @@ with other values and check that they apply.
   folder used there", off by default. It MUST apply to the volume buttons above a panel and to a volume
   chosen from the volume menu (⌥F1 / ⌥F2).
 - **FR-018**: With FR-017 on, picking volume V for a panel MUST open, in this order of precedence:
-  - a. the panel's own folder, refreshed, if the panel already shows a folder on V;
-  - b. otherwise the other panel's folder if the other panel shows a folder on V;
+  - a. the other panel's folder if the other panel shows a folder on V;
+  - b. otherwise the panel's own folder, refreshed, if the panel already shows a folder on V;
   - c. otherwise the last folder this panel showed on V while the window has been open, if it still
     exists;
   - d. otherwise the root of V.
@@ -365,5 +366,6 @@ with other values and check that they apply.
 - Quick search stays the default for typed characters.
 - Quick search in the typing mode uses ⌥ + character only.
 - Last folders are remembered per panel and only while the window is open.
-- With the setting on, a volume button for the volume the panel already shows refreshes the folder
-  instead of opening the root (see Clarifications).
+- With the setting on, a volume button for the volume the panel already shows mirrors the other
+  panel when it is on that volume, otherwise refreshes the folder; it never opens the root (see
+  Clarifications).

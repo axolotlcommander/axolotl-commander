@@ -104,7 +104,8 @@ public enum OpenInPanel {
 /// last folder used there" is on.
 public enum VolumeChoice {
     public enum Target: Equatable, Sendable {
-        /// The panel is on that volume already: it stays and reads its folder again.
+        /// The panel is on that volume already (and the other panel is not): it stays and reads its
+        /// folder again.
         case refresh
         case open(URL)
     }
@@ -115,8 +116,8 @@ public enum VolumeChoice {
     ///   - remembered: the last folder this panel showed on `volume`.
     public static func target(volume: URL, panelVolume: URL?, otherFolder: URL?, otherVolume: URL?,
                               remembered: URL?, exists: (URL) -> Bool) -> Target {
-        if let panelVolume, same(panelVolume, volume) { return .refresh }
         if let otherFolder, let otherVolume, same(otherVolume, volume) { return .open(otherFolder) }
+        if let panelVolume, same(panelVolume, volume) { return .refresh }
         if let remembered, exists(remembered) { return .open(remembered) }
         return .open(volume)
     }
