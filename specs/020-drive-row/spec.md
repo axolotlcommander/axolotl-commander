@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-13
 
-**Status**: Draft (planned; not scheduled for implementation yet)
+**Status**: In progress
 
 **Input**: User description: "A row in each panel, between the volume bar and the breadcrumb path bar: a
 drive combo (icon, name, arrow; the same list as ⌥F1/⌥F2) and next to it the size of the current disk and
@@ -23,7 +23,7 @@ takes a command to see it.
 
 Classic two-panel file managers have a drive row above each panel: a drop-down list of drives and the
 free and total space of the current one. The maintainer sent a mockup of this row over our panel on
-2026-10-10.
+2026-10-10. It ships with specs 010–019 in release 0.4.0 (maintainer, 2026-10-13: "do spec 20").
 
 ## Clarifications
 
