@@ -117,7 +117,7 @@ status line.
   style by default, and that exact bytes are back with Settings → Appearance → Size in panels.
 - [X] T018 Run the GUI check from quickstart.md, in the test copy only, in a scratchpad test
   folder.
-- [ ] T019 Run `scripts/bump-version.sh minor` (0.3.0), then commit, open a PR, merge, tag v0.3.0,
+- [X] T019 Run `scripts/bump-version.sh minor` (0.3.0), then commit, open a PR, merge, tag v0.3.0,
   build and install (ask first if the app is running).
 
 ## Dependencies

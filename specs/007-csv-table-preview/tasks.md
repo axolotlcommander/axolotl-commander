@@ -116,7 +116,7 @@
   mentions the viewer.
 - [X] T021 Build without warnings and run `swift test`. GUI checks from quickstart.md in the test
   copy, plus the maintainer's export (local only).
-- [ ] T022 Update docs/STATE.md (local), commit and open the PR.
+- [X] T022 Update docs/STATE.md (local), commit and open the PR.
 
 ## Dependencies
 

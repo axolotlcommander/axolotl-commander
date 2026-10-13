@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-08
 
-**Status**: Draft
+**Status**: Implemented
 
 **Input**: User description: "Data safety: close the gaps D1–D8 from the audit in docs/AUDIT.md (internal, not published) against the reference program's rules (05-pravidla.md, Tandem specs 062, 092, 103, 105, 106, 107, 112, 119) and add the missing tests for the safeguards."
 

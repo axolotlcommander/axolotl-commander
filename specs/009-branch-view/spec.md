@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-10
 
-**Status**: Draft
+**Status**: Implemented
 
 **Input**: User description: "Branch view (Ctrl+B) like Total Commander: all files of the current folder and all
 its subfolders in one flat list in the panel."
