@@ -66,6 +66,20 @@ The maintainer scheduled the spec for 0.5.0 and answered the questions found aga
   after each. The branch builds on `023-folder-sync`, and everything ships in 0.5.0. If media turns out
   hard, it moves to a spec of its own.
 
+### Session 2026-10-13 (plan)
+
+Found while planning and confirmed by the maintainer ("pokracuj jak doporucujes"):
+
+- Copy Value: a string without quotes, a number as written, an object or array as indented JSON in file
+  order without comments.
+- Copy Path: `a["two words"][1]` for keys that are not identifiers; JSON Lines paths start with the line
+  index (`[4].name`); the root is `$`.
+- Space in the image preview steps to the next picture (raster or SVG), in the media preview to the
+  next playable media file, elsewhere to any file.
+- Save Image As stays for raster images only.
+- Media details are shown in the status line, as image details are.
+- Expand All and Collapse All are in the View menu without a default key.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Read a JSON file as a tree (Priority: P1)
