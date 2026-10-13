@@ -9855,6 +9855,17 @@
           }
         }
       }
+    },
+    "The archive is incomplete: its zip directory is missing.": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archiv je neúplný: chybí mu adresář zipu."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

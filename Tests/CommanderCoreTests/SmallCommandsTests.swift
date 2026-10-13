@@ -71,6 +71,13 @@ import Testing
             let damaged = root.child("damaged.zip")
             try data.write(to: damaged)
             await #expect(throws: (any Error).self) { try await ArchiveTester.test(archive: damaged) }
+
+            // Cut short after the member data: libarchive still reads the member, the end record is gone.
+            let sound = try Data(contentsOf: archive)
+            let directory = try #require(sound.firstRange(of: Data([0x50, 0x4B, 0x01, 0x02])))
+            let cut = root.child("cut.zip")
+            try sound[..<directory.lowerBound].write(to: cut)
+            await #expect(throws: ArchiveError.incomplete) { try await ArchiveTester.test(archive: cut) }
         }
     }
 
