@@ -236,7 +236,8 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
     }
 
     /// Window commands that work while the command line edits too.
-    private static let focusIndependent: Set<Command> = [.toggleCommandLine, .toggleFunctionKeyBar, .toggleButtonBar]
+    private static let focusIndependent: Set<Command> = [.toggleCommandLine, .toggleFunctionKeyBar, .toggleButtonBar,
+                                                         .toggleVolumeBar, .toggleDriveRow]
 
     func canPerform(_ command: Command) -> Bool {
         if CommandRegistry.spec(command).scope == .panel, !panelHasFocus, !Self.focusIndependent.contains(command) {
@@ -285,7 +286,8 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
              .swapPanels, .sameFolderAsOther,
              .insertNameToCommandLine, .insertPathToCommandLine, .insertFullPathToCommandLine,
              .insertLeftPathToCommandLine, .insertRightPathToCommandLine,
-             .toggleCommandLine, .toggleFunctionKeyBar, .toggleButtonBar, .commandLineHistory: true
+             .toggleCommandLine, .toggleFunctionKeyBar, .toggleButtonBar, .toggleVolumeBar, .toggleDriveRow,
+             .commandLineHistory: true
         case .openInLeftPanel, .openInRightPanel: openInPanel(command) != nil
         case .openInNewTabOtherPanel: activePanel.model.cursorItem != nil && !activePanel.model.isNetwork
         case .swapPanelsWithTabs, .quickView: true
@@ -372,6 +374,10 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
             UserDefaults.standard.set(functionKeyBar.isHidden, forKey: Self.showFunctionKeyBarKey)
         case .toggleButtonBar:
             ButtonBarDefaults.toggle()
+        case .toggleVolumeBar:
+            UserDefaults.standard.set(!DriveRowSettings.saved.showVolumeBar, forKey: DriveRowSettings.showVolumeBarKey)
+        case .toggleDriveRow:
+            UserDefaults.standard.set(!DriveRowSettings.saved.showRow, forKey: DriveRowSettings.showRowKey)
         default: break
         }
     }
@@ -662,6 +668,8 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         if command == .quickView { menuItem.state = quickView == nil ? .off : .on }
         if command == .toggleFunctionKeyBar { menuItem.state = functionKeyBar.isHidden ? .off : .on }
         if command == .toggleButtonBar { menuItem.state = ButtonBarDefaults.placement == .off ? .off : .on }
+        if command == .toggleVolumeBar { menuItem.state = DriveRowSettings.saved.showVolumeBar ? .on : .off }
+        if command == .toggleDriveRow { menuItem.state = DriveRowSettings.saved.showRow ? .on : .off }
         let sortFields: [Command: SortField] = [.sortByName: .name, .sortByExtension: .ext, .sortByDate: .date, .sortBySize: .size]
         if let field = sortFields[command] { menuItem.state = activePanel.model.sort.field == field ? .on : .off }
         if command == .maximizePanel { menuItem.title = maximizedSide == nil ? CommandRegistry.spec(.maximizePanel).localizedTitle

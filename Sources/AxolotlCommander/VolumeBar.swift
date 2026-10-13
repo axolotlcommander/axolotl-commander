@@ -20,6 +20,15 @@ final class VolumeBar: NSView {
     var onCopyServerAddress: ((RemoteEndpoint) -> Void)?
     var onDisconnectServer: ((RemoteEndpoint) -> Void)?
     var onConnectToServer: (() -> Void)?
+    /// The pressed item changed (the drive row shows it).
+    var onPressedChange: (() -> Void)?
+    /// The free space at the right end, when the drive row is hidden (spec 020).
+    let freeSpace = FreeSpaceLabel()
+    var showsFreeSpace = false {
+        didSet { if showsFreeSpace != oldValue { needsLayout = true } }
+    }
+    /// The item shown pressed, if any.
+    private(set) var pressedItem: VolumeBarModel.Item?
 
     private let stack = NSStackView()
     private var items: [VolumeBarModel.Item] = []
@@ -51,6 +60,7 @@ final class VolumeBar: NSView {
         stack.detachesHiddenViews = true
         stack.translatesAutoresizingMaskIntoConstraints = false
         addSubview(stack)
+        addSubview(freeSpace)
         NSLayoutConstraint.activate([
             stack.leadingAnchor.constraint(equalTo: leadingAnchor),
             stack.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor),
@@ -122,11 +132,19 @@ final class VolumeBar: NSView {
 
     /// A bar too narrow for every item hides items from the end, so volumes stay visible
     /// longest (each stays reachable through the volume menu); the first item only truncates.
+    /// The free space takes what the items leave, so it shortens and hides first.
     private func fitItems() {
+        let gap: CGFloat = 8
+        let views = stack.arrangedSubviews
+        let natural = views.enumerated().reduce(CGFloat(0)) { $0 + ($1.offset > 0 ? stack.spacing : 0) + $1.element.fittingSize.width }
+        let spaceWidth = showsFreeSpace ? freeSpace.width(fitting: bounds.width - natural - gap) : 0
+        freeSpace.isHidden = spaceWidth == 0
+        freeSpace.frame = NSRect(x: bounds.width - spaceWidth, y: 0, width: spaceWidth, height: bounds.height)
+        let room = bounds.width - (spaceWidth > 0 ? spaceWidth + gap : 0)
         var used: CGFloat = 0
-        for (index, view) in stack.arrangedSubviews.enumerated() {
+        for (index, view) in views.enumerated() {
             used += (index > 0 ? stack.spacing : 0) + view.fittingSize.width
-            let hide = index > 0 && used > bounds.width
+            let hide = index > 0 && used > room
             if view.isHidden != hide { view.isHidden = hide }
         }
     }
@@ -190,6 +208,11 @@ final class VolumeBar: NSView {
                                              volumeRoot: volumeRoot, items: items, network: network)
         for case let button as NSButton in stack.arrangedSubviews {
             button.state = button.tag == pressed ? .on : .off
+        }
+        let item = pressed.map { items[$0] }
+        if item != pressedItem {
+            pressedItem = item
+            onPressedChange?()
         }
     }
 

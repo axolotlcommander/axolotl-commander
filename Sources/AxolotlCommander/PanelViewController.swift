@@ -59,7 +59,12 @@ final class PanelViewController: NSViewController {
     /// What the shown trail was built from (location, results, archive).
     private var trailSource: (URL, ResultsListing?, ArchivePath?, Bool)?
     let statusField = NSTextField(labelWithString: "")
-    private let volumeBar = VolumeBar()
+    let volumeBar = VolumeBar()
+    /// The drive combo and the free space below the volume bar (spec 020).
+    let driveRow = DriveRowView()
+    /// The free space at the right end of the status line, when both bars above are hidden.
+    let statusSpace = FreeSpaceLabel()
+    let diskSpace = DiskSpaceMonitor()
     let tabStrip = TabStrip()
     let briefView = BriefGridView()
     let briefScroll = NSScrollView()
@@ -234,7 +239,12 @@ final class PanelViewController: NSViewController {
         }
         lists.setContentHuggingPriority(.defaultLow, for: .vertical)
 
-        let stack = NSStackView(views: [volumeBar, tabStrip, pathBar, lists, statusField])
+        statusField.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+        let statusRow = NSStackView(views: [statusField, statusSpace])
+        statusRow.orientation = .horizontal
+        statusRow.spacing = 8
+        configureDriveRow()
+        let stack = NSStackView(views: [volumeBar, driveRow, tabStrip, pathBar, lists, statusRow])
         stack.orientation = .vertical
         stack.alignment = .leading
         stack.spacing = 2
@@ -247,10 +257,11 @@ final class PanelViewController: NSViewController {
             stack.topAnchor.constraint(equalTo: root.topAnchor),
             stack.bottomAnchor.constraint(equalTo: root.bottomAnchor),
             volumeBar.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -8),
+            driveRow.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -8),
             tabStrip.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -8),
             pathBar.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -8),
             lists.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -8),
-            statusField.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -8),
+            statusRow.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -8),
         ])
         view = root
         briefScroll.isHidden = viewMode != .brief
@@ -325,6 +336,7 @@ final class PanelViewController: NSViewController {
         if pathField.currentEditor() == nil { pathField.stringValue = locationText }
         updatePathBar()
         volumeBar.show(location: model.location)
+        updateDriveRow()
         if let remote = model.remote { ServerConnectionsUI.shared.visit(remote, panel: self) }
         if let folder = diskLocation, folder != lastVisitedFolder {
             lastVisitedFolder = folder
@@ -1315,18 +1327,24 @@ final class PanelViewController: NSViewController {
 
     // MARK: Volume menu
 
-    private func showVolumeMenu() {
+    /// The volume menu (⌥F1/⌥F2, the drive combo), below `anchor` or at the path bar; the item
+    /// the volume bar shows pressed is checked.
+    func showVolumeMenu(from anchor: NSView? = nil) {
         let menu = NSMenu()
+        let pressed = volumeBar.pressedItem
         for volume in Volumes.mounted() {
             let title = volume.availableCapacity.map { String(localized: "\(volume.name)  —  \(Format.bytes($0)) free") } ?? volume.name
             let item = placeItem(title, volume.url, icon: NSWorkspace.shared.icon(forFile: volume.url.path))
             item.action = #selector(volumeRootChosen(_:))
+            if case .volume(let shown)? = pressed, shown.url == volume.url { item.state = .on }
             menu.addItem(item)
         }
         menu.addItem(.separator())
         let fm = FileManager.default
         let home = fm.homeDirectoryForCurrentUser
-        menu.addItem(placeItem(String(localized: "Home"), home, icon: NSImage(systemSymbolName: "house", accessibilityDescription: nil)))
+        let homeItem = placeItem(String(localized: "Home"), home, icon: NSImage(systemSymbolName: "house", accessibilityDescription: nil))
+        if case .home? = pressed { homeItem.state = .on }
+        menu.addItem(homeItem)
         for (dir, symbol) in [(FileManager.SearchPathDirectory.desktopDirectory, "menubar.dock.rectangle"),
                               (.documentDirectory, "doc"), (.downloadsDirectory, "arrow.down.circle"),
                               (.applicationDirectory, "square.grid.2x2")] {
@@ -1335,10 +1353,14 @@ final class PanelViewController: NSViewController {
             }
         }
         if let iCloud = VolumeBar.iCloudDrive {
-            menu.addItem(placeItem(String(localized: "iCloud Drive"), iCloud, icon: NSImage(systemSymbolName: "icloud", accessibilityDescription: nil)))
+            let item = placeItem(String(localized: "iCloud Drive"), iCloud, icon: NSImage(systemSymbolName: "icloud", accessibilityDescription: nil))
+            if case .iCloud? = pressed { item.state = .on }
+            menu.addItem(item)
         }
-        menu.addItem(placeItem(String(localized: "Network"), NetworkPlaces.location,
-                               icon: NSImage(systemSymbolName: "network", accessibilityDescription: nil)))
+        let networkItem = placeItem(String(localized: "Network"), NetworkPlaces.location,
+                                    icon: NSImage(systemSymbolName: "network", accessibilityDescription: nil))
+        if model.isNetwork { networkItem.state = .on }
+        menu.addItem(networkItem)
         // Open server connections, as the volume bar shows them (also those its width hides).
         let connections = ServerConnectionsUI.shared
         if !connections.opened.isEmpty {
@@ -1350,10 +1372,15 @@ final class PanelViewController: NSViewController {
                 icon?.size = NSSize(width: 16, height: 16)
                 item.image = icon
                 item.toolTip = connections.address(of: endpoint)
+                if model.remote?.endpoint == endpoint { item.state = .on }
                 menu.addItem(item)
             }
         }
-        menu.popUp(positioning: nil, at: NSPoint(x: 0, y: pathBar.bounds.height + 2), in: pathBar)
+        if let anchor {
+            menu.popUp(positioning: nil, at: NSPoint(x: 0, y: anchor.isFlipped ? anchor.bounds.height + 2 : -2), in: anchor)
+        } else {
+            menu.popUp(positioning: nil, at: NSPoint(x: 0, y: pathBar.bounds.height + 2), in: pathBar)
+        }
     }
 
     private func placeItem(_ title: String, _ url: URL, icon: NSImage?) -> NSMenuItem {

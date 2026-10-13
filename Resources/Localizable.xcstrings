@@ -8504,16 +8504,6 @@
         }
       }
     },
-    "Volume bar shows:": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lišta disků zobrazuje:"
-          }
-        }
-      }
-    },
     "Server connections": {
       "localizations": {
         "cs": {
@@ -10173,6 +10163,86 @@
           "stringUnit": {
             "state": "translated",
             "value": "Editor „%@“ vybraný v Nastavení není nainstalovaný. Vyberte jiný v Nastavení → Prohlížeč a editor."
+          }
+        }
+      }
+    },
+    "%@ free of %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ volných z %2$@"
+          }
+        }
+      }
+    },
+    "%@ free": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ volných"
+          }
+        }
+      }
+    },
+    "%@ free of %@ — %@ used": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ volných z %2$@ — obsazeno %3$@"
+          }
+        }
+      }
+    },
+    "Show Volume Bar": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zobrazit lištu svazků"
+          }
+        }
+      }
+    },
+    "Show Drive Row": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zobrazit řádek disku"
+          }
+        }
+      }
+    },
+    "Show volume bar with:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zobrazit lištu svazků s položkami:"
+          }
+        }
+      }
+    },
+    "Show drive row with free space": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zobrazit řádek disku s volným místem"
+          }
+        }
+      }
+    },
+    "Show free space when the drive row is hidden": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ukázat volné místo, když je řádek disku skrytý"
           }
         }
       }

@@ -160,6 +160,9 @@ private struct AppearanceSettings: View {
     @AppStorage(VolumeBarSettings.iCloudKey) private var volumeBarICloud = VolumeBarSettings().showICloud
     @AppStorage(VolumeBarSettings.networkKey) private var volumeBarNetwork = VolumeBarSettings().showNetwork
     @AppStorage(VolumeBarSettings.serversKey) private var volumeBarServers = VolumeBarSettings().showServers
+    @AppStorage(DriveRowSettings.showVolumeBarKey) private var showVolumeBar = DriveRowSettings().showVolumeBar
+    @AppStorage(DriveRowSettings.showRowKey) private var showDriveRow = DriveRowSettings().showRow
+    @AppStorage(DriveRowSettings.freeSpaceElsewhereKey) private var freeSpaceElsewhere = DriveRowSettings().freeSpaceElsewhere
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -190,11 +193,19 @@ private struct AppearanceSettings: View {
             }
             // Volumes are always shown; these items follow them.
             HStack(spacing: 16) {
-                Text("Volume bar shows:")
-                Toggle("Home", isOn: $volumeBarHome)
-                Toggle("iCloud Drive", isOn: $volumeBarICloud)
-                Toggle("Network", isOn: $volumeBarNetwork)
-                Toggle("Server connections", isOn: $volumeBarServers)
+                Toggle("Show volume bar with:", isOn: $showVolumeBar)
+                Group {
+                    Toggle("Home", isOn: $volumeBarHome)
+                    Toggle("iCloud Drive", isOn: $volumeBarICloud)
+                    Toggle("Network", isOn: $volumeBarNetwork)
+                    Toggle("Server connections", isOn: $volumeBarServers)
+                }
+                .disabled(!showVolumeBar)
+            }
+            HStack(spacing: 16) {
+                Toggle("Show drive row with free space", isOn: $showDriveRow)
+                Toggle("Show free space when the drive row is hidden", isOn: $freeSpaceElsewhere)
+                    .disabled(showDriveRow)
             }
             Text("Highlighting — the first matching rule from the top wins:").font(.headline)
             Table($settings.appearance.highlights, selection: $selection) {
