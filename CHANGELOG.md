@@ -19,6 +19,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
   volumes show ⏏ in the volume bar, and a right click on a volume offers Eject and Volume Information….
   Disconnect… (F12) also lists network volumes and ejectable disks. Panels on the volume go to the
   home folder first, and nothing is ejected while one of the app's operations uses it.
+- Synchronize Folders… (⌥⇧F10, Commands menu) compares the folder trees of both panels by date,
+  size or content and lists what differs with the direction of each copy. Space, ← and → change
+  single items, F3 compares two files, and nothing is copied before the summary is confirmed.
+  A one-way sync can also move extra items to the Trash (off by default).
 
 ### Changed
 

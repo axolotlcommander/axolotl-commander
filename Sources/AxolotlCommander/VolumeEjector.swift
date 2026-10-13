@@ -88,6 +88,7 @@ enum VolumeEjector {
                     + main.left.volumeUsers + main.right.volumeUsers
             case let find as FindWindowController: find.volumeUser.map { [$0] } ?? []
             case let map as DiskMapWindowController: map.volumeUser.map { [$0] } ?? []
+            case let sync as SyncWindowController: sync.volumeUser.map { [$0] } ?? []
             default: []
             }
         }

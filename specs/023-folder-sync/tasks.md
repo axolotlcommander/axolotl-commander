@@ -38,18 +38,18 @@
 
 ## Phase 2: User Story 1 — compare and copy (P1)
 
-- [ ] T007 [US1] `Command.synchronizeFolders` ("Synchronize Folders…", `.commands`, `f(10, [o, s])`) in
+- [X] T007 [US1] `Command.synchronizeFolders` ("Synchronize Folders…", `.commands`, `f(10, [o, s])`) in
   `Sources/CommanderCore/Command.swift`; enablement and perform in `MainWindowController`
   (`canPerformHere` / `performHere`: both panels plain local folders); `AppSettings.sync` (`syncOptions`)
   and the `SettingsCatalog.app` entry.
-- [ ] T008 [US1] `SyncSheet` (SwiftUI) in `Sources/AxolotlCommander/Sync/SyncSheet.swift`: folders,
+- [X] T008 [US1] `SyncSheet` (SwiftUI) in `Sources/AxolotlCommander/Sync/SyncSheet.swift`: folders,
   criteria, masks, direction, delete toggle disabled for Both ways; Return compares, Esc cancels; the
   `SyncGuard` messages.
-- [ ] T009 [US1] `SyncWindowController` in `Sources/AxolotlCommander/Sync/SyncWindowController.swift`:
+- [X] T009 [US1] `SyncWindowController` in `Sources/AxolotlCommander/Sync/SyncWindowController.swift`:
   one per main window, header, table columns, in-window comparing progress with Cancel, summary line,
   Compare Again / Synchronize, "folders are in sync" state, `volumeUser` and the `VolumeEjector.users()`
   case.
-- [ ] T010 [US1] Run: confirmation with the plan summary; `OperationsController.perform(_:in:)`;
+- [X] T010 [US1] Run: confirmation with the plan summary; `OperationsController.perform(_:in:)`;
   `SyncRunner` with `OperationState(title:urls:)`; report of skipped and failed items; compare again;
   panels refresh.
 
@@ -57,7 +57,7 @@
 
 ## Phase 3: User Story 2 — per-item control (P1)
 
-- [ ] T011 [US2] `SyncTableView` keys (Space, ←, →, =, Delete, F3 → `CompareWindowController.show`,
+- [X] T011 [US2] `SyncTableView` keys (Space, ←, →, =, Delete, F3 → `CompareWindowController.show`,
   Return, ⌘R before the menu's Refresh, Esc), click on the action cell cycles, context menu, filter
   buttons over an index list in `Sources/AxolotlCommander/Sync/`.
 
@@ -65,7 +65,7 @@
 
 ## Phase 4: User Story 3 — one way with deleting (P2) and User Story 4 — criteria (P2)
 
-- [ ] T012 [US3] [US4] ✕ display, the Trash line in the confirmation, the run's Trash report; criteria and
+- [X] T012 [US3] [US4] ✕ display, the Trash line in the confirmation, the run's Trash report; criteria and
   masks end to end (they are in the core already).
 
 **Checkpoint**: quickstart checks 4, 5, 9 and 10 pass; commit.

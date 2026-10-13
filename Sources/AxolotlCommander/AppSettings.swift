@@ -24,6 +24,8 @@ final class AppSettings {
     }
     var hotPaths: HotPaths { didSet { save(hotPaths, "hotPaths") } }
     var comparison: ComparisonOptions { didSet { save(comparison, "comparison") } }
+    /// Synchronize Folders options (spec 023).
+    var sync: SyncOptions { didSet { save(sync, "syncOptions") } }
     var recentPaths: RecentPaths { didSet { save(recentPaths, "recentPaths") } }
     /// Destinations used in the copy/move dialog, newest first.
     var recentDestinations: RecentPaths { didSet { save(recentDestinations, "transfer.recentDestinations") } }
@@ -34,6 +36,7 @@ final class AppSettings {
         appearance = Self.load("appearance") ?? PanelAppearance()
         hotPaths = Self.load("hotPaths") ?? HotPaths()
         comparison = Self.load("comparison") ?? ComparisonOptions()
+        sync = Self.load("syncOptions") ?? SyncOptions()
         recentPaths = Self.load("recentPaths") ?? RecentPaths()
         recentDestinations = RecentPaths(
             paths: (Self.load("transfer.recentDestinations") as RecentPaths?)?.paths ?? [],
@@ -47,6 +50,7 @@ final class AppSettings {
         if let value: PanelAppearance = Self.load("appearance"), value != appearance { appearance = value }
         if let value: HotPaths = Self.load("hotPaths"), value != hotPaths { hotPaths = value }
         if let value: ComparisonOptions = Self.load("comparison"), value != comparison { comparison = value }
+        if let value: SyncOptions = Self.load("syncOptions"), value != sync { sync = value }
         if let value: [ConnectionProfile] = Self.load("connections"), value != connections { connections = value }
     }
 

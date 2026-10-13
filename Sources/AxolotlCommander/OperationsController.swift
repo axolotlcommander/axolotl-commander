@@ -402,7 +402,9 @@ final class OperationsController {
 
     // MARK: Running
 
-    func perform(_ state: OperationState, _ body: @escaping () async throws -> Void) {
+    /// `window`: where the progress sheet goes (the main window when nil).
+    func perform(_ state: OperationState, in window: NSWindow? = nil, _ body: @escaping () async throws -> Void) {
+        let window = window ?? self.window
         running.append(state)
         let host = NSWindow(contentViewController: NSHostingController(rootView: ProgressSheet(state: state)))
         // Show the sheet only for operations that take a noticeable time.
