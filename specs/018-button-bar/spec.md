@@ -35,7 +35,7 @@ It ships with specs 010–017 in release 0.4.0 (maintainer, 2026-10-13).
 - Q: How is it edited? → A: A "Button Bar" tab in Settings (add, remove, reorder, separators, icon
   choice) and a right click on the bar (Edit, Remove, Add, Customize…).
 - Q: Default? → A: Off, with a few sample buttons, so turning it on shows something useful at once.
-- The answers below were *decided while writing the spec; to review*:
+- The answers below were *decided while writing the spec; confirmed by the maintainer on 2026-10-13*:
   - Q: Which icons? → A: SF Symbols: a searchable grid of a built-in list of suitable symbols, plus a field
     for any symbol name. A program button can also use the program's own app icon.
   - Q: Default icon? → A: A command uses the icon it has in the toolbar, otherwise a generic one; a program
@@ -45,12 +45,12 @@ It ships with specs 010–017 in release 0.4.0 (maintainer, 2026-10-13).
   - Q: The bottom bar when the function key bar is hidden? → A: The bottom row shows the buttons alone.
   - Q: Not enough room? → A: Buttons that do not fit go into a » menu at the end of the bar. At the bottom
     the function keys shrink first (as in spec 017), down to a minimum, before buttons move into »
-    (to review: minimum = key-only width).
+    (minimum = key-only width).
   - Q: A menu command? → A: View → Show Button Bar turns the bar on (at the last place used, top by
     default) and off.
   - Q: Export? → A: The buttons are a new "buttonBar" section of the settings file; the placement is a
     preference. A file without them keeps the current buttons.
-- *Decided during implementation; to review*:
+- *Decided during implementation; confirmed by the maintainer on 2026-10-13*:
   - Edit Button… and Add Button… open Settings → Button Bar with that button selected (Add first
     puts a new command button after the clicked one) instead of a separate sheet: one editor only.
   - The placement is three choices (Off, Top, "Bottom, after the function keys"); Restore Samples

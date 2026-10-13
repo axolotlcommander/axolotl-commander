@@ -32,4 +32,4 @@
 ## Notes
 
 - Points (the 140-point maximum) describe the size the user sees, not an implementation choice.
-- Some answers were decided while writing and are marked "to review" in Clarifications.
+- Some answers were decided while writing and the maintainer confirmed them on 2026-10-13.

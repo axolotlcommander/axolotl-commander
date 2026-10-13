@@ -26,7 +26,7 @@ spec ships with specs 010–016 in one release.
 
 ### Session 2026-10-13
 
-All answers below were *decided while the maintainer was away; to review*.
+All answers below were *decided while the maintainer was away; confirmed by the maintainer on 2026-10-13*.
 
 - Q: How does typed text match? → A: Text without wildcards matches names that contain it, ignoring
   case as the folder's name rules do. Text with `*`, `?`, `;` or `|` is a mask with the same syntax as

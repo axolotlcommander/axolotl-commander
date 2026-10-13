@@ -34,7 +34,7 @@ free and total space of the current one. The maintainer sent a mockup of this ro
 - Q: Default? → A: Shown; Settings can turn it off.
 - Q: The free space without the row? → A: It stays visible: on the right end of the volume bar, and,
   when the volume bar is hidden too, somewhere else in the panel. A setting can turn this off.
-- The answers below were *decided while writing the spec; to review*:
+- The answers below were *decided while writing the spec; confirmed by the maintainer on 2026-10-13*:
   - Q: Where exactly is the row? → A: Right below the volume bar, above the tab strip, so that tabs and
     the path bar stay together.
   - Q: The volume bar hidden? → A: A new setting makes the volume bar optional (shown by default),
@@ -53,7 +53,7 @@ free and total space of the current one. The maintainer sent a mockup of this ro
     last folder). ⌥F1/⌥F2 keep opening the volume menu as today. The combo never takes keyboard focus
     away from the file list.
 
-- *Decided during implementation; to review*:
+- *Decided during implementation; confirmed by the maintainer on 2026-10-13*:
   - The free space refreshes every 3 seconds while the window is visible (and at once on a folder
     change), which covers changes by the other panel and other apps.
   - The volume menu (⌥F1/⌥F2 and the combo) now checks the current item.

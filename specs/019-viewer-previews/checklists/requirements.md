@@ -32,6 +32,6 @@
 ## Notes
 
 - Written at the maintainer's request to keep the work in the plan; not scheduled for implementation.
-- All Clarifications answers were decided while writing and are marked "to review"; review them
-  before `/speckit-plan`.
+- All Clarifications answers were decided while writing and the maintainer confirmed them on
+  2026-10-13.
 - The size limit for a default JSON tree is left to the plan.

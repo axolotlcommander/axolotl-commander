@@ -23,7 +23,7 @@ release.
 
 ### Session 2026-10-13
 
-All answers below were *decided while the maintainer was away; to review*.
+All answers below were *decided while the maintainer was away; confirmed by the maintainer on 2026-10-13*.
 
 - Q: What does Copy As offer as the name? → A: "‹name› copy.‹ext›" (folders: "‹name› copy"), so
   Return makes a copy at once, as Finder's Duplicate does; the whole name is selected for typing a new

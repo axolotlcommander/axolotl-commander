@@ -32,5 +32,5 @@
 ## Notes
 
 - The maintainer decided the four main questions in chat on 2026-10-12. One detail (a volume button
-  for the volume the panel already shows) was decided while the maintainer was away; it is marked for
-  review in Clarifications.
+  for the volume the panel already shows) was decided while the maintainer was away; the maintainer
+  changed it on 2026-10-13 (a refresh instead of the root).

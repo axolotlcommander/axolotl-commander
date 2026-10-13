@@ -33,4 +33,5 @@
 
 - Scheduled for implementation on 2026-10-13 (release 0.4.0).
 - The row, its default and the free space fallback come from the maintainer; the exact places, setting
-  names, View menu commands and text rules were decided while writing and are marked "to review".
+  names, View menu commands and text rules were decided while writing and the maintainer confirmed them
+  on 2026-10-13.

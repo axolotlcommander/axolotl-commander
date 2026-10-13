@@ -21,7 +21,7 @@ spec ships with specs 010–016 in one release.
 
 ### Session 2026-10-13
 
-All answers below were *decided while the maintainer was away; to review*.
+All answers below were *decided while the maintainer was away; confirmed by the maintainer on 2026-10-13*.
 
 - Q: What does the preview show? → A: The system preview (Quick Look) of the item: text, images, PDF,
   media, and an icon with details for anything else, including folders. On ".." it shows the panel's

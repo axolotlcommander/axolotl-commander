@@ -144,13 +144,16 @@ import Testing
 
     private func choose(_ volume: URL, panel: URL?, other: URL? = nil, otherVolume: URL? = nil,
                         remembered: URL? = nil, existing: Set<String> = []) -> String {
-        VolumeChoice.target(volume: volume, panelVolume: panel, otherFolder: other, otherVolume: otherVolume,
-                            remembered: remembered, exists: { existing.contains($0.path) }).path
+        switch VolumeChoice.target(volume: volume, panelVolume: panel, otherFolder: other, otherVolume: otherVolume,
+                                   remembered: remembered, exists: { existing.contains($0.path) }) {
+        case .refresh: "refresh"
+        case .open(let folder): folder.path
+        }
     }
 
-    @Test func sameVolumeAsThisPanelOpensTheRoot() {
+    @Test func sameVolumeAsThisPanelRefreshesTheFolder() {
         let other = URL(fileURLWithPath: "/Volumes/Disk/Photos")
-        #expect(choose(disk, panel: disk, other: other, otherVolume: disk) == "/Volumes/Disk")
+        #expect(choose(disk, panel: disk, other: other, otherVolume: disk) == "refresh")
     }
 
     @Test func otherPanelsFolderOnTheVolumeWins() {

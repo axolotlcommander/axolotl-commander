@@ -36,7 +36,7 @@ manager. This spec ships with specs 010–016 in one release.
 
 ### Session 2026-10-13
 
-All answers below were *decided while the maintainer was away; to review*. The scope itself was
+All answers below were *decided while the maintainer was away; confirmed by the maintainer on 2026-10-13*. The scope itself was
 agreed in chat on 2026-10-12.
 
 - Q: What does "open in a new tab" open for each kind of cursor item? → A: What Enter would enter:

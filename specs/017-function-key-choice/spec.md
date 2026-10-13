@@ -30,7 +30,7 @@ It ships with specs 010–016 in release 0.4.0 (maintainer, 2026-10-13).
   hides F3 in every layer (F3, ⇧F3, ⌃F3, ⌥F3, ⌘F3). Twelve tick boxes, not one per layer.
 - Q: Where do the buttons go when there are few of them? → A: Each button is at most a maximum width;
   they stand side by side from the left edge in F-key order and the rest of the bar stays empty.
-- The answers below were *decided while writing the spec; to review*:
+- The answers below were *decided while writing the spec; confirmed by the maintainer on 2026-10-13*:
   - Q: Where is the choice? → A: Settings → General, under "Show function key bar": "Buttons on the
     bar:" with twelve tick boxes F1–F12, all ticked by default. The bar's context menu gets "Choose
     Buttons…", which opens that place.
@@ -44,7 +44,7 @@ It ships with specs 010–016 in release 0.4.0 (maintainer, 2026-10-13).
 - Q: Where does the first button start? → A: The bar leaves a small margin at both ends, so F1 does
   not sit in the window's rounded corner (maintainer, 2026-10-13); the first key cap lines up with
   the command line field above it.
-- *Decided during planning; to review*: the preference stores the hidden positions as text
+- *Decided during planning; confirmed by the maintainer on 2026-10-13*: the preference stores the hidden positions as text
   (`functionKeyBar.hidden`, for example "5,6,8"), so a missing or empty value shows all twelve and
   a value that would hide every position also shows all twelve.
 

@@ -26,7 +26,7 @@ other panel, and a command line history list. This spec ships with specs 010–0
 
 ### Session 2026-10-13
 
-All answers below were *decided while the maintainer was away; to review*.
+All answers below were *decided while the maintainer was away; confirmed by the maintainer on 2026-10-13*.
 
 - Q: What does the folder history list contain? → A: First the panel's own history in time order:
   the folders Forward would reach (furthest first), the current folder (marked), then the folders

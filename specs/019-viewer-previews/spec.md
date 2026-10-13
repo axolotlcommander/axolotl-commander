@@ -34,7 +34,7 @@ The Quick View panel (spec 016) uses the system preview and is not changed by th
 ### Session 2026-10-13
 
 The maintainer asked for this spec without implementation, to keep the work in the plan. All answers
-below were *decided while writing the spec; to review* before planning:
+below were *decided while writing the spec; confirmed by the maintainer on 2026-10-13*:
 
 - Q: Scope? → A: One spec with four parts in priority order: JSON tree, SVG, audio/video, .NET
   highlighting. Each part can be planned and shipped on its own.

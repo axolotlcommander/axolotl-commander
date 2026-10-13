@@ -1042,7 +1042,10 @@ final class PanelViewController: NSViewController {
             return FileManager.default.fileExists(atPath: url.path(percentEncoded: false), isDirectory: &isDirectory)
                 && isDirectory.boolValue
         }
-        go(to: target)
+        switch target {
+        case .refresh: refresh()
+        case .open(let folder): go(to: folder)
+        }
     }
 
     /// The folder on disk the panel shows; nil for an archive, a server or the Network folder.

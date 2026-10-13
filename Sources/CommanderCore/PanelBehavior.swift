@@ -103,16 +103,22 @@ public enum OpenInPanel {
 /// Where a volume button takes a panel while "Volume buttons open the other panel's folder or the
 /// last folder used there" is on.
 public enum VolumeChoice {
+    public enum Target: Equatable, Sendable {
+        /// The panel is on that volume already: it stays and reads its folder again.
+        case refresh
+        case open(URL)
+    }
+
     /// - Parameters:
     ///   - panelVolume: the volume this panel shows a folder on; nil for an archive, a server or Network.
     ///   - otherFolder / otherVolume: the other panel's folder and its volume, nil in the same cases.
     ///   - remembered: the last folder this panel showed on `volume`.
     public static func target(volume: URL, panelVolume: URL?, otherFolder: URL?, otherVolume: URL?,
-                              remembered: URL?, exists: (URL) -> Bool) -> URL {
-        if let panelVolume, same(panelVolume, volume) { return volume }
-        if let otherFolder, let otherVolume, same(otherVolume, volume) { return otherFolder }
-        if let remembered, exists(remembered) { return remembered }
-        return volume
+                              remembered: URL?, exists: (URL) -> Bool) -> Target {
+        if let panelVolume, same(panelVolume, volume) { return .refresh }
+        if let otherFolder, let otherVolume, same(otherVolume, volume) { return .open(otherFolder) }
+        if let remembered, exists(remembered) { return .open(remembered) }
+        return .open(volume)
     }
 
     static func same(_ a: URL, _ b: URL) -> Bool { key(a) == key(b) }
