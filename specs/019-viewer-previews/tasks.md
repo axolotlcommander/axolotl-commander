@@ -89,8 +89,16 @@
 
 - [X] T012 Czech strings complete; CHANGELOG (Unreleased, Added); spec status Implemented. Build
   without warnings, `swift test` green, commit.
-- [ ] T013 GUI check on the test copy following quickstart.md (scratch files only); record the result
-  here.
+- [X] T013 GUI check on the test copy following quickstart.md (scratch files only), 2026-10-13:
+  formatted JSON (order, duplicates, big number, ⌘F after a fix: Find was disabled in the JSON
+  Preview), Text shows the source, `min.json` (10 MB) formatted within 2 s, `big.json` (26 MB) asks and
+  formats in about 5 s, `bad.json` Text with "line 3, column 10", `comments.jsonc` without comments,
+  `items.ndjson` keeps line 2 and names it; SVG fit/zoom, `script.svg` made no network request and ran
+  no script, svgz draws, `broken.svg` says it cannot be shown; media player (Return, →, ↓, Space to the
+  next file, Esc closes; details with codec, rate, channels, frame size); F#, Razor, sln and props
+  highlighted. Not checked: dark mode (would change the user's system appearance), audible stop.
+  Found: Text mode of the 26 MB single-line `big.json` takes about 90 s and 4.6 GB to lay out with
+  wrapping (an existing Text mode limit), so the question appears only after that.
 
 ## Dependencies
 

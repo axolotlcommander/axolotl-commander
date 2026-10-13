@@ -865,7 +865,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         case .viewerSaveImageAs: return previewKind == .image && loadError == nil
         case .viewerZoomToFit: return mode == .preview && previewKind?.isPicture == true
         case .viewerFind, .viewerFindNext, .viewerFindPrevious, .viewerUseSelectionForFind:
-            return !(mode == .preview && previewKind?.hasFind != true)
+            return showsFormattedJSON || !(mode == .preview && previewKind?.hasFind != true)
         case .viewerWrap:
             menuItem.state = wrap ? .on : .off
             return usesTextView
