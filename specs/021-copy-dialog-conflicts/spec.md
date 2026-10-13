@@ -40,6 +40,14 @@ This spec ships in release 0.5.0, on top of the dialog arrow keys and the ⇧F2 
   first, as F3 in a panel does.
 - Q: Automatic names? → A: Like the Finder: "x 2.txt", "x 3.txt".
 - Q: Compare key? → A: ⌥F3, since ⌃F3 sorts by name.
+- *Decided while planning; confirmed by the maintainer on 2026-10-13*:
+  - Adding to an archive keeps its own question for all existing members at once (Overwrite / Skip /
+    Cancel), since the archive is rewritten in one pass. The replace question of this spec covers copy,
+    move, extraction, downloads and uploads.
+  - When extracting, the new file is already a local temporary copy, so ⇧F3 opens it without another
+    fetch.
+  - Rename… refuses a taken name at once for local destinations; on a server the replace question comes
+    back for that name instead (no extra listing of the server folder).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -151,7 +159,8 @@ and some equally old; try each More… choice.
    overwrites when the new file is newer and skips otherwise (equal dates skip), without asking.
 3. **When** the user chooses Rename…, **Then** a field asks for the new name, prefilled with the
    automatic name with its base part selected; an empty name, a name with "/" or a name that exists in
-   the destination is refused with a message and the field stays; Cancel returns to the question.
+   the destination is refused with a message and the field stays (on a server a taken name brings the question back for that name); Cancel returns to
+   the question.
 4. **When** the user chooses Rename Automatically, **Then** the item is written under the first free name
    "name 2.ext", "name 3.ext"…; Rename All Automatically does the same for every later conflict.
 5. **Given** a destination where renaming is not possible, **Then** the rename items are disabled.
@@ -161,7 +170,7 @@ and some equally old; try each More… choice.
 ### Edge Cases
 
 - **Archives and servers**: the question, the marks and the More… choices work the same for extraction,
-  adding to an archive, downloads and uploads; looking into a file on such a side fetches a temporary
+  downloads and uploads (adding to an archive keeps its own question, see Clarifications); looking into a file on such a side fetches a temporary
   copy, which is cleaned up as after F3 in a panel.
 - **Moving a folder tree**: a rename applies to the item in conflict, not to the whole folder.
 - **Automatic names that collide again** keep counting until a free name.

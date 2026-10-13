@@ -70,7 +70,7 @@
 | VI Incremental | ✅ Stories ship in order US1/US2 (question) → US4/US3 (dialog) → US5 (More…). |
 | VII Language | ✅ |
 
-## Decisions found while planning (to confirm with the maintainer)
+## Decisions found while planning (confirmed by the maintainer on 2026-10-13)
 
 - Adding to an archive keeps its own question for all existing members at once (Overwrite / Skip /
   Cancel): the archive is rewritten in one pass, so a per-file question does not fit. The replace
