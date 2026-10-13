@@ -43,7 +43,7 @@ public enum Command: String, CaseIterable, Hashable, Sendable {
 
     // Commands
     case find, occupiedSpace, openTerminal, revealInFinder, goToLinkTarget, userMenu, volumeInfo
-    case connectToServer, disconnect, ejectVolume, compareFiles
+    case connectToServer, disconnect, ejectVolume, compareFiles, synchronizeFolders
     case calculateChecksums, verifyChecksums
 
     // Options
@@ -264,6 +264,7 @@ public enum CommandRegistry {
         add(.occupiedSpace, "Disk Map…", .commands, [f(10, o), f(10, [c, o]), ch("d", [c, s])])
         add(.volumeInfo, "Volume Information…", .commands, [ch("l", c)])
         add(.compareFiles, "Compare Files…", .commands)
+        add(.synchronizeFolders, "Synchronize Folders…", .commands, [f(10, [o, s])])
         add(.calculateChecksums, "Calculate Checksums…", .commands, sep: true)
         add(.verifyChecksums, "Verify Checksums…", .commands, [ch("v", [c, s])])
         add(.openTerminal, "Open Terminal Here", .commands, [ch("/", c), K(.numSlash)], sep: true)

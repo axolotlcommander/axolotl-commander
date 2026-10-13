@@ -61,6 +61,16 @@
         }
       }
     },
+    "%@ (%@)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ (%2$@)"
+          }
+        }
+      }
+    },
     "%@ (default)": {
       "localizations": {
         "cs": {
@@ -177,6 +187,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "%@ — zastaveno"
+          }
+        }
+      }
+    },
+    "%@, %@ to the Trash": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, do Koše %2$@"
           }
         }
       }
@@ -1126,6 +1146,26 @@
         }
       }
     },
+    "Both panels show the same folder": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oba panely ukazují stejnou složku"
+          }
+        }
+      }
+    },
+    "Both ways": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oběma směry"
+          }
+        }
+      }
+    },
     "Bottom, after the function keys": {
       "localizations": {
         "cs": {
@@ -1616,6 +1656,16 @@
         }
       }
     },
+    "Compare Again": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Porovnat znovu"
+          }
+        }
+      }
+    },
     "Compare Files": {
       "localizations": {
         "cs": {
@@ -1667,12 +1717,32 @@
         }
       }
     },
+    "Comparing was stopped.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Porovnávání bylo zastaveno."
+          }
+        }
+      }
+    },
     "Comparing…": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Porovnávám…"
+          }
+        }
+      }
+    },
+    "Comparing… %@ items – %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Porovnávám… položek: %1$@ – %2$@"
           }
         }
       }
@@ -1728,6 +1798,16 @@
         }
       }
     },
+    "Content (slow)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obsah (pomalé)"
+          }
+        }
+      }
+    },
     "Copy": {
       "extractionState": "manual",
       "localizations": {
@@ -1735,6 +1815,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kopírovat"
+          }
+        }
+      }
+    },
+    "Copy %@ to the left": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopírovat doleva %@"
+          }
+        }
+      }
+    },
+    "Copy %@ to the right": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopírovat doprava %@"
+          }
+        }
+      }
+    },
+    "Copy %@ to the right, %@ to the left": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopírovat doprava %1$@, doleva %2$@"
           }
         }
       }
@@ -1803,6 +1913,46 @@
         }
       }
     },
+    "Copy to the Left": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopírovat doleva"
+          }
+        }
+      }
+    },
+    "Copy to the Right": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopírovat doprava"
+          }
+        }
+      }
+    },
+    "Copy to the left": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopírovat doleva"
+          }
+        }
+      }
+    },
+    "Copy to the right": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopírovat doprava"
+          }
+        }
+      }
+    },
     "Copying between an archive and a server is not supported. Copy to a folder on disk first.": {
       "localizations": {
         "cs": {
@@ -1830,6 +1980,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kopírovat…"
+          }
+        }
+      }
+    },
+    "Could not be copied": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nepodařilo se zkopírovat"
           }
         }
       }
@@ -1944,6 +2104,16 @@
         }
       }
     },
+    "Date and time (up to 2 seconds apart counts as equal)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datum a čas (rozdíl do 2 sekund se počítá jako shoda)"
+          }
+        }
+      }
+    },
     "Day": {
       "localizations": {
         "cs": {
@@ -2021,6 +2191,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Okamžitě smazat…"
+          }
+        }
+      }
+    },
+    "Delete items missing on the left (to the Trash)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Smazat položky, které vlevo chybí (do Koše)"
+          }
+        }
+      }
+    },
+    "Delete items missing on the right (to the Trash)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Smazat položky, které vpravo chybí (do Koše)"
           }
         }
       }
@@ -2140,12 +2330,42 @@
         }
       }
     },
+    "Different": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rozdílné"
+          }
+        }
+      }
+    },
+    "Differs; choose a direction with ← or →": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Liší se; směr zvolte klávesou ← nebo →"
+          }
+        }
+      }
+    },
     "Digits: %lld": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Číslic: %lld"
+          }
+        }
+      }
+    },
+    "Direction:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Směr:"
           }
         }
       }
@@ -2272,6 +2492,16 @@
         }
       }
     },
+    "Do Nothing": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nic nedělat"
+          }
+        }
+      }
+    },
     "Document": {
       "localizations": {
         "cs": {
@@ -2372,6 +2602,36 @@
         }
       }
     },
+    "Equal": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shodné"
+          }
+        }
+      }
+    },
+    "Exclude": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vynechat"
+          }
+        }
+      }
+    },
+    "Excluded": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vynecháno"
+          }
+        }
+      }
+    },
     "Existing: %@": {
       "localizations": {
         "cs": {
@@ -2402,12 +2662,72 @@
         }
       }
     },
+    "Files in both folders differ by:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soubory v obou složkách se liší podle:"
+          }
+        }
+      }
+    },
+    "Folders inside each other cannot be synchronized: copying would go on into the copy.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Složky, z nichž jedna je uvnitř druhé, nelze synchronizovat: kopírování by pokračovalo do vlastní kopie."
+          }
+        }
+      }
+    },
+    "Ignore a difference of exactly one hour": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ignorovat rozdíl přesně jedné hodiny"
+          }
+        }
+      }
+    },
+    "Include": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zahrnout"
+          }
+        }
+      }
+    },
     "It is in use: %@": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Používá ho: %@"
+          }
+        }
+      }
+    },
+    "Items that change before they are copied are skipped.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Položky, které se před zkopírováním změní, se přeskočí."
+          }
+        }
+      }
+    },
+    "Left Only": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jen vlevo"
           }
         }
       }
@@ -2422,12 +2742,82 @@
         }
       }
     },
+    "Left to right": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zleva doprava"
+          }
+        }
+      }
+    },
+    "Left:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vlevo:"
+          }
+        }
+      }
+    },
+    "Left: %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vlevo: %@"
+          }
+        }
+      }
+    },
     "More…": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Další…"
+          }
+        }
+      }
+    },
+    "Move %@ to the Trash": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přesunout do Koše %@"
+          }
+        }
+      }
+    },
+    "Move to the Trash on the left": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přesunout vlevo do Koše"
+          }
+        }
+      }
+    },
+    "Move to the Trash on the right": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přesunout vpravo do Koše"
+          }
+        }
+      }
+    },
+    "Name clashes with “%@”": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jméno koliduje s „%@“"
           }
         }
       }
@@ -2458,6 +2848,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nový: %@"
+          }
+        }
+      }
+    },
+    "Nothing to do": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Není co dělat"
+          }
+        }
+      }
+    },
+    "One folder is inside the other": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jedna složka je uvnitř druhé"
           }
         }
       }
@@ -2522,12 +2932,72 @@
         }
       }
     },
+    "Replace the item on the left (it goes to the Trash)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nahradit položku vlevo (původní jde do Koše)"
+          }
+        }
+      }
+    },
+    "Replace the item on the right (it goes to the Trash)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nahradit položku vpravo (původní jde do Koše)"
+          }
+        }
+      }
+    },
+    "Right Only": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jen vpravo"
+          }
+        }
+      }
+    },
     "Right Volume…": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Svazek vpravo…"
+          }
+        }
+      }
+    },
+    "Right to left": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zprava doleva"
+          }
+        }
+      }
+    },
+    "Right:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vpravo:"
+          }
+        }
+      }
+    },
+    "Right: %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vpravo: %@"
           }
         }
       }
@@ -2542,12 +3012,102 @@
         }
       }
     },
+    "Show:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zobrazit:"
+          }
+        }
+      }
+    },
+    "Some items were not synchronized": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Některé položky nebyly synchronizovány"
+          }
+        }
+      }
+    },
     "Some volumes could not be ejected.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Některé svazky se nepodařilo vysunout."
+          }
+        }
+      }
+    },
+    "Synchronize": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synchronizovat"
+          }
+        }
+      }
+    },
+    "Synchronize Folders": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synchronizovat složky"
+          }
+        }
+      }
+    },
+    "Synchronize Folders…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synchronizovat složky…"
+          }
+        }
+      }
+    },
+    "Synchronize the folders?": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synchronizovat složky?"
+          }
+        }
+      }
+    },
+    "Synchronize – %@ ↔ %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synchronizace – %1$@ ↔ %2$@"
+          }
+        }
+      }
+    },
+    "Synchronize…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synchronizovat…"
+          }
+        }
+      }
+    },
+    "Synchronizing Folders": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synchronizuji složky"
           }
         }
       }
@@ -2572,6 +3132,16 @@
         }
       }
     },
+    "The folders are in sync.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Složky jsou shodné."
+          }
+        }
+      }
+    },
     "The name can’t be empty.": {
       "localizations": {
         "cs": {
@@ -2592,12 +3162,92 @@
         }
       }
     },
+    "There is nothing to synchronize.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Není co synchronizovat."
+          }
+        }
+      }
+    },
     "This volume can’t be ejected.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Tento svazek nelze vysunout."
+          }
+        }
+      }
+    },
+    "and %lld more": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "a dalších %lld"
+          }
+        }
+      }
+    },
+    "both ways": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "oběma směry"
+          }
+        }
+      }
+    },
+    "by %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "podle: %@"
+          }
+        }
+      }
+    },
+    "changed since comparing": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "od porovnání se změnila"
+          }
+        }
+      }
+    },
+    "content": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "obsah"
+          }
+        }
+      }
+    },
+    "date": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "datum"
+          }
+        }
+      }
+    },
+    "deleting extra items": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mazání přebývajících"
           }
         }
       }
@@ -8258,6 +8908,16 @@
         }
       }
     },
+    "left to right": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "zleva doprava"
+          }
+        }
+      }
+    },
     "lowercase": {
       "localizations": {
         "cs": {
@@ -8338,6 +8998,26 @@
         }
       }
     },
+    "right to left": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "zprava doleva"
+          }
+        }
+      }
+    },
+    "size": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "velikost"
+          }
+        }
+      }
+    },
     "text shows the first %@, Hex shows all": {
       "localizations": {
         "cs": {
@@ -8354,6 +9034,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "nový název by obsahoval * nebo ?"
+          }
+        }
+      }
+    },
+    "the volume has no Trash, so it was not deleted": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "svazek nemá Koš, proto nebyla smazána"
+          }
+        }
+      }
+    },
+    "this level only": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "jen tato úroveň"
           }
         }
       }
@@ -8384,6 +9084,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "platné UTF-8"
+          }
+        }
+      }
+    },
+    "with subfolders": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "včetně podsložek"
           }
         }
       }

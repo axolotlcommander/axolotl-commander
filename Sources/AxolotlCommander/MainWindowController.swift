@@ -291,6 +291,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         case .openInLeftPanel, .openInRightPanel: openInPanel(command) != nil
         case .openInNewTabOtherPanel: activePanel.model.cursorItem != nil && !activePanel.model.isNetwork
         case .swapPanelsWithTabs, .quickView: true
+        case .synchronizeFolders: isLocalFolder(left) && isLocalFolder(right)
         default: false
         }
     }
@@ -305,6 +306,11 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         return (plan, target)
     }
 
+    /// A folder on the local file system or a volume mounted in macOS (spec 023: what can be synchronized).
+    private func isLocalFolder(_ panel: PanelViewController) -> Bool {
+        !panel.model.isNetwork && panel.model.remote == nil && panel.model.archive == nil && !panel.isFlatListing
+    }
+
     private func core(_ side: PanelSide) -> Side { side == .left ? .left : .right }
     private func panel(_ side: Side) -> PanelViewController { side == .left ? left : right }
 
@@ -316,6 +322,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         case .quickView: if quickView == nil { openQuickView() } else { closeQuickView() }
         case .comparePanels: CompareSheet.show(in: window) { [weak self] in self?.comparePanels() }
         case .comparePanelsNow: comparePanels()
+        case .synchronizeFolders: SyncWindowController.start(from: self)
         case .swapPanels:
             closeQuickView()
             // ⌃U: the panels exchange their current tab (folder, cursor, selection, sort, history).
