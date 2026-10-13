@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-13
 
-**Status**: Draft (planned; not scheduled for implementation yet)
+**Status**: In progress (scheduled for 0.5.0 on 2026-10-13)
 
 **Input**: User description: "For the next spec: preview of JSON, SVG, possibly WAV, videos and media in
 general; syntax highlighting for .NET sources (C#) if it is not there yet."
@@ -50,6 +50,22 @@ below were *decided while writing the spec; confirmed by the maintainer on 2026-
 - Q: PDF and fonts? → A: Stay with Quick Look (out of scope).
 - Q: Where does the JSON tree start? → A: The first two levels expanded; the rest collapsed.
 
+### Session 2026-10-13 (scheduling)
+
+The maintainer scheduled the spec for 0.5.0 and answered the questions found against the current viewer:
+
+- Q: Space is the viewer's Next File key; what does it do in the media player? → A: Space stays Next
+  File everywhere, so a folder of media can be stepped through. Return plays and pauses, ← and → move
+  the position by 5 seconds, ↑ and ↓ change the volume.
+- Q: More keys in the JSON tree? → A: ⌥→ / ⌥← expand or collapse the whole subtree, Return toggles the
+  node, ⌘C copies the value, ⇧⌘C copies the path; Expand All and Collapse All are in the View menu.
+  Space stays Next File.
+- Q: Large JSON files? → A: Above 20 MB the viewer asks before building the tree ("Show as a tree? It
+  may take a while"), with Tree and Text as answers. The limit is fixed, not a setting.
+- Q: Scope and branch? → A: All four parts, in the order JSON, SVG, .NET highlighting, media; a commit
+  after each. The branch builds on `023-folder-sync`, and everything ships in 0.5.0. If media turns out
+  hard, it moves to a spec of its own.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Read a JSON file as a tree (Priority: P1)
@@ -70,10 +86,11 @@ path and a value, find a key, switch to Text and back.
 1. **Given** a valid JSON file, **When** the user presses F3, **Then** Preview mode shows the tree with
    the first two levels expanded, and Text mode still shows the highlighted source.
 2. **Given** the tree has focus, **When** the user presses → or ←, **Then** the node under the cursor
-   expands or collapses (on a collapsed or leaf node ← moves to the parent). ↑/↓, Page Up/Down,
-   Home/End move as in other lists.
-3. **Given** a node, **When** the user chooses Copy Value or Copy Path, **Then** the clipboard holds the
-   value as JSON text or the path in the form `items[3].name`.
+   expands or collapses (on a collapsed or leaf node ← moves to the parent). ⌥→ / ⌥← do the same for
+   the whole subtree, Return toggles the node. ↑/↓, Page Up/Down, Home/End move as in other lists;
+   Space stays Next File.
+3. **Given** a node, **When** the user presses ⌘C (Copy Value) or ⇧⌘C (Copy Path), **Then** the
+   clipboard holds the value as JSON text or the path in the form `items[3].name`.
 4. **Given** the tree, **When** the user searches for text (⌘F), **Then** matching keys and values are
    found one after another and their parents are expanded to show them.
 5. **Given** invalid JSON, **Then** the viewer opens in Text mode and says where the first error is
@@ -121,8 +138,9 @@ file; close the viewer while playing.
 
 1. **Given** a media file the system can play, **When** the user presses F3, **Then** the viewer opens
    in Preview mode with a player; playback does not start on its own.
-2. **Given** the player has focus, **When** the user presses Space, **Then** playback starts or pauses;
-   ← and → move the position by a few seconds.
+2. **Given** the player is shown, **When** the user presses Return, **Then** playback starts or pauses;
+   ← and → move the position by 5 seconds, ↑ and ↓ change the volume, and Space still moves to the next
+   file.
 3. **Given** a file is playing, **When** the user steps to another file or closes the viewer, **Then**
    the playback stops.
 4. **Given** a sound file, **Then** the preview shows its duration, format, sample rate and channels;
@@ -154,8 +172,8 @@ A user opens F#, Razor, solution and MSBuild files with F3 and sees them highlig
 ### Edge Cases
 
 - **Large JSON** (tens of MB): the tree is built off the main thread with progress, and the viewer stays
-  responsive. Above a size limit Preview is offered but not the default. The limit is decided in the
-  plan.
+  responsive. Above 20 MB the viewer asks first whether to show the tree or the text; stepping to such
+  a file asks again.
 - **Very deep or very long arrays**: long arrays show their items in groups (for example 100 at a time)
   so expanding one does not freeze the viewer.
 - **Duplicate keys** in an object: all are shown in file order, and the duplicates are marked.
@@ -179,24 +197,26 @@ A user opens F#, Razor, solution and MSBuild files with F3 and sees them highlig
 
 - **FR-001**: The viewer MUST offer a JSON tree in Preview mode for `.json`, `.jsonc`, `.json5`
   (comments and trailing commas only), `.geojson`, `.jsonl`, `.ndjson` and other files whose content
-  type is JSON. Preview MUST be the default mode for them.
+  type is JSON. Preview MUST be the default mode for them; above 20 MB the viewer MUST ask before
+  building the tree.
 - **FR-002**: The tree MUST show key, type, a short value or item count per node. It MUST support
-  keyboard expand/collapse (also of a whole subtree), Copy Value, Copy Path, Expand All and Collapse
-  All, and find.
+  keyboard expand/collapse (→/←, ⌥→/⌥← for a subtree, Return), Copy Value (⌘C), Copy Path (⇧⌘C),
+  Expand All and Collapse All (View menu), and find. Space MUST stay Next File.
 - **FR-003**: Invalid JSON MUST open in Text mode with the position of the first error; Preview is then
   disabled.
 - **FR-004**: The viewer MUST render SVG (`.svg`, `.svgz`) in Preview mode with the image zoom commands.
   It MUST NOT run scripts or load anything from the network. F3 MUST no longer hand SVG to Quick Look.
 - **FR-005**: The viewer MUST play audio and video formats the system can play, in Preview mode. Media
   details MUST be shown, playback MUST never start by itself and MUST stop on a file change or close.
-  Such files MUST no longer go to Quick Look.
+  Return plays and pauses, ←/→ seek by 5 seconds, ↑/↓ change the volume; Space stays Next File. Such
+  files MUST no longer go to Quick Look.
 - **FR-006**: Media formats the system cannot play, PDF and fonts MUST keep going to Quick Look.
 - **FR-007**: Text mode MUST highlight F# (`.fs`, `.fsi`, `.fsx`), Razor (`.cshtml`, `.razor`), `.sln`,
   and as XML `.props`, `.targets`, `.vbproj`, `.fsproj`, `.nuspec`.
 - **FR-008**: Text and Hex modes MUST stay available for every file this spec previews. The next/previous
   file keys MUST work across previews of different kinds.
-- **FR-009**: Any new viewer preference (for example the JSON size limit, if it becomes a setting) MUST
-  be a user preference in the settings export.
+- **FR-009**: Any new viewer preference MUST be a user preference in the settings export. The 20 MB
+  JSON limit is fixed and is not a preference.
 
 ### Key Entities
 
