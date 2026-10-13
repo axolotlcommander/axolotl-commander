@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-13
 
-**Status**: Draft
+**Status**: Implemented
 
 **Input**: User description: "Small commands from classic two-panel file managers: copy in the same
 folder under a new name, a new folder in the other panel, view only the cursor file, pack and move,

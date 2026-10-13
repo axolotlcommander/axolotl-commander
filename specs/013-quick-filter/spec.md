@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-13
 
-**Status**: Draft
+**Status**: Implemented
 
 **Input**: User description: "Quick filter: typed text narrows the panel list as you type; the last
 filter can be brought back; Esc shows everything again; switching from quick search to the filter."

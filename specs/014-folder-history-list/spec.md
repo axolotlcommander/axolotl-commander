@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-13
 
-**Status**: Draft
+**Status**: Implemented
 
 **Input**: User description: "Folder history as a filterable list, from which a folder can be opened in
 the panel, in a new tab or in the other panel; a command line history list."

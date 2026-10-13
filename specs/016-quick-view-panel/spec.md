@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-13
 
-**Status**: Draft
+**Status**: Implemented
 
 **Input**: User description: "⌃Q quick view panel: the other panel shows a preview of the item under the
 cursor and follows the cursor."

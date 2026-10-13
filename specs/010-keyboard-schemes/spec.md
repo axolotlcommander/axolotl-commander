@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-12
 
-**Status**: Draft
+**Status**: Implemented
 
 **Input**: User description: "Keyboard schemes and settings export/import: extra default chords from
 classic two-panel file manager habits where they collide with nothing, an opt-in "Classic Commander"

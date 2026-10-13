@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-13
 
-**Status**: In progress
+**Status**: Implemented
 
 **Input**: User description: "A row in each panel, between the volume bar and the breadcrumb path bar: a
 drive combo (icon, name, arrow; the same list as ⌥F1/⌥F2) and next to it the size of the current disk and

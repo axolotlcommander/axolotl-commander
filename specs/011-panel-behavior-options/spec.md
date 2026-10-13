@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-12
 
-**Status**: Draft
+**Status**: Implemented
 
 **Input**: User description: "Panel behavior options: four switches in Settings that make the panels
 behave like classic two-panel file managers, each independent and each off unless stated (Space

@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-13
 
-**Status**: Draft
+**Status**: Implemented
 
 **Input**: User description: "Tabs from the keyboard: open the cursor item in a new tab (also in the
 other panel and in the background), a tab list with recently closed tabs, reopening a closed tab,

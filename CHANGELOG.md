@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-13
+
 ### Added
 
 - More default shortcuts from classic two-panel file managers, next to the existing ones (spec
