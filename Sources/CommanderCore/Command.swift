@@ -5,7 +5,7 @@
 /// `CommandRegistry`, so a command is declared exactly once.
 public enum Command: String, CaseIterable, Hashable, Sendable {
     // App
-    case about, settings, quit, help
+    case about, settings, exportSettings, importSettings, quit, help
 
     // File
     case view, quickLook, edit, viewWith, editWith, newFile, copy, move, makeDirectory
@@ -24,12 +24,19 @@ public enum Command: String, CaseIterable, Hashable, Sendable {
     case filter, refresh, toggleHidden, branchView, branchViewSelected, maximizePanel, comparePanels, calculateSizes
     case swapPanels, sameFolderAsOther
     case viewModeDetailed, viewModeBrief
-    case toggleCommandLine, toggleFunctionKeyBar
+    case toggleCommandLine, toggleFunctionKeyBar, toggleButtonBar, toggleVolumeBar, toggleDriveRow
 
     // Go (active panel)
     case goBack, goForward, goParent, goRoot, goHome, changeDirectory, editPath
+    case folderHistory, commandLineHistory
+    case copyAs, makeDirectoryInOtherPanel, viewCursorFile, packAndMove, testArchives
+    case toggleSelectionInPlace, selectAllFiles, deselectAllFiles
+    case quickView
     case hotPaths, workingDirectories
     case newTab, closeTab, nextTab, previousTab
+    case openInNewTab, openInBackgroundTab, openInNewTabOtherPanel, reopenClosedTab, closeOtherTabs, tabList
+    case swapPanelsWithTabs
+    case quickFilter, quickFilterLast
 
     // Left / Right
     case leftVolumeMenu, rightVolumeMenu
@@ -45,7 +52,7 @@ public enum Command: String, CaseIterable, Hashable, Sendable {
     // Panel-only (no menu item)
     case open, switchPanel, toggleSelection, toggleSelectionAndSize, contextMenu
     case openInLeftPanel, openInRightPanel
-    case focusCommandLine, insertNameToCommandLine, insertPathToCommandLine
+    case focusCommandLine, insertNameToCommandLine, insertPathToCommandLine, insertFullPathToCommandLine
     case insertLeftPathToCommandLine, insertRightPathToCommandLine
 
     // Hot paths 1…10 (⌃1…⌃0 go, ⌃⇧1…⌃⇧0 set to the current folder)
@@ -151,33 +158,40 @@ public enum CommandRegistry {
 
         add(.about, "About Axolotl Commander", .app, scope: .app)
         add(.settings, "Settings…", .app, [ch(",", m)], scope: .app, sep: true)
+        add(.exportSettings, "Export Settings…", .app, scope: .app)
+        add(.importSettings, "Import Settings…", .app, scope: .app)
         add(.quit, "Quit Axolotl Commander", .app, [ch("q", m)], scope: .app, sep: true)
 
         add(.view, "View", .file, [f(3)])
+        add(.viewCursorFile, "View Cursor File Only", .file, [f(3, [o, s])])
         add(.quickLook, "Quick Look", .file, [ch("y", m), f(3, o)])
         add(.edit, "Edit", .file, [f(4)])
         add(.viewWith, "View With…", .file, [f(3, [c, s])])
         add(.editWith, "Edit With…", .file, [f(4, [c, s])])
         add(.newFile, "New File…", .file, [f(4, s)])
         add(.copy, "Copy…", .file, [f(5)], sep: true)
+        add(.copyAs, "Copy As…", .file, [f(5, s)])
         add(.move, "Move…", .file, [f(6)])
         add(.makeDirectory, "New Folder…", .file, [f(7), ch("n", [m, s])])
+        add(.makeDirectoryInOtherPanel, "New Folder in Other Panel…", .file, [ch("n", [m, o])])
         add(.newSymbolicLink, "New Symbolic Link…", .file, [ch("l", [c, m])])
         add(.newHardLink, "New Hard Link…", .file)
         add(.editSymbolicLink, "Edit Symbolic Link…", .file)
-        add(.rename, "Rename", .file, [f(2)])
+        add(.rename, "Rename", .file, [f(2), f(6, s)])
         add(.delete, "Move to Trash", .file, [f(8), K(.forwardDelete), K(.backspace, m)], sep: true)
         add(.deletePermanently, "Delete Immediately…", .file,
             [f(8, s), K(.forwardDelete, s), K(.backspace, [m, o])])
-        add(.properties, "Get Info", .file, [ch("i", m)], sep: true)
+        add(.properties, "Get Info", .file, [ch("i", m), K(.enter, o)], sep: true)
         add(.changeAttributes, "Change Attributes…", .file, [f(2, c)])
         add(.changeCase, "Change Case…", .file, [f(7, c)])
         add(.batchRename, "Batch Rename…", .file, [ch("m", c)])
         add(.pack, "Pack…", .file, [f(5, o), f(5, [c, o])], sep: true)
-        add(.unpack, "Unpack…", .file, [f(6, o), f(6, [c, o])])
+        add(.packAndMove, "Pack and Move…", .file, [f(5, [o, s])])
+        add(.unpack, "Unpack…", .file, [f(6, o), f(6, [c, o]), f(9, o)])
+        add(.testArchives, "Test Archives", .file, [f(9, [o, s])])
 
-        add(.copyFiles, "Copy Files", .edit, [ch("c", m), K(.insert, c)])
-        add(.pasteFiles, "Paste Files", .edit, [ch("v", m), K(.insert, s)])
+        add(.copyFiles, "Copy Files", .edit, [ch("c", m), K(.insert, c), ch("c", c)])
+        add(.pasteFiles, "Paste Files", .edit, [ch("v", m), K(.insert, s), ch("v", c)])
         add(.moveFilesHere, "Move Files Here", .edit, [ch("v", [m, o])])
         add(.pasteAsSymbolicLink, "Paste as Symbolic Link", .edit, [ch("v", [c, m]), ch("s", c)])
         add(.copyFullPath, "Copy Path as Text", .edit, [ch("c", [m, o]), K(.insert, [c, o])])
@@ -185,47 +199,63 @@ public enum CommandRegistry {
         add(.selectByMask, "Select…", .edit, [K(.numPlus), ch("=", c)], sep: true)
         add(.deselectByMask, "Deselect…", .edit, [K(.numMinus), ch("-", c)])
         add(.invertByMask, "Invert Selection…", .edit, [K(.numStar), ch("8", [c, o])])
-        add(.selectAll, "Select All", .edit, [ch("a", m), K(.numPlus, c)])
+        add(.selectAll, "Select All", .edit, [ch("a", m), K(.numPlus, c), ch("a", c)])
         add(.deselectAll, "Deselect All", .edit, [ch("a", [m, s]), K(.numMinus, c)])
+        add(.selectAllFiles, "Select All Files", .edit, [K(.numPlus, [c, s])])
+        add(.deselectAllFiles, "Deselect All Files", .edit, [K(.numMinus, [c, s])])
         add(.invertAll, "Invert All", .edit, [K(.numStar, c)])
         add(.restoreSelection, "Restore Selection", .edit, [ch("w", c)])
         add(.saveSelection, "Remember Selection", .edit, [f(5, [c, s])])
         add(.loadSelection, "Apply Remembered Selection", .edit, [f(6, [c, s])])
-        add(.selectSameExtension, "Select Same Extension", .edit, [K(.numPlus, s)])
-        add(.deselectSameExtension, "Deselect Same Extension", .edit, [K(.numMinus, s)])
+        add(.selectSameExtension, "Select Same Extension", .edit, [K(.numPlus, s), K(.numPlus, o)])
+        add(.deselectSameExtension, "Deselect Same Extension", .edit, [K(.numMinus, s), K(.numMinus, o)])
 
         add(.sortByName, "Sort by Name", .view, [f(3, c)])
         add(.sortByExtension, "Sort by Extension", .view, [f(4, c)])
         add(.sortByDate, "Sort by Date", .view, [f(5, c)])
         add(.sortBySize, "Sort by Size", .view, [f(6, c)])
         add(.viewModeDetailed, "Detailed", .view, [ch("1", [c, o])], sep: true)
-        add(.viewModeBrief, "Brief", .view, [ch("2", [c, o])])
+        add(.viewModeBrief, "Brief", .view, [ch("2", [c, o]), f(1, c)])
         add(.toggleHidden, "Show Hidden Files", .view, [ch(".", [m, s])], sep: true)
         add(.branchView, "Branch View (With Subfolders)", .view, [ch("b", c)])
-        add(.branchViewSelected, "Branch View of Selected Items", .view)
+        add(.branchViewSelected, "Branch View of Selected Items", .view, [ch("b", [c, s])])
         add(.filter, "Filter…", .view, [f(12, c)])
-        add(.refresh, "Refresh", .view, [f(9, c), ch("r", m)])
+        add(.quickFilter, "Quick Filter", .view, [ch("f", [m, o])])
+        add(.quickFilterLast, "Quick Filter with Last Text", .view, [ch("s", [c, s]), ch("f", [m, o, s])])
+        add(.refresh, "Refresh", .view, [f(9, c), ch("r", m), ch("r", c)])
         add(.maximizePanel, "Maximize Panel", .view, [f(11, c)], sep: true)
-        add(.comparePanels, "Compare Panels", .view, [f(10, c)])
-        add(.calculateSizes, "Calculate Folder Sizes", .view, [f(10, [c, s])])
+        add(.comparePanels, "Compare Panels", .view, [f(10, c), f(2, s)])
+        add(.calculateSizes, "Calculate Folder Sizes", .view, [f(10, [c, s]), K(.enter, [o, s])])
         add(.swapPanels, "Swap Panels", .view, [ch("u", c)])
-        add(.toggleCommandLine, "Show Command Line", .view, sep: true)
+        add(.swapPanelsWithTabs, "Swap Panels with All Tabs", .view, [ch("u", [c, s])])
+        add(.quickView, "Quick View Panel", .view, [ch("q", c)], sep: true)
+        add(.toggleCommandLine, "Show Command Line", .view)
         add(.toggleFunctionKeyBar, "Show Function Key Bar", .view)
+        add(.toggleButtonBar, "Show Button Bar", .view)
+        add(.toggleVolumeBar, "Show Volume Bar", .view)
+        add(.toggleDriveRow, "Show Drive Row", .view)
         add(.sameFolderAsOther, "Same Folder as Other Panel", .go, [ch(".", c)])
 
-        add(.goBack, "Back", .go, [K(.left, [c, o]), ch("[", m)])
-        add(.goForward, "Forward", .go, [K(.right, [c, o]), ch("]", m)])
+        add(.goBack, "Back", .go, [K(.left, [c, o]), ch("[", m), K(.left, o)])
+        add(.goForward, "Forward", .go, [K(.right, [c, o]), ch("]", m), K(.right, o)])
+        add(.folderHistory, "Folder History…", .go, [ch("h", [c, m])])
         add(.goParent, "Enclosing Folder", .go, [K(.backspace), K(.up, m), K(.pageUp, c)])
         add(.goRoot, "Volume Root", .go, [ch("\\", c), K(.backspace, c)])
         add(.goHome, "Home", .go, [ch("h", [m, s])])
         add(.changeDirectory, "Go to Folder…", .go, [f(7, s), ch("g", [m, s])], sep: true)
         add(.editPath, "Edit Path", .go, [ch("l", m)])
-        add(.hotPaths, "Hot Paths…", .go, [f(9, s)])
+        add(.hotPaths, "Hot Paths…", .go, [f(9, s), ch("d", c)])
         add(.workingDirectories, "Working Directories…", .go, [f(12, o), f(12, [c, o])])
         add(.newTab, "New Tab", .go, [ch("t", [c, s])], sep: true)
         add(.closeTab, "Close Tab", .go, [ch("w", [c, s])])
         add(.nextTab, "Next Tab", .go, [K(.pageDown, [c, s])])
         add(.previousTab, "Previous Tab", .go, [K(.pageUp, [c, s])])
+        add(.openInNewTab, "Open in New Tab", .go, [K(.up, c), K(.down, [m, o])])
+        add(.openInBackgroundTab, "Open in Background Tab", .go, [K(.down, [m, o, s])])
+        add(.openInNewTabOtherPanel, "Open in New Tab of Other Panel", .go, [K(.up, [c, s])])
+        add(.reopenClosedTab, "Reopen Closed Tab", .go, [ch("t", [m, s])])
+        add(.closeOtherTabs, "Close Other Tabs", .go, [ch("w", [m, o])])
+        add(.tabList, "Tab List…", .go, [ch("a", [c, s]), ch("\\", [m, s])])
 
         add(.leftVolumeMenu, "Volume…", .left, [f(1, o), f(1, [c, o])])
         add(.rightVolumeMenu, "Volume…", .right, [f(2, o), f(2, [c, o])])
@@ -237,10 +267,11 @@ public enum CommandRegistry {
         add(.calculateChecksums, "Calculate Checksums…", .commands, sep: true)
         add(.verifyChecksums, "Verify Checksums…", .commands, [ch("v", [c, s])])
         add(.openTerminal, "Open Terminal Here", .commands, [ch("/", c), K(.numSlash)], sep: true)
+        add(.commandLineHistory, "Command Line History…", .commands, [f(8, o)])
         add(.revealInFinder, "Show in Finder", .commands, [f(3, s)])
         add(.goToLinkTarget, "Go to Link Target", .commands, [ch("t", c)])
         add(.userMenu, "User Menu…", .commands, [f(9)], sep: true)
-        add(.connectToServer, "Connect to Server…", .commands, [ch("k", m), ch("f", [c, s])], sep: true)
+        add(.connectToServer, "Connect to Server…", .commands, [ch("k", m), ch("f", [c, s]), ch("f", c), ch("n", c)], sep: true)
         add(.disconnect, "Disconnect…", .commands, [f(12)])
 
         add(.configureKeys, "Keyboard Shortcuts…", .options, scope: .app)
@@ -249,14 +280,16 @@ public enum CommandRegistry {
 
         add(.open, "Open", nil, [K(.enter), K(.numEnter), K(.down, m), K(.pageDown, c)])
         add(.contextMenu, "Show Context Menu", nil, [f(10, s)])
-        add(.switchPanel, "Switch Panel", nil, [K(.tab), K(.tab, s)])
+        add(.switchPanel, "Switch Panel", nil, [K(.tab), K(.tab, s), ch("i", c)])
         add(.toggleSelection, "Toggle Selection", nil, [K(.insert)])
+        add(.toggleSelectionInPlace, "Toggle Selection Without Moving", nil, [K(.up, [o, s])])
         add(.toggleSelectionAndSize, "Toggle Selection and Size", nil, [K(.space)])
-        add(.openInLeftPanel, "Open in Left Panel", nil, [K(.left, [c, s])])
-        add(.openInRightPanel, "Open in Right Panel", nil, [K(.right, [c, s])])
+        add(.openInLeftPanel, "Open in Left Panel", nil, [K(.left, [c, s]), K(.left, c)])
+        add(.openInRightPanel, "Open in Right Panel", nil, [K(.right, [c, s]), K(.right, c)])
         add(.focusCommandLine, "Command Line", nil, [K(.tab, c)])
-        add(.insertNameToCommandLine, "Insert Name", nil, [K(.enter, c)])
-        add(.insertPathToCommandLine, "Insert Path", nil, [K(.space, c), K(.space, [c, s])])
+        add(.insertNameToCommandLine, "Insert Name", nil, [K(.enter, c), ch("j", c)])
+        add(.insertPathToCommandLine, "Insert Path", nil, [K(.space, c), K(.space, [c, s]), ch("p", c)])
+        add(.insertFullPathToCommandLine, "Insert Full Path", nil, [K(.enter, [c, s]), ch("j", [c, s])])
         add(.insertLeftPathToCommandLine, "Insert Left Path", nil, [ch("[", c)])
         add(.insertRightPathToCommandLine, "Insert Right Path", nil, [ch("]", c)])
         for (slot, (go, set)) in zip(Command.goHotPaths, Command.setHotPaths).enumerated() {
@@ -351,35 +384,53 @@ public enum CommandRegistry {
         Dictionary(uniqueKeysWithValues: all.map { ($0.command, $0) })
 }
 
-/// User key binding overrides on top of the factory chords in `CommandRegistry`.
+/// The selected key scheme plus the user's key binding overrides on top of it.
 public struct KeyBindings: Codable, Sendable, Equatable {
-    /// Commands whose chords the user replaced; an empty array means "no shortcut".
+    /// The scheme under the user's changes. Not part of the Codable form (stored on its own), so
+    /// overrides written by earlier versions decode unchanged.
+    public var scheme: KeyScheme
+    /// Commands whose chords the user replaced; an empty array means "no shortcut". Switching the
+    /// scheme never touches them.
     public var overrides: [Command: [KeyChord]]
 
-    public init(overrides: [Command: [KeyChord]] = [:]) {
-        self.overrides = overrides.filter { $0.value != CommandRegistry.spec($0.key).chords }
+    /// Overrides equal to the scheme's chords are dropped.
+    public init(scheme: KeyScheme = .axolotl, overrides: [Command: [KeyChord]] = [:]) {
+        self.scheme = scheme
+        self.overrides = overrides.filter { $0.value != scheme.chords(for: $0.key) }
     }
 
     public static let factory = KeyBindings()
 
-    /// The user's chords when overridden, otherwise the factory chords.
+    /// The user's chords when overridden, otherwise the scheme's (which default to the factory's).
     public func chords(for command: Command) -> [KeyChord] {
-        overrides[command] ?? CommandRegistry.spec(command).chords
+        overrides[command] ?? scheme.chords(for: command)
     }
 
-    public func isCustomized(_ command: Command) -> Bool { overrides[command] != nil }
+    /// The user changed the command's chords to something the scheme does not give it. An
+    /// override that equals the selected scheme (kept after a scheme switch) does not count.
+    public func isCustomized(_ command: Command) -> Bool {
+        guard let chords = overrides[command] else { return false }
+        return chords != scheme.chords(for: command)
+    }
 
-    /// Replaces the chords of `command`; chords equal to the factory ones remove the override.
+    public func source(for command: Command) -> ChordSource {
+        if isCustomized(command) { return .user }
+        return scheme.changes[command] != nil ? .scheme : .defaults
+    }
+
+    /// Replaces the chords of `command`; chords equal to the scheme's remove the override.
     public mutating func set(_ chords: [KeyChord], for command: Command) {
-        if chords == CommandRegistry.spec(command).chords {
+        if chords == scheme.chords(for: command) {
             overrides[command] = nil
         } else {
             overrides[command] = chords
         }
     }
 
+    /// Back to the selected scheme.
     public mutating func reset(_ command: Command) { overrides[command] = nil }
 
+    /// Every command back to the selected scheme; the scheme stays.
     public mutating func resetAll() { overrides = [:] }
 
     /// Commands (other than `command`) that currently use `chord` in a context overlapping `command`'s scope.
@@ -404,7 +455,9 @@ public struct KeyBindings: Codable, Sendable, Equatable {
             guard chords.count == texts.count else { continue }
             result[command] = chords
         }
-        self.init(overrides: result)
+        // Not normalized: under another scheme an override equal to the factory chords matters.
+        scheme = .axolotl
+        overrides = result
     }
 
     public func encode(to encoder: any Encoder) throws {
@@ -415,7 +468,7 @@ public struct KeyBindings: Codable, Sendable, Equatable {
     }
 }
 
-/// Chord → command lookup built from the factory chords and optional user overrides.
+/// Chord → command lookup built from the factory chords, the key scheme and the user's overrides.
 public struct KeyMap: Sendable {
     public private(set) var bindings: [KeyChord: Command]
     /// Candidate chords per command in declaration order (including ones another command won).
@@ -438,7 +491,7 @@ public struct KeyMap: Sendable {
     }
 
     /// Builds the map from `bindings.chords(for:)` of every command in the context. Chords the user
-    /// assigned explicitly win over factory chords of other commands; among factory chords the
+    /// assigned explicitly win over scheme and factory chords of other commands; among those the
     /// declaration order decides.
     public init(context: CommandContext = .panel, bindings userBindings: KeyBindings) {
         var map: [KeyChord: Command] = [:]

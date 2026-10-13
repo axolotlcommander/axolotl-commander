@@ -114,7 +114,7 @@ public struct ArchiveIndex: Sendable {
             while let e = try reader.next() {
                 count += 1
                 if count % 256 == 0 { try Task.checkCancellation() }
-                let info = RawEntryInfo(e)
+                let info = RawEntryInfo(e, legacy: reader.legacyNames)
                 let path = normalizeMemberPath(info.path)
                 if !path.isEmpty {
                     raw.append(ArchiveEntry(
@@ -153,7 +153,7 @@ public actor ArchiveCatalog {
     public init() {}
 
     public func index(of archive: URL) async throws -> ArchiveIndex {
-        let key = archive.standardizedFileURL.path
+        let key = Self.key(archive)
         guard let format = ArchiveFormat.detect(fileName: archive.lastPathComponent) else {
             throw ArchiveError.unsupportedFormat
         }
@@ -166,7 +166,17 @@ public actor ArchiveCatalog {
     }
 
     public func invalidate(_ archive: URL) {
+        cache[Self.key(archive)] = nil
         cache[archive.standardizedFileURL.path] = nil
+    }
+
+    /// One key per file: a path through a symlink or in another letter case
+    /// (case-insensitive volumes) names the same archive.
+    static func key(_ archive: URL) -> String {
+        let path = archive.standardizedFileURL.path
+        guard let resolved = realpath(path, nil) else { return path }
+        defer { free(resolved) }
+        return String(cString: resolved)
     }
 
     /// Lists `path.inner` as panel items; throws `notFound` when the folder is not in the archive.

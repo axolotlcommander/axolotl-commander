@@ -444,6 +444,51 @@ import Foundation
         #expect(target("a.txt")?.focus == "a.txt")
         #expect(target("App.app")?.focus == "App.app")
     }
+
+    @Test func stateEnteringCursorLeavesThePanelAlone() async throws {
+        let f = try Fixture()
+        try FileManager.default.createDirectory(at: f.root.appendingPathComponent("App.app"), withIntermediateDirectories: true)
+        let m = PanelModel(location: f.root.appendingPathComponent("docs"))
+        await m.refresh()
+        func enter(_ name: String) async throws -> PanelState {
+            m.moveCursor(to: m.items.firstIndex { $0.name == name } ?? 0)
+            return try await m.stateEnteringCursor()
+        }
+        let docs = f.root.appendingPathComponent("docs").standardizedFileURL.path
+        // A folder: its content; the panel stays where it was.
+        #expect(try await enter("sub").location.standardizedFileURL.path == docs + "/sub")
+        #expect(m.location.standardizedFileURL.path == docs)
+        // "..": the parent with the cursor on the folder the user came from.
+        let parent = try await enter("..")
+        #expect(parent.location.standardizedFileURL.path == f.root.standardizedFileURL.path)
+        #expect(parent.cursorName == "docs")
+        // A file: the same folder with the file under the cursor.
+        let file = try await enter("inner.txt")
+        #expect(file.location.standardizedFileURL.path == docs)
+        #expect(file.cursorName == "inner.txt")
+        // A package stays a single item (archives enter as with Enter, tested above).
+        try await m.go(to: f.root)
+        let app = try await enter("App.app")
+        #expect(app.location.standardizedFileURL.path == f.root.standardizedFileURL.path)
+        #expect(app.cursorName == "App.app")
+        #expect(m.location.standardizedFileURL.path == f.root.standardizedFileURL.path)
+    }
+
+    @Test func openTargetWithParentOpeningTheLocation() async throws {
+        let f = try Fixture()
+        let m = PanelModel(location: f.root)
+        await m.refresh()
+        m.moveCursor(to: 0)
+        #expect(m.cursorItem?.isParent == true)
+        #expect(m.openTarget(parentOpensLocation: false) == nil)
+        let parent = try #require(m.openTarget(parentOpensLocation: true))
+        #expect(parent.url.standardizedFileURL.path == f.root.standardizedFileURL.path)
+        #expect(parent.focus == nil)
+        // Other items are the same in both modes.
+        m.moveCursor(to: m.items.firstIndex { $0.name == "a.txt" } ?? 0)
+        #expect(m.openTarget(parentOpensLocation: true)?.focus == "a.txt")
+        #expect(m.openTarget(parentOpensLocation: true)?.url == m.otherPanelTarget?.url)
+    }
 }
 
 @Suite struct DirectoryWatcherTests {

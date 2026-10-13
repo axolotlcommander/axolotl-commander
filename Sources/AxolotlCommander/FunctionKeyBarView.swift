@@ -10,12 +10,27 @@ import CommanderCore
 final class FunctionKeyBarView: NSView {
     var onClick: ((Command) -> Void)?
     var onHide: (() -> Void)?
+    var onChooseButtons: (() -> Void)?
+
+    /// The F-key positions shown (spec 017); a hidden button's key still works.
+    var choice = FunctionKeyChoice() {
+        didSet {
+            guard choice != oldValue else { return }
+            for button in buttons { button.isHidden = !choice.isVisible(button.number) }
+            needsLayout = true
+        }
+    }
 
     private var buttons: [FunctionKeyButton] = []
     private(set) var slots: [Command?] = Array(repeating: nil, count: FunctionKeyBar.count)
     private(set) var modifiers: KeyChord.Modifiers = []
     private static let height: CGFloat = 24
-    private static let gap: CGFloat = 1
+    static let gap: CGFloat = 1
+    /// Room at both ends, so F1 does not sit in the window's rounded corner; the first key cap
+    /// lines up with the command line field above.
+    static let edge: CGFloat = 5
+    /// A button that shows only its key cap; the bottom row shrinks the keys no further (spec 018).
+    static var minimumButtonWidth: CGFloat { KeyCap.width + 8 }
 
     override init(frame: NSRect) {
         super.init(frame: frame)
@@ -60,15 +75,12 @@ final class FunctionKeyBarView: NSView {
 
     override func layout() {
         super.layout()
-        let count = CGFloat(buttons.count)
-        let width = ((bounds.width - Self.gap * (count + 1)) / count).rounded(.down)
-        var x = Self.gap
-        for (index, button) in buttons.enumerated() {
-            // The last button takes the rounding remainder so the row ends at the edge.
-            let w = index == buttons.count - 1 ? bounds.width - Self.gap - x : width
-            button.frame = NSRect(x: x, y: 1, width: max(w, 0), height: bounds.height - 2)
+        let shown = buttons.filter { !$0.isHidden }
+        let frames = FunctionKeyBarLayout.frames(count: shown.count, width: bounds.width, edge: Self.edge,
+                                                gap: Self.gap)
+        for (button, frame) in zip(shown, frames) {
+            button.frame = NSRect(x: frame.x, y: 1, width: frame.width, height: bounds.height - 2)
             button.fitTitle()
-            x += width + Self.gap
         }
     }
 
@@ -85,10 +97,16 @@ final class FunctionKeyBarView: NSView {
                               keyEquivalent: "")
         hide.target = self
         menu.addItem(hide)
+        let choose = NSMenuItem(title: String(localized: "Choose Buttons…"), action: #selector(chooseButtons(_:)),
+                                keyEquivalent: "")
+        choose.target = self
+        menu.addItem(choose)
         return menu
     }()
 
     @objc private func hide(_ sender: Any?) { onHide?() }
+
+    @objc private func chooseButtons(_ sender: Any?) { onChooseButtons?() }
 
     /// Only a real right click opens the menu: a ⌃-click is an ordinary click, so the ⌃ set of
     /// commands can be clicked too.

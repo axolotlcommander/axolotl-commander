@@ -4,13 +4,42 @@
 import CommanderCore
 import SwiftUI
 
-enum SettingsTab: String { case general, viewer, appearance, hotPaths, userMenu, keyboard }
+enum SettingsTab: String { case general, viewer, appearance, hotPaths, userMenu, buttonBar, keyboard }
 
 struct SettingsView: View {
     @AppStorage(Launcher.terminalDefaultsKey) private var terminal = "com.apple.Terminal"
     @AppStorage("settings.tab") private var tab = SettingsTab.general.rawValue
     @AppStorage(MainWindowController.showCommandLineKey) private var showCommandLine = true
     @AppStorage(MainWindowController.showFunctionKeyBarKey) private var showFunctionKeyBar = true
+    @AppStorage(DriveRowSettings.showVolumeBarKey) private var showVolumeBar = DriveRowSettings().showVolumeBar
+    @AppStorage(DriveRowSettings.showRowKey) private var showDriveRow = DriveRowSettings().showRow
+    @AppStorage(DriveRowSettings.freeSpaceElsewhereKey) private var freeSpaceElsewhere = DriveRowSettings().freeSpaceElsewhere
+    @AppStorage(FunctionKeyChoice.key) private var hiddenFunctionKeys = ""
+    @AppStorage(PanelBehavior.spaceKey) private var spaceMovesDown = PanelBehavior().spaceMovesDown
+    @AppStorage(PanelBehavior.typingKey) private var typingToCommandLine = PanelBehavior().typingToCommandLine
+    @AppStorage(PanelBehavior.arrowsKey) private var arrowsTargetPointedPanel = PanelBehavior().arrowsTargetPointedPanel
+    @AppStorage(PanelBehavior.volumesKey) private var volumeButtonsFollow = PanelBehavior().volumeButtonsFollow
+
+    private func behavior(_ title: LocalizedStringKey, _ isOn: Binding<Bool>, _ caption: LocalizedStringKey) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Toggle(title, isOn: isOn)
+            Text(caption).font(.caption).foregroundStyle(.secondary)
+        }
+    }
+
+    /// One F-key position on the bar; the last shown one cannot be turned off (spec 017).
+    private func functionKeyToggle(_ number: Int) -> some View {
+        let choice = FunctionKeyChoice(storage: hiddenFunctionKeys)
+        let title = "F\(number)"
+        return Toggle(title, isOn: Binding(
+            get: { choice.isVisible(number) },
+            set: { visible in
+                var changed = FunctionKeyChoice(storage: hiddenFunctionKeys)
+                changed.set(number, visible: visible)
+                hiddenFunctionKeys = changed.storage
+            }))
+            .disabled(!choice.canHide(number))
+    }
 
     var body: some View {
         TabView(selection: $tab) {
@@ -20,10 +49,49 @@ struct SettingsView: View {
                 }
                 Text("Used by Open Terminal Here (⌃/) and by commands typed in the command line.")
                     .font(.caption).foregroundStyle(.secondary)
+                // What the window shows, from the top down; the View menu has the same switches.
                 Section {
+                    Toggle("Show volume bar", isOn: $showVolumeBar)
+                    Toggle("Show drive row with free space", isOn: $showDriveRow)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Toggle("Show free space when the drive row is hidden", isOn: $freeSpaceElsewhere)
+                            .disabled(showDriveRow)
+                        Text("At the right end of the volume bar, or of the status line when the volume bar is hidden too.")
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
+                    .padding(.leading, 20)
                     Toggle("Show command line", isOn: $showCommandLine)
                     Toggle("Show function key bar", isOn: $showFunctionKeyBar)
                     Text("Also in the View menu. The bar shows what F1–F12 do; hold ⇧, ⌃, ⌥ or ⌘ to see the other commands.")
+                        .font(.caption).foregroundStyle(.secondary)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Buttons on the bar:")
+                        // Two rows of six, so the form keeps its width.
+                        Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 4) {
+                            ForEach([1, 7], id: \.self) { first in
+                                GridRow { ForEach(first..<first + 6, id: \.self) { functionKeyToggle($0) } }
+                            }
+                        }
+                        Text("A key whose button is off still works.").font(.caption).foregroundStyle(.secondary)
+                    }
+                    .padding(.leading, 20)
+                }
+                Section("Panels") {
+                    behavior("Space moves the cursor down", $spaceMovesDown,
+                             "Off: Space marks the item and the cursor stays on it.")
+                    behavior("Typing goes to the command line", $typingToCommandLine,
+                             "Characters typed in a panel go to the command line; ⌥ + a character starts quick search.")
+                    behavior("⌃← / ⌃→ change the panel the arrow points to", $arrowsTargetPointedPanel,
+                             "Off: the item always goes to the other panel.")
+                    behavior("Volume buttons open the other panel's folder or the last folder used there", $volumeButtonsFollow,
+                             "Off: a volume button always opens the volume root.")
+                }
+                Section {
+                    HStack {
+                        Button("Export Settings…") { SettingsTransfer.export(from: NSApp.keyWindow) }
+                        Button("Import Settings…") { SettingsTransfer.importSettings(from: NSApp.keyWindow) }
+                    }
+                    Text("One file with the keys, preferences, appearance, hot paths, user menu, saved servers and toolbar. Passwords are never included.")
                         .font(.caption).foregroundStyle(.secondary)
                 }
             }
@@ -47,11 +115,15 @@ struct SettingsView: View {
                 .tabItem { Label("User Menu", systemImage: "filemenu.and.selection") }
                 .tag(SettingsTab.userMenu.rawValue)
 
+            ButtonBarSettings()
+                .tabItem { Label("Button Bar", systemImage: "square.grid.3x1.below.line.grid.1x2") }
+                .tag(SettingsTab.buttonBar.rawValue)
+
             KeyboardSettings()
                 .tabItem { Label("Keyboard", systemImage: "keyboard") }
                 .tag(SettingsTab.keyboard.rawValue)
         }
-        .frame(width: 720, height: 500)
+        .frame(width: 720, height: 590)
     }
 }
 
@@ -101,6 +173,7 @@ private struct AppearanceSettings: View {
     @AppStorage(VolumeBarSettings.iCloudKey) private var volumeBarICloud = VolumeBarSettings().showICloud
     @AppStorage(VolumeBarSettings.networkKey) private var volumeBarNetwork = VolumeBarSettings().showNetwork
     @AppStorage(VolumeBarSettings.serversKey) private var volumeBarServers = VolumeBarSettings().showServers
+    @AppStorage(DriveRowSettings.showVolumeBarKey) private var showVolumeBar = DriveRowSettings().showVolumeBar
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -130,6 +203,7 @@ private struct AppearanceSettings: View {
                 .frame(width: 240)
             }
             // Volumes are always shown; these items follow them.
+            // Whether the bar is shown is in General, with the other bars.
             HStack(spacing: 16) {
                 Text("Volume bar shows:")
                 Toggle("Home", isOn: $volumeBarHome)
@@ -137,6 +211,7 @@ private struct AppearanceSettings: View {
                 Toggle("Network", isOn: $volumeBarNetwork)
                 Toggle("Server connections", isOn: $volumeBarServers)
             }
+            .disabled(!showVolumeBar)
             Text("Highlighting — the first matching rule from the top wins:").font(.headline)
             Table($settings.appearance.highlights, selection: $selection) {
                 TableColumn("On") { $rule in Toggle("", isOn: $rule.isEnabled).labelsHidden() }.width(28)

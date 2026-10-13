@@ -68,6 +68,9 @@ enum MainMenuBuilder {
             let redo = menu.addItem(withTitle: String(localized: "Redo"), action: Selector(("redo:")), keyEquivalent: "z")
             redo.keyEquivalentModifierMask = [.command, .shift]
             menu.addItem(.separator())
+            // ⌘X in text fields (command line, path field, find form); panels have no cut, so it is
+            // disabled there.
+            menu.addItem(withTitle: String(localized: "Cut"), action: #selector(NSText.cut(_:)), keyEquivalent: "x")
         }
         for spec in CommandRegistry.items(in: id, context: context) {
             if spec.separatorBefore, !menu.items.isEmpty { menu.addItem(.separator()) }

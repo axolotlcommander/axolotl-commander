@@ -171,6 +171,16 @@
         }
       }
     },
+    "%@, %@ — %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, %2$@ – %3$@"
+          }
+        }
+      }
+    },
     "%@: %@ on disk, %lld files": {
       "localizations": {
         "cs": {
@@ -233,10 +243,52 @@
     },
     "%lld files": {
       "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld file"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld files"
+                }
+              }
+            }
+          }
+        },
         "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld souborů"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld soubor"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld soubory"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld souboru"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld souborů"
+                }
+              }
+            }
           }
         }
       }
@@ -251,16 +303,6 @@
         }
       }
     },
-    "%lld files, %lld folders — %@": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld souborů, %lld složek – %@"
-          }
-        }
-      }
-    },
     "%lld files. Save the list with ⌘S.": {
       "localizations": {
         "cs": {
@@ -271,12 +313,54 @@
         }
       }
     },
-    "%lld folders, %lld files": {
+    "%lld folders": {
       "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld folder"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld folders"
+                }
+              }
+            }
+          }
+        },
         "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld složek, %lld souborů"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld složka"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld složky"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld složky"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld složek"
+                }
+              }
+            }
           }
         }
       }
@@ -545,6 +629,26 @@
         }
       }
     },
+    "A key whose button is off still works.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klávesa s vypnutým tlačítkem dál funguje."
+          }
+        }
+      }
+    },
+    "A line between buttons.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Čára mezi tlačítky."
+          }
+        }
+      }
+    },
     "A line between items.": {
       "localizations": {
         "cs": {
@@ -623,6 +727,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Přidat"
+          }
+        }
+      }
+    },
+    "Add Button…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přidat tlačítko…"
           }
         }
       }
@@ -743,6 +857,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Libovolné"
+          }
+        }
+      }
+    },
+    "App Icon": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ikona aplikace"
           }
         }
       }
@@ -962,6 +1086,16 @@
         }
       }
     },
+    "Bottom, after the function keys": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dole, za funkčními klávesami"
+          }
+        }
+      }
+    },
     "Breadcrumbs": {
       "localizations": {
         "cs": {
@@ -989,6 +1123,46 @@
           "stringUnit": {
             "state": "translated",
             "value": "Hnědá"
+          }
+        }
+      }
+    },
+    "Button Bar": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lišta tlačítek"
+          }
+        }
+      }
+    },
+    "Button bar:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lišta tlačítek:"
+          }
+        }
+      }
+    },
+    "Buttons on the bar:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tlačítka na liště:"
+          }
+        }
+      }
+    },
+    "Buttons show only their icon; pointing at one shows its name. A button runs an app command or a program, like a user menu command. Drag buttons to change their order.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tlačítka ukazují jen ikonu; po najetí myší se ukáže jejich název. Tlačítko spustí příkaz aplikace nebo program, stejně jako příkaz uživatelského menu. Pořadí změníte přetažením."
           }
         }
       }
@@ -1219,6 +1393,16 @@
         }
       }
     },
+    "Choose Buttons…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vybrat tlačítka…"
+          }
+        }
+      }
+    },
     "Choose what duplicates have in common.": {
       "localizations": {
         "cs": {
@@ -1348,6 +1532,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Příkazový řádek"
+          }
+        }
+      }
+    },
+    "Command:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Příkaz:"
           }
         }
       }
@@ -1656,6 +1850,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vlastní"
+          }
+        }
+      }
+    },
+    "Customize Button Bar…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upravit lištu tlačítek…"
           }
         }
       }
@@ -2008,6 +2212,26 @@
         }
       }
     },
+    "Selected %@, %@ — %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vybráno: %1$@, %2$@ – %3$@"
+          }
+        }
+      }
+    },
+    "e.g. star.fill": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "např. star.fill"
+          }
+        }
+      }
+    },
     "Edit": {
       "extractionState": "manual",
       "localizations": {
@@ -2015,6 +2239,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Upravit"
+          }
+        }
+      }
+    },
+    "Edit Button…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upravit tlačítko…"
           }
         }
       }
@@ -3107,6 +3341,16 @@
         }
       }
     },
+    "Hide Button Bar": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skrýt lištu tlačítek"
+          }
+        }
+      }
+    },
     "Hide Function Key Bar": {
       "localizations": {
         "cs": {
@@ -3205,6 +3449,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Oblíbená cesta %lld: %@"
+          }
+        }
+      }
+    },
+    "Icon:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ikona:"
           }
         }
       }
@@ -3922,6 +4176,16 @@
         }
       }
     },
+    "More Buttons": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Další tlačítka"
+          }
+        }
+      }
+    },
     "More Options": {
       "localizations": {
         "cs": {
@@ -4186,6 +4450,16 @@
         }
       }
     },
+    "New Program": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nový program"
+          }
+        }
+      }
+    },
     "New Submenu": {
       "localizations": {
         "cs": {
@@ -4331,16 +4605,6 @@
         }
       }
     },
-    "No editor application was found.": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nebyla nalezena žádná aplikace editoru."
-          }
-        }
-      }
-    },
     "No program is set.": {
       "localizations": {
         "cs": {
@@ -4357,6 +4621,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Není připojen žádný server."
+          }
+        }
+      }
+    },
+    "No symbol has this name.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Symbol s tímto názvem neexistuje."
           }
         }
       }
@@ -4427,6 +4701,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nyní"
+          }
+        }
+      }
+    },
+    "Off": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vypnuto"
           }
         }
       }
@@ -4973,6 +5257,16 @@
         }
       }
     },
+    "Program": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Program"
+          }
+        }
+      }
+    },
     "Program:": {
       "localizations": {
         "cs": {
@@ -5198,6 +5492,16 @@
         }
       }
     },
+    "Remove Button": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odebrat tlačítko"
+          }
+        }
+      }
+    },
     "Remove from List": {
       "extractionState": "manual",
       "localizations": {
@@ -5280,16 +5584,6 @@
         }
       }
     },
-    "Reset all shortcuts to the factory settings?": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Obnovit všechny zkratky na tovární nastavení?"
-          }
-        }
-      }
-    },
     "Rest of the original name part": {
       "localizations": {
         "cs": {
@@ -5316,6 +5610,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Obnovit panely"
+          }
+        }
+      }
+    },
+    "Restore Samples": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obnovit ukázková"
           }
         }
       }
@@ -5357,6 +5661,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pravý svazek"
+          }
+        }
+      }
+    },
+    "Right-click to add buttons": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tlačítka přidáte pravým klikem"
           }
         }
       }
@@ -5503,12 +5817,32 @@
         }
       }
     },
+    "Search commands": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hledat příkazy"
+          }
+        }
+      }
+    },
     "Search commands or keys": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Hledat příkazy nebo klávesy"
+          }
+        }
+      }
+    },
+    "Search symbols, e.g. folder": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hledat symboly, např. folder"
           }
         }
       }
@@ -5591,16 +5925,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vybrat novější soubor (datum a čas)"
-          }
-        }
-      }
-    },
-    "Selected %lld files, %lld folders — %@": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vybráno %lld souborů, %lld složek – %@"
           }
         }
       }
@@ -5874,6 +6198,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zobrazit vše"
+          }
+        }
+      }
+    },
+    "Show Button Bar": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zobrazit lištu tlačítek"
           }
         }
       }
@@ -6277,6 +6611,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Přepnout panel"
+          }
+        }
+      }
+    },
+    "Symbol name:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Název symbolu:"
           }
         }
       }
@@ -6752,6 +7096,16 @@
         }
       }
     },
+    "This version does not know the command “%@”.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tato verze nezná příkaz „%@“."
+          }
+        }
+      }
+    },
     "Title:": {
       "localizations": {
         "cs": {
@@ -6794,12 +7148,32 @@
         }
       }
     },
+    "Top": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nahoře"
+          }
+        }
+      }
+    },
     "Trash": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Koš"
+          }
+        }
+      }
+    },
+    "Unknown command “%@”": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neznámý příkaz „%@“"
           }
         }
       }
@@ -7288,16 +7662,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "K „%@“ na serveru nemáte přístup."
-          }
-        }
-      }
-    },
-    "Your changes to every command are removed.": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Všechny vaše změny příkazů budou odstraněny."
           }
         }
       }
@@ -8224,16 +8588,6 @@
         }
       }
     },
-    "Volume bar shows:": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lišta disků zobrazuje:"
-          }
-        }
-      }
-    },
     "Server connections": {
       "localizations": {
         "cs": {
@@ -8992,6 +9346,1007 @@
           "stringUnit": {
             "state": "translated",
             "value": "Položky z více složek archivu nejde do archivu přidat najednou. Zkopírujte je nejdřív do složky na disku."
+          }
+        }
+      }
+    },
+    "Insert Full Path": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vložit celou cestu"
+          }
+        }
+      }
+    },
+    "Quit": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ukončit"
+          }
+        }
+      }
+    },
+    "Link": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odkaz"
+          }
+        }
+      }
+    },
+    "Key scheme:": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schéma kláves:"
+          }
+        }
+      }
+    },
+    "Classic Commander": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klasický Commander"
+          }
+        }
+      }
+    },
+    "Default": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Výchozí"
+          }
+        }
+      }
+    },
+    "Scheme": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schéma"
+          }
+        }
+      }
+    },
+    "Changed": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Změněno"
+          }
+        }
+      }
+    },
+    "Source": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Původ"
+          }
+        }
+      }
+    },
+    "⌃←, ⌃→, ⌃↑ and ⌃↓ reach the app only when the Mission Control shortcuts for them are turned off in System Settings → Keyboard → Keyboard Shortcuts.": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌃←, ⌃→, ⌃↑ a ⌃↓ se do aplikace dostanou, jen když jsou pro ně vypnuté zkratky Mission Control v Nastavení systému → Klávesnice → Klávesové zkratky."
+          }
+        }
+      }
+    },
+    "Reset all shortcuts to the selected key scheme?": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vrátit všechny zkratky na vybrané schéma kláves?"
+          }
+        }
+      }
+    },
+    "Your changes to every command are removed; the key scheme stays.": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vaše změny u všech příkazů se odstraní; schéma kláves zůstane."
+          }
+        }
+      }
+    },
+    "Export Settings…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exportovat nastavení…"
+          }
+        }
+      }
+    },
+    "Import Settings…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importovat nastavení…"
+          }
+        }
+      }
+    },
+    "Import": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importovat"
+          }
+        }
+      }
+    },
+    "Preferences": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Předvolby"
+          }
+        }
+      }
+    },
+    "Saved Servers": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uložené servery"
+          }
+        }
+      }
+    },
+    "Toolbar": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nástrojový panel"
+          }
+        }
+      }
+    },
+    "The settings could not be exported.": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nastavení se nepodařilo exportovat."
+          }
+        }
+      }
+    },
+    "This file is not an Axolotl Commander settings file.": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tento soubor není soubor nastavení Axolotl Commanderu."
+          }
+        }
+      }
+    },
+    "Import settings?": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importovat nastavení?"
+          }
+        }
+      }
+    },
+    "The checked parts replace your current settings.": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zaškrtnuté části nahradí vaše současné nastavení."
+          }
+        }
+      }
+    },
+    "The file comes from a newer version; parts this version does not know are skipped.": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soubor pochází z novější verze; části, které tato verze nezná, se přeskočí."
+          }
+        }
+      }
+    },
+    "Settings imported.": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nastavení je importováno."
+          }
+        }
+      }
+    },
+    "unknown part": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "neznámá část"
+          }
+        }
+      }
+    },
+    "unknown setting": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "neznámé nastavení"
+          }
+        }
+      }
+    },
+    "unknown command": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "neznámý příkaz"
+          }
+        }
+      }
+    },
+    "invalid shortcut": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "neplatná zkratka"
+          }
+        }
+      }
+    },
+    "wrong kind of value": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "nesprávný druh hodnoty"
+          }
+        }
+      }
+    },
+    "value out of range": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "hodnota mimo rozsah"
+          }
+        }
+      }
+    },
+    "unknown key scheme": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "neznámé schéma kláves"
+          }
+        }
+      }
+    },
+    "invalid entry": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "neplatná položka"
+          }
+        }
+      }
+    },
+    "One file with the keys, preferences, appearance, hot paths, user menu, saved servers and toolbar. Passwords are never included.": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jeden soubor s klávesami, předvolbami, vzhledem, oblíbenými cestami, uživatelskou nabídkou, uloženými servery a nástrojovým panelem. Hesla v něm nikdy nejsou."
+          }
+        }
+      }
+    },
+    "Cut": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vyjmout"
+          }
+        }
+      }
+    },
+    "Space moves the cursor down": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mezerník posune kurzor dolů"
+          }
+        }
+      }
+    },
+    "Off: Space marks the item and the cursor stays on it.": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vypnuto: mezerník označí položku a kurzor na ní zůstane."
+          }
+        }
+      }
+    },
+    "Typing goes to the command line": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Psaní jde do příkazové řádky"
+          }
+        }
+      }
+    },
+    "Characters typed in a panel go to the command line; ⌥ + a character starts quick search.": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Znaky napsané v panelu jdou do příkazové řádky; ⌥ + znak spustí rychlé hledání."
+          }
+        }
+      }
+    },
+    "⌃← / ⌃→ change the panel the arrow points to": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌃← / ⌃→ mění panel, na který šipka ukazuje"
+          }
+        }
+      }
+    },
+    "Off: the item always goes to the other panel.": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vypnuto: položka se vždy otevře v druhém panelu."
+          }
+        }
+      }
+    },
+    "Volume buttons open the other panel's folder or the last folder used there": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tlačítka disků otevřou složku druhého panelu nebo naposledy použitou složku"
+          }
+        }
+      }
+    },
+    "Off: a volume button always opens the volume root.": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vypnuto: tlačítko disku vždy otevře kořen disku."
+          }
+        }
+      }
+    },
+    "Space, typing into the command line, ⌃← / ⌃→ and the volume buttons are set in General → Panels.": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mezerník, psaní do příkazové řádky, ⌃← / ⌃→ a tlačítka disků se nastavují v Obecné → Panely."
+          }
+        }
+      }
+    },
+    "Open in Background Tab": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otevřít v záložce na pozadí"
+          }
+        }
+      }
+    },
+    "Open in New Tab of Other Panel": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otevřít v nové záložce druhého panelu"
+          }
+        }
+      }
+    },
+    "Reopen Closed Tab": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Znovu otevřít zavřenou záložku"
+          }
+        }
+      }
+    },
+    "Tab List…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seznam záložek…"
+          }
+        }
+      }
+    },
+    "Swap Panels with All Tabs": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prohodit panely i se záložkami"
+          }
+        }
+      }
+    },
+    "Recently Closed": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nedávno zavřené"
+          }
+        }
+      }
+    },
+    "Quick Filter": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rychlý filtr"
+          }
+        }
+      }
+    },
+    "Quick Filter with Last Text": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rychlý filtr s posledním textem"
+          }
+        }
+      }
+    },
+    "Quick filter: %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rychlý filtr: %@"
+          }
+        }
+      }
+    },
+    "Folder History…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Historie složek…"
+          }
+        }
+      }
+    },
+    "Command Line History…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Historie příkazové řádky…"
+          }
+        }
+      }
+    },
+    "History": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Historie"
+          }
+        }
+      }
+    },
+    "Folder History": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Historie složek"
+          }
+        }
+      }
+    },
+    "Command Line History": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Historie příkazové řádky"
+          }
+        }
+      }
+    },
+    "Return opens here, ⌘Return in a new tab, ⌥Return in the other panel.": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Return otevře zde, ⌘Return v nové záložce, ⌥Return v druhém panelu."
+          }
+        }
+      }
+    },
+    "Return puts the command into the command line.": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Return vloží příkaz do příkazové řádky."
+          }
+        }
+      }
+    },
+    "Copy As…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopírovat jako…"
+          }
+        }
+      }
+    },
+    "New Folder in Other Panel…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nová složka v druhém panelu…"
+          }
+        }
+      }
+    },
+    "View Cursor File Only": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zobrazit jen soubor pod kurzorem"
+          }
+        }
+      }
+    },
+    "Pack and Move…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zabalit a přesunout…"
+          }
+        }
+      }
+    },
+    "Test Archives": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otestovat archivy"
+          }
+        }
+      }
+    },
+    "Toggle Selection Without Moving": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Označit bez posunu"
+          }
+        }
+      }
+    },
+    "Select All Files": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Označit všechny soubory"
+          }
+        }
+      }
+    },
+    "Deselect All Files": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odznačit všechny soubory"
+          }
+        }
+      }
+    },
+    "copy": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "kopie"
+          }
+        }
+      }
+    },
+    "Copy As": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopírovat jako"
+          }
+        }
+      }
+    },
+    "Copy “%@” as:": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopírovat „%@“ jako:"
+          }
+        }
+      }
+    },
+    "Pack and move %@ to:": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zabalit a přesunout %@ do:"
+          }
+        }
+      }
+    },
+    "Testing archives…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Testování archivů…"
+          }
+        }
+      }
+    },
+    "%@: OK": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: v pořádku"
+          }
+        }
+      }
+    },
+    "%@: not tested (no password)": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: neotestováno (bez hesla)"
+          }
+        }
+      }
+    },
+    "All archives are OK": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Všechny archivy jsou v pořádku"
+          }
+        }
+      }
+    },
+    "Problems found in %lld of %lld archives": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Problémy nalezeny v %lld z %lld archivů"
+          }
+        }
+      }
+    },
+    "Quick View Panel": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Panel rychlého náhledu"
+          }
+        }
+      }
+    },
+    "Items in archives, on servers and in the Network folder have no preview.": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Položky v archivech, na serverech a ve složce Síť nemají náhled."
+          }
+        }
+      }
+    },
+    "The test was cancelled.": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Test byl zrušen."
+          }
+        }
+      }
+    },
+    "Test Archives was cancelled": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Test archivů byl zrušen"
+          }
+        }
+      }
+    },
+    "The archive is incomplete: its zip directory is missing.": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archiv je neúplný: chybí mu adresář zipu."
+          }
+        }
+      }
+    },
+    "The editor “%@” chosen in Settings is not installed. Choose another one in Settings → Viewer & Editor.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Editor „%@“ vybraný v Nastavení není nainstalovaný. Vyberte jiný v Nastavení → Prohlížeč a editor."
+          }
+        }
+      }
+    },
+    "%@ free of %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ volných z %2$@"
+          }
+        }
+      }
+    },
+    "%@ free": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ volných"
+          }
+        }
+      }
+    },
+    "%@ free of %@ — %@ used": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ volných z %2$@ — obsazeno %3$@"
+          }
+        }
+      }
+    },
+    "Show Volume Bar": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zobrazit lištu disků"
+          }
+        }
+      }
+    },
+    "Show Drive Row": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zobrazit řádek disku"
+          }
+        }
+      }
+    },
+    "Show drive row with free space": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zobrazit řádek disku s volným místem"
+          }
+        }
+      }
+    },
+    "Show free space when the drive row is hidden": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ukázat volné místo, když je řádek disku skrytý"
+          }
+        }
+      }
+    },
+    "Volume bar shows:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lišta disků zobrazuje:"
+          }
+        }
+      }
+    },
+    "Show volume bar": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zobrazit lištu disků"
+          }
+        }
+      }
+    },
+    "At the right end of the volume bar, or of the status line when the volume bar is hidden too.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vpravo na liště disků, nebo ve stavovém řádku, když je skrytá i lišta disků."
           }
         }
       }

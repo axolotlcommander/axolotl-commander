@@ -59,7 +59,12 @@ final class PanelViewController: NSViewController {
     /// What the shown trail was built from (location, results, archive).
     private var trailSource: (URL, ResultsListing?, ArchivePath?, Bool)?
     let statusField = NSTextField(labelWithString: "")
-    private let volumeBar = VolumeBar()
+    let volumeBar = VolumeBar()
+    /// The drive combo and the free space below the volume bar (spec 020).
+    let driveRow = DriveRowView()
+    /// The free space at the right end of the status line, when both bars above are hidden.
+    let statusSpace = FreeSpaceLabel()
+    let diskSpace = DiskSpaceMonitor()
     let tabStrip = TabStrip()
     let briefView = BriefGridView()
     let briefScroll = NSScrollView()
@@ -70,6 +75,8 @@ final class PanelViewController: NSViewController {
     var listView: NSView { viewMode == .brief ? briefView : tableView }
     /// Saved states of this panel's tabs; the active one mirrors the model (see PanelTabs.swift).
     var tabs: TabList
+    /// Tabs closed in this panel, newest first (Reopen Closed Tab, the tab list).
+    var closedTabs = ClosedTabs()
 
     private var watcher: DirectoryWatcher?
     /// Discovery and mount changes, which refresh the Network folder.
@@ -83,6 +90,14 @@ final class PanelViewController: NSViewController {
 
     /// Commander-style quick search buffer; nil when not searching.
     private var quickSearch: String?
+    /// The quick filter is being typed (spec 013); the text is `model.quickFilter`.
+    private var quickFilterTyping = false
+    private var quickFilterLocation: URL?
+    /// The panel's last non-empty quick filter (Quick Filter with Last Text).
+    private var lastQuickFilter: String?
+    /// The last folder this panel showed on each volume (in memory, for the volume buttons).
+    private var volumePlaces = VolumePlaces()
+    private var lastVisitedFolder: URL?
     /// Mark state applied while Shift+movement drags the selection.
     private var shiftMarkState: Bool?
     /// Items shown by Quick Look (see QuickLook.swift).
@@ -182,6 +197,7 @@ final class PanelViewController: NSViewController {
             router?.activate(side)
             go(to: url)
         }
+        volumeBar.onChooseVolume = { [weak self] url in self?.chooseVolume(url) }
         volumeBar.onChooseServer = { [weak self] endpoint in self?.openServer(endpoint) }
         volumeBar.onChooseNetwork = { [weak self] in
             guard let self else { return }
@@ -223,7 +239,14 @@ final class PanelViewController: NSViewController {
         }
         lists.setContentHuggingPriority(.defaultLow, for: .vertical)
 
-        let stack = NSStackView(views: [volumeBar, tabStrip, pathBar, lists, statusField])
+        statusField.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+        let statusRow = NSStackView()
+        statusRow.orientation = .horizontal
+        statusRow.addView(statusField, in: .leading)
+        statusRow.addView(statusSpace, in: .trailing)
+        statusRow.spacing = 8
+        configureDriveRow()
+        let stack = NSStackView(views: [volumeBar, driveRow, tabStrip, pathBar, lists, statusRow])
         stack.orientation = .vertical
         stack.alignment = .leading
         stack.spacing = 2
@@ -236,10 +259,11 @@ final class PanelViewController: NSViewController {
             stack.topAnchor.constraint(equalTo: root.topAnchor),
             stack.bottomAnchor.constraint(equalTo: root.bottomAnchor),
             volumeBar.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -8),
+            driveRow.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -8),
             tabStrip.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -8),
             pathBar.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -8),
             lists.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -8),
-            statusField.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -8),
+            statusRow.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -8),
         ])
         view = root
         briefScroll.isHidden = viewMode != .brief
@@ -314,8 +338,14 @@ final class PanelViewController: NSViewController {
         if pathField.currentEditor() == nil { pathField.stringValue = locationText }
         updatePathBar()
         volumeBar.show(location: model.location)
+        updateDriveRow()
         if let remote = model.remote { ServerConnectionsUI.shared.visit(remote, panel: self) }
+        if let folder = diskLocation, folder != lastVisitedFolder {
+            lastVisitedFolder = folder
+            volumePlaces.visit(folder, volume: Volumes.root(of: folder))
+        }
         router?.panelLocationChanged(self)
+        router?.panelCursorChanged(self)
         ArchivePasswords.panel(self, showsArchive: model.archive?.archive)
         updateQuickLook()
         updateStatus()
@@ -354,9 +384,13 @@ final class PanelViewController: NSViewController {
             statusField.stringValue = String(localized: "Quick search: \(quickSearch)")
             return
         }
+        if quickFilterTyping || model.quickFilter != nil {
+            statusField.stringValue = String(localized: "Quick filter: \(model.quickFilter ?? "")")
+            return
+        }
         let s = model.summary
         if s.files + s.directories > 0 {
-            statusField.stringValue = String(localized: "Selected \(s.files) files, \(s.directories) folders — \(Format.bytes(s.bytes))")
+            statusField.stringValue = String(localized: "Selected \(Self.files(s.files)), \(Self.folders(s.directories)) — \(Format.bytes(s.bytes))")
         } else if let item = model.cursorItem, let service = NetworkPlaces.service(of: item.url) {
             statusField.stringValue = String(localized: "\(service.name)   \(service.kind.rawValue.uppercased()) server")
         } else if let item = model.cursorItem, !item.isParent {
@@ -364,7 +398,7 @@ final class PanelViewController: NSViewController {
             statusField.stringValue = "\(item.name)   \(size)   \(item.modificationDate.map(Format.date) ?? "")"
         } else {
             let t = model.totals
-            var text = String(localized: "\(t.files) files, \(t.directories) folders — \(Format.bytes(t.bytes))")
+            var text = String(localized: "\(Self.files(t.files)), \(Self.folders(t.directories)) — \(Format.bytes(t.bytes))")
             if model.branch != nil, model.unreadableFolders > 0 {
                 text += " — " + String(localized: "\(model.unreadableFolders) folders could not be read")
             }
@@ -411,6 +445,8 @@ final class PanelViewController: NSViewController {
 
     func handleKey(_ event: NSEvent) -> Bool {
         guard let chord = KeyChord(event: event) else { return false }
+        if handleQuickFilter(chord, event: event) { return true }
+        if handleTyping(chord, event: event) { return true }
         if chord.key == .escape, chord.modifiers.isEmpty, quickSearch == nil, isSizing {
             sizeTask?.cancel()
             return true
@@ -430,6 +466,26 @@ final class PanelViewController: NSViewController {
             return true
         }
         return false
+    }
+
+    /// "Typing goes to the command line": characters and, while the line holds text, Return,
+    /// Backspace, Esc and Space go to the command line; ⌥ + character starts quick search.
+    private func handleTyping(_ chord: KeyChord, event: NSEvent) -> Bool {
+        guard let router, PanelBehavior(defaults: .standard).typingToCommandLine else { return false }
+        let bound = UserMenuDefaults.command(for: chord) != nil || KeyMaps.panel.command(for: chord) != nil
+        let shift: NSEvent.ModifierFlags = event.modifierFlags.contains(.shift) ? .shift : []
+        let action = PanelTyping.route(key: chord.key, modifiers: chord.modifiers, text: event.characters,
+                                       baseText: event.characters(byApplyingModifiers: shift),
+                                       lineIsEmpty: !router.commandLineHasText,
+                                       quickSearchActive: quickSearch != nil || quickFilterTyping, isBound: bound)
+        switch action {
+        case .none: return false
+        case .startQuickSearch(let text):
+            if model.quickSearch(text) { quickSearch = text } else { NSSound.beep() }
+            updateStatus()
+        default: router.commandLine(action)
+        }
+        return true
     }
 
     private func handleQuickSearch(_ chord: KeyChord, event: NSEvent) -> Bool {
@@ -454,12 +510,76 @@ final class PanelViewController: NSViewController {
         case .down where chord.modifiers == .control, .up where chord.modifiers == .control:
             model.quickSearchNext(quickSearch!, forward: chord.key == .down)
         default:
+            // Quick Filter during quick search turns the search text into the filter.
+            if KeyMaps.panel.command(for: chord) == .quickFilter, let text = quickSearch {
+                quickSearch = nil
+                startQuickFilter(text)
+                return true
+            }
             quickSearch = nil
             updateStatus()
             return false
         }
         updateStatus()
         return true
+    }
+
+    // MARK: Quick filter
+
+    /// Starts (or resumes) typing the quick filter, optionally with `text`.
+    func startQuickFilter(_ text: String?) {
+        if let text, !text.isEmpty {
+            if model.setQuickFilter(text) { lastQuickFilter = text } else { NSSound.beep() }
+        }
+        quickFilterTyping = true
+        quickFilterLocation = model.location
+        updateStatus()
+    }
+
+    /// Keys while the quick filter is typed; Esc also clears a filter whose typing has ended.
+    private func handleQuickFilter(_ chord: KeyChord, event: NSEvent) -> Bool {
+        if quickFilterTyping, model.location != quickFilterLocation { quickFilterTyping = false }
+        guard quickFilterTyping else {
+            // Esc first ends quick search, folder sizing or a branch scan; the next one clears the filter.
+            guard chord.key == .escape, chord.modifiers.isEmpty, model.quickFilter != nil,
+                  quickSearch == nil, !isSizing, !model.isScanningBranch else { return false }
+            model.setQuickFilter(nil)
+            updateStatus()
+            return true
+        }
+        let text = model.quickFilter ?? ""
+        let plain = chord.modifiers.isDisjoint(with: [.control, .command, .option])
+        switch chord.key {
+        case .character where plain:
+            if let typed = event.characters, !typed.isEmpty { extendQuickFilter(text + typed) }
+        case .space where chord.modifiers.isEmpty:
+            extendQuickFilter(text + " ")
+        case .backspace where chord.modifiers.isEmpty:
+            if !text.isEmpty { model.setQuickFilter(String(text.dropLast())) }
+        case .escape:
+            quickFilterTyping = false
+            model.setQuickFilter(nil)
+        case .up, .down, .pageUp, .pageDown, .home, .end:
+            // Moving among the shown items keeps typing.
+            if !chord.modifiers.isEmpty { quickFilterTyping = false }
+            updateStatus()
+            return false
+        default:
+            quickFilterTyping = false
+            updateStatus()
+            return false
+        }
+        updateStatus()
+        return true
+    }
+
+    /// A restored tab starts without the quick filter: typing it ends too.
+    func endQuickFilterTyping() {
+        quickFilterTyping = false
+    }
+
+    private func extendQuickFilter(_ text: String) {
+        if model.setQuickFilter(text) { lastQuickFilter = text } else { NSSound.beep() }
     }
 
     private func handleMovement(_ chord: KeyChord) -> Bool {
@@ -469,7 +589,8 @@ final class PanelViewController: NSViewController {
         let page = brief ? briefRows * briefVisibleColumns
                          : max(1, Int(tableView.visibleRect.height / tableView.rowHeight) - 1)
         let from = model.cursor
-        if chord.modifiers == .option {
+        // A chord bound to a command (Classic Commander's ⌥↓ = Folder History) wins over the direct keys.
+        if chord.modifiers == .option, KeyMaps.panel.command(for: chord) == nil {
             // ⌥↑ ⌥↓ previous / next marked item, ⌥Home ⌥End first / last one.
             let found: Int? = switch chord.key {
             case .up: model.selectedIndex(after: from, forward: false)
@@ -535,6 +656,10 @@ final class PanelViewController: NSViewController {
         .copy, .move, .delete, .deletePermanently, .makeDirectory, .rename, .copyFiles, .pasteFiles,
         .view, .quickLook, .edit, .viewWith, .editWith, .newFile, .properties, .openTerminal, .revealInFinder,
         .newTab, .closeTab, .nextTab, .previousTab, .hotPaths, .viewModeDetailed, .viewModeBrief,
+        .openInNewTab, .openInBackgroundTab, .reopenClosedTab, .closeOtherTabs, .tabList,
+        .quickFilter, .quickFilterLast, .folderHistory,
+        .copyAs, .makeDirectoryInOtherPanel, .viewCursorFile, .packAndMove, .testArchives,
+        .toggleSelectionInPlace, .selectAllFiles, .deselectAllFiles,
         .find, .pack, .unpack, .connectToServer, .disconnect, .compareFiles,
         .changeCase, .batchRename, .calculateChecksums, .verifyChecksums, .occupiedSpace, .userMenu,
         .contextMenu, .moveFilesHere, .invertAll, .restoreSelection, .saveSelection, .loadSelection, .volumeInfo,
@@ -552,6 +677,7 @@ final class PanelViewController: NSViewController {
         .open, .goParent, .goHome, .goBack, .goForward, .changeDirectory, .editPath, .refresh,
         .sortByName, .sortByExtension, .sortByDate, .sortBySize, .viewModeDetailed, .viewModeBrief, .filter,
         .leftVolumeMenu, .rightVolumeMenu, .newTab, .closeTab, .nextTab, .previousTab, .hotPaths,
+        .reopenClosedTab, .closeOtherTabs, .tabList, .folderHistory,
         .connectToServer, .disconnect, .contextMenu,
     ]
 
@@ -559,7 +685,7 @@ final class PanelViewController: NSViewController {
     private static let diskOnly: Set<Command> = [
         .changeCase, .batchRename, .calculateChecksums, .verifyChecksums, .occupiedSpace, .moveFilesHere, .volumeInfo,
         .viewWith, .editWith, .newSymbolicLink, .newHardLink, .editSymbolicLink, .pasteAsSymbolicLink,
-        .goToLinkTarget, .changeAttributes,
+        .goToLinkTarget, .changeAttributes, .copyAs, .packAndMove, .testArchives,
     ]
 
     func canPerform(_ command: Command) -> Bool {
@@ -574,7 +700,9 @@ final class PanelViewController: NSViewController {
         switch command {
         case .goBack: return model.canGoBack
         case .goForward: return model.canGoForward
-        case .closeTab, .nextTab, .previousTab: return tabs.tabs.count > 1
+        case .closeTab, .nextTab, .previousTab, .closeOtherTabs: return tabs.tabs.count > 1
+        case .openInNewTab, .openInBackgroundTab: return model.cursorItem != nil
+        case .reopenClosedTab: return !closedTabs.isEmpty
         // Find results and branch view have no folder of their own to create or paste into.
         case .makeDirectory, .newFile: return !isFlatListing
         case .pasteFiles: return !isFlatListing && Self.pasteboardHasFilesOrPath
@@ -595,7 +723,11 @@ final class PanelViewController: NSViewController {
         case .selectSameExtension, .deselectSameExtension:
             return model.cursorItem.map { !$0.isDirectory && !$0.fileExtension.isEmpty } ?? false
         case .pack: return !targets().isEmpty
-        case .unpack: return !archiveTargets().isEmpty
+        case .unpack, .testArchives: return !archiveTargets().isEmpty
+        case .packAndMove: return !targets().isEmpty
+        case .copyAs: return model.cursorItem.map { !$0.isParent } ?? false
+        case .makeDirectoryInOtherPanel: return router.map { $0.otherPanel(than: self).canPerform(.makeDirectory) } ?? false
+        case .viewCursorFile: return model.cursorItem.map { !$0.isParent && (!$0.isDirectory || $0.isPackage) } ?? false
         case .disconnect: return !ServerConnectionsUI.shared.opened.isEmpty
         default: return true
         }
@@ -634,6 +766,8 @@ final class PanelViewController: NSViewController {
     }
 
     func perform(_ command: Command) {
+        // Quick Filter takes over the search text, also when it comes through the menu.
+        let search = quickSearch
         quickSearch = nil
         switch command {
         case .open: Task { await openCursor() }
@@ -648,6 +782,14 @@ final class PanelViewController: NSViewController {
         case .viewModeDetailed: viewMode = .detailed
         case .viewModeBrief: viewMode = .brief
         case .closeTab: closeTab(at: tabs.active)
+        case .quickFilter: startQuickFilter(search)
+        case .quickFilterLast: startQuickFilter(lastQuickFilter)
+        case .openInNewTab: openCursorInNewTab(activate: true)
+        case .openInBackgroundTab: openCursorInNewTab(activate: false)
+        case .reopenClosedTab: reopenClosedTab()
+        case .closeOtherTabs: closeOtherTabs(keeping: tabs.active)
+        case .tabList: showTabList()
+        case .folderHistory: showFolderHistory()
         case .nextTab: switchTab { $0.next() }
         case .previousTab: switchTab { $0.previous() }
         case .hotPaths: showHotPathsMenu()
@@ -669,7 +811,7 @@ final class PanelViewController: NSViewController {
                 startSizing([item])
             }
             model.toggleSelection(at: model.cursor)
-            model.moveCursor(by: 1)
+            if PanelBehavior(defaults: .standard).spaceMovesDown { model.moveCursor(by: 1) }
         case .selectByMask: Task { await askMask(title: String(localized: "Select"), action: { self.model.select(mask: $0, true) }) }
         case .deselectByMask: Task { await askMask(title: String(localized: "Deselect"), action: { self.model.select(mask: $0, false) }) }
         case .invertByMask: Task { await askMask(title: String(localized: "Invert Selection"), action: { self.model.invertSelection(mask: $0) }) }
@@ -722,6 +864,14 @@ final class PanelViewController: NSViewController {
         case .disconnect: DisconnectSheet.show(for: self)
         case .pack: router?.operations.pack(targets(), from: self)
         case .unpack: router?.operations.unpack(archiveTargets(), from: self)
+        case .testArchives: router?.operations.testArchives(archiveTargets(), from: self)
+        case .packAndMove: router?.operations.pack(targets(), from: self, moving: true)
+        case .copyAs: Task { await askCopyAs() }
+        case .makeDirectoryInOtherPanel: makeDirectoryInOtherPanel()
+        case .viewCursorFile: openViewer(cursorOnly: true)
+        case .toggleSelectionInPlace: model.toggleSelection(at: model.cursor)
+        case .selectAllFiles: model.selectFiles(true)
+        case .deselectAllFiles: model.selectFiles(false)
         case .quickLook: toggleQuickLook()
         case .viewWith: showOpenWithMenu(viewing: true)
         case .editWith: showOpenWithMenu(viewing: false)
@@ -771,8 +921,10 @@ final class PanelViewController: NSViewController {
     }
 
     /// F3: the internal viewer for the file under the cursor; folders and media go to Quick Look.
-    private func openViewer() {
-        if let (left, right) = CompareFiles.selectedPair(in: self) {
+    /// F3 (two marked files are compared, the viewer steps through the folder's files) or View Cursor
+    /// File Only (`cursorOnly`: just that file).
+    private func openViewer(cursorOnly: Bool = false) {
+        if !cursorOnly, let (left, right) = CompareFiles.selectedPair(in: self) {
             Task { await CompareFiles.open(left, right, from: self) }
             return
         }
@@ -808,8 +960,8 @@ final class PanelViewController: NSViewController {
             toggleQuickLook()
             return
         }
-        let entries = model.items.filter { !$0.isParent && !$0.isDirectory }
-            .map { FileSequence.Entry(url: $0.url, isSelected: model.isSelected($0)) }
+        let entries = model.items.filter { !$0.isParent && !$0.isDirectory && (!cursorOnly || $0 == item) }
+            .map { FileSequence.Entry(url: $0.url, isSelected: !cursorOnly && model.isSelected($0)) }
         guard let sequence = FileSequence(entries: entries, current: item.url) else { return }
         ViewerWindowController.show(sequence)
     }
@@ -875,6 +1027,34 @@ final class PanelViewController: NSViewController {
                 router?.operations.report(error)
             }
         }
+    }
+
+    /// A volume button or a volume from the volume menu: the root, or with "Volume buttons open the
+    /// other panel's folder or the last folder used there" the rules of `VolumeChoice`.
+    func chooseVolume(_ volume: URL) {
+        router?.activate(side)
+        guard PanelBehavior(defaults: .standard).volumeButtonsFollow, let router else { return go(to: volume) }
+        let other = router.otherPanel(than: self)
+        let target = VolumeChoice.target(volume: volume, panelVolume: diskLocation.map(Volumes.root(of:)),
+                                         otherFolder: other.diskLocation, otherVolume: other.diskLocation.map(Volumes.root(of:)),
+                                         remembered: volumePlaces.folder(on: volume)) { url in
+            var isDirectory: ObjCBool = false
+            return FileManager.default.fileExists(atPath: url.path(percentEncoded: false), isDirectory: &isDirectory)
+                && isDirectory.boolValue
+        }
+        switch target {
+        case .refresh: refresh()
+        case .open(let folder): go(to: folder)
+        }
+    }
+
+    /// "1 file", "3 files": the count with the plural form of the language.
+    static func files(_ count: Int) -> String { String(localized: "\(count) files") }
+    static func folders(_ count: Int) -> String { String(localized: "\(count) folders") }
+
+    /// The folder on disk the panel shows; nil for an archive, a server or the Network folder.
+    var diskLocation: URL? {
+        model.remote == nil && model.archive == nil && !model.isNetwork ? model.location : nil
     }
 
     /// A server button: this panel's last folder on the connection (else any panel's, else the
@@ -1025,6 +1205,30 @@ final class PanelViewController: NSViewController {
     private var renaming: (row: Int, item: FileItem)?
 
     /// Brief view has no editable cells: F2 asks for the name in a sheet.
+    /// Copy As (⇧F5): a copy of the cursor item next to it, under a name the user confirms.
+    private func askCopyAs() async {
+        guard let item = model.cursorItem, !item.isParent else { return }
+        let name = item.url.lastPathComponent
+        let suggestion = CopyAsName.suggestion(
+            for: name, isFolder: item.isDirectory && !item.isPackage,
+            suffix: String(localized: "copy", comment: "Copy As: added to the name of the copy, as in “report copy.txt”"))
+        guard let newName = await TextPrompt.ask(title: String(localized: "Copy As"),
+                                                 message: String(localized: "Copy “\(name)” as:"),
+                                                 initial: suggestion, in: view.window),
+              !newName.isEmpty else { return }
+        router?.operations.copyAs(item.url, name: newName, panel: self)
+    }
+
+    /// New Folder in Other Panel: named after the cursor item; the focus stays here.
+    private func makeDirectoryInOtherPanel() {
+        guard let router else { return }
+        let initial = model.cursorItem.flatMap { item in
+            item.isParent ? nil : NewFolderName.suggestion(for: item.url.lastPathComponent,
+                                                           isFolder: item.isDirectory && !item.isPackage)
+        } ?? ""
+        router.operations.makeDirectory(in: router.otherPanel(than: self), initial: initial)
+    }
+
     private func askRename() async {
         guard let item = model.cursorItem, !item.isParent else { return }
         let name = isFlatListing ? item.url.lastPathComponent : item.name
@@ -1132,16 +1336,24 @@ final class PanelViewController: NSViewController {
 
     // MARK: Volume menu
 
-    private func showVolumeMenu() {
+    /// The volume menu (⌥F1/⌥F2, the drive combo), below `anchor` or at the path bar; the item
+    /// the volume bar shows pressed is checked.
+    func showVolumeMenu(from anchor: NSView? = nil) {
         let menu = NSMenu()
+        let pressed = volumeBar.pressedItem
         for volume in Volumes.mounted() {
             let title = volume.availableCapacity.map { String(localized: "\(volume.name)  —  \(Format.bytes($0)) free") } ?? volume.name
-            menu.addItem(placeItem(title, volume.url, icon: NSWorkspace.shared.icon(forFile: volume.url.path)))
+            let item = placeItem(title, volume.url, icon: NSWorkspace.shared.icon(forFile: volume.url.path))
+            item.action = #selector(volumeRootChosen(_:))
+            if case .volume(let shown)? = pressed, shown.url == volume.url { item.state = .on }
+            menu.addItem(item)
         }
         menu.addItem(.separator())
         let fm = FileManager.default
         let home = fm.homeDirectoryForCurrentUser
-        menu.addItem(placeItem(String(localized: "Home"), home, icon: NSImage(systemSymbolName: "house", accessibilityDescription: nil)))
+        let homeItem = placeItem(String(localized: "Home"), home, icon: NSImage(systemSymbolName: "house", accessibilityDescription: nil))
+        if case .home? = pressed { homeItem.state = .on }
+        menu.addItem(homeItem)
         for (dir, symbol) in [(FileManager.SearchPathDirectory.desktopDirectory, "menubar.dock.rectangle"),
                               (.documentDirectory, "doc"), (.downloadsDirectory, "arrow.down.circle"),
                               (.applicationDirectory, "square.grid.2x2")] {
@@ -1150,10 +1362,14 @@ final class PanelViewController: NSViewController {
             }
         }
         if let iCloud = VolumeBar.iCloudDrive {
-            menu.addItem(placeItem(String(localized: "iCloud Drive"), iCloud, icon: NSImage(systemSymbolName: "icloud", accessibilityDescription: nil)))
+            let item = placeItem(String(localized: "iCloud Drive"), iCloud, icon: NSImage(systemSymbolName: "icloud", accessibilityDescription: nil))
+            if case .iCloud? = pressed { item.state = .on }
+            menu.addItem(item)
         }
-        menu.addItem(placeItem(String(localized: "Network"), NetworkPlaces.location,
-                               icon: NSImage(systemSymbolName: "network", accessibilityDescription: nil)))
+        let networkItem = placeItem(String(localized: "Network"), NetworkPlaces.location,
+                                    icon: NSImage(systemSymbolName: "network", accessibilityDescription: nil))
+        if model.isNetwork { networkItem.state = .on }
+        menu.addItem(networkItem)
         // Open server connections, as the volume bar shows them (also those its width hides).
         let connections = ServerConnectionsUI.shared
         if !connections.opened.isEmpty {
@@ -1165,10 +1381,15 @@ final class PanelViewController: NSViewController {
                 icon?.size = NSSize(width: 16, height: 16)
                 item.image = icon
                 item.toolTip = connections.address(of: endpoint)
+                if model.remote?.endpoint == endpoint { item.state = .on }
                 menu.addItem(item)
             }
         }
-        menu.popUp(positioning: nil, at: NSPoint(x: 0, y: pathBar.bounds.height + 2), in: pathBar)
+        if let anchor {
+            menu.popUp(positioning: nil, at: NSPoint(x: 0, y: anchor.isFlipped ? anchor.bounds.height + 2 : -2), in: anchor)
+        } else {
+            menu.popUp(positioning: nil, at: NSPoint(x: 0, y: pathBar.bounds.height + 2), in: pathBar)
+        }
     }
 
     private func placeItem(_ title: String, _ url: URL, icon: NSImage?) -> NSMenuItem {
@@ -1185,6 +1406,11 @@ final class PanelViewController: NSViewController {
         go(to: url)
     }
 
+    @objc private func volumeRootChosen(_ sender: NSMenuItem) {
+        guard let url = sender.representedObject as? URL else { return }
+        chooseVolume(url)
+    }
+
     // MARK: Path field
 
     @objc private func pathFieldCommitted() {
@@ -1197,11 +1423,17 @@ final class PanelViewController: NSViewController {
             view.window?.makeFirstResponder(tableView)
             return
         }
+        goTo(typed: input)
+    }
+
+    /// Opens a typed path (the path field, a recent path in Folder History) and remembers it;
+    /// `takeFocus` gives the panel the keyboard focus once the folder is shown.
+    func goTo(typed input: String, takeFocus: Bool = true) {
         // "sftp://user:password@host/path" connects; the password is used once and never stored in history.
         if let typed = RemoteURL.parse(typed: input) {
             connect(to: typed.location, password: typed.password) { [weak self] url in
                 AppSettings.shared.recentPaths.add(url.displayPath)
-                if let self { view.window?.makeFirstResponder(tableView) }
+                if let self, takeFocus { view.window?.makeFirstResponder(tableView) }
             }
             return
         }
@@ -1211,7 +1443,7 @@ final class PanelViewController: NSViewController {
                 do {
                     try await model.go(to: url)
                     AppSettings.shared.recentPaths.add(url.displayPath)
-                    view.window?.makeFirstResponder(tableView)
+                    if takeFocus { view.window?.makeFirstResponder(tableView) }
                 } catch {
                     NSSound.beep()
                     statusField.stringValue = Format.error(error)

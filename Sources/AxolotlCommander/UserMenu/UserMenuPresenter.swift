@@ -18,6 +18,12 @@ enum UserMenuDefaults {
         }
     }
 
+    /// Items written to UserDefaults by someone else (a settings import).
+    static func reload() {
+        shortcutItems = nil
+        NotificationCenter.default.post(name: didChange, object: nil)
+    }
+
     /// Command items with a shortcut, decoded once per change (every panel key-down asks).
     private static var shortcutItems: [UserMenuItem]?
 

@@ -36,6 +36,15 @@ final class AppSettings {
         connections = Self.load("connections") ?? []
     }
 
+    /// Loads the stored values again (after a settings import wrote them); unchanged values are
+    /// left alone so nothing redraws or saves for nothing.
+    func reload() {
+        if let value: PanelAppearance = Self.load("appearance"), value != appearance { appearance = value }
+        if let value: HotPaths = Self.load("hotPaths"), value != hotPaths { hotPaths = value }
+        if let value: ComparisonOptions = Self.load("comparison"), value != comparison { comparison = value }
+        if let value: [ConnectionProfile] = Self.load("connections"), value != connections { connections = value }
+    }
+
     private static func load<T: Decodable>(_ key: String) -> T? {
         guard let data = UserDefaults.standard.data(forKey: key) else { return nil }
         return try? JSONDecoder().decode(T.self, from: data)

@@ -65,6 +65,12 @@ final class ArchiveReadHandle {
     }
 
     /// Format of the open archive, from libarchive's detection (valid after the first `next()`).
+    /// The code page of names that are not UTF-8: zip names come from the OEM page,
+    /// other formats from the ANSI page. Valid once the first header is read.
+    var legacyNames: String.Encoding {
+        archive_format(a) & ARCHIVE_FORMAT_BASE_MASK == ARCHIVE_FORMAT_ZIP ? LegacyNames.current.oem : LegacyNames.current.ansi
+    }
+
     func detectedFormat() -> ArchiveFormat? {
         switch archive_format(a) & ARCHIVE_FORMAT_BASE_MASK {
         case ARCHIVE_FORMAT_ZIP: return .zip
@@ -88,17 +94,10 @@ final class ArchiveReadHandle {
     }
 }
 
-/// Owns an archive writer: an archive file, or the disk (extraction).
+/// Owns an archive writer for an archive file.
 final class ArchiveWriteHandle {
     let a: OpaquePointer
     private var freed = false
-
-    /// Writes entries to the file system; entry pathnames are the targets.
-    init(diskFlags: Int32) throws(ArchiveError) {
-        guard let a = archive_write_disk_new() else { throw .library("archive_write_disk_new failed") }
-        self.a = a
-        archive_write_disk_set_options(a, diskFlags)
-    }
 
     init(path: String, format: ArchiveFormat) throws(ArchiveError) {
         guard let a = archive_write_new() else { throw .library("archive_write_new failed") }
@@ -184,16 +183,17 @@ struct RawEntryInfo {
     var isEncrypted: Bool
     var perm: Int
 
-    init(_ e: OpaquePointer) {
-        let raw = Self.string(archive_entry_pathname_utf8(e)) ?? Self.string(archive_entry_pathname(e)) ?? ""
+    /// `legacy` decodes names that are not UTF-8 (see `ArchiveReadHandle.legacyNames`).
+    init(_ e: OpaquePointer, legacy: String.Encoding) {
+        let raw = Self.name(archive_entry_pathname_utf8(e), archive_entry_pathname(e), legacy) ?? ""
         let type = Int32(archive_entry_filetype(e)) & AE_IFMT
         isDirectory = type == AE_IFDIR || raw.hasSuffix("/")
         isSymlink = !isDirectory && type == AE_IFLNK
         path = raw
         linkTarget = isSymlink
-            ? Self.string(archive_entry_symlink_utf8(e)) ?? Self.string(archive_entry_symlink(e))
+            ? Self.name(archive_entry_symlink_utf8(e), archive_entry_symlink(e), legacy)
             : nil
-        hardlink = Self.string(archive_entry_hardlink_utf8(e)) ?? Self.string(archive_entry_hardlink(e))
+        hardlink = Self.name(archive_entry_hardlink_utf8(e), archive_entry_hardlink(e), legacy)
         size = isDirectory || archive_entry_size_is_set(e) == 0 ? nil : archive_entry_size(e)
         modificationDate = archive_entry_mtime_is_set(e) != 0
             ? Date(timeIntervalSince1970: TimeInterval(archive_entry_mtime(e)) + TimeInterval(archive_entry_mtime_nsec(e)) / 1e9)
@@ -202,8 +202,13 @@ struct RawEntryInfo {
         perm = Int(archive_entry_perm(e)) & 0o7777
     }
 
-    private static func string(_ p: UnsafePointer<CChar>?) -> String? {
-        p.map { String(cString: $0) }
+    /// The UTF-8 form when libarchive has a valid one, else the stored bytes in `legacy`.
+    private static func name(_ utf8: UnsafePointer<CChar>?, _ stored: UnsafePointer<CChar>?,
+                             _ legacy: String.Encoding) -> String? {
+        if let utf8, let valid = String(validatingCString: utf8) { return valid }
+        guard let bytes = stored ?? utf8 else { return nil }
+        return LegacyNames.decode(UnsafeBufferPointer(start: UnsafeRawPointer(bytes).assumingMemoryBound(to: UInt8.self),
+                                                      count: strlen(bytes)), legacy: legacy)
     }
 }
 

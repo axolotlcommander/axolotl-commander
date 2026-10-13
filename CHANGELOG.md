@@ -5,6 +5,105 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-13
+
+### Added
+
+- More default shortcuts from classic two-panel file managers, next to the existing ones (spec
+  010):
+  - ⌥← / ⌥→ back and forward;
+  - ⌃← / ⌃→ open in the left / right panel;
+  - ⌃F1 Brief view, ⇧F2 Compare Panels, ⇧F6 Rename, ⌥F9 Unpack;
+  - ⌃R refresh, ⌃A select all, ⌃C / ⌃V copy and paste files, ⌃I switch panel, ⌃D hot paths;
+  - ⌃F and ⌃N Connect to Server, ⌃⇧B branch view of selected items;
+  - ⌥↩ Get Info, ⌥⇧↩ folder sizes;
+  - ⌥Num+ / ⌥Num− select / deselect the same extension;
+  - ⌃J and ⌃P insert the name and the panel path into the command line.
+- ⌃⇧↩ inserts the full path of the item under the cursor into the command line (⌃↩ still
+  inserts its name).
+- Settings → Keyboard → Key scheme: "Classic Commander" changes the keys that mean something else
+  in the app:
+  - ⌃T / ⌃W open and close tabs, ⌃⇥ / ⌃⇧⇥ move between them;
+  - ⌃F2 is the Detailed view;
+  - ⌥F3 is View With, ⌥F4 quits;
+  - ⌃⇧F disconnects, ⌃⇧F5 makes a symbolic link.
+
+  Your own shortcut changes stay on top of the scheme. The table shows where each shortcut comes
+  from, and Reset returns to the scheme.
+- Export Settings… and Import Settings… (app menu and Settings → General) save the whole setup to
+  one JSON file and load it back: keys, preferences, appearance, hot paths, user menu, saved servers
+  and toolbar. Passwords are never included. Import lets you choose the parts and reports anything it
+  skipped.
+- Settings → General → Panels: four behavior options, each independent of the key scheme (spec 011):
+  - Space moves the cursor down (on by default; off keeps the cursor on the marked item);
+  - Typing goes to the command line: characters typed in a panel fill the command line while the
+    panel keeps the focus; with text in the line, Return runs it, Backspace and Esc edit it, and ⌥ +
+    a character starts quick search;
+  - ⌃← / ⌃→ change the panel the arrow points to, and ".." opens the other panel's folder;
+  - Volume buttons open the other panel's folder on that volume, or the last folder used there; the
+    button of the volume the panel is on refreshes its folder when the other panel is elsewhere.
+- Tabs from the keyboard (spec 012), all in the Go and View menus:
+  - Open in New Tab (⌃↑, ⌥⌘↓), Open in Background Tab (⌥⌘⇧↓) and Open in New Tab of Other Panel
+    (⌃⇧↑) open the folder under the cursor without leaving the current tab;
+  - Reopen Closed Tab (⌘⇧T) and Tab List… (⌘⇧\, ⌃⇧A), which also offers the recently closed tabs;
+  - Close Other Tabs (⌥⌘W; ⌃⇧W in Classic Commander) and Swap Panels with All Tabs (⌃⇧U).
+- Quick Filter (⌥⌘F; ⌃S in Classic Commander): typed text narrows the panel list as you type, as a
+  substring or a mask such as `*.txt`. The arrows move among the matches, and Esc shows everything
+  again. Quick Filter with Last Text (⌃⇧S, ⌥⌘⇧F) brings back the last filter, and Quick Filter during
+  quick search turns the search into a filter. Marked items the filter hides are left out of commands
+  (spec 013).
+- Go → Folder History… (⌃⌘H; also ⌥↓ in Classic Commander) lists the folders the panel visited and
+  the recently typed paths; typing filters the list. Return opens the folder, ⌘Return opens it in a
+  new tab and ⌥Return in the other panel. Commands → Command Line History… (⌥F8) lists executed
+  commands; the chosen one goes into the command line without running (spec 014).
+- Small commands (spec 015):
+  - File → Copy As… (⇧F5) copies the item under the cursor next to itself under a new name;
+  - File → New Folder in Other Panel… (⌥⌘N; ⇧F7 in Classic Commander) offers the cursor item's name;
+  - File → View Cursor File Only (⌥⇧F3; also ⇧F3 in Classic Commander) ignores the marked files;
+  - File → Pack and Move… (⌥⇧F5) packs and then moves the originals to the Trash;
+  - File → Test Archives (⌥⇧F9) reads the marked archives through and reports damaged ones;
+  - Edit → Select All Files / Deselect All Files (⌃⇧Num+ / ⌃⇧Num−) leave folders as they are;
+  - ⌥⇧↑ marks or unmarks without moving, ⌃⇧J inserts the full path into the command line;
+  - in Classic Commander ⌃L calculates the size of the marked items.
+- View → Quick View Panel (⌃Q): the other panel shows the preview of the item under the cursor and
+  follows the cursor; ⌃Q again, Tab or a click on it brings the panel back (spec 016).
+- Settings → General → Buttons on the bar: tick boxes F1–F12 choose which buttons the function key
+  bar shows; a key whose button is off still works. A button is at most 140 points wide, so a few
+  buttons stand at the left instead of filling the bar. The bar's context menu has Choose Buttons…
+  (spec 017).
+- Button bar (spec 018): a row of icon buttons for any app command or program (with the user
+  menu's variables), at the top or at the bottom after the function keys; View → Show Button Bar,
+  Settings → Button Bar (buttons, order, separators, SF Symbols or app icons) and a right click on
+  the bar. Buttons that do not fit go into a » menu. Off by default, with a few sample buttons.
+
+- A drive row below the volume bar of each panel (spec 020): a drive combo with the same list as
+  ⌥F1/⌥F2 and the free and total space of the panel's disk ("273.9 GB free of 994.7 GB"); clicking
+  the space opens Volume Info. When the row is hidden the free space moves to the right end of the
+  volume bar, or of the status line when the volume bar is hidden too (Settings → General; View →
+  Show Drive Row, Show Volume Bar). The volume bar can be hidden now.
+
+### Changed
+
+- The function key bar leaves a small margin at both ends, so F1 no longer sits in the window's
+  rounded corner.
+
+### Fixed
+
+- The status line and Properties count files and folders with the right plural form ("1 file",
+  "3 soubory") instead of "1 files".
+- ⌃↩ in a panel inserts the name of the item under the cursor into the command line again; macOS
+  showed the context menu for it instead.
+- ⌘X cuts the selected text in the command line and other text fields; the Edit menu had no Cut
+  item. ⌃X, ⌃C and ⌃V also cut, copy and paste text while the command line has focus.
+- Extracting an archive no longer briefly changes the process umask, which could give files
+  created at the same moment (by another operation) the wrong permissions.
+- Names in zip files made on Windows without the UTF-8 flag (for example Czech names in CP852)
+  show and extract correctly instead of with "�"; the code page follows the system language.
+- An archive opened through a symlinked folder or with different letter case no longer shows a
+  stale member list after it changes.
+- F4 says when the editor chosen in Settings is not installed instead of silently opening
+  TextEdit.
+
 ## [0.3.1] - 2026-10-11
 
 ### Changed

@@ -89,7 +89,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
 
     func canPerform(_ command: Command) -> Bool {
         switch command {
-        case .about, .settings, .quit, .configureKeys, .help: true
+        case .about, .settings, .exportSettings, .quit, .configureKeys, .help: true
+        case .importSettings: SettingsTransfer.canImport
         default: false
         }
     }
@@ -99,6 +100,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         case .about: NSApp.orderFrontStandardAboutPanel(nil)
         case .settings: showSettings()
         case .configureKeys: showSettings(tab: .keyboard)
+        case .exportSettings: SettingsTransfer.export(from: NSApp.keyWindow)
+        case .importSettings: SettingsTransfer.importSettings(from: NSApp.keyWindow)
         case .quit: NSApp.terminate(nil)
         // There is no built-in help yet: the project page explains the app.
         case .help: NSWorkspace.shared.open(Self.helpURL)

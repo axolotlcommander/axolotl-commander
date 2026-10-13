@@ -18,20 +18,7 @@ enum MainToolbar {
     static var defaultItems: [Command] { navigationGroup + viewGroup + fileToolsGroup + windowLayoutGroup }
 
     /// Every command offered in Customize Toolbar (the default set and optional ones such as Disconnect).
-    static let symbols: [Command: String] = [
-        .goBack: "chevron.left", .goForward: "chevron.right", .goParent: "arrow.turn.left.up",
-        .goHome: "house", .goRoot: "externaldrive", .refresh: "arrow.clockwise", .toggleHidden: "eye",
-        .quickLook: "eye.square", .properties: "info.circle", .makeDirectory: "folder.badge.plus",
-        .openTerminal: "terminal", .revealInFinder: "macwindow", .comparePanels: "rectangle.split.2x1",
-        .maximizePanel: "arrow.up.left.and.arrow.down.right", .calculateSizes: "sum",
-        .find: "magnifyingglass", .hotPaths: "star", .newTab: "plus.square.on.square",
-        .filter: "line.3.horizontal.decrease.circle", .changeDirectory: "arrow.right.circle",
-        .copy: "doc.on.doc", .move: "arrow.right.doc.on.clipboard", .delete: "trash",
-        .connectToServer: "network", .disconnect: "eject",
-        .newSymbolicLink: "link.badge.plus", .newHardLink: "link", .editSymbolicLink: "pencil.line",
-        .pasteAsSymbolicLink: "doc.on.clipboard", .goToLinkTarget: "arrowshape.turn.up.right",
-        .changeAttributes: "lock.doc",
-    ]
+    static let symbols: [Command: String] = CommandSymbols.toolbar
 
     static func make(delegate: any NSToolbarDelegate) -> NSToolbar {
         let toolbar = NSToolbar(identifier: "MainToolbar")
@@ -40,6 +27,17 @@ enum MainToolbar {
         toolbar.allowsUserCustomization = true
         toolbar.autosavesConfiguration = true
         return toolbar
+    }
+
+    /// Applies a stored toolbar configuration (the autosaved dictionary, e.g. from a settings import):
+    /// its items in order and its display mode.
+    static func apply(_ configuration: [String: Any], to toolbar: NSToolbar) {
+        if let identifiers = configuration["TB Item Identifiers"] as? [String] {
+            toolbar.itemIdentifiers = identifiers.map { NSToolbarItem.Identifier($0) }
+        }
+        if let raw = configuration["TB Display Mode"] as? UInt, let mode = NSToolbar.DisplayMode(rawValue: raw) {
+            toolbar.displayMode = mode
+        }
     }
 
     static func identifier(_ command: Command) -> NSToolbarItem.Identifier { .init("cmd." + command.rawValue) }

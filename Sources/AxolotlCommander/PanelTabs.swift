@@ -31,11 +31,45 @@ extension PanelViewController {
         tabsChanged()
     }
 
+    /// Open in New Tab / Open in Background Tab: what Enter would enter, in a new tab after the
+    /// current one; the current tab stays as it is.
+    func openCursorInNewTab(activate: Bool) {
+        Task {
+            await navigate {
+                let state = try await model.stateEnteringCursor()
+                openTab(state, activate: activate)
+            }
+        }
+    }
+
+    /// The state for a tab of the other panel (Open in New Tab of Other Panel).
+    func stateForNewTab() async -> PanelState? {
+        do { return try await model.stateEnteringCursor() } catch {
+            NSSound.beep()
+            statusField.stringValue = Format.error(error)
+            return nil
+        }
+    }
+
+    /// Inserts a tab after the current one; an active one is shown at once.
+    func openTab(_ state: PanelState, activate: Bool) {
+        tabs.updateCurrent(model.snapshot())
+        tabs.open(state, activate: activate)
+        if activate { Task { await restoreTab(tabs.current) } } else { tabsChanged() }
+    }
+
+    /// Reopen Closed Tab (the newest) or a closed tab chosen in the tab list.
+    func reopenClosedTab(at index: Int = 0) {
+        guard let state = closedTabs.remove(at: index) else { NSSound.beep(); return }
+        openTab(state, activate: true)
+    }
+
     /// ⌃⇧W: the last tab of a panel stays.
     func closeTab(at index: Int) {
         guard tabs.tabs.count > 1 else { NSSound.beep(); return }
         tabs.updateCurrent(model.snapshot())
         let wasActive = index == tabs.active
+        closedTabs.push(tabs.tabs[index])
         tabs.close(at: index)
         if wasActive {
             Task { await restoreTab(tabs.current) }
@@ -49,6 +83,7 @@ extension PanelViewController {
         tabs.updateCurrent(model.snapshot())
         let keep = tabs.tabs[index]
         let wasActive = index == tabs.active
+        for (other, state) in tabs.tabs.enumerated() where other != index { closedTabs.push(state) }
         tabs = TabList(keep)
         if wasActive { tabsChanged() } else { Task { await restoreTab(keep) } }
     }
@@ -65,6 +100,7 @@ extension PanelViewController {
     /// Restores a saved state; a folder that has disappeared falls back to its nearest existing parent.
     func restoreTab(_ state: PanelState) async {
         isRestoringTab = true
+        endQuickFilterTyping()
         defer {
             isRestoringTab = false
             updateSortIndicator()
@@ -84,6 +120,85 @@ extension PanelViewController {
             }
             fallback.cursorName = nil
             do { try await model.restore(fallback) } catch { statusField.stringValue = Format.error(error) }
+        }
+    }
+
+    /// Tab List…: the open tabs (the active one checked), then the recently closed ones.
+    func showTabList() {
+        tabs.updateCurrent(model.snapshot())
+        let menu = NSMenu()
+        func entry(_ state: PanelState, tag: Int, action: Selector) -> NSMenuItem {
+            let item = NSMenuItem(title: state.title, action: action, keyEquivalent: "")
+            item.target = self
+            item.tag = tag
+            item.toolTip = state.location.displayPath
+            return item
+        }
+        for (index, state) in tabs.tabs.enumerated() {
+            let item = entry(state, tag: index, action: #selector(tabChosen(_:)))
+            item.state = index == tabs.active ? .on : .off
+            menu.addItem(item)
+        }
+        if !closedTabs.isEmpty {
+            menu.addItem(.separator())
+            menu.addItem(.sectionHeader(title: String(localized: "Recently Closed")))
+            for (index, state) in closedTabs.items.enumerated() {
+                menu.addItem(entry(state, tag: index, action: #selector(closedTabChosen(_:))))
+            }
+        }
+        menu.popUp(positioning: nil, at: NSPoint(x: 0, y: pathBar.bounds.height + 2), in: pathBar)
+    }
+
+    @objc private func tabChosen(_ sender: NSMenuItem) { switchTab { $0.select(sender.tag) } }
+    @objc private func closedTabChosen(_ sender: NSMenuItem) { reopenClosedTab(at: sender.tag) }
+
+    // MARK: Folder history
+
+    /// Go → Folder History…: the panel's Back / Forward history and the recent typed paths as a
+    /// filterable list; Return opens here, ⌘Return in a new tab, ⌥Return in the other panel.
+    func showFolderHistory() {
+        guard let window = view.window else { return }
+        let history = model.historyPlaces
+        let entries = FolderHistory.entries(back: history.back, current: model.location, forward: history.forward,
+                                            recent: AppSettings.shared.recentPaths.paths, display: \.displayPath)
+        let rows = entries.map { entry in
+            let symbol = switch entry.target {
+            case .location: entry.isCurrent ? "folder.fill" : "folder"
+            case .typed: "clock"
+            }
+            return HistoryListSheet.Row(text: entry.text, symbol: symbol, isCurrent: entry.isCurrent)
+        }
+        let hint = String(localized: "Return opens here, ⌘Return in a new tab, ⌥Return in the other panel.")
+        HistoryListSheet.present(on: window, title: String(localized: "Folder History"), rows: rows,
+                                 selection: FolderHistory.initialSelection(in: entries), hint: hint,
+                                 allowsModifiers: true) { [weak self] index, choice in
+            guard let self else { return }
+            let target = entries[index].target
+            switch choice {
+            case .plain:
+                // The current folder: nothing to open.
+                if !entries[index].isCurrent { open(target) }
+            case .command: openNewTab { $0.open(target) }
+            case .option: router?.openInOtherPanel(target, from: self)
+            }
+        }
+    }
+
+    /// Opens a folder history entry the way Back (a place) or Go to Folder (a typed path) does.
+    func open(_ target: FolderHistory.Target, takeFocus: Bool = true) {
+        switch target {
+        case .location(let url): go(to: url)
+        case .typed(let path): goTo(typed: path, takeFocus: takeFocus)
+        }
+    }
+
+    /// A new active tab showing the current folder; `then` runs once it is shown.
+    private func openNewTab(then action: @escaping (PanelViewController) -> Void) {
+        tabs.updateCurrent(model.snapshot())
+        tabs.open(model.snapshot(), activate: true)
+        Task {
+            await restoreTab(tabs.current)
+            action(self)
         }
     }
 

@@ -658,3 +658,32 @@ private func dir(_ name: String) -> FileItem {
         #expect(l.splitFraction == 0.1)
     }
 }
+
+/// Tabs from the keyboard (spec 012).
+@Suite struct KeyboardTabTests {
+    @Test func backgroundTabKeepsTheActiveOne() {
+        var list = TabList(state("/a"))
+        list.open(state("/b"))
+        list.select(0)
+        list.open(state("/c"), activate: false)
+        #expect(list.tabs.map(\.location.path) == ["/a", "/c", "/b"])
+        #expect(list.active == 0)
+        list.open(state("/d"), activate: true)
+        #expect(list.tabs.map(\.location.path) == ["/a", "/d", "/c", "/b"])
+        #expect(list.active == 1)
+    }
+
+    @Test func closedTabsAreNewestFirstAndLimited() {
+        var closed = ClosedTabs()
+        #expect(closed.isEmpty)
+        #expect(closed.popNewest() == nil)
+        for i in 0..<12 { closed.push(state("/t\(i)")) }
+        #expect(closed.items.count == ClosedTabs.limit)
+        #expect(closed.items.first?.location.path == "/t11")
+        #expect(closed.items.last?.location.path == "/t2")
+        #expect(closed.remove(at: 1)?.location.path == "/t10")
+        #expect(closed.remove(at: 99) == nil)
+        #expect(closed.popNewest()?.location.path == "/t11")
+        #expect(closed.items.first?.location.path == "/t9")
+    }
+}

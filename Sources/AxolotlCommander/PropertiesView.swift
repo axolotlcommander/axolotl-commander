@@ -69,7 +69,7 @@ struct PropertiesView: View {
     private var subtitle: String {
         if items.count == 1 { return items[0].kind ?? (items[0].isDirectory ? String(localized: "Folder") : String(localized: "Document")) }
         let folders = items.filter { $0.isDirectory && !$0.isPackage }.count
-        return String(localized: "\(folders) folders, \(items.count - folders) files")
+        return "\(PanelViewController.folders(folders)), \(PanelViewController.files(items.count - folders))"
     }
 
     @ViewBuilder

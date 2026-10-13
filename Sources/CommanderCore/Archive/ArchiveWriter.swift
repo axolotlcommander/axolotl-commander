@@ -141,7 +141,7 @@ public enum ArchiveWriter {
             while let e = current {
                 if Task.isCancelled { throw ArchiveError.cancelled }
                 index += 1
-                let info = RawEntryInfo(e)
+                let info = RawEntryInfo(e, legacy: reader.legacyNames)
                 let path = normalizeMemberPath(info.path)
                 let linked: EntryFate? = info.hardlink.flatMap { fates[normalizeMemberPath($0)] }
                 let dataIndex = info.hardlink == nil ? index : linked?.dataIndex

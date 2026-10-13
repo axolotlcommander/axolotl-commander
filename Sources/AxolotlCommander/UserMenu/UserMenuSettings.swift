@@ -92,10 +92,12 @@ struct UserMenuSettings: View {
     }
 }
 
-private struct UserMenuItemEditor: View {
+struct UserMenuItemEditor: View {
     @Binding var item: UserMenuItem
     /// The whole tree, to find other items with the same shortcut.
     let allItems: [UserMenuItem]
+    /// False for a button bar program (spec 018): buttons have no shortcut.
+    var showsShortcut = true
     @State private var recorder = ChordRecorder()
     /// A recorded chord refused because it is plain typing (quick search).
     @State private var rejected: KeyChord?
@@ -123,7 +125,7 @@ private struct UserMenuItemEditor: View {
                     variableMenu { item.directory = $0 }
                 }
                 Toggle("Run in Terminal", isOn: $item.runInTerminal)
-                shortcutRow
+                if showsShortcut { shortcutRow }
                 Text("Arguments are split like in a shell; quote special characters (; | & * ?). Variables are filled in after the split, so names with spaces need no quotes.")
                     .font(.caption).foregroundStyle(.secondary)
             }

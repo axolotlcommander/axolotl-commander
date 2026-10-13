@@ -21,7 +21,7 @@ extension CommandRegistry {
     public static func shortTitle(_ command: Command) -> String? { shortTitles[command] }
 
     private static let barTitles: [Command: String] = [
-        .leftVolumeMenu: "Left Volume", .rightVolumeMenu: "Right Volume",
+        .leftVolumeMenu: "Left Volume", .rightVolumeMenu: "Right Volume", .quit: "Quit",
     ]
 
     private static let shortTitles: [Command: String] = [
@@ -31,6 +31,7 @@ extension CommandRegistry {
         .saveSelection: "Remember", .calculateSizes: "Sizes", .occupiedSpace: "Map",
         .workingDirectories: "Folders", .sortByName: "Name", .sortByExtension: "Ext",
         .sortByDate: "Date", .sortBySize: "Size", .comparePanels: "Compare", .maximizePanel: "Maximize",
-        .changeCase: "Case", .find: "Find", .quickLook: "Look",
+        .changeCase: "Case", .find: "Find", .quickLook: "Look", .newSymbolicLink: "Link",
+        .commandLineHistory: "History",
     ]
 }

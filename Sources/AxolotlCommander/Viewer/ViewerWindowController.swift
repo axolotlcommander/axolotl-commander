@@ -12,7 +12,7 @@ enum ViewerDefaults {
     static let highlightKey = "viewer.highlight"
     static let fontSizeKey = "viewer.fontSize"
     static let defaultFontSize: Double = 12
-    static let fontSizes: ClosedRange<Double> = 8...36
+    static let fontSizes = SettingsCatalog.fontSizes
     /// Text mode decodes at most this much; hex mode always shows the whole file.
     static let textLimit = 64 << 20
     /// Longer texts (UTF-16 units) are shown without syntax colors.

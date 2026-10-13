@@ -551,6 +551,107 @@ func updateOtherFormats(format: ArchiveFormat) async throws {
     }
 }
 
+/// The panel may reach an archive through a symlinked folder or in another letter case;
+/// invalidating it by any of its paths drops the cached index.
+@Test func catalogInvalidatesThroughSymlinkAndCase() async throws {
+    try await withSandbox { root in
+        let src = root.sub("src")
+        try write(src.sub("a.txt"), "1")
+        let real = root.sub("Real")
+        try FileManager.default.createDirectory(at: real, withIntermediateDirectories: false)
+        let archive = real.sub("Box.zip")
+        try await ArchiveWriter.create(archive, format: .zip, adding: [.init(file: src.sub("a.txt"), path: "a.txt")], progress: noProgress)
+        try FileManager.default.createSymbolicLink(atPath: root.sub("link").path, withDestinationPath: "Real")
+        let viaLink = root.sub("link/Box.zip")
+
+        let catalog = ArchiveCatalog()
+        #expect(try await catalog.index(of: viaLink).entries.map(\.name) == ["a.txt"])
+
+        // Same size and date: only an invalidation can tell the cache apart.
+        var st = stat()
+        #expect(stat(archive.path, &st) == 0)
+        try write(src.sub("b.txt"), "2")
+        let other = root.sub("other.zip")
+        try await ArchiveWriter.create(other, format: .zip, adding: [.init(file: src.sub("b.txt"), path: "b.txt")], progress: noProgress)
+        var ot = stat()
+        #expect(stat(other.path, &ot) == 0 && ot.st_size == st.st_size)
+        #expect(rename(other.path, archive.path) == 0)
+        var times = [st.st_atimespec, st.st_mtimespec]
+        #expect(utimensat(AT_FDCWD, archive.path, &times, 0) == 0)
+        #expect(try await catalog.index(of: viaLink).entries.map(\.name) == ["a.txt"])
+
+        await catalog.invalidate(root.sub("real/box.ZIP"))
+        #expect(try await catalog.index(of: viaLink).entries.map(\.name) == ["b.txt"])
+    }
+}
+
+// MARK: - Legacy names
+
+/// Writes a zip whose members have exactly the given name bytes and no UTF-8 flag,
+/// as old Windows tools make them.
+private func makeLegacyZip(_ archive: URL, names: [[UInt8]], in dir: URL) throws {
+    let script = """
+    import sys, zipfile, struct
+    path = sys.argv[1]
+    names = [bytes.fromhex(h) for h in sys.argv[2:]]
+    with zipfile.ZipFile(path, 'w') as z:
+        for i, n in enumerate(names):
+            z.writestr(zipfile.ZipInfo(chr(65 + i) * len(n)), b'data')
+    b = bytearray(open(path, 'rb').read())
+    for i, n in enumerate(names):
+        ph = (chr(65 + i) * len(n)).encode()
+        j = b.find(ph)
+        while j != -1:
+            b[j:j + len(n)] = n
+            j = b.find(ph, j + 1)
+    for sig, off in ((b'PK\\x03\\x04', 6), (b'PK\\x01\\x02', 8)):
+        j = b.find(sig)
+        while j != -1:
+            struct.pack_into('<H', b, j + off, struct.unpack_from('<H', b, j + off)[0] & ~0x800)
+            j = b.find(sig, j + 1)
+    open(path, 'wb').write(b)
+    """
+    try python(script, [archive.path] + names.map { $0.map { String(format: "%02x", $0) }.joined() }, in: dir)
+}
+
+@Test func legacyCodePagesFollowTheLanguage() {
+    // "Archivní návrat čřšžěů" in CP852.
+    var cp852: [UInt8] = Array("Archivn".utf8)
+    cp852 += [0xA1, 0x20, 0x6E, 0xA0]
+    cp852 += Array("vrat ".utf8)
+    cp852 += [0x9F, 0xFD, 0xE7, 0xA7, 0xD8, 0x85]
+    #expect(LegacyNames.decode(cp852, legacy: LegacyNames.codePages(language: "cs-CZ").oem) == "Archivní návrat čřšžěů")
+    #expect(LegacyNames.decode([0x8E, 0x72], legacy: LegacyNames.codePages(language: "en-US").oem) == "Är")
+    #expect(LegacyNames.decode([0x8E, 0x72], legacy: LegacyNames.codePages(language: "ru").oem) == "Оr")
+    #expect(LegacyNames.decode([0xE8], legacy: LegacyNames.codePages(language: "cs").ansi) == "č")
+    #expect(LegacyNames.decode([0xE8], legacy: LegacyNames.codePages(language: "de").ansi) == "è")
+    // Valid UTF-8 always wins.
+    #expect(LegacyNames.decode(Array("návrat".utf8), legacy: LegacyNames.codePages(language: "cs").oem) == "návrat")
+}
+
+/// Names without the UTF-8 flag: UTF-8 bytes stay UTF-8, other bytes come from the OEM code
+/// page, in the listing and on disk alike (never "?" or U+FFFD).
+@Test func zipWithoutUTF8FlagKeepsReadableNames() async throws {
+    try await withSandbox { root in
+        let utf8 = Array("Archivní dokumenty k návratu 01.pdf".utf8)
+        var oem: [UInt8] = Array("Archivn".utf8)
+        oem.append(0xA1)
+        oem += Array(" dokument.txt".utf8)
+        let archive = root.sub("legacy.zip")
+        try makeLegacyZip(archive, names: [utf8, oem], in: root)
+        let expectedOEM = LegacyNames.decode(oem, legacy: LegacyNames.current.oem)
+        #expect(!expectedOEM.contains("\u{FFFD}"))
+
+        let listed = try await index(archive).entries.map(\.name).sorted()
+        #expect(listed == ["Archivní dokumenty k návratu 01.pdf", expectedOEM].sorted())
+
+        let dest = root.sub("out")
+        _ = try await extractAll(archive, to: dest)
+        let disk = names(dest).map { $0.precomposedStringWithCanonicalMapping }
+        #expect(disk == listed.map { $0.precomposedStringWithCanonicalMapping })
+    }
+}
+
 // MARK: - Encryption and owners
 
 /// Zip with encrypted "a.txt" and "sub/big.bin" plus a plain "plain.txt" (password "secret").
@@ -674,7 +775,7 @@ private func hardLinks(_ archive: URL) throws -> [String: String] {
         let reader = try ArchiveReadHandle(path: archive.path)
         var links: [String: String] = [:]
         while let e = try reader.next() {
-            let info = RawEntryInfo(e)
+            let info = RawEntryInfo(e, legacy: reader.legacyNames)
             if let link = info.hardlink { links[normalizeMemberPath(info.path)] = normalizeMemberPath(link) }
             try reader.skip()
         }
@@ -737,5 +838,145 @@ func removingHardLinkTargetKeepsLinkData(format: ArchiveFormat) async throws {
         _ = try await extractAll(archive, to: dest)
         #expect(read(dest.sub("c")) == noise(70_000))
         #expect(inode(dest.sub("x/a")) == inode(dest.sub("c")))
+    }
+}
+
+// MARK: - Writing to disk
+
+/// The process umask, read without changing it: the mode a new file gets.
+private func probeUmask(in dir: URL) -> mode_t {
+    let path = dir.path + "/umask-probe-\(UUID().uuidString)"
+    let fd = open(path, O_WRONLY | O_CREAT | O_EXCL, 0o777)
+    defer { close(fd); unlink(path) }
+    var st = stat()
+    fstat(fd, &st)
+    return ~st.st_mode & 0o777
+}
+
+private func lstatOf(_ url: URL) -> stat? {
+    var st = stat()
+    return lstat(url.path, &st) == 0 ? st : nil
+}
+
+/// Modes, dates (a folder's too, set after its contents), symlinks and hard links.
+@Test func extractionKeepsModesDatesAndLinks() async throws {
+    try await withSandbox { root in
+        let script = """
+        import io, sys, tarfile
+        def add(t, name, kind=tarfile.REGTYPE, mode=0o644, mtime=0, data=b'', link=''):
+            i = tarfile.TarInfo(name); i.type = kind; i.mode = mode; i.mtime = mtime; i.linkname = link
+            i.size = len(data) if kind == tarfile.REGTYPE else 0
+            t.addfile(i, io.BytesIO(data) if kind == tarfile.REGTYPE else None)
+        with tarfile.open(sys.argv[1], 'w', format=tarfile.PAX_FORMAT) as t:
+            add(t, 'd', tarfile.DIRTYPE, 0o750, 1000000000)
+            add(t, 'd/f.txt', mtime=1050000000, data=b'f')
+            add(t, 'run.sh', mode=0o755, mtime=1100000000, data=b'#!/bin/sh')
+            add(t, 'private.txt', mode=0o600, mtime=1100000000, data=b'p')
+            add(t, 'zero.txt', mode=0, mtime=1100000000, data=b'z')
+            add(t, 'ln', tarfile.SYMTYPE, mtime=1200000000, link='run.sh')
+            add(t, 'hard', tarfile.LNKTYPE, mtime=1100000000, link='run.sh')
+        """
+        let archive = root.sub("modes.tar")
+        try python(script, [archive.path], in: root)
+        let dest = root.sub("dest")
+        _ = try await extractAll(archive, to: dest)
+        let mask = probeUmask(in: root)
+
+        let d = try #require(lstatOf(dest.sub("d")))
+        #expect(d.st_mode & 0o777 == 0o750 & ~mask)
+        #expect(d.st_mtimespec.tv_sec == 1_000_000_000)
+        #expect(lstatOf(dest.sub("d/f.txt"))?.st_mtimespec.tv_sec == 1_050_000_000)
+        let run = try #require(lstatOf(dest.sub("run.sh")))
+        #expect(run.st_mode & 0o777 == 0o755 & ~mask)
+        #expect(run.st_mtimespec.tv_sec == 1_100_000_000)
+        #expect(lstatOf(dest.sub("private.txt")).map { $0.st_mode & 0o777 } == 0o600 & ~mask)
+        #expect(lstatOf(dest.sub("zero.txt")).map { $0.st_mode & 0o777 } == 0o644 & ~mask)
+        let ln = try #require(lstatOf(dest.sub("ln")))
+        #expect(ln.st_mode & S_IFMT == S_IFLNK && ln.st_mtimespec.tv_sec == 1_200_000_000)
+        #expect((try? FileManager.default.destinationOfSymbolicLink(atPath: dest.sub("ln").path)) == "run.sh")
+        #expect(lstatOf(dest.sub("hard"))?.st_ino == run.st_ino)
+        #expect(read(dest.sub("hard")) == Data("#!/bin/sh".utf8))
+    }
+}
+
+/// Overwriting replaces a symlink at the target instead of writing through it,
+/// and a file standing where the archive has a folder.
+@Test func extractionOverwriteReplacesLinksAndFiles() async throws {
+    try await withSandbox { root in
+        let outside = root.sub("outside.txt")
+        try write(outside, "keep")
+        let dest = root.sub("dest")
+        try FileManager.default.createDirectory(at: dest, withIntermediateDirectories: true)
+        try FileManager.default.createSymbolicLink(atPath: dest.sub("a.txt").path, withDestinationPath: outside.path)
+        try write(dest.sub("d"), "a file where a folder comes")
+
+        let src = root.sub("src")
+        try write(src.sub("a.txt"), "new")
+        try write(src.sub("d/in.txt"), "in")
+        let archive = root.sub("o.zip")
+        try await ArchiveWriter.create(archive, format: .zip, adding: [
+            .init(file: src.sub("a.txt"), path: "a.txt"),
+            .init(file: src.sub("d"), path: "d"),
+        ], progress: noProgress)
+
+        _ = try await extractAll(archive, to: dest, overwrite: true)
+        #expect(read(outside) == Data("keep".utf8))
+        #expect(lstatOf(dest.sub("a.txt")).map { $0.st_mode & S_IFMT } == S_IFREG)
+        #expect(read(dest.sub("a.txt")) == Data("new".utf8))
+        #expect(read(dest.sub("d/in.txt")) == Data("in".utf8))
+    }
+}
+
+/// Files that other threads create while archives are extracted keep their normal mode
+/// (libarchive's disk writer set the process umask to 0 for a moment).
+@Test func extractionLeavesTheUmaskAlone() async throws {
+    try await withSandbox { root in
+        let src = root.sub("src")
+        try write(src.sub("x.txt"), "x")
+        let archive = root.sub("u.zip")
+        try await ArchiveWriter.create(archive, format: .zip, adding: [.init(file: src.sub("x.txt"), path: "x.txt")], progress: noProgress)
+        let probes = root.sub("probes")
+        try FileManager.default.createDirectory(at: probes, withIntermediateDirectories: true)
+        let expected = 0o666 & ~probeUmask(in: probes)
+
+        // Threads create files while archives are extracted, until the extractions end.
+        let done = Flag()
+        let watchers = (0..<4).map { w in
+            watchFileModes(probes.path + "/w\(w)", expected: expected, until: done)
+        }
+        for i in 0..<1_500 {
+            _ = try await extractAll(archive, to: root.sub("out/\(i)"))
+        }
+        done.set()
+        var wrong = 0
+        for watcher in watchers { wrong += await watcher.value }
+        #expect(wrong == 0)
+    }
+}
+
+private final class Flag: @unchecked Sendable {
+    private let lock = NSLock()
+    private var value = false
+    func set() { lock.withLock { value = true } }
+    var isSet: Bool { lock.withLock { value } }
+}
+
+/// Creates and removes `path` until `flag` is set; returns how many times the file
+/// did not get the `expected` mode.
+private func watchFileModes(_ path: String, expected: mode_t, until flag: Flag) -> Task<Int, Never> {
+    Task.detached {
+        var wrong = 0
+        while !flag.isSet {
+            for _ in 0..<64 {
+                let fd = open(path, O_WRONLY | O_CREAT | O_EXCL, 0o666)
+                guard fd >= 0 else { continue }
+                var st = stat()
+                fstat(fd, &st)
+                if st.st_mode & 0o777 != expected { wrong += 1 }
+                close(fd)
+                unlink(path)
+            }
+        }
+        return wrong
     }
 }

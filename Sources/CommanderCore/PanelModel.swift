@@ -71,6 +71,11 @@ public final class PanelModel {
         didSet { if !isRestoring, filter != oldValue { rebuild() } }
     }
 
+    /// Quick filter text (`QuickFilter`): hides files and folders that do not match; the parent row
+    /// stays. It belongs to the folder: navigation and tab restore clear it, a refresh keeps it.
+    /// Commands see only the shown items (`selectedItems`), so hidden marks are never processed.
+    public private(set) var quickFilter: String?
+
     private var back: [PanelState.Place] = []
     private var forward: [PanelState.Place] = []
 
@@ -89,6 +94,9 @@ public final class PanelModel {
     public var cursorItem: FileItem? {
         items.indices.contains(cursor) ? items[cursor] : nil
     }
+    /// The places Back and Forward would reach, oldest first (`back.last` and `forward.last` are the
+    /// next steps); read by the folder history list.
+    public var historyPlaces: (back: [PanelState.Place], forward: [PanelState.Place]) { (back, forward) }
     public var canGoBack: Bool { !back.isEmpty }
     public var canGoForward: Bool { !forward.isEmpty }
 
@@ -145,9 +153,12 @@ public final class PanelModel {
 
     private func buildItems() -> [FileItem] {
         var visible = rawItems
+        let ownName = branch != nil
         if let filter {
-            let ownName = branch != nil
             visible = visible.filter { $0.isDirectory || filter.matches(ownName ? $0.fileName : $0.name, rules: rules) }
+        }
+        if let quickFilter {
+            visible = visible.filter { QuickFilter.matches(ownName ? $0.fileName : $0.name, text: quickFilter, rules: rules) }
         }
         var result = sortItems(visible, by: sort, rules: rules, directorySizes: directorySizes, byFileName: branch != nil)
         if results != nil {
@@ -163,6 +174,22 @@ public final class PanelModel {
         if let i = items.firstIndex(where: { $0.name == name }) { return i }
         let k = rules.key(name)
         return items.firstIndex { rules.key($0.name) == k }
+    }
+
+    /// Sets the quick filter (nil or empty = off). Text that would leave no item is refused and
+    /// nothing changes.
+    @discardableResult
+    public func setQuickFilter(_ text: String?) -> Bool {
+        let new = text?.isEmpty == true ? nil : text
+        guard new != quickFilter else { return true }
+        let old = quickFilter
+        quickFilter = new
+        if new != nil, !buildItems().contains(where: { !$0.isParent }) {
+            quickFilter = old
+            return false
+        }
+        rebuild()
+        return true
     }
 
     /// Rebuilds `items`, keeping the cursor on the same item when it survives.
@@ -229,6 +256,7 @@ public final class PanelModel {
         rawItems = loaded.raw
         selection = []
         directorySizes = [:]
+        quickFilter = nil
         items = buildItems()
         cursor = name.flatMap { index(ofName: $0) } ?? 0
         lastError = nil
@@ -277,6 +305,7 @@ public final class PanelModel {
         let present = Set(rawItems.map { rules.key($0.name) })
         selection = Set(state.selectedNames.map { rules.key($0) }).intersection(present)
         directorySizes = [:]
+        quickFilter = nil
         items = buildItems()
         cursor = state.cursorName.flatMap { index(ofName: $0) } ?? 0
         lastError = nil
@@ -344,10 +373,30 @@ public final class PanelModel {
         return item
     }
 
+    /// The state of a new tab for the cursor item ("Open in New Tab"): this panel after entering it,
+    /// worked out on a scratch model so the panel itself does not move. A file or a package gives
+    /// the current state with the item under the cursor.
+    public func stateEnteringCursor() async throws -> PanelState {
+        let state = snapshot()
+        guard let item = cursorItem, !item.isPackage else { return state }
+        let entersArchive = !item.isDirectory && archive == nil && remote == nil
+            && ArchiveFormat.detect(fileName: item.name) != nil
+        guard item.isParent || item.isDirectory || entersArchive else { return state }
+        let scratch = PanelModel(location: location, source: source)
+        try await scratch.restore(state)
+        _ = try await scratch.enterCursor()
+        return scratch.snapshot()
+    }
+
     /// Where the other panel goes for the cursor item (⌃⇧← / ⌃⇧→): into a folder or an archive
     /// on disk, otherwise to the folder holding the item with the item focused. nil on "..".
-    public var otherPanelTarget: (url: URL, focus: String?)? {
-        guard let item = cursorItem, !item.isParent else { return nil }
+    public var otherPanelTarget: (url: URL, focus: String?)? { openTarget(parentOpensLocation: false) }
+
+    /// `otherPanelTarget`, with ".." opening this panel's folder when `parentOpensLocation`
+    /// (the classic ⌃← / ⌃→ logic).
+    public func openTarget(parentOpensLocation: Bool) -> (url: URL, focus: String?)? {
+        guard let item = cursorItem else { return nil }
+        if item.isParent { return parentOpensLocation ? (location, nil) : nil }
         if item.isDirectory, !item.isPackage { return (item.url, nil) }
         if !item.isDirectory, archive == nil, remote == nil, ArchiveFormat.detect(fileName: item.name) != nil {
             return (item.url, nil)
@@ -476,6 +525,11 @@ public final class PanelModel {
 
     public func selectAll() {
         for item in items { set(item, true) }
+    }
+
+    /// Select All Files / Deselect All Files: every shown file, folders keep their marks.
+    public func selectFiles(_ on: Bool) {
+        for item in items where !item.isDirectory { set(item, on) }
     }
 
     /// Replaces the selection with the items named in `names` (matched through `rules`);

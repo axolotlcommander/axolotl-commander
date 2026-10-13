@@ -4,17 +4,26 @@
 import AppKit
 import CommanderCore
 
-/// The key maps in use: factory chords with the user's changes (Settings → Keyboard).
+/// The key maps in use: factory chords, the key scheme and the user's changes (Settings → Keyboard).
 enum KeyMaps {
     static let defaultsKey = "keys.bindings"
+    static let schemeKey = "keys.scheme"
     static let didChange = Notification.Name("KeyBindingsDidChange")
 
-    private(set) static var bindings: KeyBindings = UserDefaults.standard.data(forKey: defaultsKey)
-        .flatMap { try? JSONDecoder().decode(KeyBindings.self, from: $0) } ?? .factory
+    private(set) static var bindings: KeyBindings = saved()
     private(set) static var panel = KeyMap(context: .panel, bindings: bindings)
     private(set) static var viewer = KeyMap(context: .viewer, bindings: bindings)
     private(set) static var find = KeyMap(context: .find, bindings: bindings)
     private(set) static var compare = KeyMap(context: .compare, bindings: bindings)
+
+    /// The stored overrides on top of the stored scheme; missing or unknown values are the defaults.
+    private static func saved() -> KeyBindings {
+        let defaults = UserDefaults.standard
+        var bindings = defaults.data(forKey: defaultsKey)
+            .flatMap { try? JSONDecoder().decode(KeyBindings.self, from: $0) } ?? .factory
+        bindings.scheme = defaults.string(forKey: schemeKey).flatMap(KeyScheme.init(rawValue:)) ?? .axolotl
+        return bindings
+    }
 
     static func map(for context: CommandContext) -> KeyMap {
         switch context {
@@ -29,15 +38,33 @@ enum KeyMaps {
     static func update(_ new: KeyBindings) {
         guard new != bindings else { return }
         bindings = new
-        if new == .factory {
-            UserDefaults.standard.removeObject(forKey: defaultsKey)
+        let defaults = UserDefaults.standard
+        if new.overrides.isEmpty {
+            defaults.removeObject(forKey: defaultsKey)
         } else {
-            UserDefaults.standard.set(try? JSONEncoder().encode(new), forKey: defaultsKey)
+            defaults.set(try? JSONEncoder().encode(new), forKey: defaultsKey)
         }
-        panel = KeyMap(context: .panel, bindings: new)
-        viewer = KeyMap(context: .viewer, bindings: new)
-        find = KeyMap(context: .find, bindings: new)
-        compare = KeyMap(context: .compare, bindings: new)
+        if new.scheme == .axolotl {
+            defaults.removeObject(forKey: schemeKey)
+        } else {
+            defaults.set(new.scheme.rawValue, forKey: schemeKey)
+        }
+        rebuild()
+    }
+
+    /// Reads the stored scheme and overrides again (after a settings import wrote them).
+    static func reload() {
+        let stored = saved()
+        guard stored != bindings else { return }
+        bindings = stored
+        rebuild()
+    }
+
+    private static func rebuild() {
+        panel = KeyMap(context: .panel, bindings: bindings)
+        viewer = KeyMap(context: .viewer, bindings: bindings)
+        find = KeyMap(context: .find, bindings: bindings)
+        compare = KeyMap(context: .compare, bindings: bindings)
         MainMenuBuilder.refreshKeyEquivalents()
         NotificationCenter.default.post(name: didChange, object: nil)
     }

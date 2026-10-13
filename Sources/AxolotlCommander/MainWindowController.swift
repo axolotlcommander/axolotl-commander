@@ -20,6 +20,12 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
     let functionKeyBar = FunctionKeyBarView()
     private let commandLineSeparator = NSBox()
     private let functionKeyBarSeparator = NSBox()
+    /// The button bar (spec 018): one view above the panels, one in the bottom row; the placement
+    /// setting shows one of them.
+    private let topButtonBar = ButtonBarView()
+    private let bottomButtonBar = ButtonBarView()
+    private let buttonBarSeparator = NSBox()
+    private lazy var bottomRow = BottomRowView(keys: functionKeyBar)
     private var keyMonitor: Any?
     private var flagsMonitor: Any?
     /// Modifiers whose commands the function key bar shows (held while the window is key).
@@ -27,6 +33,8 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
     private let split = PanelSplitViewController()
     /// The panel shown alone (⌃F11), or nil when both are visible.
     private(set) var maximizedSide: PanelSide?
+    /// The quick view panel (⌃Q) and the side it covers; nil while off.
+    private var quickView: (pane: QuickViewPane, side: PanelSide)?
     private var saveTask: Task<Void, Never>?
     private var observers: [any NSObjectProtocol] = []
 
@@ -64,6 +72,12 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         commandLine.onLeave = { [weak self] in self.map { $0.activate($0.activeSide) } }
         functionKeyBar.onClick = { [weak self] command in self?.performFromBar(command) }
         functionKeyBar.onHide = { UserDefaults.standard.set(false, forKey: Self.showFunctionKeyBarKey) }
+        functionKeyBar.onChooseButtons = { (NSApp.delegate as? AppDelegate)?.showSettings(tab: .general) }
+        for bar in [topButtonBar, bottomButtonBar] {
+            bar.onCommand = { [weak self] command in self?.performFromBar(command) }
+            bar.onProgram = { [weak self] item in self.map { UserMenuPresenter.run(item, from: $0.activePanel) } }
+            bar.onHide = { ButtonBarDefaults.toggle() }
+        }
         applyChromeSettings()
         refreshFunctionKeyBar()
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
@@ -83,6 +97,8 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
             MainActor.assumeIsolated {
                 self?.refreshFunctionKeyBar()
                 self?.functionKeyBar.reload()
+                self?.topButtonBar.reload()
+                self?.bottomButtonBar.reload()
             }
         })
         observers.append(center.addObserver(forName: UserDefaults.didChangeNotification, object: nil,
@@ -111,14 +127,17 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         container.addChild(split)
         commandLineSeparator.boxType = .separator
         functionKeyBarSeparator.boxType = .separator
-        let views: [NSView] = [split.view, commandLineSeparator, commandLine, functionKeyBarSeparator, functionKeyBar]
+        buttonBarSeparator.boxType = .separator
+        let views: [NSView] = [topButtonBar, buttonBarSeparator, split.view, commandLineSeparator, commandLine,
+                               functionKeyBarSeparator, bottomRow]
         let stack = NSStackView(views: views)
         stack.orientation = .vertical
         stack.spacing = 0
         stack.translatesAutoresizingMaskIntoConstraints = false
         split.view.setContentHuggingPriority(.defaultLow, for: .vertical)
         commandLine.setContentHuggingPriority(.required, for: .vertical)
-        functionKeyBar.setContentHuggingPriority(.required, for: .vertical)
+        bottomRow.setContentHuggingPriority(.required, for: .vertical)
+        topButtonBar.setContentHuggingPriority(.required, for: .vertical)
         container.view.addSubview(stack)
         NSLayoutConstraint.activate([
             stack.leadingAnchor.constraint(equalTo: container.view.leadingAnchor),
@@ -133,6 +152,8 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
     required init?(coder: NSCoder) { fatalError() }
 
     func activate(_ side: PanelSide) {
+        // The preview side cannot take focus: Tab or a click there ends the quick view first.
+        if quickView?.side == side { closeQuickView() }
         // The hidden panel cannot take focus; showing it again ends maximization.
         if let maximizedSide, maximizedSide != side { setMaximized(nil) }
         activeSide = side
@@ -160,6 +181,48 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
 
     func otherPanel(than panel: PanelViewController) -> PanelViewController { panel === left ? right : left }
 
+    /// Folder History's ⌥Return: the other panel opens the folder (both panels shown); the focus stays.
+    func openInOtherPanel(_ target: FolderHistory.Target, from panel: PanelViewController) {
+        closeQuickView()
+        if maximizedSide != nil { setMaximized(nil) }
+        otherPanel(than: panel).open(target, takeFocus: false)
+    }
+
+    // MARK: Quick view panel
+
+    /// ⌃Q: the panel opposite the active one shows the preview of the active cursor item.
+    private func openQuickView() {
+        if maximizedSide != nil { setMaximized(nil) }
+        let side: PanelSide = activeSide == .left ? .right : .left
+        let pane = QuickViewPane()
+        pane.onClick = { [weak self] in self?.activate(side) }
+        pane.translatesAutoresizingMaskIntoConstraints = false
+        let covered = panel(side).view
+        covered.addSubview(pane)
+        NSLayoutConstraint.activate([
+            pane.leadingAnchor.constraint(equalTo: covered.leadingAnchor),
+            pane.trailingAnchor.constraint(equalTo: covered.trailingAnchor),
+            pane.topAnchor.constraint(equalTo: covered.topAnchor),
+            pane.bottomAnchor.constraint(equalTo: covered.bottomAnchor),
+        ])
+        quickView = (pane, side)
+        panelCursorChanged(activePanel)
+    }
+
+    private func closeQuickView() {
+        quickView?.pane.close()
+        quickView = nil
+    }
+
+    /// The active panel's cursor or folder changed: the quick view follows.
+    func panelCursorChanged(_ panel: PanelViewController) {
+        guard let quickView, panel === activePanel else { return }
+        let model = panel.model
+        quickView.pane.show(QuickViewSubject.subject(
+            cursor: model.cursorItem, location: model.location, inArchive: model.archive != nil,
+            onServer: model.remote != nil, isNetwork: model.isNetwork))
+    }
+
     func refreshPanels() async {
         await left.model.refresh()
         await right.model.refresh()
@@ -173,7 +236,8 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
     }
 
     /// Window commands that work while the command line edits too.
-    private static let focusIndependent: Set<Command> = [.toggleCommandLine, .toggleFunctionKeyBar]
+    private static let focusIndependent: Set<Command> = [.toggleCommandLine, .toggleFunctionKeyBar, .toggleButtonBar,
+                                                         .toggleVolumeBar, .toggleDriveRow]
 
     func canPerform(_ command: Command) -> Bool {
         if CommandRegistry.spec(command).scope == .panel, !panelHasFocus, !Self.focusIndependent.contains(command) {
@@ -220,21 +284,39 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         switch command {
         case .switchPanel, .leftVolumeMenu, .rightVolumeMenu, .focusCommandLine, .maximizePanel, .comparePanels,
              .swapPanels, .sameFolderAsOther,
-             .insertNameToCommandLine, .insertPathToCommandLine,
+             .insertNameToCommandLine, .insertPathToCommandLine, .insertFullPathToCommandLine,
              .insertLeftPathToCommandLine, .insertRightPathToCommandLine,
-             .toggleCommandLine, .toggleFunctionKeyBar: true
-        case .openInLeftPanel, .openInRightPanel: activePanel.model.otherPanelTarget != nil
+             .toggleCommandLine, .toggleFunctionKeyBar, .toggleButtonBar, .toggleVolumeBar, .toggleDriveRow,
+             .commandLineHistory: true
+        case .openInLeftPanel, .openInRightPanel: openInPanel(command) != nil
+        case .openInNewTabOtherPanel: activePanel.model.cursorItem != nil && !activePanel.model.isNetwork
+        case .swapPanelsWithTabs, .quickView: true
         default: false
         }
     }
+
+    /// Open in Left / Right Panel: today the item always goes to the other panel; with the classic
+    /// option the arrow names the panel that changes (`OpenInPanel`).
+    private func openInPanel(_ command: Command) -> (plan: OpenInPanel.Plan, target: (url: URL, focus: String?))? {
+        let classic = PanelBehavior(defaults: .standard).arrowsTargetPointedPanel
+        let plan = OpenInPanel.plan(target: command == .openInLeftPanel ? .left : .right,
+                                    active: core(activeSide), classic: classic)
+        guard let target = panel(plan.source).model.openTarget(parentOpensLocation: classic) else { return nil }
+        return (plan, target)
+    }
+
+    private func core(_ side: PanelSide) -> Side { side == .left ? .left : .right }
+    private func panel(_ side: Side) -> PanelViewController { side == .left ? left : right }
 
     private func performHere(_ command: Command) {
         if Self.commandLineCommands.contains(command) { showCommandLine() }
         switch command {
         case .switchPanel: activate(activeSide == .left ? .right : .left)
         case .maximizePanel: setMaximized(maximizedSide == nil ? activeSide : nil)
+        case .quickView: if quickView == nil { openQuickView() } else { closeQuickView() }
         case .comparePanels: CompareSheet.show(in: window) { [weak self] in self?.comparePanels() }
         case .swapPanels:
+            closeQuickView()
             // ⌃U: the panels exchange their current tab (folder, cursor, selection, sort, history).
             let (leftState, rightState) = (left.model.snapshot(), right.model.snapshot())
             Task {
@@ -249,24 +331,53 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
                 activePanel.go(to: other.model.location, focusing: other.model.cursorItem.flatMap { $0.isParent ? nil : $0.name })
             }
         case .openInLeftPanel, .openInRightPanel:
-            // Always into the other panel; the arrow pointing at it also moves the focus there.
-            guard let target = activePanel.model.otherPanelTarget else { return }
+            guard let (plan, target) = openInPanel(command) else { return }
+            if let quickView, core(quickView.side) == plan.target { closeQuickView() }
+            panel(plan.target).go(to: target.url, focusing: target.focus)
+            if plan.focus != core(activeSide) { activate(plan.focus == .left ? .left : .right) }
+        case .openInNewTabOtherPanel:
+            // The other panel gets the tab and shows it; the focus stays here.
+            let source = activePanel
             let other = activeSide == .left ? right : left
-            other.go(to: target.url, focusing: target.focus)
-            if (command == .openInRightPanel) == (activeSide == .left) { activate(other.side) }
+            closeQuickView()
+            if maximizedSide != nil { setMaximized(nil) }
+            Task {
+                guard let state = await source.stateForNewTab() else { return }
+                other.openTab(state, activate: true)
+            }
+        case .swapPanelsWithTabs:
+            closeQuickView()
+            // ⌃⇧U: the panels exchange their whole tab lists; ⌃U swaps only the current tabs.
+            left.tabs.updateCurrent(left.model.snapshot())
+            right.tabs.updateCurrent(right.model.snapshot())
+            (left.tabs, right.tabs) = (right.tabs, left.tabs)
+            Task {
+                await left.restoreTab(left.tabs.current)
+                await right.restoreTab(right.tabs.current)
+            }
         case .leftVolumeMenu: activate(.left); left.perform(.leftVolumeMenu)
         case .rightVolumeMenu: activate(.right); right.perform(.rightVolumeMenu)
         case .focusCommandLine:
             if commandLine.isEditing { activate(activeSide) } else { commandLine.focus() }
+        case .commandLineHistory: showCommandLineHistory()
         case .insertNameToCommandLine:
             if let item = activePanel.model.cursorItem { commandLine.insert(ShellQuote.quote(item.isParent ? ".." : item.name) + " ") }
         case .insertPathToCommandLine: insertPath(of: activePanel)
+        case .insertFullPathToCommandLine:
+            guard let item = activePanel.model.cursorItem else { break }
+            if item.isParent { insertPath(of: activePanel) } else { commandLine.insert(ShellQuote.quote(item.url.displayPath) + " ") }
         case .insertLeftPathToCommandLine: insertPath(of: left)
         case .insertRightPathToCommandLine: insertPath(of: right)
         case .toggleCommandLine:
             UserDefaults.standard.set(commandLine.isHidden, forKey: Self.showCommandLineKey)
         case .toggleFunctionKeyBar:
             UserDefaults.standard.set(functionKeyBar.isHidden, forKey: Self.showFunctionKeyBarKey)
+        case .toggleButtonBar:
+            ButtonBarDefaults.toggle()
+        case .toggleVolumeBar:
+            UserDefaults.standard.set(!DriveRowSettings.saved.showVolumeBar, forKey: DriveRowSettings.showVolumeBarKey)
+        case .toggleDriveRow:
+            UserDefaults.standard.set(!DriveRowSettings.saved.showRow, forKey: DriveRowSettings.showRowKey)
         default: break
         }
     }
@@ -295,8 +406,12 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
     func windowDidResignKey(_ notification: Notification) { showFunctionKeys(for: []) }
 
     private func validateFunctionKeyBar() {
-        guard !functionKeyBar.isHidden else { return }
-        functionKeyBar.validate { [unowned self] in canPerformIgnoringFocus($0) }
+        if !functionKeyBar.isHidden { functionKeyBar.validate { [unowned self] in canPerformIgnoringFocus($0) } }
+        switch ButtonBarDefaults.placement {
+        case .top: topButtonBar.validate { [unowned self] in canPerformIgnoringFocus($0) }
+        case .bottom: bottomButtonBar.validate { [unowned self] in canPerformIgnoringFocus($0) }
+        case .off: break
+        }
     }
 
     // MARK: Command line and function key bar visibility
@@ -306,7 +421,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
 
     /// Commands that work with the command line; they show it first when it is hidden.
     private static let commandLineCommands: Set<Command> = [
-        .focusCommandLine, .insertNameToCommandLine, .insertPathToCommandLine,
+        .focusCommandLine, .insertNameToCommandLine, .insertPathToCommandLine, .insertFullPathToCommandLine,
         .insertLeftPathToCommandLine, .insertRightPathToCommandLine,
     ]
 
@@ -328,12 +443,20 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
             commandLine.isHidden = !showCommandLine
             commandLineSeparator.isHidden = !showCommandLine
         }
+        functionKeyBar.choice = FunctionKeyChoice(storage: UserDefaults.standard.string(forKey: FunctionKeyChoice.key))
         let showBar = Self.isShown(Self.showFunctionKeyBarKey)
-        if functionKeyBar.isHidden == showBar {
-            functionKeyBar.isHidden = !showBar
-            functionKeyBarSeparator.isHidden = !showBar
-            validateFunctionKeyBar()
-        }
+        let placement = ButtonBarDefaults.placement
+        let buttons = ButtonBarDefaults.items
+        topButtonBar.update(buttons)
+        bottomButtonBar.update(buttons)
+        topButtonBar.isHidden = placement != .top
+        buttonBarSeparator.isHidden = placement != .top
+        bottomRow.setButtons(placement == .bottom ? bottomButtonBar : nil)
+        if functionKeyBar.isHidden == showBar { functionKeyBar.isHidden = !showBar }
+        bottomRow.isHidden = !bottomRow.hasContent
+        functionKeyBarSeparator.isHidden = bottomRow.isHidden
+        bottomRow.needsLayout = true
+        validateFunctionKeyBar()
     }
 
     // MARK: Layout
@@ -385,6 +508,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
 
     /// ⌃F11: shows the active panel alone; the next press brings the other one back.
     func setMaximized(_ side: PanelSide?) {
+        if side != nil { closeQuickView() }
         if maximizedSide == nil, side != nil { saveLayout() }  // keep the divider position
         maximizedSide = side
         layoutChanged()
@@ -414,14 +538,20 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         commandLine.insert(ShellQuote.quote(panel.model.location.displayPath) + " ")
     }
 
-    /// Keys handled before AppKit: ⌃Tab (the window would use it for key-view cycling) and,
-    /// while the command line edits, the panel chords that make sense there.
+    /// Keys handled before AppKit: ⌃Tab and ⌃⇧Tab (the window would use them for key-view cycling),
+    /// ⌃Return and ⌃⇧Return (macOS shows the context menu for ⌃Return) and, while the command line
+    /// edits, the panel chords that make sense there.
     private func interceptKey(_ event: NSEvent) -> Bool {
         if commandLine.isEditing { return handleCommandLineKey(event) }
-        guard panelHasFocus, let chord = KeyChord(event: event),
-              KeyMaps.panel.command(for: chord) == .focusCommandLine else { return false }
-        showCommandLine()
-        commandLine.focus()
+        guard panelHasFocus, let chord = KeyChord(event: event), [.tab, .enter].contains(chord.key),
+              chord.modifiers.contains(.control),
+              let command = KeyMaps.panel.command(for: chord) else { return false }
+        if command == .focusCommandLine {
+            showCommandLine()
+            commandLine.focus()
+        } else {
+            perform(command)
+        }
         return true
     }
 
@@ -436,18 +566,54 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
             return true
         case (.up, .control): commandLine.showOlder(); return true
         case (.down, .control): commandLine.showNewer(); return true
+        // ⌃X / ⌃C / ⌃V edit the text as ⌘X / ⌘C / ⌘V do, a habit from Windows commanders.
+        case (.character("x"), .control): return commandLine.edit(#selector(NSText.cut(_:)))
+        case (.character("c"), .control): return commandLine.edit(#selector(NSText.copy(_:)))
+        case (.character("v"), .control): return commandLine.edit(#selector(NSText.paste(_:)))
         default: break
         }
         guard let command = KeyMaps.panel.command(for: chord) else { return false }
         switch command {
-        case .focusCommandLine, .insertNameToCommandLine, .insertPathToCommandLine,
-             .insertLeftPathToCommandLine, .insertRightPathToCommandLine:
+        case .focusCommandLine, .insertNameToCommandLine, .insertPathToCommandLine, .insertFullPathToCommandLine,
+             .insertLeftPathToCommandLine, .insertRightPathToCommandLine, .commandLineHistory:
             performHere(command)
             return true
         default:
             return false
         }
     }
+
+    /// A panel key routed to the command line ("Typing goes to the command line"); the focus stays
+    /// in the panel.
+    func commandLine(_ action: PanelTyping.Action) {
+        switch action {
+        case .append(let text):
+            showCommandLine()
+            commandLine.append(text)
+        case .deleteLast: commandLine.deleteLast()
+        case .clear: commandLine.clear()
+        case .run: execute(commandLine.text)
+        case .none, .startQuickSearch: break
+        }
+    }
+
+    /// Commands → Command Line History…: executed lines as a filterable list; the chosen one goes into
+    /// the command line, ready to edit or run (it never runs by itself).
+    private func showCommandLineHistory() {
+        let lines = commandLine.historyEntries
+        guard let window, !lines.isEmpty else { NSSound.beep(); return }
+        let rows = lines.map { HistoryListSheet.Row(text: $0, symbol: "terminal") }
+        HistoryListSheet.present(on: window, title: String(localized: "Command Line History"), rows: rows,
+                                 selection: 0, hint: String(localized: "Return puts the command into the command line."),
+                                 chooseTitle: String(localized: "Insert"), allowsModifiers: false) { [weak self] index, _ in
+            guard let self else { return }
+            showCommandLine()
+            commandLine.setFromHistory(lines[index])
+        }
+    }
+
+    /// The command line holds text (a panel key then edits or runs it).
+    var commandLineHasText: Bool { !commandLine.isHidden && !commandLine.text.isEmpty }
 
     private func execute(_ line: String) {
         let panel = activePanel
@@ -499,7 +665,11 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         if command == .viewModeDetailed { menuItem.state = activePanel.viewMode == .detailed ? .on : .off }
         if command == .viewModeBrief { menuItem.state = activePanel.viewMode == .brief ? .on : .off }
         if command == .toggleCommandLine { menuItem.state = commandLine.isHidden ? .off : .on }
+        if command == .quickView { menuItem.state = quickView == nil ? .off : .on }
         if command == .toggleFunctionKeyBar { menuItem.state = functionKeyBar.isHidden ? .off : .on }
+        if command == .toggleButtonBar { menuItem.state = ButtonBarDefaults.placement == .off ? .off : .on }
+        if command == .toggleVolumeBar { menuItem.state = DriveRowSettings.saved.showVolumeBar ? .on : .off }
+        if command == .toggleDriveRow { menuItem.state = DriveRowSettings.saved.showRow ? .on : .off }
         let sortFields: [Command: SortField] = [.sortByName: .name, .sortByExtension: .ext, .sortByDate: .date, .sortBySize: .size]
         if let field = sortFields[command] { menuItem.state = activePanel.model.sort.field == field ? .on : .off }
         if command == .maximizePanel { menuItem.title = maximizedSide == nil ? CommandRegistry.spec(.maximizePanel).localizedTitle
