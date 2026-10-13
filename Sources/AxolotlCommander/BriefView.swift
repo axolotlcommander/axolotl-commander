@@ -247,7 +247,7 @@ extension PanelViewController: NSCollectionViewDataSource {
         let marked = model.isSelected(file)
         // Branch view shows the file's own name; the tooltip has its path below the folder.
         brief.cell.label.stringValue = file.isParent ? ".." : model.branch != nil ? file.fileName : file.name
-        brief.cell.label.font = marked ? .boldSystemFont(ofSize: NSFont.systemFontSize) : .systemFont(ofSize: NSFont.systemFontSize)
+        brief.cell.label.font = textFont(marked: marked)
         brief.cell.label.textColor = briefTextColor(for: file, at: indexPath.item)
         brief.cell.icon.image = IconCache.icon(for: file)
         brief.cell.cursorStyle = indexPath.item == model.cursor ? (isActive ? .active : .inactive) : .none

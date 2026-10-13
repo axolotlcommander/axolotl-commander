@@ -80,11 +80,15 @@ public struct HighlightRule: Codable, Hashable, Sendable, Identifiable {
 public struct PanelAppearance: Codable, Hashable, Sendable {
     /// Color of selected items.
     public var markColor: SystemColor
+    /// Selected items are also drawn in bold.
+    public var markBold: Bool
     /// The first enabled matching rule from the top wins.
     public var highlights: [HighlightRule]
 
-    public init(markColor: SystemColor = .red, highlights: [HighlightRule] = PanelAppearance.defaultHighlights) {
+    public init(markColor: SystemColor = .red, markBold: Bool = true,
+                highlights: [HighlightRule] = PanelAppearance.defaultHighlights) {
         self.markColor = markColor
+        self.markBold = markBold
         self.highlights = highlights
     }
 
@@ -93,6 +97,7 @@ public struct PanelAppearance: Codable, Hashable, Sendable {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         self.init(
             markColor: try c.decodeIfPresent(SystemColor.self, forKey: .markColor) ?? .red,
+            markBold: try c.decodeIfPresent(Bool.self, forKey: .markBold) ?? true,
             highlights: try c.decodeIfPresent([HighlightRule].self, forKey: .highlights) ?? Self.defaultHighlights
         )
     }

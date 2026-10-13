@@ -591,7 +591,7 @@ private func dir(_ name: String) -> FileItem {
 
     @Test func defaultsColorArchivesAndScripts() {
         let a = PanelAppearance()
-        #expect(a.markColor == .red)
+        #expect(a.markColor == .red && a.markBold)
         #expect(a.color(for: file("Backup.ZIP"), rules: rules) == .purple)
         #expect(a.color(for: file("run.sh"), rules: rules) == .green)
         #expect(a.color(for: file("notes.txt"), rules: rules) == nil)
@@ -611,13 +611,13 @@ private func dir(_ name: String) -> FileItem {
         let a = try JSONDecoder().decode(PanelAppearance.self, from: Data("{}".utf8))
         #expect(a == PanelAppearance())
         let b = try JSONDecoder().decode(PanelAppearance.self, from: Data(#"{"markColor":"teal"}"#.utf8))
-        #expect(b.markColor == .teal && b.highlights == PanelAppearance.defaultHighlights)
+        #expect(b.markColor == .teal && b.markBold && b.highlights == PanelAppearance.defaultHighlights)
         let r = try JSONDecoder().decode(HighlightRule.self, from: Data(#"{"masks":"*.c","color":"mint"}"#.utf8))
         #expect(r.masks == "*.c" && r.color == .mint && r.isEnabled && r.directory == .any)
     }
 
     @Test func codableRoundTrip() throws {
-        let a = PanelAppearance(markColor: .indigo, highlights: [
+        let a = PanelAppearance(markColor: .indigo, markBold: false, highlights: [
             HighlightRule(masks: "*.a", directory: .no, hidden: .yes, symlink: .no, color: .brown, isEnabled: false)])
         #expect(try JSONDecoder().decode(PanelAppearance.self, from: JSONEncoder().encode(a)) == a)
     }

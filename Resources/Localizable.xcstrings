@@ -1076,6 +1076,16 @@
         }
       }
     },
+    "Bold": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tučně"
+          }
+        }
+      }
+    },
     "Both panels contain the same files.": {
       "localizations": {
         "cs": {

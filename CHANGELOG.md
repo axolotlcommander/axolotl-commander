@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
   default button, so Return presses the chosen one; Esc still cancels.
 - ⇧F2 compares the panels at once with the saved options (Compare Panels); ⌃F10 opens the
   options first (Compare Panels…).
+- Settings → Appearance can turn off the bold font of selected items (next to their color).
 
 ### Fixed
 
