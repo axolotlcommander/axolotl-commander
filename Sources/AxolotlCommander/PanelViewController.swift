@@ -390,7 +390,7 @@ final class PanelViewController: NSViewController {
         }
         let s = model.summary
         if s.files + s.directories > 0 {
-            statusField.stringValue = String(localized: "Selected \(s.files) files, \(s.directories) folders — \(Format.bytes(s.bytes))")
+            statusField.stringValue = String(localized: "Selected \(Self.files(s.files)), \(Self.folders(s.directories)) — \(Format.bytes(s.bytes))")
         } else if let item = model.cursorItem, let service = NetworkPlaces.service(of: item.url) {
             statusField.stringValue = String(localized: "\(service.name)   \(service.kind.rawValue.uppercased()) server")
         } else if let item = model.cursorItem, !item.isParent {
@@ -398,7 +398,7 @@ final class PanelViewController: NSViewController {
             statusField.stringValue = "\(item.name)   \(size)   \(item.modificationDate.map(Format.date) ?? "")"
         } else {
             let t = model.totals
-            var text = String(localized: "\(t.files) files, \(t.directories) folders — \(Format.bytes(t.bytes))")
+            var text = String(localized: "\(Self.files(t.files)), \(Self.folders(t.directories)) — \(Format.bytes(t.bytes))")
             if model.branch != nil, model.unreadableFolders > 0 {
                 text += " — " + String(localized: "\(model.unreadableFolders) folders could not be read")
             }
@@ -1047,6 +1047,10 @@ final class PanelViewController: NSViewController {
         case .open(let folder): go(to: folder)
         }
     }
+
+    /// "1 file", "3 files": the count with the plural form of the language.
+    static func files(_ count: Int) -> String { String(localized: "\(count) files") }
+    static func folders(_ count: Int) -> String { String(localized: "\(count) folders") }
 
     /// The folder on disk the panel shows; nil for an archive, a server or the Network folder.
     var diskLocation: URL? {

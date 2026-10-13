@@ -171,6 +171,16 @@
         }
       }
     },
+    "%@, %@ — %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, %2$@ – %3$@"
+          }
+        }
+      }
+    },
     "%@: %@ on disk, %lld files": {
       "localizations": {
         "cs": {
@@ -233,10 +243,52 @@
     },
     "%lld files": {
       "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld file"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld files"
+                }
+              }
+            }
+          }
+        },
         "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld souborů"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld soubor"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld soubory"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld souboru"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld souborů"
+                }
+              }
+            }
           }
         }
       }
@@ -251,16 +303,6 @@
         }
       }
     },
-    "%lld files, %lld folders — %@": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld souborů, %lld složek – %@"
-          }
-        }
-      }
-    },
     "%lld files. Save the list with ⌘S.": {
       "localizations": {
         "cs": {
@@ -271,12 +313,54 @@
         }
       }
     },
-    "%lld folders, %lld files": {
+    "%lld folders": {
       "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld folder"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld folders"
+                }
+              }
+            }
+          }
+        },
         "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld složek, %lld souborů"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld složka"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld složky"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld složky"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld složek"
+                }
+              }
+            }
           }
         }
       }
@@ -2124,6 +2208,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Dvojklikem vstoupíte do složky, ⌫ přejdete o úroveň výš."
+          }
+        }
+      }
+    },
+    "Selected %@, %@ — %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vybráno: %1$@, %2$@ – %3$@"
           }
         }
       }
@@ -5831,16 +5925,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vybrat novější soubor (datum a čas)"
-          }
-        }
-      }
-    },
-    "Selected %lld files, %lld folders — %@": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vybráno %lld souborů, %lld složek – %@"
           }
         }
       }
