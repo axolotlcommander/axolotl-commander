@@ -9,6 +9,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 
 - Arrow keys in a question with buttons (such as the replace question while copying) move the
   default button, so Return presses the chosen one; Esc still cancels.
+- ⇧F2 compares the panels at once with the saved options (Compare Panels); ⌃F10 opens the
+  options first (Compare Panels…).
 
 ### Fixed
 

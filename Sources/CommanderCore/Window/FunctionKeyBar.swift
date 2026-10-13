@@ -30,7 +30,7 @@ extension CommandRegistry {
         .leftVolumeMenu: "Left", .rightVolumeMenu: "Right", .loadSelection: "Apply",
         .saveSelection: "Remember", .calculateSizes: "Sizes", .occupiedSpace: "Map",
         .workingDirectories: "Folders", .sortByName: "Name", .sortByExtension: "Ext",
-        .sortByDate: "Date", .sortBySize: "Size", .comparePanels: "Compare", .maximizePanel: "Maximize",
+        .sortByDate: "Date", .sortBySize: "Size", .comparePanels: "Compare", .comparePanelsNow: "Compare", .maximizePanel: "Maximize",
         .changeCase: "Case", .find: "Find", .quickLook: "Look", .newSymbolicLink: "Link",
         .commandLineHistory: "History",
     ]

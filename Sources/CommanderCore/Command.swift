@@ -21,7 +21,7 @@ public enum Command: String, CaseIterable, Hashable, Sendable {
 
     // View
     case sortByName, sortByExtension, sortByDate, sortBySize
-    case filter, refresh, toggleHidden, branchView, branchViewSelected, maximizePanel, comparePanels, calculateSizes
+    case filter, refresh, toggleHidden, branchView, branchViewSelected, maximizePanel, comparePanels, comparePanelsNow, calculateSizes
     case swapPanels, sameFolderAsOther
     case viewModeDetailed, viewModeBrief
     case toggleCommandLine, toggleFunctionKeyBar, toggleButtonBar, toggleVolumeBar, toggleDriveRow
@@ -224,7 +224,8 @@ public enum CommandRegistry {
         add(.quickFilterLast, "Quick Filter with Last Text", .view, [ch("s", [c, s]), ch("f", [m, o, s])])
         add(.refresh, "Refresh", .view, [f(9, c), ch("r", m), ch("r", c)])
         add(.maximizePanel, "Maximize Panel", .view, [f(11, c)], sep: true)
-        add(.comparePanels, "Compare Panels", .view, [f(10, c), f(2, s)])
+        add(.comparePanelsNow, "Compare Panels", .view, [f(2, s)])
+        add(.comparePanels, "Compare Panels…", .view, [f(10, c)])
         add(.calculateSizes, "Calculate Folder Sizes", .view, [f(10, [c, s]), K(.enter, [o, s])])
         add(.swapPanels, "Swap Panels", .view, [ch("u", c)])
         add(.swapPanelsWithTabs, "Swap Panels with All Tabs", .view, [ch("u", [c, s])])

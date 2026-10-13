@@ -14,7 +14,7 @@ import Testing
         (K(.left, .option), .goBack),
         (K(.right, .option), .goForward),
         (K(.function(1), .control), .viewModeBrief),
-        (K(.function(2), .shift), .comparePanels),
+        (K(.function(2), .shift), .comparePanelsNow),
         (K(.function(6), .shift), .rename),
         (K(.character("r"), .control), .refresh),
         (K(.character("a"), .control), .selectAll),

@@ -5,7 +5,7 @@ import AppKit
 import CommanderCore
 import SwiftUI
 
-/// ⌃F10 options; Enter compares with the remembered options.
+/// ⌃F10 options (⇧F2 compares with them at once); they are saved, and Enter compares.
 struct CompareOptionsView: View {
     @Bindable var settings = AppSettings.shared
     let onCompare: () -> Void
