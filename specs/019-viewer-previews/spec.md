@@ -83,7 +83,8 @@ Found while planning and confirmed by the maintainer ("pokracuj jak doporucujes"
 ### Session 2026-10-13 (review)
 
 After trying the tree the maintainer decided that formatted text is enough ("showing the JSON formatted
-would be quite enough"; the Type column is not needed). This replaces the tree answers above:
+would be quite enough"; the Type column is not needed). This replaces the tree answers above (the
+questions about the tree's start, its keys, Copy Value, Copy Path and Expand All / Collapse All):
 
 - Q: How is JSON shown? → A: Preview shows the document as indented, highlighted text in the text view,
   with the text view's find, selection, copy (⌘C copies the selected text), wrapping and zoom. There is no

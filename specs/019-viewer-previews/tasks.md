@@ -10,18 +10,21 @@
 
 ## Phase 2: User Story 1 — formatted JSON (P1)
 
-- [X] T002 [US1] `JSONDocument`, `JSONNode`, `JSONKind`, `JSONParseError` in
+- [X] T002 [US1] (partly superseded by T014: `keyText`, `valueText`, `path`, `copyValue`, `search` and
+  duplicate marks were removed) `JSONDocument`, `JSONNode`, `JSONKind`, `JSONParseError` in
   `Sources/CommanderCore/Viewer/JSONDocument.swift` (research R1, data-model): byte parser with
   comments, trailing commas, BOM, duplicates marked, numbers as written, JSON Lines with error nodes,
   1-based line/column errors ("unsupported JSON5 syntax" for unquoted keys, single quotes, hex numbers),
   cancellation; `keyText`, `valueText(limit:)`, `path(of:)`, `copyValue(of:)`, `search`.
-- [X] T003 [US1] Tests in `Tests/CommanderCoreTests/JSONDocumentTests.swift`: every value kind, nesting,
+- [X] T003 [US1] (partly superseded by T014: the path, copy and search tests were replaced by
+  formatting tests) Tests in `Tests/CommanderCoreTests/JSONDocumentTests.swift`: every value kind, nesting,
   key order, duplicates, big number text, escapes and surrogate pairs in keys and values, comments and
   trailing commas, JSON5 rejections with positions, error line/column, JSON Lines (good, bad, empty
   lines), paths (identifier, `["two words"]`, arrays, JSON Lines `[4]`, root `$`), copy value rules,
   search forward/backward/wrap/ignore case, a generated 10 MB document parses within 2 s (release
   timing is checked in the GUI; the test only asserts it finishes and counts nodes).
-- [X] T004 [US1] `PreviewKind.json` in `Sources/AxolotlCommander/Viewer/ViewerWindowController.swift`:
+- [X] T004 [US1] (partly superseded by T014: the limit is `jsonFormatLimit` and the sheet asks Show
+  Formatted / Text) `PreviewKind.json` in `Sources/AxolotlCommander/Viewer/ViewerWindowController.swift`:
   extensions `json jsonc json5 geojson jsonl ndjson` and UTTypes conforming to `.json`; parse in the
   detached load; invalid JSON → Text with the error in the status line and Preview disabled; above 20 MB
   (`ViewerDefaults.jsonTreeLimit`) open Text and ask (sheet: Show Tree / Text, Esc = Text); ⌘3 later
