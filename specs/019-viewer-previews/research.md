@@ -53,7 +53,7 @@
   text draw; an `<image href="http://…">` is not loaded (a local test server got no request); scripts are
   not supported by the renderer at all. The picture goes into the existing `ImagePreview` with fit,
   zoom steps and actual size; the status line shows the drawing size (from the image) and "SVG".
-  `.svgz` is unpacked with libarchive's gzip filter (the core already links it) before drawing, with a
+  `.svgz` is unpacked with the system Compression framework (gzip header per RFC 1952, then raw deflate; the app's minimal libarchive header has no raw-format calls) before drawing, with a
   64 MB cap on the unpacked size.
 - **Preview kind**: a new `PreviewKind.vector` for `svg` and `svgz` (also when the UTType conforms to
   `public.svg-image`), Preview the default, Text shows the highlighted XML (`svgz` unpacked).

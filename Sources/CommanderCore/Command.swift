@@ -71,6 +71,7 @@ public enum Command: String, CaseIterable, Hashable, Sendable {
     case viewerZoomIn, viewerZoomOut, viewerActualSize, viewerReload
     case viewerPreview, viewerHighlight, viewerZoomToFit, viewerSaveImageAs, viewerLoadRemote
     case viewerNextMalformed, viewerPreviousMalformed, viewerMalformedOnly, viewerHeaderRow, viewerSeparator
+    case viewerCopyPath, viewerExpandAll, viewerCollapseAll
 
     // Find window (⌃⌥F7)
     case findStart, findStop, findOpen, findShowInPanel, findView, findEdit, findQuickLook
@@ -313,6 +314,7 @@ public enum CommandRegistry {
         viewer(.viewerSaveImageAs, "Save Image As…", .file, [ch("s", [m, s])])
         viewer(.viewerClose, "Close Viewer", nil, [K(.escape)])
         viewer(.viewerCopy, "Copy", .edit, [ch("c", m)])
+        viewer(.viewerCopyPath, "Copy Path", .edit, [ch("c", [m, s])])
         viewer(.viewerSelectAll, "Select All", .edit, [ch("a", m)])
         viewer(.viewerFind, "Find…", .edit, [ch("f", m), f(7)], sep: true)
         viewer(.viewerFindNext, "Find Next", .edit, [ch("g", m), f(3)])
@@ -326,6 +328,8 @@ public enum CommandRegistry {
         viewer(.viewerHeaderRow, "First Row Is Header", .view, sep: true)
         viewer(.viewerSeparator, "Separator", .view)
         viewer(.viewerMalformedOnly, "Show Only Malformed Rows", .view, [ch("d", [m, s])])
+        viewer(.viewerExpandAll, "Expand All", .view, sep: true)
+        viewer(.viewerCollapseAll, "Collapse All", .view)
         viewer(.viewerNextMalformed, "Next Malformed Row", .go, [K(.down, m)])
         viewer(.viewerPreviousMalformed, "Previous Malformed Row", .go, [K(.up, m)])
         viewer(.viewerWrap, "Wrap Lines", .view, [ch("w", c), f(2)], sep: true)

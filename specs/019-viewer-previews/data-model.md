@@ -66,4 +66,4 @@ all of them except: invalid JSON → Text, Preview disabled; JSON above 20 MB �
 ## SVGData
 
 `static func unpack(_ data: Data, maxSize: Int) throws -> Data` — returns gzip-compressed data unpacked
-(through libarchive), other data unchanged; throws over `maxSize`.
+(through the Compression framework), other data unchanged; throws over `maxSize`.

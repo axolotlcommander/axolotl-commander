@@ -241,6 +241,40 @@
         }
       }
     },
+    "%lld channels": {
+      "localizations": {
+        "cs": {
+          "variations": {
+            "plural": {
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld kanály"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld kanály"
+                }
+              },
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld kanál"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld kanálů"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld checksums saved to “%@”.": {
       "localizations": {
         "cs": {
@@ -505,6 +539,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "Chybí: %lld"
+          }
+        }
+      }
+    },
+    "%lld nodes": {
+      "localizations": {
+        "cs": {
+          "variations": {
+            "plural": {
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld uzly"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld uzly"
+                }
+              },
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld uzel"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld uzlů"
+                }
+              }
+            }
           }
         }
       }
@@ -1207,6 +1275,26 @@
         }
       }
     },
+    "Building the tree of a large file may take a while.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sestavení stromu velkého souboru může chvíli trvat."
+          }
+        }
+      }
+    },
+    "Building the tree…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sestavuji strom…"
+          }
+        }
+      }
+    },
     "Button Bar": {
       "localizations": {
         "cs": {
@@ -1591,6 +1679,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zavřít okno"
+          }
+        }
+      }
+    },
+    "Collapse All": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sbalit vše"
           }
         }
       }
@@ -2562,6 +2660,16 @@
         }
       }
     },
+    "Duplicate key: an earlier member has the same name.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duplicitní klíč: dřívější položka má stejný název."
+          }
+        }
+      }
+    },
     "Eject": {
       "localizations": {
         "cs": {
@@ -2638,6 +2746,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Stávající: %@"
+          }
+        }
+      }
+    },
+    "Expand All": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rozbalit vše"
           }
         }
       }
@@ -2722,6 +2840,16 @@
         }
       }
     },
+    "JSON5 syntax is not supported": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "syntaxe JSON5 není podporovaná"
+          }
+        }
+      }
+    },
     "Left Only": {
       "localizations": {
         "cs": {
@@ -2768,6 +2896,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vlevo: %@"
+          }
+        }
+      }
+    },
+    "Line %lld": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Řádek %lld"
+          }
+        }
+      }
+    },
+    "Mono": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mono"
           }
         }
       }
@@ -3012,6 +3160,16 @@
         }
       }
     },
+    "Show Tree": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zobrazit strom"
+          }
+        }
+      }
+    },
     "Show:": {
       "localizations": {
         "cs": {
@@ -3038,6 +3196,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Některé svazky se nepodařilo vysunout."
+          }
+        }
+      }
+    },
+    "Stereo": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stereo"
           }
         }
       }
@@ -3122,6 +3290,16 @@
         }
       }
     },
+    "The drawing cannot be shown.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kresbu nelze zobrazit."
+          }
+        }
+      }
+    },
     "The file could not be opened.": {
       "localizations": {
         "cs": {
@@ -3172,6 +3350,26 @@
         }
       }
     },
+    "This JSON file is %@. Show it as a tree?": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tento soubor JSON má %@. Zobrazit ho jako strom?"
+          }
+        }
+      }
+    },
+    "This file cannot be played.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tento soubor nelze přehrát."
+          }
+        }
+      }
+    },
     "This volume can’t be ejected.": {
       "localizations": {
         "cs": {
@@ -3182,12 +3380,62 @@
         }
       }
     },
+    "Type": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Typ"
+          }
+        }
+      }
+    },
+    "Value": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hodnota"
+          }
+        }
+      }
+    },
+    "a string is not closed": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "řetězec není uzavřený"
+          }
+        }
+      }
+    },
     "and %lld more": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "a dalších %lld"
+          }
+        }
+      }
+    },
+    "array": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "pole"
+          }
+        }
+      }
+    },
+    "boolean": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "logická hodnota"
           }
         }
       }
@@ -3228,6 +3476,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "obsah"
+          }
+        }
+      }
+    },
+    "control character in a string": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "řídicí znak v řetězci"
           }
         }
       }
@@ -8817,6 +9075,16 @@
         }
       }
     },
+    "error": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "chyba"
+          }
+        }
+      }
+    },
     "external": {
       "localizations": {
         "cs": {
@@ -8898,6 +9166,26 @@
         }
       }
     },
+    "invalid escape sequence": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "neplatná escape sekvence"
+          }
+        }
+      }
+    },
+    "invalid number": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "neplatné číslo"
+          }
+        }
+      }
+    },
     "larger": {
       "localizations": {
         "cs": {
@@ -8918,6 +9206,16 @@
         }
       }
     },
+    "line %lld, column %lld: %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "řádek %lld, sloupec %lld: %@"
+          }
+        }
+      }
+    },
     "lowercase": {
       "localizations": {
         "cs": {
@@ -8934,6 +9232,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "smíšeně"
+          }
+        }
+      }
+    },
+    "more text after the end": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "za koncem následuje další text"
           }
         }
       }
@@ -8964,6 +9272,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "neplatný název"
+          }
+        }
+      }
+    },
+    "not valid JSON: %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "neplatný JSON: %@"
+          }
+        }
+      }
+    },
+    "number": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "číslo"
+          }
+        }
+      }
+    },
+    "object": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "objekt"
           }
         }
       }
@@ -9018,6 +9356,16 @@
         }
       }
     },
+    "string": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "řetězec"
+          }
+        }
+      }
+    },
     "text shows the first %@, Hex shows all": {
       "localizations": {
         "cs": {
@@ -9028,12 +9376,32 @@
         }
       }
     },
+    "the file is empty": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "soubor je prázdný"
+          }
+        }
+      }
+    },
     "the new name would contain * or ?": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "nový název by obsahoval * nebo ?"
+          }
+        }
+      }
+    },
+    "the text ends too early": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "text končí předčasně"
           }
         }
       }
@@ -9074,6 +9442,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "beze změny"
+          }
+        }
+      }
+    },
+    "unexpected character": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "neočekávaný znak"
           }
         }
       }
