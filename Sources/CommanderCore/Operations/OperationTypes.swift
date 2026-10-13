@@ -63,10 +63,13 @@ public struct FileItemInfo: Sendable, Hashable {
 public struct Conflict: Sendable {
     public let source: FileItemInfo
     public let destination: FileItemInfo
+    /// false where the destination cannot take another name, e.g. a move inside one server.
+    public let canRename: Bool
 
-    public init(source: FileItemInfo, destination: FileItemInfo) {
+    public init(source: FileItemInfo, destination: FileItemInfo, canRename: Bool = true) {
         self.source = source
         self.destination = destination
+        self.canRename = canRename
     }
 }
 

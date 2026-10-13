@@ -25,6 +25,8 @@ final class AppSettings {
     var hotPaths: HotPaths { didSet { save(hotPaths, "hotPaths") } }
     var comparison: ComparisonOptions { didSet { save(comparison, "comparison") } }
     var recentPaths: RecentPaths { didSet { save(recentPaths, "recentPaths") } }
+    /// Destinations used in the copy/move dialog, newest first.
+    var recentDestinations: RecentPaths { didSet { save(recentDestinations, "transfer.recentDestinations") } }
     /// Saved server connections (without passwords; those are in the keychain).
     var connections: [ConnectionProfile] { didSet { save(connections, "connections") } }
 
@@ -33,6 +35,9 @@ final class AppSettings {
         hotPaths = Self.load("hotPaths") ?? HotPaths()
         comparison = Self.load("comparison") ?? ComparisonOptions()
         recentPaths = Self.load("recentPaths") ?? RecentPaths()
+        recentDestinations = RecentPaths(
+            paths: (Self.load("transfer.recentDestinations") as RecentPaths?)?.paths ?? [],
+            capacity: DestinationMenu.recentCapacity)
         connections = Self.load("connections") ?? []
     }
 
