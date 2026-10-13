@@ -52,7 +52,7 @@ import Testing
             source.set(true, forKey: PanelBehavior.volumesKey)
             let data = try SettingsArchive.export(from: source, catalog: .app, appVersion: "test")
             let contents = try SettingsArchive.read(data)
-            try withSuite { target in
+            withSuite { target in
                 let report = SettingsArchive.apply(contents, sections: [.preferences], to: target, catalog: .app)
                 #expect(report.skipped.isEmpty)
                 #expect(PanelBehavior(defaults: target) == PanelBehavior(defaults: source))
