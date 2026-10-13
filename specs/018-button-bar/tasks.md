@@ -16,4 +16,4 @@
   placement, live icon change, the » overflow in a narrow window, a program button run by AX press,
   the Settings tab and the icon picker; then in front: View → Show Button Bar, right click → Remove
   Button and Edit Button…, a command button (Hot Paths) keeping the focus in the panel, the » menu).
-- [ ] T009 Install for the maintainer, after asking (with release 0.4.0).
+- [X] T009 Install for the maintainer, after asking (with release 0.4.0).

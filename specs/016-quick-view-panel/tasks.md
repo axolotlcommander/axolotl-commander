@@ -9,4 +9,4 @@
   archives, servers and Network. Commit.
 - [X] T005 Czech strings, CHANGELOG, quickstart. Commit.
 - [X] T006 GUI check in the test copy (2026-10-13, all steps passed, also archives and a click on the preview).
-- [ ] T007 Install for the maintainer, after asking.
+- [X] T007 Install for the maintainer, after asking.

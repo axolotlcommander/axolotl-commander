@@ -14,4 +14,4 @@
   line edits. Commit.
 - [X] T007 Czech strings, CHANGELOG, quickstart. Commit.
 - [X] T008 GUI check in the test copy (2026-10-13; fixed: /tmp and /private/tmp listed twice, the command line history button now says Insert).
-- [ ] T009 Install for the maintainer, after asking.
+- [X] T009 Install for the maintainer, after asking.

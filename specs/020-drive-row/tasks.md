@@ -14,4 +14,4 @@
 - [ ] T006 GUI check in the test copy (reading only). Done in the background (2026-10-13): the row in
   both panels, the space at the right end of the volume bar and of the status line, shortening in a
   narrow window. Left for a run in front: the combo menu, a click on the space, the View commands.
-- [ ] T007 Install for the maintainer, after asking (with release 0.4.0).
+- [X] T007 Install for the maintainer, after asking (with release 0.4.0).

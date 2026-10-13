@@ -40,4 +40,4 @@
 
 - [X] T011 Add the Czech strings, a CHANGELOG entry and the quickstart (GUI) steps.
 - [X] T012 Run the GUI check in the test copy when the maintainer is away (2026-10-13, all steps passed).
-- [ ] T013 Install for the maintainer, after asking.
+- [X] T013 Install for the maintainer, after asking.

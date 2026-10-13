@@ -12,4 +12,4 @@
   the filter. Commit.
 - [X] T006 Czech strings, CHANGELOG, quickstart. Commit.
 - [X] T007 GUI check in the test copy (2026-10-13; fixed: Quick Filter from the menu dropped the quick search text).
-- [ ] T008 Install for the maintainer, after asking.
+- [X] T008 Install for the maintainer, after asking.
