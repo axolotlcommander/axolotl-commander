@@ -5,14 +5,14 @@
 
 ## Phase 1: Foundational (core)
 
-- [ ] T001 [P] `ConflictMarks` and `AutoName` in `Sources/CommanderCore/Operations/ConflictMarks.swift`
+- [X] T001 [P] `ConflictMarks` and `AutoName` in `Sources/CommanderCore/Operations/ConflictMarks.swift`
   and `Sources/CommanderCore/Operations/AutoName.swift` (rules in data-model.md: "base N.ext", "base N",
   ".zshrc 2", "a.tar 2.gz", 255 UTF-8 bytes); tests in `Tests/CommanderCoreTests/ConflictPolicyTests.swift`.
-- [ ] T002 `ConflictPolicy` in `Sources/CommanderCore/Operations/ConflictPolicy.swift` (modes, pending
+- [X] T002 `ConflictPolicy` in `Sources/CommanderCore/Operations/ConflictPolicy.swift` (modes, pending
   candidate, `decide`, `choose`); `Conflict.canRename` (default true) in
   `Sources/CommanderCore/Operations/OperationTypes.swift`; tests for overwrite-all-older (newer, older,
   equal, unknown date, folder), rename-all, the next candidate after a taken name, canRename false.
-- [ ] T003 `RemoteTransfer` in `Sources/CommanderCore/Network/RemoteTransfer.swift`: a rename to a
+- [X] T003 `RemoteTransfer` in `Sources/CommanderCore/Network/RemoteTransfer.swift`: a rename to a
   taken name asks again with the new destination (upload and download); the server-side move sets
   `canRename: false`; tests in `Tests/CommanderCoreTests/RemoteTransferTests.swift` with the existing
   fake server.
@@ -34,7 +34,7 @@
 
 ## Phase 3: User Story 4 — one item with its name in "To:" (P1)
 
-- [ ] T006 [P] [US4] `TransferTarget` in `Sources/CommanderCore/Operations/TransferTarget.swift` (resolve,
+- [X] T006 [P] [US4] `TransferTarget` in `Sources/CommanderCore/Operations/TransferTarget.swift` (resolve,
   selection ranges, cycle); tests in `Tests/CommanderCoreTests/TransferTargetTests.swift` (existing
   folder, trailing "/", new name, no extension, "a.tar.gz", folder item, emoji names in UTF-16 ranges).
 - [ ] T007 [US4] `TransferDialog` in `Sources/AxolotlCommander/TransferDialog.swift` (replaces
@@ -45,7 +45,7 @@
 
 ## Phase 4: User Story 3 — destination menu (P1)
 
-- [ ] T008 [P] [US3] `DestinationMenu` in `Sources/CommanderCore/Window/DestinationMenu.swift`;
+- [X] T008 [P] [US3] `DestinationMenu` in `Sources/CommanderCore/Window/DestinationMenu.swift`;
   `RecentPaths` instance limit in `Sources/CommanderCore/Window/RecentPaths.swift`;
   `transfer.recentDestinations` in `AppSettingsCatalog.notExported`; tests in
   `Tests/CommanderCoreTests/DestinationMenuTests.swift` (order, dedupe, source and Network left out,

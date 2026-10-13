@@ -225,6 +225,56 @@ private let noConflict: RemoteTransfer.ConflictHandler = { _ in
         #expect(s.names(s.server) == ["one.txt", "two.txt"])
     }
 
+    @Test func uploadRenameToTakenNameAsksAgain() async throws {
+        let s = try await Sandbox()
+        defer { s.remove() }
+        try s.write("new", "x.txt", in: s.local)
+        try s.write("old", "x.txt", in: s.server)
+        try s.write("old2", "x 2.txt", in: s.server)
+        let asked = PromptLog<String>()
+        let answers = PromptLog<ConflictResolution>([.rename("x 2.txt"), .rename("x 3.txt")])
+        _ = try await s.transfer.upload([s.local.appending(path: "x.txt")], to: s.at("/"), kind: .copy,
+                                        progress: { _ in }, conflict: { c in
+            asked.append(c.destination.name)
+            return answers.popFirst() ?? .cancel
+        })
+        #expect(asked.all == ["x.txt", "x 2.txt"])
+        #expect(s.read("x 3.txt", in: s.server) == "new")
+        #expect(s.read("x 2.txt", in: s.server) == "old2")
+        #expect(s.read("x.txt", in: s.server) == "old")
+    }
+
+    @Test func downloadRenameToTakenNameAsksAgain() async throws {
+        let s = try await Sandbox()
+        defer { s.remove() }
+        try s.write("new", "x.txt", in: s.server)
+        try s.write("old", "x.txt", in: s.local)
+        try s.write("old2", "y.txt", in: s.local)
+        let asked = PromptLog<String>()
+        let answers = PromptLog<ConflictResolution>([.rename("y.txt"), .rename("z.txt")])
+        _ = try await s.transfer.download([s.at("/x.txt")], to: s.local, kind: .copy, progress: { _ in }, conflict: { c in
+            asked.append(c.destination.name)
+            return answers.popFirst() ?? .cancel
+        })
+        #expect(asked.all == ["x.txt", "y.txt"])
+        #expect(s.read("z.txt", in: s.local) == "new")
+        #expect(s.read("y.txt", in: s.local) == "old2")
+    }
+
+    @Test func moveOnServerCannotRename() async throws {
+        let s = try await Sandbox()
+        defer { s.remove() }
+        try s.write("A", "a.txt", in: s.server)
+        try s.write("old", "target/a.txt", in: s.server)
+        let renamable = PromptLog<Bool>()
+        _ = try await s.transfer.transfer([s.at("/a.txt")], to: s.at("/target"), kind: .move, scratch: s.scratch,
+                                          progress: { _ in }, conflict: { c in
+            renamable.append(c.canRename)
+            return .skip
+        })
+        #expect(renamable.all == [false])
+    }
+
     @Test func uploadMoveRemovesOnlyWhatArrived() async throws {
         let s = try await Sandbox()
         defer { s.remove() }
