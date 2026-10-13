@@ -551,6 +551,40 @@ func updateOtherFormats(format: ArchiveFormat) async throws {
     }
 }
 
+/// The panel may reach an archive through a symlinked folder or in another letter case;
+/// invalidating it by any of its paths drops the cached index.
+@Test func catalogInvalidatesThroughSymlinkAndCase() async throws {
+    try await withSandbox { root in
+        let src = root.sub("src")
+        try write(src.sub("a.txt"), "1")
+        let real = root.sub("Real")
+        try FileManager.default.createDirectory(at: real, withIntermediateDirectories: false)
+        let archive = real.sub("Box.zip")
+        try await ArchiveWriter.create(archive, format: .zip, adding: [.init(file: src.sub("a.txt"), path: "a.txt")], progress: noProgress)
+        try FileManager.default.createSymbolicLink(atPath: root.sub("link").path, withDestinationPath: "Real")
+        let viaLink = root.sub("link/Box.zip")
+
+        let catalog = ArchiveCatalog()
+        #expect(try await catalog.index(of: viaLink).entries.map(\.name) == ["a.txt"])
+
+        // Same size and date: only an invalidation can tell the cache apart.
+        var st = stat()
+        #expect(stat(archive.path, &st) == 0)
+        try write(src.sub("b.txt"), "2")
+        let other = root.sub("other.zip")
+        try await ArchiveWriter.create(other, format: .zip, adding: [.init(file: src.sub("b.txt"), path: "b.txt")], progress: noProgress)
+        var ot = stat()
+        #expect(stat(other.path, &ot) == 0 && ot.st_size == st.st_size)
+        #expect(rename(other.path, archive.path) == 0)
+        var times = [st.st_atimespec, st.st_mtimespec]
+        #expect(utimensat(AT_FDCWD, archive.path, &times, 0) == 0)
+        #expect(try await catalog.index(of: viaLink).entries.map(\.name) == ["a.txt"])
+
+        await catalog.invalidate(root.sub("real/box.ZIP"))
+        #expect(try await catalog.index(of: viaLink).entries.map(\.name) == ["b.txt"])
+    }
+}
+
 // MARK: - Encryption and owners
 
 /// Zip with encrypted "a.txt" and "sub/big.bin" plus a plain "plain.txt" (password "secret").
