@@ -75,7 +75,7 @@
 
 ## Phase 6: Polish
 
-- [ ] T012 Czech strings complete; CHANGELOG (Unreleased, Added); spec status Implemented. Build
+- [X] T012 Czech strings complete; CHANGELOG (Unreleased, Added); spec status Implemented. Build
   without warnings, `swift test` green, commit.
 - [ ] T013 GUI check on the test copy following quickstart.md (scratch files only); record the result
   here.

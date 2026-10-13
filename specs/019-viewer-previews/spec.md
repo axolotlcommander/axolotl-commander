@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-13
 
-**Status**: In progress (scheduled for 0.5.0 on 2026-10-13)
+**Status**: Implemented (GUI check pending)
 
 **Input**: User description: "For the next spec: preview of JSON, SVG, possibly WAV, videos and media in
 general; syntax highlighting for .NET sources (C#) if it is not there yet."
