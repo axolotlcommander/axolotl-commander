@@ -79,6 +79,21 @@ enum ViewerDefaults {
 /// Text view of the viewer: viewer keys (Space, ⌫, Esc…) first, then normal selection keys.
 final class ViewerTextView: NSTextView {
     var onKey: ((NSEvent) -> Bool)?
+    /// The source text under a range: the display may hold line breaks the file does not have.
+    var sourceText: ((NSRange) -> String)?
+
+    override func copy(_ sender: Any?) {
+        guard sourceText != nil else { return super.copy(sender) }
+        _ = writeSelection(to: .general, types: [.string])
+    }
+
+    override func writeSelection(to pboard: NSPasteboard, types: [NSPasteboard.PasteboardType]) -> Bool {
+        guard let sourceText else { return super.writeSelection(to: pboard, types: types) }
+        let range = selectedRange()
+        guard range.length > 0 else { return false }
+        pboard.clearContents()
+        return pboard.setString(sourceText(range), forType: .string)
+    }
 
     override func keyDown(with event: NSEvent) {
         if onKey?(event) == true { return }
@@ -152,6 +167,8 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
     private var loadError: String?
     /// Encoding the text view currently shows; nil = not decoded yet.
     private var decodedAs: TextEncoding?
+    /// What the text view shows, with very long lines cut for display.
+    private var shownText = SplitText("")
     private var truncated = false
     private var wrap = ViewerDefaults.wrap
     private var fontSize = ViewerDefaults.fontSize
@@ -172,7 +189,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         return SyntaxLanguage.forFile(named: sequence.current.pathExtension.lowercased() == "svgz" ? String(name.dropLast()) : name)
     }
     /// The current JSON file indented for Preview, or why it is not JSON.
-    private var jsonText: String?
+    private var jsonText: SplitText?
     private var jsonError: JSONParseError?
     /// The first bad line of a JSON Lines file; Preview keeps that line as written.
     private var jsonLineError: JSONParseError?
@@ -476,14 +493,14 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
                 return
             }
             decodedAs = nil
-            setText("")
+            setText(SplitText(""))
             infoField.stringValue = String(localized: "Formatting…")
             let data = data, lines = ViewerDefaults.jsonLinesExtensions.contains(sequence.current.pathExtension.lowercased())
             previewTask = Task {
-                let result = await Task.detached(priority: .userInitiated) { () -> Result<(String, JSONParseError?), any Error> in
+                let result = await Task.detached(priority: .userInitiated) { () -> Result<(SplitText, JSONParseError?), any Error> in
                     Result {
-                        let document = try JSONDocument.parse(data, lines: lines, isCancelled: { Task.isCancelled })
-                        return (document.formatted(), document.firstLineError)
+                        let output = try JSONFormatter.format(data, lines: lines, isCancelled: { Task.isCancelled })
+                        return (SplitText(output.text), output.firstLineError)
                     }
                 }.value
                 guard !Task.isCancelled else { return }
@@ -529,7 +546,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
     }
 
     /// The indented JSON in the text view; the source is decoded again when Text comes back.
-    private func showFormattedJSON(_ text: String, at position: Double) {
+    private func showFormattedJSON(_ text: SplitText, at position: Double) {
         decodedAs = nil
         setText(text)
         scrollText(to: position)
@@ -547,7 +564,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         truncated = data.count - skip > limit
         decodeTask = Task {
             let text = await Task.detached(priority: .userInitiated) {
-                TextDecoding.decode(data, as: encoding, skip: skip, limit: limit)
+                SplitText(TextDecoding.decode(data, as: encoding, skip: skip, limit: limit))
             }.value
             guard !Task.isCancelled else { return }
             setText(text)
@@ -560,10 +577,14 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         }
     }
 
-    private func setText(_ text: String) {
+    private func setText(_ text: String) { setText(SplitText(text)) }
+
+    private func setText(_ text: SplitText) {
         textGeneration += 1
         highlightTask?.cancel()
-        textView.textStorage?.setAttributedString(NSAttributedString(string: text, attributes: [
+        shownText = text
+        textView.sourceText = text.isSplit ? { text.sourceText(ofDisplay: $0) } : nil
+        textView.textStorage?.setAttributedString(NSAttributedString(string: text.display, attributes: [
             .font: font, .foregroundColor: NSColor.textColor,
         ]))
         textView.setSelectedRange(NSRange(location: 0, length: 0))
@@ -578,12 +599,15 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
             storage.addAttribute(.foregroundColor, value: NSColor.textColor, range: NSRange(location: 0, length: storage.length))
             return
         }
-        let text = storage.string, generation = textGeneration
+        let text = shownText, generation = textGeneration
         highlightTask = Task {
+            // Lexed on the source, so a cut line does not end a string or a comment on screen.
             let spans = await Task.detached(priority: .userInitiated) {
-                SyntaxHighlighter.spans(in: text, language: language)
+                SyntaxHighlighter.spans(in: text.source, language: language).map {
+                    text.isSplit ? SyntaxSpan(range: text.displayRange(ofSource: $0.range), kind: $0.kind) : $0
+                }
             }.value
-            guard !Task.isCancelled, generation == textGeneration, storage.length == (text as NSString).length else { return }
+            guard !Task.isCancelled, generation == textGeneration else { return }
             storage.beginEditing()
             for span in spans { storage.addAttribute(.foregroundColor, value: SyntaxColors.color(for: span.kind), range: span.range) }
             storage.endEditing()
@@ -661,6 +685,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         }
         if showsFormattedJSON {
             parts.append(String(localized: "formatted JSON"))
+            if shownText.isSplit { parts.append(String(localized: "long lines split for display")) }
             if let jsonLineError { parts.append(String(localized: "not valid JSON: \(Self.message(jsonLineError))")) }
             infoField.stringValue = parts.joined(separator: " · ")
             return
@@ -693,6 +718,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         if mode == .text, let jsonError {
             parts.append(String(localized: "not valid JSON: \(Self.message(jsonError))"))
         }
+        if usesTextView, shownText.isSplit { parts.append(String(localized: "long lines split for display")) }
         if mode == .text, truncated {
             parts.append(String(localized: "text shows the first \(Format.bytes(Int64(ViewerDefaults.textLimit))), Hex shows all"))
         }
@@ -903,7 +929,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         encodingOverride = nil
         modeOverride = nil
         tablePreview.resetChoices()
-        textView.textStorage?.setAttributedString(NSAttributedString())
+        setText("")
         load()
     }
 
@@ -1116,12 +1142,13 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
             guard let text = await TextPrompt.ask(title: String(localized: "Go to Line"), message: String(localized: "Line number:"),
                                                   initial: "", in: window),
                   let line = Int(text.trimmingCharacters(in: .whitespaces)), line > 0 else { return }
-            let string = textView.string as NSString
+            // Lines of the file, not the display lines of a cut long line.
+            let string = shownText.source as NSString
             var start = 0
             for _ in 1..<line where start < string.length {
                 start = NSMaxRange(string.lineRange(for: NSRange(location: start, length: 0)))
             }
-            let range = string.lineRange(for: NSRange(location: min(start, string.length), length: 0))
+            let range = shownText.displayRange(ofSource: string.lineRange(for: NSRange(location: min(start, string.length), length: 0)))
             scrollText(toCharacter: range.location)
             textView.setSelectedRange(range)
             textView.showFindIndicator(for: range)
@@ -1135,8 +1162,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         switch mode {
         case .text:
             let range = textView.selectedRange()
-            let string = textView.string as NSString
-            let text = range.length > 0 ? string.substring(with: range) : string as String
+            let text = range.length > 0 ? shownText.sourceText(ofDisplay: range) : shownText.source
             payload = Data(text.utf8)
         case .hex:
             let range = hexView.hasSelection ? hexView.selection : 0..<data.count

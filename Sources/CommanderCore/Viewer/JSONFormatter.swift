@@ -5,9 +5,6 @@ public import Foundation
 
 // MARK: - Public API
 
-/// The type of a node in a parsed JSON document; `error` is a bad line of a JSON Lines file.
-public enum JSONKind: Sendable, Equatable { case object, array, string, number, bool, null, error }
-
 /// Where and why parsing stopped.
 public struct JSONParseError: Error, Sendable, Equatable {
     public enum Reason: Sendable, Equatable {
@@ -28,78 +25,35 @@ public struct JSONParseError: Error, Sendable, Equatable {
     }
 }
 
-/// One value of the document. Ranges are byte offsets into `JSONDocument.bytes`.
-public struct JSONNode: Sendable, Equatable {
-    public var kind: JSONKind
-    /// The key token including its quotes; members of objects only.
-    public var key: Range<Int>?
-    /// Position among siblings (array index, member index, line index in JSON Lines).
-    public var index: Int
-    /// The value text: the whole container for objects and arrays, the line for an error node.
-    public var value: Range<Int>
-    /// -1 for the root.
-    public var parent: Int
-    /// -1 when there are no children.
-    public var firstChild: Int
-    public var childCount: Int
-    /// -1 for the last child.
-    public var nextSibling: Int
-    /// 1-based start of the value.
-    public var line: Int
-    public var column: Int
-    /// Only for `.error` nodes; line and column are absolute in the file.
-    public var error: JSONParseError?
-}
-
-/// An order-preserving JSON (or JSON Lines) document: a flat pre-order node list over the file bytes.
-public struct JSONDocument: Sendable {
-    /// The file content without a UTF-8 BOM; node ranges point into it.
-    public let bytes: [UInt8]
-    /// File order (pre-order); `nodes[0]` is the root (a virtual array of the lines in JSON Lines).
-    public let nodes: [JSONNode]
-    public let isLines: Bool
-
-    /// Parses `data` in one pass. Accepts `//` and `/* */` comments, trailing commas and a BOM.
-    /// Throws `JSONParseError` for a broken document (never in lines mode, where a bad line becomes an
-    /// `.error` node) and `CancellationError` once `isCancelled` returns true.
-    public static func parse(_ data: Data, lines: Bool,
-                             isCancelled: @Sendable () -> Bool = { false }) throws -> JSONDocument {
-        let hasBOM = data.count >= 3 && data.starts(with: [0xEF, 0xBB, 0xBF])
-        let bytes = hasBOM ? [UInt8](data.dropFirst(3)) : [UInt8](data)
-        let nodes = try bytes.withUnsafeBufferPointer { buf in
-            var scanner = JSONScanner(buf: buf)
-            if lines {
-                try scanner.parseLines(isCancelled: isCancelled)
-            } else {
-                try scanner.parseDocument(isCancelled: isCancelled)
-            }
-            return scanner.nodes
-        }
-        return JSONDocument(bytes: bytes, nodes: nodes, isLines: lines)
-    }
-
+/// Checks and indents JSON (or JSON Lines) in one pass over the bytes, without building a tree, so a
+/// file of tens of megabytes needs little more memory than its formatted text.
+public enum JSONFormatter {
     /// Deeper levels share this indentation, so a deeply nested file cannot blow up the formatted text.
     public static let maxIndentDepth = 64
 
-    /// The first bad line of a JSON Lines file.
-    public var firstLineError: JSONParseError? {
-        isLines ? nodes.first { $0.kind == .error }?.error : nil
+    public struct Output: Sendable, Equatable {
+        public let text: String
+        /// The first bad line of a JSON Lines file; that line is kept as written.
+        public let firstLineError: JSONParseError?
     }
 
-    /// The document indented by two spaces with members in file order. Keys, strings and numbers stay
-    /// exactly as written; comments, trailing commas and the BOM are dropped. JSON Lines give one record
-    /// after another, each indented, a bad line as written and empty lines left out.
-    public func formatted() -> String {
-        guard isLines else { return String(decoding: prettyPrinted(0), as: UTF8.self) }
-        var out: [UInt8] = []
-        out.reserveCapacity(bytes.count + bytes.count / 2)
-        var line = nodes[0].firstChild
-        while line >= 0 {
-            if !out.isEmpty { out.append(Byte.newline) }
-            out += prettyPrinted(line)
-            line = nodes[line].nextSibling
+    /// The document indented by two spaces per level with members in file order. Keys, strings and
+    /// numbers stay exactly as written; `//` and `/* */` comments, trailing commas and a UTF-8 BOM are
+    /// dropped. JSON Lines give one record after another, each indented, a bad line as written and
+    /// empty lines left out. Throws `JSONParseError` for a broken document (never in lines mode) and
+    /// `CancellationError` once `isCancelled` returns true.
+    public static func format(_ data: Data, lines: Bool,
+                              isCancelled: @Sendable () -> Bool = { false }) throws -> Output {
+        try data.withUnsafeBytes { raw in
+            let buf = raw.bindMemory(to: UInt8.self)
+            var scanner = JSONScanner(buf: buf)
+            if lines {
+                try scanner.formatLines(isCancelled: isCancelled)
+            } else {
+                try scanner.formatDocument(isCancelled: isCancelled)
+            }
+            return Output(text: String(decoding: scanner.out, as: UTF8.self), firstLineError: scanner.firstLineError)
         }
-        return String(decoding: out, as: UTF8.self)
     }
 }
 
@@ -130,9 +84,7 @@ private func isIdentifierStart(_ b: UInt8) -> Bool {
 
 private struct JSONScanner {
     struct Frame {
-        var node: Int
         var isObject: Bool
-        var lastChild: Int
         var count: Int
     }
 
@@ -145,33 +97,35 @@ private struct JSONScanner {
     var colPos = 0
     var colCount = 0
     var nextCheck = 0
-    var nodes: [JSONNode] = []
+    var out: [UInt8] = []
     var stack: [Frame] = []
+    var firstLineError: JSONParseError?
 
     init(buf: UnsafeBufferPointer<UInt8>) {
         self.buf = buf
         self.end = buf.count
-        nodes.reserveCapacity(max(16, buf.count / 32))
+        if buf.count >= 3 && buf[0] == 0xEF && buf[1] == 0xBB && buf[2] == 0xBF {
+            pos = 3
+            lineStart = 3
+            colPos = 3
+        }
+        out.reserveCapacity(buf.count + buf.count / 2)
     }
 
     // MARK: Entry points
 
-    mutating func parseDocument(isCancelled: () -> Bool) throws {
+    mutating func formatDocument(isCancelled: () -> Bool) throws {
         try skipTrivia()
         guard pos < end else { throw JSONParseError(line: 1, column: 1, reason: .emptyDocument) }
-        _ = try parseValue(parent: -1, index: 0, isCancelled: isCancelled)
+        try formatValue(isCancelled: isCancelled)
         try skipTrivia()
         if pos < end { throw fail(.trailingData, at: pos) }
     }
 
-    mutating func parseLines(isCancelled: () -> Bool) throws {
+    mutating func formatLines(isCancelled: () -> Bool) throws {
         let total = buf.count
-        nodes.append(JSONNode(kind: .array, key: nil, index: 0, value: 0..<total, parent: -1, firstChild: -1,
-                              childCount: 0, nextSibling: -1, line: 1, column: 1, error: nil))
-        var start = 0
+        var start = pos
         var line = 1
-        var lastChild = -1
-        var count = 0
         while start <= total {
             var lineEnd = start
             while lineEnd < total && buf[lineEnd] != Byte.newline { lineEnd += 1 }
@@ -189,40 +143,49 @@ private struct JSONScanner {
                 nextCheck = pos + 65_536
                 if isCancelled() { throw CancellationError() }
             }
-            let mark = nodes.count
-            var child = -1
+            var mark = -1
             do {
                 try skipTrivia()
                 if pos < end {
-                    child = try parseValue(parent: 0, index: count, isCancelled: isCancelled)
+                    if !out.isEmpty { out.append(Byte.newline) }
+                    mark = out.count
+                    try formatValue(isCancelled: isCancelled)
                     try skipTrivia()
                     if pos < end { throw fail(.trailingData, at: pos) }
                 }
             } catch let error as JSONParseError {
-                nodes.removeSubrange(mark...)
-                child = nodes.count
-                nodes.append(JSONNode(kind: .error, key: nil, index: count, value: start..<contentEnd, parent: 0,
-                                      firstChild: -1, childCount: 0, nextSibling: -1, line: line, column: 1,
-                                      error: error))
-            }
-            if child >= 0 {
-                if lastChild < 0 { nodes[0].firstChild = child } else { nodes[lastChild].nextSibling = child }
-                lastChild = child
-                count += 1
+                // A bad line stays as written.
+                if mark < 0 {
+                    if !out.isEmpty { out.append(Byte.newline) }
+                } else {
+                    out.removeSubrange(mark...)
+                }
+                out += buf[start..<contentEnd]
+                if firstLineError == nil { firstLineError = error }
             }
             if lineEnd >= total { break }
             start = lineEnd + 1
             line += 1
         }
-        nodes[0].childCount = count
     }
 
     // MARK: Values
 
-    /// Parses one value at `pos` and appends its subtree; returns the index of its node.
-    mutating func parseValue(parent: Int, index: Int, isCancelled: () -> Bool) throws -> Int {
-        var root = -1
-        var pendingKey: Range<Int>?
+    mutating func indent(_ depth: Int) {
+        out.append(Byte.newline)
+        out.append(contentsOf: repeatElement(0x20, count: min(depth, JSONFormatter.maxIndentDepth) * 2))
+    }
+
+    /// Before a member or element: a comma after the previous one, a new line and the indentation.
+    mutating func startItem() {
+        let t = stack.count - 1
+        if stack[t].count > 0 { out.append(Byte.comma) }
+        stack[t].count += 1
+        indent(stack.count)
+    }
+
+    /// Writes one value at `pos` with everything inside it.
+    mutating func formatValue(isCancelled: () -> Bool) throws {
         valueLoop: while true {
             try skipTrivia()
             if pos >= nextCheck {
@@ -231,62 +194,36 @@ private struct JSONScanner {
             }
             guard pos < end else { throw fail(.unexpectedEnd, at: end) }
             let start = pos
-            let kind: JSONKind
             switch buf[pos] {
-            case Byte.openBrace: kind = .object
-            case Byte.openBracket: kind = .array
-            case Byte.quote: kind = .string
-            case Byte.minus, Byte.zero...Byte.nine: kind = .number
-            case 0x74, 0x66: kind = .bool // t f
-            case 0x6E: kind = .null // n
-            default: throw badValueStart()
-            }
-
-            let idx = nodes.count
-            var parentIndex = parent
-            var childIndex = index
-            if !stack.isEmpty {
-                let t = stack.count - 1
-                parentIndex = stack[t].node
-                childIndex = stack[t].count
-                if stack[t].lastChild < 0 {
-                    nodes[parentIndex].firstChild = idx
-                } else {
-                    nodes[stack[t].lastChild].nextSibling = idx
-                }
-                stack[t].lastChild = idx
-                stack[t].count += 1
-            } else {
-                root = idx
-            }
-            nodes.append(JSONNode(kind: kind, key: pendingKey, index: childIndex, value: start..<start,
-                                  parent: parentIndex, firstChild: -1, childCount: 0, nextSibling: -1,
-                                  line: lineNo, column: column(at: start), error: nil))
-            pendingKey = nil
-
-            switch kind {
-            case .object, .array:
-                let isObject = kind == .object
+            case Byte.openBrace, Byte.openBracket:
+                let isObject = buf[pos] == Byte.openBrace
                 pos += 1
-                stack.append(Frame(node: idx, isObject: isObject, lastChild: -1, count: 0))
                 try skipTrivia()
                 guard pos < end else { throw fail(.unexpectedEnd, at: end) }
                 if buf[pos] == (isObject ? Byte.closeBrace : Byte.closeBracket) {
-                    closeContainer()
+                    pos += 1
+                    out.append(contentsOf: isObject ? [Byte.openBrace, Byte.closeBrace] : [Byte.openBracket, Byte.closeBracket])
                 } else {
-                    if isObject { pendingKey = try parseKey() }
+                    out.append(isObject ? Byte.openBrace : Byte.openBracket)
+                    stack.append(Frame(isObject: isObject, count: 0))
+                    startItem()
+                    if isObject { try formatKey() }
                     continue valueLoop
                 }
-            case .string:
+            case Byte.quote:
                 try scanString()
-            case .number:
+                out += buf[start..<pos]
+            case Byte.minus, Byte.zero...Byte.nine:
                 try scanNumber()
-            case .bool, .null, .error:
+                out += buf[start..<pos]
+            case 0x74, 0x66, 0x6E: // t f n
                 let literal = buf[pos] == 0x74 ? trueBytes : buf[pos] == 0x66 ? falseBytes : nullBytes
                 guard matches(literal, at: pos) else { throw fail(.unexpectedCharacter, at: pos) }
                 pos += literal.count
+                out += literal
+            default:
+                throw badValueStart()
             }
-            if kind != .object && kind != .array { nodes[idx].value = start..<pos }
 
             // After a value: a comma moves on, a closing bracket ends the container.
             while let top = stack.last {
@@ -302,7 +239,8 @@ private struct JSONScanner {
                         closeContainer()
                         continue
                     }
-                    if top.isObject { pendingKey = try parseKey() }
+                    startItem()
+                    if top.isObject { try formatKey() }
                     continue valueLoop
                 } else if b == close {
                     closeContainer()
@@ -310,19 +248,20 @@ private struct JSONScanner {
                     throw fail(.unexpectedCharacter, at: pos)
                 }
             }
-            return root
+            return
         }
     }
 
     mutating func closeContainer() {
         let frame = stack.removeLast()
-        nodes[frame.node].value = nodes[frame.node].value.lowerBound..<(pos + 1)
-        nodes[frame.node].childCount = frame.count
+        indent(stack.count)
+        out.append(frame.isObject ? Byte.closeBrace : Byte.closeBracket)
         pos += 1
     }
 
-    /// Reads `"key"` and the colon after it; returns the key token range.
-    mutating func parseKey() throws -> Range<Int> {
+    /// Reads `"key"` and the colon after it and writes `"key": `.
+    mutating func formatKey() throws {
+        try skipTrivia()
         guard pos < end else { throw fail(.unexpectedEnd, at: end) }
         let b = buf[pos]
         guard b == Byte.quote else {
@@ -331,12 +270,12 @@ private struct JSONScanner {
         }
         let start = pos
         try scanString()
-        let key = start..<pos
+        out += buf[start..<pos]
+        out.append(contentsOf: [Byte.colon, 0x20])
         try skipTrivia()
         guard pos < end else { throw fail(.unexpectedEnd, at: end) }
         guard buf[pos] == Byte.colon else { throw fail(.unexpectedCharacter, at: pos) }
         pos += 1
-        return key
     }
 
     /// The error for a byte that cannot start a value.
@@ -485,57 +424,5 @@ private struct JSONScanner {
 
     mutating func fail(_ reason: JSONParseError.Reason, at p: Int) -> JSONParseError {
         JSONParseError(line: lineNo, column: column(at: p), reason: reason)
-    }
-}
-
-// MARK: - Formatting
-
-extension JSONDocument {
-    /// Indented JSON (2 spaces) of a node, tokens as written.
-    fileprivate func prettyPrinted(_ node: Int) -> [UInt8] {
-        struct Frame { var next: Int; var depth: Int; var isObject: Bool; var first: Bool }
-        var out: [UInt8] = []
-        var stack: [Frame] = []
-
-        func indent(_ depth: Int) { out.append(contentsOf: repeatElement(0x20, count: min(depth, Self.maxIndentDepth) * 2)) }
-
-        func emit(_ i: Int, depth: Int) {
-            let n = nodes[i]
-            switch n.kind {
-            case .object, .array:
-                let isObject = n.kind == .object
-                if n.firstChild < 0 {
-                    out.append(contentsOf: isObject ? [Byte.openBrace, Byte.closeBrace] : [Byte.openBracket, Byte.closeBracket])
-                } else {
-                    out.append(isObject ? Byte.openBrace : Byte.openBracket)
-                    stack.append(Frame(next: n.firstChild, depth: depth + 1, isObject: isObject, first: true))
-                }
-            case .string, .number, .bool, .null, .error:
-                out.append(contentsOf: bytes[n.value])
-            }
-        }
-
-        emit(node, depth: 0)
-        while let top = stack.last {
-            let t = stack.count - 1
-            guard top.next >= 0 else {
-                stack.removeLast()
-                out.append(Byte.newline)
-                indent(top.depth - 1)
-                out.append(top.isObject ? Byte.closeBrace : Byte.closeBracket)
-                continue
-            }
-            if !top.first { out.append(Byte.comma) }
-            out.append(Byte.newline)
-            indent(top.depth)
-            stack[t].first = false
-            stack[t].next = nodes[top.next].nextSibling
-            if top.isObject, let key = nodes[top.next].key {
-                out.append(contentsOf: bytes[key])
-                out.append(contentsOf: [Byte.colon, 0x20])
-            }
-            emit(top.next, depth: top.depth)
-        }
-        return out
     }
 }

@@ -9072,6 +9072,16 @@
         }
       }
     },
+    "long lines split for display": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "dlouhé řádky rozdělené pro zobrazení"
+          }
+        }
+      }
+    },
     "lowercase": {
       "localizations": {
         "cs": {
