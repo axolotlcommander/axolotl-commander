@@ -84,6 +84,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
   showed the context menu for it instead.
 - ⌘X cuts the selected text in the command line and other text fields; the Edit menu had no Cut
   item. ⌃X, ⌃C and ⌃V also cut, copy and paste text while the command line has focus.
+- Extracting an archive no longer briefly changes the process umask, which could give files
+  created at the same moment (by another operation) the wrong permissions.
+- Names in zip files made on Windows without the UTF-8 flag (for example Czech names in CP852)
+  show and extract correctly instead of with "�"; the code page follows the system language.
+- An archive opened through a symlinked folder or with different letter case no longer shows a
+  stale member list after it changes.
+- F4 says when the editor chosen in Settings is not installed instead of silently opening
+  TextEdit.
 
 ## [0.3.1] - 2026-10-11
 
