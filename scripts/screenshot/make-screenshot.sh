@@ -62,7 +62,7 @@ shoot() {
   [[ -n "$PID" ]] || { echo "the app did not start" >&2; exit 1; }
   "$DRIVE" wait "$PID"
   "$DRIVE" frame "$PID" $WIDTH $HEIGHT
-  sleep 1
+  sleep 3  # the first start of a new copy takes longer to list both panels
   # Left panel: open "website" from Projects in a new tab, mark three files, rest on README.
   #   Projects:  ..  mobile-app  website
   #   website:   ..  assets docs src  app.js deploy.sh favicon.ico index.html LICENSE
