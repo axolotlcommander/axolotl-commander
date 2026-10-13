@@ -15,8 +15,8 @@ Four parts, each shipped with its own commit, in the order JSON → SVG → .NET
   - `SyntaxHighlighter.swift`: F#, solution files, Razor, more XML extensions (R6; FR-007).
 - **UI** (`Sources/AxolotlCommander/Viewer/`):
   - `ViewerWindowController`: `PreviewKind.json`, `.vector`, `.media`; `previewKind(for:)`,
-    `prefersQuickLook` (SVG and playable media stay in the viewer, FR-004 to FR-006), default modes, the
-    20 MB question (R3), `show`/`showPreview`, `validateMenuItem`, `zoom`, `find`, `updateInfo`, `step`
+    `prefersQuickLook` (SVG and playable media stay in the viewer, FR-004 to FR-006), default modes (JSON
+    over 64 MB opens Text, R3), `show`/`showPreview`, `validateMenuItem`, `zoom`, `find`, `updateInfo`, `step`
     (image stepping accepts SVG), `windowWillClose` and leaving Preview stop media.
   - Formatted JSON in the existing text view for Preview of `.json` (R2): JSON highlighting, find, wrap,
     copy as in Text mode; the source decoded again for Text.
@@ -32,7 +32,7 @@ Four parts, each shipped with its own commit, in the order JSON → SVG → .NET
   ranges; indentation is capped at 64 levels.
 - **Constraints**: no network for SVG (system renderer, verified R4) and none for the existing web
   previews (unchanged); playback never starts by itself; CI fails on warnings; the viewer is read-only.
-- **Settings**: none new (FR-009); the 20 MB limit is a constant.
+- **Settings**: none new (FR-009); the 64 MB limit is the existing Text mode constant.
 
 ## Constitution Check
 

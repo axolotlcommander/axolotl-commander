@@ -24,8 +24,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
   single items, F3 compares two files, and nothing is copied before the summary is confirmed.
   A one-way sync can also move extra items to the Trash (off by default).
 - The viewer (F3) shows JSON formatted: indented and highlighted, keys in file order, values exactly as
-  written, with the usual find, copy and wrapping; comments, trailing commas and JSON Lines work, files
-  over 20 MB ask first, and broken JSON opens as text with the place of the first error.
+  written, with the usual find, copy and wrapping; comments, trailing commas and JSON Lines work, and
+  broken JSON opens as text with the place of the first error.
 - SVG drawings open in the viewer as pictures (with zoom) instead of Quick Look, without running
   scripts or loading anything from the internet.
 - Sound and video files the Mac can play open in the viewer with a player: Return plays and pauses,

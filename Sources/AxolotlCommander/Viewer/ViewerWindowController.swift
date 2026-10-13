@@ -59,8 +59,6 @@ enum ViewerDefaults {
     static let tableExtensions: Set<String> = ["csv", "tsv", "tab"]
     static let jsonExtensions: Set<String> = ["json", "jsonc", "json5", "geojson", "jsonl", "ndjson"]
     static let jsonLinesExtensions: Set<String> = ["jsonl", "ndjson"]
-    /// Larger JSON files ask before they are formatted.
-    static let jsonFormatLimit = 20 << 20
 
     static func isJSON(_ url: URL) -> Bool {
         jsonExtensions.contains(url.pathExtension.lowercased())
@@ -178,8 +176,6 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
     private var jsonError: JSONParseError?
     /// The first bad line of a JSON Lines file; Preview keeps that line as written.
     private var jsonLineError: JSONParseError?
-    /// A large JSON file asks before it is formatted.
-    private var asksToFormat = false
 
     private let textScroll = NSScrollView()
     private let textView = ViewerTextView(usingTextLayoutManager: true)
@@ -380,7 +376,6 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         jsonText = nil
         jsonError = nil
         jsonLineError = nil
-        asksToFormat = false
         modeControl.setEnabled(previewKind != nil, forSegment: 2)
         window?.title = url.lastPathComponent
         window?.subtitle = url.deletingLastPathComponent().displayPath
@@ -405,16 +400,15 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
             hexView.encoding = encoding
             if loadError != nil {
                 mode = .text
+            } else if previewKind == .json, data.count > ViewerDefaults.textLimit, modeOverride != .hex {
+                // Too large to format at once: the start of the source; ⌘3 formats it on request.
+                mode = .text
             } else if let modeOverride, modeOverride != .preview || previewKind != nil {
                 mode = modeOverride
-            } else if previewKind == .json, data.count > ViewerDefaults.jsonFormatLimit {
-                mode = .text
-                asksToFormat = true
             } else {
                 mode = previewKind != nil ? .preview : isBinary ? .hex : .text
             }
             show(at: position)
-            if asksToFormat { Task { await askToFormat() } }
         }
     }
 
@@ -751,20 +745,6 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         guard isMedia, window?.firstResponder !== mediaPreview.keyView,
               !((window?.firstResponder as? NSTextView)?.isFieldEditor ?? false) else { return false }
         return mediaPreview.handleKey(event)
-    }
-
-    /// A JSON file over the limit: formatted only when the user wants it.
-    private func askToFormat() async {
-        guard let window, previewKind == .json, mode == .text else { return }
-        let url = sequence.current
-        let alert = NSAlert()
-        alert.messageText = String(localized: "This JSON file is \(Format.bytes(Int64(data.count))). Format it?")
-        alert.informativeText = String(localized: "Formatting a large file may take a while.")
-        alert.addButton(withTitle: String(localized: "Show Formatted"))
-        alert.addButton(withTitle: String(localized: "Text")).keyEquivalent = "\u{1b}"
-        let answer = await alert.beginSheetModal(for: window)
-        guard url == sequence.current, answer == .alertFirstButtonReturn else { return }
-        setMode(.preview)
     }
 
     /// Where and why a file is not JSON, for the status line.

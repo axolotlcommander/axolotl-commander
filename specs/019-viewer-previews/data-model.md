@@ -51,7 +51,7 @@ the UI: unexpected character, unterminated string, unsupported JSON5 syntax, tra
 ## PreviewKind (UI, `ViewerWindowController`)
 
 `markdown`, `html`, `image`, `table` (existing) + `json`, `vector`, `media`. Default mode is Preview for
-all of them except: invalid JSON → Text, Preview disabled; JSON above 20 MB → Text with the question.
+all of them except: invalid JSON → Text, Preview disabled; JSON above 64 MB → Text, Preview on request.
 Preview of `json` is the formatted text in the viewer's text view.
 
 ## SVGData

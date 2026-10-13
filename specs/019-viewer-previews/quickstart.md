@@ -24,8 +24,8 @@ session's scratch folder; the check only reads them.
    selection copies with ⌘C; Wrap Lines and zoom work; ⌘1 shows the source as written; Space moves to
    the next file.
 2. **Speed**: F3 on `min.json` shows the formatted text within 2 s and the window stays responsive.
-3. **Large**: F3 on `big.json` → Text with the question; Show Formatted formats it ("Formatting…" in
-   the status line); Esc on the question keeps Text.
+3. **Large**: F3 on `big.json` (26 MB) → "Formatting…" in the status line, then the formatted text
+   within about 5 s, with no question.
 4. **Errors**: `bad.json` opens in Text with "line 3, column …" and Preview disabled; `comments.jsonc`
    is formatted without its comments; `items.ndjson` formats lines 1 and 3, keeps line 2 as written and
    names it in the status line.

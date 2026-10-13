@@ -96,8 +96,20 @@ questions about the tree's start, its keys, Copy Value, Copy Path and Expand All
 - JSON Lines: one record after another, each indented; a bad line is kept as written and the status line
   names the first bad line; empty lines are left out.
 - Large files: above 20 MB the viewer opens Text and asks whether to format the file (Show Formatted /
-  Text, Esc = Text). ⌘3 later formats without asking.
+  Text, Esc = Text). ⌘3 later formats without asking. *Replaced the same day after the GUI check, see
+  the next session.*
 - Invalid JSON is unchanged: Text with the place of the first error in the status line, Preview disabled.
+
+### Session 2026-10-13 (GUI check)
+
+The GUI check showed that formatting the 26 MB test file takes about 5 seconds, while Text mode needs
+about 90 seconds to lay out the same file (one 26 MB line), and the question appeared only after that.
+The maintainer chose to format without asking:
+
+- Q: Large JSON? → A: No question. Every JSON file up to the Text mode limit (64 MB) opens formatted,
+  with "Formatting…" in the status line until the text is ready; stepping or closing cancels it. A larger
+  file opens in Text mode (the start of the source, as for other large text), and ⌘3 formats it on
+  request.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -200,8 +212,9 @@ A user opens F#, Razor, solution and MSBuild files with F3 and sees them highlig
 ### Edge Cases
 
 - **Large JSON** (tens of MB): formatting runs off the main thread, and the viewer stays responsive.
-  Above 20 MB the viewer asks first whether to format the file or show the text; stepping to such a
-  file asks again.
+  Above 64 MB (the Text mode limit) the file opens in Text mode, and ⌘3 formats it on request.
+- **A huge minified file in Text mode** (one line of tens of MB): laying it out takes long (about
+  90 seconds for 26 MB with wrapping). This is a limit of Text mode that this spec does not change.
 - **Very deep nesting**: indentation stops growing after 64 levels, so the formatted text stays about as
   long as the source.
 - **Duplicate keys** in an object: all are shown in file order.
@@ -225,8 +238,8 @@ A user opens F#, Razor, solution and MSBuild files with F3 and sees them highlig
 
 - **FR-001**: The viewer MUST offer formatted JSON in Preview mode for `.json`, `.jsonc`, `.json5`
   (comments and trailing commas only), `.geojson`, `.jsonl`, `.ndjson` and other files whose content
-  type is JSON. Preview MUST be the default mode for them; above 20 MB the viewer MUST ask before
-  formatting.
+  type is JSON. Preview MUST be the default mode for them up to 64 MB; larger files MUST open in Text
+  mode with Preview available on request.
 - **FR-002**: The formatted text MUST be indented by two spaces per level (at most 64 levels), keep
   members in file order and keys, strings and numbers exactly as written, and drop comments and
   trailing commas. It MUST be highlighted and offer the text view's find, selection, copy, wrapping and
@@ -244,8 +257,8 @@ A user opens F#, Razor, solution and MSBuild files with F3 and sees them highlig
   and as XML `.props`, `.targets`, `.vbproj`, `.fsproj`, `.nuspec`.
 - **FR-008**: Text and Hex modes MUST stay available for every file this spec previews. The next/previous
   file keys MUST work across previews of different kinds.
-- **FR-009**: Any new viewer preference MUST be a user preference in the settings export. The 20 MB
-  JSON limit is fixed and is not a preference.
+- **FR-009**: Any new viewer preference MUST be a user preference in the settings export. The 64 MB
+  JSON limit is the fixed Text mode limit and is not a preference.
 
 ### Key Entities
 

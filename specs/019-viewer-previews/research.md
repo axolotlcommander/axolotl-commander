@@ -36,12 +36,15 @@
 
 ## R3 Large JSON
 
-- **Decision**: above 20 MB (`ViewerDefaults.jsonFormatLimit`, a constant) the viewer opens the file in
-  Text mode and shows a sheet: "This JSON file is 34 MB. Format it?" with **Show Formatted** and
-  **Text** (Esc = Text). Show Formatted switches to Preview. Choosing Preview later with ⌘3 formats
-  without asking. Stepping to another large file asks again. Parsing and formatting always run in a
-  detached task ("Formatting…" in the status line); stepping or closing cancels it.
-- **Rationale**: the maintainer asked for a question rather than a silent limit or a setting.
+- **Decision** (revised 2026-10-13 after the GUI check): no question. Parsing and formatting always run
+  in a detached task ("Formatting…" in the status line); stepping or closing cancels it. A JSON file
+  larger than `ViewerDefaults.textLimit` (64 MB) opens in Text mode like other large text, even when the
+  previous file was in Preview; ⌘3 formats it on request.
+- **Rationale**: formatting 26 MB took about 5 s, while laying out the same single-line file in Text mode
+  took about 90 s, so opening Text first and asking was the slow path. The 64 MB cap keeps the parser's
+  node list and the formatted text within reasonable memory.
+- **Alternatives**: the first design (above 20 MB open Text and ask "Format it?") — dropped for the
+  reason above; asking before anything is shown (still slow when Text is chosen).
 
 ## R4 SVG
 
@@ -105,6 +108,6 @@
 ## R7 Commands, menus and settings
 
 - No new commands: the formatted JSON uses the text view's Copy, Find and Wrap commands.
-- No new user preference (FR-009): the 20 MB limit is a constant.
+- No new user preference (FR-009): the 64 MB limit is the existing Text mode constant.
 - `validateMenuItem` gets the new kinds: zoom for `.vector`; find, wrap and highlighting for the
   formatted JSON as in Text mode; Save Image As only for raster images.

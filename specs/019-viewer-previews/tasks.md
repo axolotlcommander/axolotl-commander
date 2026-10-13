@@ -99,10 +99,14 @@
   highlighted. Not checked: dark mode (would change the user's system appearance), audible stop.
   Found: Text mode of the 26 MB single-line `big.json` takes about 90 s and 4.6 GB to lay out with
   wrapping (an existing Text mode limit), so the question appears only after that.
+- [X] T015 [US1] No question for large JSON (spec Clarifications "GUI check", research R3): the sheet,
+  `jsonFormatLimit` and their strings removed from
+  `Sources/AxolotlCommander/Viewer/ViewerWindowController.swift`; JSON over `ViewerDefaults.textLimit`
+  opens in Text (also when stepping from Preview, Hex kept), ⌘3 formats it.
 
 ## Dependencies
 
-- T001 → T005. T002 → T003, T004 → T005 → T014. T006 → T007. T008 → T009. T010 → T011. T012 → T013.
+- T001 → T005. T002 → T003, T004 → T005 → T014 → T015. T006 → T007. T008 → T009. T010 → T011. T012 → T013.
 - The phases are independent apart from shared edits in `ViewerWindowController.swift` (do them in
   order).
 

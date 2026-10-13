@@ -2716,16 +2716,6 @@
         }
       }
     },
-    "Formatting a large file may take a while.": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Formátování velkého souboru může chvíli trvat."
-          }
-        }
-      }
-    },
     "Formatting…": {
       "localizations": {
         "cs": {
@@ -3086,16 +3076,6 @@
         }
       }
     },
-    "Show Formatted": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Naformátovat"
-          }
-        }
-      }
-    },
     "Show:": {
       "localizations": {
         "cs": {
@@ -3272,16 +3252,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Není co synchronizovat."
-          }
-        }
-      }
-    },
-    "This JSON file is %@. Format it?": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tento soubor JSON má %@. Naformátovat ho?"
           }
         }
       }
