@@ -106,7 +106,7 @@ No setup: the existing SwiftPM layout, no new dependencies.
   - `PanelLinkCommands` and the `ArchiveOperations` target folder use the branch root.
 - [X] T014 [US1] Watching and refresh: `watchLocation` does not watch in branch view; ⌘R and the
   refresh after operations rescan (through `model.refresh()` with progress); switching tabs rescans.
-- [ ] T015 [US1] Build without warnings, `swift test` green. Commit.
+- [X] T015 [US1] Build without warnings, `swift test` green. Commit.
 
 ## Phase 4: User Story 3 - Branch view of the marked items (P2)
 
@@ -123,6 +123,7 @@ No setup: the existing SwiftPM layout, no new dependencies.
   check yet.) Check the server branch: progress, Esc, F5 download and F8 from many folders. Fix
   what breaks; if servers turn out to be a real problem, tell the maintainer (they allowed dropping
   servers). Commit.
+  Still open after the 0.3.0 release: no live server was at hand for the GUI check.
 
 ## Phase 6: Polish
 

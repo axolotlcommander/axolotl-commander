@@ -282,7 +282,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
 
     private func canPerformHere(_ command: Command) -> Bool {
         switch command {
-        case .switchPanel, .leftVolumeMenu, .rightVolumeMenu, .focusCommandLine, .maximizePanel, .comparePanels,
+        case .switchPanel, .leftVolumeMenu, .rightVolumeMenu, .focusCommandLine, .maximizePanel, .comparePanels, .comparePanelsNow,
              .swapPanels, .sameFolderAsOther,
              .insertNameToCommandLine, .insertPathToCommandLine, .insertFullPathToCommandLine,
              .insertLeftPathToCommandLine, .insertRightPathToCommandLine,
@@ -315,6 +315,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         case .maximizePanel: setMaximized(maximizedSide == nil ? activeSide : nil)
         case .quickView: if quickView == nil { openQuickView() } else { closeQuickView() }
         case .comparePanels: CompareSheet.show(in: window) { [weak self] in self?.comparePanels() }
+        case .comparePanelsNow: comparePanels()
         case .swapPanels:
             closeQuickView()
             // ⌃U: the panels exchange their current tab (folder, cursor, selection, sort, history).
@@ -516,7 +517,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         split.splitViewItems[1].animator().isCollapsed = side == .left
     }
 
-    /// ⌃F10: marks what is missing or differs on the other side (names, sizes, dates).
+    /// ⇧F2, or Compare in the ⌃F10 options: marks what is missing or differs on the other side (names, sizes, dates).
     private func comparePanels() {
         if maximizedSide != nil { setMaximized(nil) }
         let rules = left.model.rules.caseSensitive && right.model.rules.caseSensitive ? left.model.rules : .apfsDefault

@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-10
 
-**Status**: Draft
+**Status**: Implemented
 
 **Input**: User description: "File sizes shown like Finder in the panels (setting): the Size column can show
 rounded sizes the way Finder does ("453 kB", "4,1 MB", "402 bajtů") instead of exact bytes; a setting

@@ -5,7 +5,7 @@ import AppKit
 import CommanderCore
 import SwiftUI
 
-/// ⌃F10 options; Enter compares with the remembered options.
+/// ⌃F10 options (⇧F2 compares with them at once); they are saved, and Enter compares.
 struct CompareOptionsView: View {
     @Bindable var settings = AppSettings.shared
     let onCompare: () -> Void
@@ -16,6 +16,7 @@ struct CompareOptionsView: View {
             Text("Compare Panels").font(.headline)
             Text("Files only in one panel are always selected. For files in both:")
                 .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
             Toggle("Select the newer file (date and time)", isOn: $settings.comparison.compareDate)
             Toggle("Select the larger file", isOn: $settings.comparison.compareSize)
             Toggle("Select folders found in one panel only", isOn: $settings.comparison.selectDirectoriesOnlyInOnePanel)

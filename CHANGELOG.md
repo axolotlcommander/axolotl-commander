@@ -5,11 +5,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 
 ## [Unreleased]
 
+### Changed
+
+- Arrow keys in a question with buttons (such as the replace question while copying) move the
+  default button, so Return presses the chosen one; Esc still cancels.
+- ⇧F2 compares the panels at once with the saved options (Compare Panels); ⌃F10 opens the
+  options first (Compare Panels…).
+
 ### Fixed
 
 - Clicking anywhere on a panel makes it the active one, not only clicking a file: the empty rows
   below the last file, the gaps and the info line, a column header, and a tab all do. Clicking
   into a panel also takes the keyboard back from the command line.
+- The explanation in Compare Panels wraps instead of being cut off.
 
 ## [0.4.0] - 2026-10-13
 
