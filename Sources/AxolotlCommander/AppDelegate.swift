@@ -14,6 +14,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         NSWindow.allowsAutomaticWindowTabbing = false
         NSApp.mainMenu = MainMenuBuilder.build()
         MainMenuBuilder.trackKeyWindow()
+        DialogKeys.install()
         // Panels offer their files to Services (also in the context menu).
         NSApp.registerServicesMenuSendTypes([.fileURL], returnTypes: [])
         RemoteSetup.configure()
