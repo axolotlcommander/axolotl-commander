@@ -117,6 +117,7 @@ enum SettingsTransfer {
             case .keyboard: KeyMaps.reload()
             case .appearance, .hotPaths, .connections, .preferences: AppSettings.shared.reload()
             case .userMenu: UserMenuDefaults.reload()
+            case .buttonBar: break // the windows follow UserDefaults changes
             case .toolbar:
                 guard let configuration = UserDefaults.standard.dictionary(forKey: toolbarKey) else { break }
                 for window in NSApp.windows where window.windowController is MainWindowController {
@@ -164,6 +165,7 @@ enum SettingsTransfer {
         case .userMenu: String(localized: "User Menu")
         case .connections: String(localized: "Saved Servers")
         case .toolbar: String(localized: "Toolbar")
+        case .buttonBar: String(localized: "Button Bar")
         }
     }
 

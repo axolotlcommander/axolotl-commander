@@ -5,7 +5,7 @@ public import Foundation
 
 /// The parts of a settings file, in the order the import dialog lists them.
 public enum SettingsSection: String, CaseIterable, Sendable {
-    case keyboard, preferences, appearance, hotPaths, userMenu, connections, toolbar
+    case keyboard, preferences, appearance, hotPaths, userMenu, connections, toolbar, buttonBar
 }
 
 /// What a stored preference may hold. Anything else in an imported file is skipped.
@@ -90,6 +90,9 @@ public struct SettingsCatalog: Sendable {
                                 default: .array([])),
             .connections: BlobSpec(defaultsKey: "connections", shape: .list(validateElement: decodes(ConnectionProfile.self)),
                                    default: .array([])),
+            // Spec 018; absent from format-1 files written before it.
+            .buttonBar: BlobSpec(defaultsKey: ButtonBarStore.key, shape: .list(validateElement: decodes(ButtonBarItem.self)),
+                                 default: encoded(ButtonBarStore.samples)),
         ]
         if let toolbarKey {
             blobs[.toolbar] = BlobSpec(defaultsKey: toolbarKey, storage: .propertyList, shape: .whole(validate: isObject))

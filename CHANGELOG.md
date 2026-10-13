@@ -68,6 +68,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
   bar shows; a key whose button is off still works. A button is at most 140 points wide, so a few
   buttons stand at the left instead of filling the bar. The bar's context menu has Choose Buttons…
   (spec 017).
+- Button bar (spec 018): a row of icon buttons for any app command or program (with the user
+  menu's variables), at the top or at the bottom after the function keys; View → Show Button Bar,
+  Settings → Button Bar (buttons, order, separators, SF Symbols or app icons) and a right click on
+  the bar. Buttons that do not fit go into a » menu. Off by default, with a few sample buttons.
 
 ### Changed
 

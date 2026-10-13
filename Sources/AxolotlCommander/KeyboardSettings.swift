@@ -118,7 +118,7 @@ struct KeyboardSettings: View {
             }
     }
 
-    private static func menuTitle(_ menu: MenuID) -> String {
+    static func menuTitle(_ menu: MenuID) -> String {
         switch menu {
         case .app: "Axolotl Commander"
         case .file: String(localized: "File")

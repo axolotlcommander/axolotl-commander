@@ -11,6 +11,10 @@ import Testing
 /// changes incompatibly, raise `SettingsArchive.formatVersion`, convert older files in `read`, and add
 /// a fixture for the new format next to this one.
 @Suite struct SettingsFormatCompatibilityTests {
+    /// Sections added after the fixture was frozen; a format-1 file may lack them.
+    static let addedLater: Set<SettingsSection> = [.buttonBar]
+    static let fixtureSections = SettingsSection.allCases.filter { !addedLater.contains($0) }
+
     static let fixture = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
         .appendingPathComponent("Fixtures/settings-format-1.json")
 
@@ -26,12 +30,12 @@ import Testing
         let contents = try SettingsArchive.read(data)
         #expect(contents.formatVersion == 1)
         #expect(contents.unknownSections.isEmpty)
-        #expect(contents.availableSections == SettingsSection.allCases)
+        #expect(contents.availableSections == Self.fixtureSections)
 
         try withSuite { defaults in
             let report = SettingsArchive.apply(contents, sections: Set(SettingsSection.allCases), to: defaults, catalog: .app)
             #expect(report.skipped.isEmpty, "format 1 entries this version no longer understands: \(report.skipped)")
-            #expect(report.applied == SettingsSection.allCases)
+            #expect(report.applied == Self.fixtureSections)
 
             // Exporting again keeps every value of the old file (new fields may be added).
             let again = try JSONValue(data: SettingsArchive.export(from: defaults, catalog: .app, appVersion: "test"))

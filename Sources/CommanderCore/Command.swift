@@ -24,7 +24,7 @@ public enum Command: String, CaseIterable, Hashable, Sendable {
     case filter, refresh, toggleHidden, branchView, branchViewSelected, maximizePanel, comparePanels, calculateSizes
     case swapPanels, sameFolderAsOther
     case viewModeDetailed, viewModeBrief
-    case toggleCommandLine, toggleFunctionKeyBar
+    case toggleCommandLine, toggleFunctionKeyBar, toggleButtonBar
 
     // Go (active panel)
     case goBack, goForward, goParent, goRoot, goHome, changeDirectory, editPath
@@ -231,6 +231,7 @@ public enum CommandRegistry {
         add(.quickView, "Quick View Panel", .view, [ch("q", c)], sep: true)
         add(.toggleCommandLine, "Show Command Line", .view)
         add(.toggleFunctionKeyBar, "Show Function Key Bar", .view)
+        add(.toggleButtonBar, "Show Button Bar", .view)
         add(.sameFolderAsOther, "Same Folder as Other Panel", .go, [ch(".", c)])
 
         add(.goBack, "Back", .go, [K(.left, [c, o]), ch("[", m), K(.left, o)])

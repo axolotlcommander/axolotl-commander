@@ -4,7 +4,7 @@
 import CommanderCore
 import SwiftUI
 
-enum SettingsTab: String { case general, viewer, appearance, hotPaths, userMenu, keyboard }
+enum SettingsTab: String { case general, viewer, appearance, hotPaths, userMenu, buttonBar, keyboard }
 
 struct SettingsView: View {
     @AppStorage(Launcher.terminalDefaultsKey) private var terminal = "com.apple.Terminal"
@@ -101,6 +101,10 @@ struct SettingsView: View {
             UserMenuSettings()
                 .tabItem { Label("User Menu", systemImage: "filemenu.and.selection") }
                 .tag(SettingsTab.userMenu.rawValue)
+
+            ButtonBarSettings()
+                .tabItem { Label("Button Bar", systemImage: "square.grid.3x1.below.line.grid.1x2") }
+                .tag(SettingsTab.buttonBar.rawValue)
 
             KeyboardSettings()
                 .tabItem { Label("Keyboard", systemImage: "keyboard") }

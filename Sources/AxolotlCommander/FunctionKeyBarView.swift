@@ -25,10 +25,12 @@ final class FunctionKeyBarView: NSView {
     private(set) var slots: [Command?] = Array(repeating: nil, count: FunctionKeyBar.count)
     private(set) var modifiers: KeyChord.Modifiers = []
     private static let height: CGFloat = 24
-    private static let gap: CGFloat = 1
+    static let gap: CGFloat = 1
     /// Room at both ends, so F1 does not sit in the window's rounded corner; the first key cap
     /// lines up with the command line field above.
-    private static let edge: CGFloat = 5
+    static let edge: CGFloat = 5
+    /// A button that shows only its key cap; the bottom row shrinks the keys no further (spec 018).
+    static var minimumButtonWidth: CGFloat { KeyCap.width + 8 }
 
     override init(frame: NSRect) {
         super.init(frame: frame)

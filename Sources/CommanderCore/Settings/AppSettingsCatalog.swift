@@ -15,6 +15,9 @@ extension SettingsCatalog {
         PreferenceSpec("showCommandLine", .bool, default: .bool(true)),
         PreferenceSpec("showFunctionKeyBar", .bool, default: .bool(true)),
         PreferenceSpec(FunctionKeyChoice.key, .string(allowed: nil), default: .string("")),
+        PreferenceSpec(ButtonBarPlacement.key, .string(allowed: values(ButtonBarPlacement.self)),
+                       default: .string(ButtonBarPlacement.off.rawValue)),
+        PreferenceSpec(ButtonBarPlacement.lastKey, .string(allowed: values(ButtonBarPlacement.self))),
         PreferenceSpec("terminal.bundleID", .string(allowed: nil), default: .string("com.apple.Terminal")),
         PreferenceSpec("editor.bundleID", .string(allowed: nil), default: .string("com.apple.TextEdit")),
         PreferenceSpec("viewer.encoding", .string(allowed: values(TextEncoding.self))),
@@ -56,7 +59,7 @@ extension SettingsCatalog {
     public static let notExported: Set<String> = [
         "settings.tab", "window.layout", "panel.\\(side).path", "panel.\\(side).sort",
         "recentPaths", "commandLine.history", "find.history.\\(key)", "find.options",
-        "batchRename.last", "changeCase.last", "functionKeyNotice",
+        "batchRename.last", "changeCase.last", "functionKeyNotice", "buttonBar.editSelection",
     ]
 
     private static func values<T: RawRepresentable & CaseIterable>(_ type: T.Type) -> Set<String>

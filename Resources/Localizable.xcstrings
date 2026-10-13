@@ -555,6 +555,16 @@
         }
       }
     },
+    "A line between buttons.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Čára mezi tlačítky."
+          }
+        }
+      }
+    },
     "A line between items.": {
       "localizations": {
         "cs": {
@@ -633,6 +643,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Přidat"
+          }
+        }
+      }
+    },
+    "Add Button…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přidat tlačítko…"
           }
         }
       }
@@ -753,6 +773,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Libovolné"
+          }
+        }
+      }
+    },
+    "App Icon": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ikona aplikace"
           }
         }
       }
@@ -972,6 +1002,16 @@
         }
       }
     },
+    "Bottom, after the function keys": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dole, za funkčními klávesami"
+          }
+        }
+      }
+    },
     "Breadcrumbs": {
       "localizations": {
         "cs": {
@@ -1003,12 +1043,42 @@
         }
       }
     },
+    "Button Bar": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lišta tlačítek"
+          }
+        }
+      }
+    },
+    "Button bar:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lišta tlačítek:"
+          }
+        }
+      }
+    },
     "Buttons on the bar:": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Tlačítka na liště:"
+          }
+        }
+      }
+    },
+    "Buttons show only their icon; pointing at one shows its name. A button runs an app command or a program, like a user menu command. Drag buttons to change their order.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tlačítka ukazují jen ikonu; po najetí myší se ukáže jejich název. Tlačítko spustí příkaz aplikace nebo program, stejně jako příkaz uživatelského menu. Pořadí změníte přetažením."
           }
         }
       }
@@ -1382,6 +1452,16 @@
         }
       }
     },
+    "Command:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Příkaz:"
+          }
+        }
+      }
+    },
     "Commands": {
       "localizations": {
         "cs": {
@@ -1686,6 +1766,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vlastní"
+          }
+        }
+      }
+    },
+    "Customize Button Bar…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upravit lištu tlačítek…"
           }
         }
       }
@@ -2038,6 +2128,16 @@
         }
       }
     },
+    "e.g. star.fill": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "např. star.fill"
+          }
+        }
+      }
+    },
     "Edit": {
       "extractionState": "manual",
       "localizations": {
@@ -2045,6 +2145,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Upravit"
+          }
+        }
+      }
+    },
+    "Edit Button…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upravit tlačítko…"
           }
         }
       }
@@ -3137,6 +3247,16 @@
         }
       }
     },
+    "Hide Button Bar": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skrýt lištu tlačítek"
+          }
+        }
+      }
+    },
     "Hide Function Key Bar": {
       "localizations": {
         "cs": {
@@ -3235,6 +3355,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Oblíbená cesta %lld: %@"
+          }
+        }
+      }
+    },
+    "Icon:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ikona:"
           }
         }
       }
@@ -3952,6 +4082,16 @@
         }
       }
     },
+    "More Buttons": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Další tlačítka"
+          }
+        }
+      }
+    },
     "More Options": {
       "localizations": {
         "cs": {
@@ -4216,6 +4356,16 @@
         }
       }
     },
+    "New Program": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nový program"
+          }
+        }
+      }
+    },
     "New Submenu": {
       "localizations": {
         "cs": {
@@ -4391,6 +4541,16 @@
         }
       }
     },
+    "No symbol has this name.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Symbol s tímto názvem neexistuje."
+          }
+        }
+      }
+    },
     "No terminal application was found.": {
       "localizations": {
         "cs": {
@@ -4457,6 +4617,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nyní"
+          }
+        }
+      }
+    },
+    "Off": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vypnuto"
           }
         }
       }
@@ -5003,6 +5173,16 @@
         }
       }
     },
+    "Program": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Program"
+          }
+        }
+      }
+    },
     "Program:": {
       "localizations": {
         "cs": {
@@ -5228,6 +5408,16 @@
         }
       }
     },
+    "Remove Button": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odebrat tlačítko"
+          }
+        }
+      }
+    },
     "Remove from List": {
       "extractionState": "manual",
       "localizations": {
@@ -5340,6 +5530,16 @@
         }
       }
     },
+    "Restore Samples": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obnovit ukázková"
+          }
+        }
+      }
+    },
     "Restore Selection": {
       "extractionState": "manual",
       "localizations": {
@@ -5377,6 +5577,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pravý svazek"
+          }
+        }
+      }
+    },
+    "Right-click to add buttons": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tlačítka přidáte pravým klikem"
           }
         }
       }
@@ -5523,12 +5733,32 @@
         }
       }
     },
+    "Search commands": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hledat příkazy"
+          }
+        }
+      }
+    },
     "Search commands or keys": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Hledat příkazy nebo klávesy"
+          }
+        }
+      }
+    },
+    "Search symbols, e.g. folder": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hledat symboly, např. folder"
           }
         }
       }
@@ -5894,6 +6124,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zobrazit vše"
+          }
+        }
+      }
+    },
+    "Show Button Bar": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zobrazit lištu tlačítek"
           }
         }
       }
@@ -6297,6 +6537,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Přepnout panel"
+          }
+        }
+      }
+    },
+    "Symbol name:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Název symbolu:"
           }
         }
       }
@@ -6772,6 +7022,16 @@
         }
       }
     },
+    "This version does not know the command “%@”.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tato verze nezná příkaz „%@“."
+          }
+        }
+      }
+    },
     "Title:": {
       "localizations": {
         "cs": {
@@ -6814,12 +7074,32 @@
         }
       }
     },
+    "Top": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nahoře"
+          }
+        }
+      }
+    },
     "Trash": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Koš"
+          }
+        }
+      }
+    },
+    "Unknown command “%@”": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neznámý příkaz „%@“"
           }
         }
       }
