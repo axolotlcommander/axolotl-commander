@@ -5,29 +5,29 @@
 
 ## Phase 1: Foundational (core)
 
-- [ ] T001 [P] `SyncOptions` / `SyncDirection` (Codable, every field `decodeIfPresent`, defaults from
+- [X] T001 [P] `SyncOptions` / `SyncDirection` (Codable, every field `decodeIfPresent`, defaults from
   data-model.md) and the model types `SyncSide`, `SyncState`, `SyncAction`, `SyncItem`, `SyncComparison`
   in `Sources/CommanderCore/Sync/{SyncOptions,SyncModel}.swift`; decoding test with missing fields in
   `Tests/CommanderCoreTests/SyncRulesTests.swift`.
-- [ ] T002 [P] `SyncGuard.check(left:right:)` (`.same`, `.nested`) on resolved standardized paths by
+- [X] T002 [P] `SyncGuard.check(left:right:)` (`.same`, `.nested`) on resolved standardized paths by
   components in `Sources/CommanderCore/Sync/SyncGuard.swift`; tests: same, nested both ways, nested
   through a symbolic link, "/a" vs "/ab" not nested.
-- [ ] T003 `SyncScanner.compare` in `Sources/CommanderCore/Sync/SyncScanner.swift` (research R1–R5); tests
+- [X] T003 `SyncScanner.compare` in `Sources/CommanderCore/Sync/SyncScanner.swift` (research R1–R5); tests
   in `Tests/CommanderCoreTests/SyncScannerTests.swift` on `TestSandbox` folders: only left/right, equal
   within 2 s, exactly one hour ignored or not, newer left/right, size difference (≠ without a newer side),
   content difference only with content on (and not read when sizes differ), file vs folder, links by
   target never followed, packages walked, NFC/NFD names match, case on case-insensitive rules, name clash
   error row, ignore masks at depth, hidden on/off, one-sided folder one row with total size and file
   count, unreadable folder error row, subfolders off, cancellation.
-- [ ] T004 `SyncRules` (default actions per direction and delete option; `possible`; `set` returning the
+- [X] T004 `SyncRules` (default actions per direction and delete option; `possible`; `set` returning the
   items it could not change; `toggleExcluded` keeping the action) in
   `Sources/CommanderCore/Sync/SyncRules.swift`; tests for every row of the FR-011 rules and the
   data-model action table.
-- [ ] T005 `SyncPlan` (copies, replacements, deletions per side, files and bytes, summary texts) and
+- [X] T005 `SyncPlan` (copies, replacements, deletions per side, files and bytes, summary texts) and
   `SyncCheck.unchanged` in `Sources/CommanderCore/Sync/SyncPlan.swift`; tests: counts and bytes with
   excluded and `none` rows, one-sided folder bytes, replacement counted as a deletion, changed size /
   date / appeared / vanished / link target.
-- [ ] T006 `SyncRunner.run` in `Sources/CommanderCore/Sync/SyncRunner.swift` (research R6, R7); tests in
+- [X] T006 `SyncRunner.run` in `Sources/CommanderCore/Sync/SyncRunner.swift` (research R6, R7); tests in
   `Tests/CommanderCoreTests/SyncRunnerTests.swift`: copies both ways keep dates (comparing again finds
   no differences), overwrite only where planned, an unexpected target is skipped and reported, a
   changed source is skipped, a replacement trashes the target first, deletions go to the Trash (a temp
