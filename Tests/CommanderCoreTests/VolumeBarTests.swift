@@ -190,7 +190,9 @@ import Testing
         let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
         let strings = try #require(json?["strings"] as? [String: Any])
         for key in ["Home", "iCloud Drive", "Network", "Servers", "Connect to Server…", "Open in Other Panel",
-                    "Copy Address", "Disconnect", "Disconnect %@", "Volume bar shows:", "Server connections"] {
+                    "Copy Address", "Disconnect", "Disconnect %@", "Show volume bar with:", "Server connections",
+                    "Show Volume Bar", "Show Drive Row", "Show drive row with free space",
+                    "Show free space when the drive row is hidden", "%@ free of %@", "%@ free", "%@ free of %@ — %@ used"] {
             let entry = strings[key] as? [String: Any]
             let czech = (entry?["localizations"] as? [String: Any])?["cs"] as? [String: Any]
             let value = (czech?["stringUnit"] as? [String: Any])?["value"] as? String
