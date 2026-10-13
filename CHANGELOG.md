@@ -73,6 +73,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
   Settings → Button Bar (buttons, order, separators, SF Symbols or app icons) and a right click on
   the bar. Buttons that do not fit go into a » menu. Off by default, with a few sample buttons.
 
+- A drive row below the volume bar of each panel (spec 020): a drive combo with the same list as
+  ⌥F1/⌥F2 and the free and total space of the panel's disk ("273.9 GB free of 994.7 GB"); clicking
+  the space opens Volume Info. When the row is hidden the free space moves to the right end of the
+  volume bar, or of the status line when the volume bar is hidden too (Settings → Appearance; View →
+  Show Drive Row, Show Volume Bar). The volume bar can be hidden now.
+
 ### Changed
 
 - The function key bar leaves a small margin at both ends, so F1 no longer sits in the window's

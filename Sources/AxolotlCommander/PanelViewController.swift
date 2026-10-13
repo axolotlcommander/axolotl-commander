@@ -240,8 +240,10 @@ final class PanelViewController: NSViewController {
         lists.setContentHuggingPriority(.defaultLow, for: .vertical)
 
         statusField.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
-        let statusRow = NSStackView(views: [statusField, statusSpace])
+        let statusRow = NSStackView()
         statusRow.orientation = .horizontal
+        statusRow.addView(statusField, in: .leading)
+        statusRow.addView(statusSpace, in: .trailing)
         statusRow.spacing = 8
         configureDriveRow()
         let stack = NSStackView(views: [volumeBar, driveRow, tabStrip, pathBar, lists, statusRow])

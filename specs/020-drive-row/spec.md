@@ -53,6 +53,13 @@ free and total space of the current one. The maintainer sent a mockup of this ro
     last folder). ⌥F1/⌥F2 keep opening the volume menu as today. The combo never takes keyboard focus
     away from the file list.
 
+- *Decided during implementation; to review*:
+  - The free space refreshes every 3 seconds while the window is visible (and at once on a folder
+    change), which covers changes by the other panel and other apps.
+  - The volume menu (⌥F1/⌥F2 and the combo) now checks the current item.
+  - The Settings row reads "Show volume bar with:" followed by the items it shows; the items are
+    disabled while the bar is hidden.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - See the free space of the current disk at a glance (Priority: P1)
