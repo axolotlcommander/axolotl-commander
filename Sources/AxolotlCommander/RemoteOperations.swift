@@ -127,7 +127,7 @@ extension OperationsController {
         let transfer = RemoteTransfer()
         perform(state) {
             let progress: RemoteTransfer.Progress = { p in Task { @MainActor in state.progress = p } }
-            let conflict: RemoteTransfer.ConflictHandler = { conflict in await self.askConflict(conflict) }
+            let conflict: RemoteTransfer.ConflictHandler = { [asker = ConflictAsker(window: self.window)] conflict in await asker.ask(conflict) }
             let report: TransferReport
             switch (RemoteURL.parse(sources[0]), RemoteURL.parse(destination)) {
             case (nil, let target?):

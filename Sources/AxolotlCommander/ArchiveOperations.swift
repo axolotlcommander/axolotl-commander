@@ -340,7 +340,7 @@ extension OperationsController {
             let report = try await operations.transfer(
                 request,
                 progress: { p in Task { @MainActor in state.progress = p } },
-                conflict: { conflict in await self.askConflict(conflict) })
+                conflict: { [asker = ConflictAsker(window: self.window)] conflict in await asker.ask(conflict) })
             if kind == .move {
                 let blocked = (report.skipped + report.keptSources).map { $0.standardizedFileURL.path(percentEncoded: false) }
                 var arrived: [URL: Set<String>] = [:]
@@ -652,7 +652,7 @@ extension OperationsController {
                     _ = try await operations.transfer(
                         request,
                         progress: { p in Task { @MainActor in state.progress = p } },
-                        conflict: { conflict in await self.askConflict(conflict) })
+                        conflict: { [asker = ConflictAsker(window: self.window)] conflict in await asker.ask(conflict) })
                 }
                 panel.model.deselectAll()
             }

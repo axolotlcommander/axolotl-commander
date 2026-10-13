@@ -629,6 +629,16 @@
         }
       }
     },
+    "A folder keeps its name when it is copied to or from a server or an archive.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Složka si při kopírování na server, ze serveru nebo do archivu a z archivu ponechá svůj název."
+          }
+        }
+      }
+    },
     "A key whose button is off still works.": {
       "localizations": {
         "cs": {
@@ -2038,6 +2048,26 @@
         }
       }
     },
+    "Destinations": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cíle"
+          }
+        }
+      }
+    },
+    "Destinations (⌥↓)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cíle (⌥↓)"
+          }
+        }
+      }
+    },
     "Detailed": {
       "extractionState": "manual",
       "localizations": {
@@ -2232,12 +2262,162 @@
         }
       }
     },
+    "Existing: %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stávající: %@"
+          }
+        }
+      }
+    },
+    "F3 existing · ⇧F3 new · ⌥F3 compare": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "F3 stávající · ⇧F3 nový · ⌥F3 porovnat"
+          }
+        }
+      }
+    },
+    "More…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Další…"
+          }
+        }
+      }
+    },
+    "New name for “%@”:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nový název pro „%@“:"
+          }
+        }
+      }
+    },
+    "New: %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nový: %@"
+          }
+        }
+      }
+    },
+    "Other Panel": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Druhý panel"
+          }
+        }
+      }
+    },
+    "Overwrite All Older": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přepsat všechny starší"
+          }
+        }
+      }
+    },
+    "Recent Destinations": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Poslední cíle"
+          }
+        }
+      }
+    },
+    "Rename All Automatically": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přejmenovat všechny automaticky"
+          }
+        }
+      }
+    },
+    "Rename Automatically": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přejmenovat automaticky"
+          }
+        }
+      }
+    },
+    "Rename…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přejmenovat…"
+          }
+        }
+      }
+    },
     "Selected %@, %@ — %@": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Vybráno: %1$@, %2$@ – %3$@"
+          }
+        }
+      }
+    },
+    "Tabs": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Karty"
+          }
+        }
+      }
+    },
+    "The file could not be opened.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soubor nelze otevřít."
+          }
+        }
+      }
+    },
+    "The name can’t be empty.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Název nesmí být prázdný."
+          }
+        }
+      }
+    },
+    "The name can’t contain “/”.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Název nesmí obsahovat „/“."
           }
         }
       }
@@ -2477,16 +2657,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Spouštění"
-          }
-        }
-      }
-    },
-    "Existing: %@, %@": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Stávající: %@, %@"
           }
         }
       }
@@ -4516,16 +4686,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nový štítek"
-          }
-        }
-      }
-    },
-    "New: %@, %@": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nový: %@, %@"
           }
         }
       }
@@ -7908,6 +8068,16 @@
         }
       }
     },
+    "larger": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "větší"
+          }
+        }
+      }
+    },
     "lowercase": {
       "localizations": {
         "cs": {
@@ -7934,6 +8104,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "síťový"
+          }
+        }
+      }
+    },
+    "newer": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "novější"
           }
         }
       }
