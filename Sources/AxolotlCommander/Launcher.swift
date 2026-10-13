@@ -37,11 +37,14 @@ enum Launcher {
     }
 
     enum Failure: LocalizedError {
-        case noTerminal, noEditor
+        case noTerminal
+        /// The editor chosen in Settings is not installed (its name or bundle id).
+        case editorMissing(String)
         var errorDescription: String? {
             switch self {
             case .noTerminal: String(localized: "No terminal application was found.")
-            case .noEditor: String(localized: "No editor application was found.")
+            case .editorMissing(let name):
+                String(localized: "The editor “\(name)” chosen in Settings is not installed. Choose another one in Settings → Viewer & Editor.")
             }
         }
     }
@@ -78,7 +81,7 @@ enum Launcher {
 
     static let editorDefaultsKey = "editor.bundleID"
     /// Editor setting meaning "the app the system opens this file type with".
-    static let systemDefaultEditor = "system"
+    static let systemDefaultEditor = EditorChoice.systemDefaultTag
 
     private static let knownEditors = [
         AppChoice(bundleID: "com.apple.TextEdit", name: "TextEdit"),
@@ -99,16 +102,20 @@ enum Launcher {
 
     /// Opens `url` in the editor chosen in Settings (TextEdit by default).
     static func edit(_ url: URL) async throws {
-        let chosen = UserDefaults.standard.string(forKey: editorDefaultsKey) ?? "com.apple.TextEdit"
+        let choice = EditorChoice.resolve(chosen: UserDefaults.standard.string(forKey: editorDefaultsKey)) {
+            NSWorkspace.shared.urlForApplication(withBundleIdentifier: $0) != nil
+        }
         let configuration = NSWorkspace.OpenConfiguration()
-        if chosen == systemDefaultEditor {
+        switch choice {
+        case .systemDefault:
             _ = try await NSWorkspace.shared.open(url, configuration: configuration)
-            return
+        case .missing(let bundleID):
+            throw Failure.editorMissing(knownEditors.first { $0.bundleID == bundleID }?.name ?? bundleID)
+        case .app(let bundleID):
+            guard let app = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) else {
+                throw Failure.editorMissing(bundleID)
+            }
+            _ = try await NSWorkspace.shared.open([url], withApplicationAt: app, configuration: configuration)
         }
-        guard let app = NSWorkspace.shared.urlForApplication(withBundleIdentifier: chosen)
-                ?? NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.apple.TextEdit") else {
-            throw Failure.noEditor
-        }
-        _ = try await NSWorkspace.shared.open([url], withApplicationAt: app, configuration: configuration)
     }
 }

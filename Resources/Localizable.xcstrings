@@ -4511,16 +4511,6 @@
         }
       }
     },
-    "No editor application was found.": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nebyla nalezena žádná aplikace editoru."
-          }
-        }
-      }
-    },
     "No program is set.": {
       "localizations": {
         "cs": {
@@ -10173,6 +10163,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Archiv je neúplný: chybí mu adresář zipu."
+          }
+        }
+      }
+    },
+    "The editor “%@” chosen in Settings is not installed. Choose another one in Settings → Viewer & Editor.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Editor „%@“ vybraný v Nastavení není nainstalovaný. Vyberte jiný v Nastavení → Prohlížeč a editor."
           }
         }
       }
