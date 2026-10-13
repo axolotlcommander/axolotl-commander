@@ -752,6 +752,8 @@ final class PanelViewController: NSViewController {
     }
 
     func perform(_ command: Command) {
+        // Quick Filter takes over the search text, also when it comes through the menu.
+        let search = quickSearch
         quickSearch = nil
         switch command {
         case .open: Task { await openCursor() }
@@ -766,10 +768,7 @@ final class PanelViewController: NSViewController {
         case .viewModeDetailed: viewMode = .detailed
         case .viewModeBrief: viewMode = .brief
         case .closeTab: closeTab(at: tabs.active)
-        case .quickFilter:
-            let text = quickSearch
-            quickSearch = nil
-            startQuickFilter(text)
+        case .quickFilter: startQuickFilter(search)
         case .quickFilterLast: startQuickFilter(lastQuickFilter)
         case .openInNewTab: openCursorInNewTab(activate: true)
         case .openInBackgroundTab: openCursorInNewTab(activate: false)
