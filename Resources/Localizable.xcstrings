@@ -639,6 +639,16 @@
         }
       }
     },
+    "A file on it is open in this or another app.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Na svazku je otevřený soubor v této nebo jiné aplikaci."
+          }
+        }
+      }
+    },
     "A folder keeps its name when it is copied to or from a server or an archive.": {
       "localizations": {
         "cs": {

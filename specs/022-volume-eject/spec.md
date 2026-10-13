@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-13
 
-**Status**: Draft
+**Status**: Implemented
 
 **Input**: User description: "Volumes in the Go menu and ejecting volumes: drop the Left/Right menus and
 add ways to eject disks and network volumes from the keyboard, the volume buttons and the Disconnect

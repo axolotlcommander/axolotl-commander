@@ -66,10 +66,22 @@
 
 ## Phase 6: Polish
 
-- [ ] T011 Czech strings complete; CHANGELOG (Unreleased); spec status. Build without warnings,
+- [X] T011 Czech strings complete; CHANGELOG (Unreleased); spec status. Build without warnings,
   `swift test` green, commit.
-- [ ] T012 GUI check on the test copy following quickstart.md (only the scratch disk image is
+- [X] T012 GUI check on the test copy following quickstart.md (only the scratch disk image is
   ejected); record the result here.
+  - 2026-10-13, test copy, disk image `AxTest` (20 MB) made and attached in the scratch folder: no
+    Left/Right menus; Go has "Left Volume…" / "Right Volume…"; Commands shows "Eject “AxTest”". ⌘E
+    with both panels on AxTest → both went home, AxTest ejected, Disconnect… greyed out afterwards.
+    Hover: ⏏ on AxTest, none on Macintosh HD. Right click on AxTest → "Eject “AxTest”", "Volume
+    Information…" (the sheet showed AxTest). A file of AxTest held open by another process, ⏏ →
+    both tabs of the left panel and the right panel went home, the message "“AxTest” could not be
+    ejected.", AxTest stayed mounted; the system only said "OSStatus error -47", so that case now
+    has its own sentence. F12: AxTest under Disks, pre-checked, button "Eject"; Space unchecks (the
+    button disables), Space checks again, Return ejected it.
+  - Not checked in the GUI: the refusal while a copy runs (the progress sheet blocks ⌘E, ⏏ and F12
+    in the same window and there is no second main window; covered by the `VolumeUse` tests) and
+    the question for a disk with several volumes (covered by the `Ejectability` tests).
 
 ## Dependencies
 

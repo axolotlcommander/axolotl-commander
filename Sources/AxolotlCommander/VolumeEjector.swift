@@ -66,9 +66,17 @@ enum VolumeEjector {
             try await Task.detached { try NSWorkspace.shared.unmountAndEjectDevice(at: url) }.value
             return nil
         } catch {
-            let ns = error as NSError
-            return [ns.localizedDescription, ns.localizedFailureReason].compactMap { $0 }.joined(separator: " ")
+            return reason(error)
         }
+    }
+
+    /// The system says only "OSStatus error -47" for a busy volume; that case gets a sentence.
+    private static func reason(_ error: any Error) -> String {
+        let ns = error as NSError
+        if ns.domain == NSOSStatusErrorDomain, ns.code == -47 {  // fBsyErr
+            return String(localized: "A file on it is open in this or another app.")
+        }
+        return [ns.localizedDescription, ns.localizedFailureReason].compactMap { $0 }.joined(separator: " ")
     }
 
     /// The app's own work that reads or writes files: operations, searches, disk maps, folder sizes.
