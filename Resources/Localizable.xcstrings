@@ -545,6 +545,16 @@
         }
       }
     },
+    "A key whose button is off still works.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klávesa s vypnutým tlačítkem dál funguje."
+          }
+        }
+      }
+    },
     "A line between items.": {
       "localizations": {
         "cs": {
@@ -717,12 +727,12 @@
         }
       }
     },
-    "Also in the View menu. The bar shows what F1–F12 do; hold ⇧, ⌃, ⌥ or ⌘ to see the other commands. A key whose button is turned off still works.": {
+    "Also in the View menu. The bar shows what F1–F12 do; hold ⇧, ⌃, ⌥ or ⌘ to see the other commands.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Také v menu Zobrazení. Lišta ukazuje, co dělají klávesy F1–F12; podržením ⇧, ⌃, ⌥ nebo ⌘ uvidíte další příkazy. Klávesa s vypnutým tlačítkem dál funguje."
+            "value": "Také v menu Zobrazení. Lišta ukazuje, co dělají klávesy F1–F12; podržením ⇧, ⌃, ⌥ nebo ⌘ uvidíte další příkazy."
           }
         }
       }

@@ -124,7 +124,7 @@ General at the tick boxes.
 ### Functional Requirements
 
 - **FR-001**: Settings → General MUST offer twelve tick boxes F1–F12 ("Buttons on the bar:"), all ticked by
-  default, under "Show function key bar".
+  default, under "Show function key bar", in two rows of six, with the note that a key whose button is off still works.
 - **FR-002**: The bar MUST show only the ticked positions, in F-key order, in every layer (plain, ⇧, ⌃,
   ⌥, ⌘), and MUST follow a change at once in every window.
 - **FR-003**: Hiding a button MUST NOT change what its key does.

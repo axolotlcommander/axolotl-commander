@@ -49,13 +49,19 @@ struct SettingsView: View {
                 Section {
                     Toggle("Show command line", isOn: $showCommandLine)
                     Toggle("Show function key bar", isOn: $showFunctionKeyBar)
-                    LabeledContent("Buttons on the bar:") {
-                        HStack(spacing: 10) {
-                            ForEach(1...FunctionKeyBar.count, id: \.self) { functionKeyToggle($0) }
-                        }
-                    }
-                    Text("Also in the View menu. The bar shows what F1–F12 do; hold ⇧, ⌃, ⌥ or ⌘ to see the other commands. A key whose button is turned off still works.")
+                    Text("Also in the View menu. The bar shows what F1–F12 do; hold ⇧, ⌃, ⌥ or ⌘ to see the other commands.")
                         .font(.caption).foregroundStyle(.secondary)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Buttons on the bar:")
+                        // Two rows of six, so the form keeps its width.
+                        Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 4) {
+                            ForEach([1, 7], id: \.self) { first in
+                                GridRow { ForEach(first..<first + 6, id: \.self) { functionKeyToggle($0) } }
+                            }
+                        }
+                        Text("A key whose button is off still works.").font(.caption).foregroundStyle(.secondary)
+                    }
+                    .padding(.leading, 20)
                 }
                 Section("Panels") {
                     behavior("Space moves the cursor down", $spaceMovesDown,
