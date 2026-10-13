@@ -8,9 +8,19 @@ public struct RecentPaths: Codable, Hashable, Sendable {
     public static let limit = 20
 
     public private(set) var paths: [String]
+    /// How many paths are kept; not stored (decoding gives `limit`).
+    public private(set) var capacity: Int
 
-    public init(paths: [String] = []) {
-        self.paths = Array(paths.prefix(Self.limit))
+    public init(paths: [String] = [], capacity: Int = RecentPaths.limit) {
+        self.capacity = max(0, capacity)
+        self.paths = Array(paths.prefix(self.capacity))
+    }
+
+    private enum CodingKeys: String, CodingKey { case paths }
+
+    public func encode(to encoder: any Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(paths, forKey: .paths)
     }
 
     public init(from decoder: any Decoder) throws {
@@ -26,6 +36,6 @@ public struct RecentPaths: Codable, Hashable, Sendable {
         let key = PathText.trimmingTrailingSlashes(clean)
         paths.removeAll { PathText.trimmingTrailingSlashes($0) == key }
         paths.insert(clean, at: 0)
-        if paths.count > Self.limit { paths.removeLast(paths.count - Self.limit) }
+        if paths.count > capacity { paths.removeLast(paths.count - capacity) }
     }
 }

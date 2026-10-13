@@ -63,6 +63,7 @@ extension SettingsCatalog {
         "settings.tab", "window.layout", "panel.\\(side).path", "panel.\\(side).sort",
         "recentPaths", "commandLine.history", "find.history.\\(key)", "find.options",
         "batchRename.last", "changeCase.last", "functionKeyNotice", "buttonBar.editSelection",
+        "transfer.recentDestinations",
     ]
 
     private static func values<T: RawRepresentable & CaseIterable>(_ type: T.Type) -> Set<String>

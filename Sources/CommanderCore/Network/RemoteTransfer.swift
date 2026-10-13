@@ -88,8 +88,10 @@ public struct RemoteTransfer: Sendable {
             case .file:
                 var finalName = name
                 var replace = false
-                if let present {
-                    switch try await run.resolve(Conflict(source: node.info, destination: present.info(at: target, endpoint))) {
+                var inTheWay = present
+                while let present = inTheWay {
+                    let at = RemotePath.join(dir, finalName)
+                    switch try await run.resolve(Conflict(source: node.info, destination: present.info(at: at, endpoint))) {
                     case .overwrite, .overwriteAll:
                         guard !present.isDirectoryLike else {
                             run.skip(URL(filePath: node.path))
@@ -97,12 +99,12 @@ public struct RemoteTransfer: Sendable {
                             return false
                         }
                         replace = true
+                        inTheWay = nil
                     case .rename(let newName):
                         try NameCheck.validate(newName)
-                        guard try await existing(in: dir)[newName] == nil else {
-                            throw OperationError.alreadyExists(RemoteURL.make(endpoint, path: RemotePath.join(dir, newName)))
-                        }
                         finalName = newName
+                        // A taken name asks again, now about the item with that name.
+                        inTheWay = try await existing(in: dir)[newName]
                     case .skip, .skipAll:
                         run.skip(URL(filePath: node.path))
                         meter.skip(node)
@@ -263,7 +265,8 @@ public struct RemoteTransfer: Sendable {
             case .file:
                 var finalPath = target
                 var replace = false
-                if let present {
+                var inTheWay = present
+                while let present = inTheWay {
                     switch try await run.resolve(Conflict(source: node.info(endpoint), destination: Self.localInfo(present))) {
                     case .overwrite, .overwriteAll:
                         if Self.localStat(present)?.isDirectory == true {
@@ -273,12 +276,12 @@ public struct RemoteTransfer: Sendable {
                         }
                         finalPath = present
                         replace = true
+                        inTheWay = nil
                     case .rename(let newName):
                         try NameCheck.validate(newName)
                         finalPath = FSPath.join(dir, newName)
-                        if try lookup.existing(in: dir, named: newName) != nil {
-                            throw OperationError.alreadyExists(FSPath.url(finalPath))
-                        }
+                        // A taken name asks again, now about the item with that name.
+                        inTheWay = try lookup.existing(in: dir, named: newName)
                     case .skip, .skipAll:
                         run.skip(sourceURL)
                         meter.skip(node)
@@ -435,8 +438,10 @@ public struct RemoteTransfer: Sendable {
                 guard let entry = try await connections.perform(on: endpoint, { try await $0.info(source.path) }) else {
                     throw RemoteError.notFound(source.path)
                 }
+                // A move inside the server keeps the name: no rename here.
                 let answer = try await run.resolve(Conflict(source: entry.info(at: source.path, endpoint),
-                                                            destination: present.info(at: dest, endpoint)))
+                                                            destination: present.info(at: dest, endpoint),
+                                                            canRename: false))
                 guard answer == .overwrite || answer == .overwriteAll, !present.isDirectoryLike, !entry.isDirectoryLike else {
                     if answer == .cancel { throw OperationError.cancelled }
                     run.skip(source.url)

@@ -177,10 +177,13 @@ private struct AppearanceSettings: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Picker("Selected items:", selection: $settings.appearance.markColor) {
-                ForEach(SystemColor.allCases, id: \.self) { ColorLabel(color: $0).tag($0) }
+            HStack(spacing: 16) {
+                Picker("Selected items:", selection: $settings.appearance.markColor) {
+                    ForEach(SystemColor.allCases, id: \.self) { ColorLabel(color: $0).tag($0) }
+                }
+                .frame(width: 260)
+                Toggle("Bold", isOn: $settings.appearance.markBold)
             }
-            .frame(width: 260)
             HStack(spacing: 16) {
                 Picker("Path bar:", selection: $pathBarStyle) {
                     Text("Breadcrumbs").tag(PathBar.Style.breadcrumbs.rawValue)

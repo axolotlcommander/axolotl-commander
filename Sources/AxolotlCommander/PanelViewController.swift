@@ -1630,7 +1630,7 @@ extension PanelViewController: NSTableViewDataSource, NSTableViewDelegate {
         let marked = model.isSelected(item)
         cell.textField?.alignment = column.isNumeric ? .right : .left
         cell.textField?.textColor = textColor(for: item, marked: marked)
-        cell.textField?.font = marked ? .boldSystemFont(ofSize: NSFont.systemFontSize) : .systemFont(ofSize: NSFont.systemFontSize)
+        cell.textField?.font = textFont(marked: marked)
         // Set before the text: the tooltip of a shortened size shows every byte.
         cell.exact = column == .size ? sizeBytes(of: item).map { SizeFormat.exact($0) } : nil
         cell.variants = texts(for: column, item: item)

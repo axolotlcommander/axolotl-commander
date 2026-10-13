@@ -70,7 +70,7 @@ enum CompareFiles {
         }
     }
 
-    private static func localCopy(of url: URL) async throws -> URL {
+    static func localCopy(of url: URL) async throws -> URL {
         if let remote = RemoteURL.parse(url) { return try await ArchiveScratch.download(remote) }
         if let archive = ArchivePath.split(url.deletingLastPathComponent()) {
             return try await ArchiveScratch.extract(url.lastPathComponent, from: archive)

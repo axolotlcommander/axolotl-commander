@@ -43,32 +43,6 @@ struct ProgressSheet: View {
     }
 }
 
-/// Target dialog for F5/F6: destination prefilled with the other panel, plus a name mask.
-struct TransferSheet: View {
-    let title: String
-    @State var destination: String
-    @State var mask: String
-    let onDone: (_ destination: String, _ mask: String) -> Void
-    let onCancel: () -> Void
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(title).font(.headline)
-            Form {
-                TextField("To:", text: $destination)
-                TextField("Name mask:", text: $mask)
-            }
-            HStack {
-                Spacer()
-                Button("Cancel", role: .cancel, action: onCancel).keyboardShortcut(.cancelAction)
-                Button("OK") { onDone(destination, mask) }.keyboardShortcut(.defaultAction)
-            }
-        }
-        .padding(20)
-        .frame(width: 520)
-    }
-}
-
 /// Runs copy/move/delete/mkdir/rename for the window, with sheets for every question.
 final class OperationsController {
     let operations = FileOperations()
@@ -93,35 +67,97 @@ final class OperationsController {
             run(kind, sources: sources, destination: destination, mask: "*.*", panel: panel)
             return
         }
+        guard let window else { return }
         let other = windowController.otherPanel(than: panel)
-        var sheetWindow: NSWindow?
-        let close = { [weak self] in
-            if let sheetWindow { self?.window?.endSheet(sheetWindow) }
-        }
-        let sheet = TransferSheet(
-            title: kind == .copy ? String(localized: "Copy \(names) to:") : String(localized: "Move \(names) to:"),
-            // The Network folder is no destination: offer the panel's own folder instead.
-            destination: (other.model.isNetwork ? panel : other).model.location.displayPath,
-            mask: "*.*",
-            onDone: { [weak self] path, mask in
-                close()
-                guard let self else { return }
-                do {
-                    let url = try PathInput.resolve(path, relativeTo: panel.model.location, absoluteIsLocal: true)
-                    run(kind, sources: sources, destination: url, mask: mask.isEmpty ? "*.*" : mask, panel: panel)
-                } catch {
-                    report(error)
+        // The Network folder is no destination: offer the panel's own folder instead.
+        let folder = (other.model.isNetwork ? panel : other).model.location.displayPath
+        let single = sources.count == 1
+            ? TransferDialog.Single(name: sources[0].lastPathComponent,
+                                    isDirectory: panel.model.items.first { $0.url == sources[0] }?.isDirectory
+                                        ?? sources[0].hasDirectoryPath)
+            : nil
+        Task {
+            guard let result = await TransferDialog.run(
+                title: kind == .copy ? String(localized: "Copy \(names) to:") : String(localized: "Move \(names) to:"),
+                text: single.map { TransferTarget.text(folder: folder, name: $0.name) } ?? folder,
+                single: single, cycleKey: kind == .copy ? 96 : 97,
+                entries: { [weak self] in self?.destinationEntries(for: panel) ?? [] }, in: window) else { return }
+            do {
+                if let single {
+                    let target = try await resolveOne(result.text, name: single.name, panel: panel)
+                    AppSettings.shared.recentDestinations.add(target.folder.displayPath)
+                    run(kind, sources: sources, destination: target.folder, mask: "*.*", panel: panel,
+                        targetName: target.name == single.name ? nil : target.name, isFolder: single.isDirectory)
+                } else {
+                    let url = try PathInput.resolve(result.text, relativeTo: panel.model.location, absoluteIsLocal: true)
+                    AppSettings.shared.recentDestinations.add(url.displayPath)
+                    run(kind, sources: sources, destination: url, mask: result.mask.isEmpty ? "*.*" : result.mask, panel: panel)
                 }
-            },
-            onCancel: close)
-        let host = NSWindow(contentViewController: NSHostingController(rootView: sheet))
-        sheetWindow = host
-        window?.beginSheet(host, completionHandler: nil)
+            } catch {
+                report(error)
+            }
+        }
     }
 
-    private func run(_ kind: TransferKind, sources: [URL], destination: URL, mask: String, panel: PanelViewController) {
+    /// One item: the "To:" text names an existing folder (the item keeps its name) or a new name in a
+    /// folder.
+    private func resolveOne(_ text: String, name: String, panel: PanelViewController) async throws -> (folder: URL, name: String) {
+        let base = panel.model.location
+        let whole = try PathInput.resolve(text, relativeTo: base, absoluteIsLocal: true)
+        let isFolder = await Self.isFolder(whole)
+        let parts = TransferTarget.resolve(text, sourceName: name, isFolder: { _ in isFolder })
+        let folder = parts.folder.isEmpty ? base : try PathInput.resolve(parts.folder, relativeTo: base, absoluteIsLocal: true)
+        return (folder, parts.name)
+    }
+
+    private static func isFolder(_ url: URL) async -> Bool {
+        if let remote = RemoteURL.parse(url) {
+            let entry = try? await RemoteConnections.shared.perform(on: remote.endpoint) { try await $0.info(remote.path) }
+            return entry?.isDirectoryLike == true
+        }
+        if ArchivePath.split(url) != nil { return true }
+        var isDirectory: ObjCBool = false
+        return FileManager.default.fileExists(atPath: url.path(percentEncoded: false), isDirectory: &isDirectory)
+            && isDirectory.boolValue
+    }
+
+    /// The destination menu of the F5/F6 dialog: the other panel, the tabs, hot paths, recent.
+    private func destinationEntries(for panel: PanelViewController) -> [DestinationMenu.Entry] {
+        let other = windowController.otherPanel(than: panel)
+        func folders(_ panel: PanelViewController) -> [String] {
+            panel.tabs.tabs.enumerated()
+                .map { $0.offset == panel.tabs.active ? panel.model.location : $0.element.location }
+                .filter { !NetworkPlaces.isNetwork($0) }
+                .map(\.displayPath)
+        }
+        let settings = AppSettings.shared
+        return DestinationMenu.build(
+            otherPanel: other.model.isNetwork ? nil : other.model.location.displayPath,
+            otherTabs: folders(other), ownTabs: folders(panel), source: panel.model.location.displayPath,
+            hotPaths: settings.hotPaths.defined.map(\.hotPath), recent: settings.recentDestinations.paths,
+            isExcluded: { path in
+                // Missing folders on disk are left out; servers are not checked.
+                guard path.hasPrefix("/") || path.hasPrefix("~") else { return false }
+                var isDirectory: ObjCBool = false
+                let expanded = (path as NSString).expandingTildeInPath
+                return !(FileManager.default.fileExists(atPath: expanded, isDirectory: &isDirectory) && isDirectory.boolValue)
+            })
+    }
+
+    /// `targetName`: a new name for the one source (from the F5/F6 dialog).
+    private func run(_ kind: TransferKind, sources: [URL], destination: URL, mask: String, panel: PanelViewController,
+                     targetName: String? = nil, isFolder: Bool = false) {
         guard !NetworkPlaces.isNetwork(destination), !sources.contains(where: NetworkPlaces.isNetwork) else {
             return report(OperationError.path(.notADirectory))
+        }
+        var mask = mask
+        if let targetName, RemoteURL.isRemote(sources[0]) || RemoteURL.isRemote(destination)
+            || ArchivePath.split(sources[0].deletingLastPathComponent()) != nil || ArchivePath.split(destination) != nil {
+            // Servers and archives rename through the name mask, which applies to files only.
+            guard !isFolder, !targetName.contains(where: { "*?".contains($0) }) else {
+                return report(OperationError.io(String(localized: "A folder keeps its name when it is copied to or from a server or an archive.")))
+            }
+            mask = targetName
         }
         if RemoteURL.isRemote(sources[0]) || RemoteURL.isRemote(destination) {
             return transferRemote(kind, sources: sources, destination: destination, mask: mask, panel: panel)
@@ -130,12 +166,13 @@ final class OperationsController {
             return transferArchive(kind, sources: sources, destination: destination, mask: mask, panel: panel)
         }
         let state = OperationState(title: kind == .copy ? String(localized: "Copying…") : String(localized: "Moving…"))
-        let request = TransferRequest(kind: kind, sources: sources, destinationDirectory: destination, nameMask: mask)
+        let request = TransferRequest(kind: kind, sources: sources, destinationDirectory: destination, nameMask: mask,
+                                      targetName: targetName)
         perform(state) { [operations] in
             let report = try await operations.transfer(
                 request,
                 progress: { p in Task { @MainActor in state.progress = p } },
-                conflict: { conflict in await self.askConflict(conflict) })
+                conflict: { [asker = ConflictAsker(window: self.window)] conflict in await asker.ask(conflict) })
             if !report.keptSources.isEmpty {
                 await self.inform(String(localized: "Some sources were kept"),
                                   String(localized: "\(report.keptSources.count) item(s) were copied but not removed, because they contain a link to a folder or could not be checked completely."))
@@ -155,31 +192,9 @@ final class OperationsController {
             _ = try await operations.transfer(
                 request,
                 progress: { p in Task { @MainActor in state.progress = p } },
-                conflict: { conflict in await self.askConflict(conflict) })
+                conflict: { [asker = ConflictAsker(window: self.window)] conflict in await asker.ask(conflict) })
             await panel.model.refresh()
             panel.focusRenamed(source, to: name)
-        }
-    }
-
-    @MainActor
-    func askConflict(_ conflict: Conflict) async -> ConflictResolution {
-        let alert = NSAlert()
-        alert.messageText = String(localized: "“\(conflict.destination.name)” already exists.")
-        let existing = String(localized: "Existing: \(Format.bytes(conflict.destination.size ?? 0)), \(conflict.destination.modificationDate.map(Format.date) ?? "")")
-        let new = String(localized: "New: \(Format.bytes(conflict.source.size ?? 0)), \(conflict.source.modificationDate.map(Format.date) ?? "")")
-        alert.informativeText = existing + "\n" + new
-        let buttons = [String(localized: "Overwrite"), String(localized: "Overwrite All"), String(localized: "Skip"),
-                       String(localized: "Skip All"), String(localized: "Cancel")]
-        for title in buttons { alert.addButton(withTitle: title) }
-        alert.buttons.last?.keyEquivalent = "\u{1b}"
-        guard let window else { return .cancel }
-        let response = await Self.present(alert, in: window)
-        switch response.rawValue - NSApplication.ModalResponse.alertFirstButtonReturn.rawValue {
-        case 0: return .overwrite
-        case 1: return .overwriteAll
-        case 2: return .skip
-        case 3: return .skipAll
-        default: return .cancel
         }
     }
 

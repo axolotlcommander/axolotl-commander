@@ -315,6 +315,12 @@ extension PanelViewController {
         if viewMode == .brief { reloadBrief() }
     }
 
+    /// Marked items are bold unless Settings → Appearance turns it off.
+    func textFont(marked: Bool) -> NSFont {
+        marked && AppSettings.shared.appearance.markBold
+            ? .boldSystemFont(ofSize: NSFont.systemFontSize) : .systemFont(ofSize: NSFont.systemFontSize)
+    }
+
     /// Marked items use the mark color; others the first matching highlight rule.
     func textColor(for item: FileItem, marked: Bool) -> NSColor {
         let appearance = AppSettings.shared.appearance
