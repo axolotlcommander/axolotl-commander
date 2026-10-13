@@ -94,17 +94,10 @@ final class ArchiveReadHandle {
     }
 }
 
-/// Owns an archive writer: an archive file, or the disk (extraction).
+/// Owns an archive writer for an archive file.
 final class ArchiveWriteHandle {
     let a: OpaquePointer
     private var freed = false
-
-    /// Writes entries to the file system; entry pathnames are the targets.
-    init(diskFlags: Int32) throws(ArchiveError) {
-        guard let a = archive_write_disk_new() else { throw .library("archive_write_disk_new failed") }
-        self.a = a
-        archive_write_disk_set_options(a, diskFlags)
-    }
 
     init(path: String, format: ArchiveFormat) throws(ArchiveError) {
         guard let a = archive_write_new() else { throw .library("archive_write_new failed") }

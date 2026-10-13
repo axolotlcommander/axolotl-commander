@@ -36,15 +36,6 @@ typedef ssize_t la_ssize_t;
 #define ARCHIVE_FORMAT_7ZIP 0xE0000
 #define ARCHIVE_FORMAT_RAR_V5 0x100000
 
-#define ARCHIVE_EXTRACT_OWNER 0x0001
-#define ARCHIVE_EXTRACT_PERM 0x0002
-#define ARCHIVE_EXTRACT_TIME 0x0004
-#define ARCHIVE_EXTRACT_NO_OVERWRITE 0x0008
-#define ARCHIVE_EXTRACT_UNLINK 0x0010
-#define ARCHIVE_EXTRACT_SECURE_SYMLINKS 0x0100
-#define ARCHIVE_EXTRACT_SECURE_NODOTDOT 0x0200
-#define ARCHIVE_EXTRACT_SECURE_NOABSOLUTEPATHS 0x10000
-
 #define AE_IFMT 0170000
 #define AE_IFREG 0100000
 #define AE_IFLNK 0120000
@@ -82,8 +73,8 @@ int archive_write_finish_entry(struct archive *);
 int archive_write_close(struct archive *);
 int archive_write_free(struct archive *);
 
-struct archive *archive_write_disk_new(void);
-int archive_write_disk_set_options(struct archive *, int flags);
+// No archive_write_disk_*: its constructor sets the process umask to 0 for a moment
+// (a race with every thread creating files). Extraction writes through DiskWriter.
 
 struct archive_entry *archive_entry_new(void);
 struct archive_entry *archive_entry_clone(struct archive_entry *);
@@ -109,6 +100,12 @@ void archive_entry_set_size(struct archive_entry *, la_int64_t);
 time_t archive_entry_mtime(struct archive_entry *);
 long archive_entry_mtime_nsec(struct archive_entry *);
 int archive_entry_mtime_is_set(struct archive_entry *);
+time_t archive_entry_atime(struct archive_entry *);
+long archive_entry_atime_nsec(struct archive_entry *);
+int archive_entry_atime_is_set(struct archive_entry *);
+time_t archive_entry_birthtime(struct archive_entry *);
+long archive_entry_birthtime_nsec(struct archive_entry *);
+int archive_entry_birthtime_is_set(struct archive_entry *);
 void archive_entry_set_mtime(struct archive_entry *, time_t, long);
 int archive_entry_is_encrypted(struct archive_entry *);
 void archive_entry_set_uid(struct archive_entry *, la_int64_t);

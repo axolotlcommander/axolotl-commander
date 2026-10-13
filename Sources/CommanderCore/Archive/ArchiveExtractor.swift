@@ -99,8 +99,7 @@ public enum ArchiveExtractor {
         passphrases: [String],
         progress: (Int64) -> Void
     ) throws -> ExtractReport {
-        // libarchive checks every component of the absolute target for symlinks,
-        // so the destination itself must be symlink-free.
+        // Symlinks below the destination are never followed; the destination itself may be one.
         guard let resolved = realpath(destination.path, nil) else { throw ArchiveError.notFound(destination.path) }
         let root = String(cString: resolved)
         free(resolved)
@@ -112,9 +111,7 @@ public enum ArchiveExtractor {
         let base = normalizeMemberPath(base)
         let members = members.map(normalizeMemberPath)
         let reader = try ArchiveReadHandle(path: archive.path, passphrases: passphrases)
-        let disk = try ArchiveWriteHandle(
-            diskFlags: ARCHIVE_EXTRACT_TIME | ARCHIVE_EXTRACT_SECURE_SYMLINKS | ARCHIVE_EXTRACT_SECURE_NODOTDOT
-        )
+        let disk = try DiskWriter(root: root)
         let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: 64 * 1024, alignment: 16)
         defer { buffer.deallocate() }
 
@@ -123,12 +120,13 @@ public enum ArchiveExtractor {
         var total: Int64 = 0
         var count = 0
 
-        func targetPath(for memberPath: String) -> String? {
+        /// The target below the destination folder.
+        func relativeTarget(for memberPath: String) -> String? {
             var relative = memberPath
             if !base.isEmpty, memberPath.hasPrefix(base + "/") {
                 relative = String(memberPath.dropFirst(base.count + 1))
             }
-            return sanitize(relative).map { root + "/" + $0 }
+            return sanitize(relative)
         }
 
         while let e = try reader.next() {
@@ -137,7 +135,7 @@ public enum ArchiveExtractor {
             let info = RawEntryInfo(e, legacy: reader.legacyNames)
             let path = normalizeMemberPath(info.path)
             guard !path.isEmpty, members.contains(where: { memberPath(path, isAtOrBelow: $0) }),
-                  let target = targetPath(for: path)
+                  let relative = relativeTarget(for: path)
             else {
                 try reader.skip()
                 continue
@@ -146,6 +144,7 @@ public enum ArchiveExtractor {
                 try checkEncrypted(path, reader: reader, passphrases: passphrases)
             }
 
+            let target = root + "/" + relative
             var st = stat()
             if lstat(target, &st) == 0, !writtenTargets.contains(target) {
                 // An existing folder is merged into, without touching it.
@@ -161,24 +160,24 @@ public enum ArchiveExtractor {
                 }
             }
 
-            let entry = ArchiveEntryHandle(cloning: e)
-            archive_entry_set_pathname_utf8(entry.e, target)
+            let kind: DiskWriter.Kind
+            let perm = info.perm & 0o777
             if let link = info.hardlink {
-                guard let linkTarget = targetPath(for: normalizeMemberPath(link)), writtenTargets.contains(linkTarget) else {
+                guard let linked = relativeTarget(for: normalizeMemberPath(link)), writtenTargets.contains(root + "/" + linked) else {
                     report.skipped.append(path)
                     try reader.skip()
                     continue
                 }
-                archive_entry_set_hardlink_utf8(entry.e, linkTarget)
-            }
-            let perm = info.perm & 0o777
-            if info.isDirectory {
-                archive_entry_set_perm(entry.e, mode_t(perm == 0 ? 0o755 : perm | 0o700))
-            } else if !info.isSymlink {
-                archive_entry_set_perm(entry.e, mode_t(perm == 0 ? 0o644 : perm | 0o600))
+                kind = .hardlink(to: linked)
+            } else if info.isDirectory {
+                kind = .directory(perm: perm == 0 ? 0o755 : perm | 0o700)
+            } else if info.isSymlink {
+                kind = .symlink(target: info.linkTarget ?? "")
+            } else {
+                kind = .file(perm: perm == 0 ? 0o644 : perm | 0o600)
             }
 
-            try disk.header(entry.e)
+            try disk.begin(relative, kind: kind, times: EntryTimes(e))
             writtenTargets.insert(target)
             report.written.append(URL(filePath: target, directoryHint: info.isDirectory ? .isDirectory : .notDirectory))
 
@@ -195,16 +194,15 @@ public enum ArchiveExtractor {
                 } catch {
                     // Leave no half-written file behind.
                     disk.abandon()
-                    unlink(target)
                     if info.isEncrypted, let error = error as? ArchiveError, error != .cancelled {
                         throw ArchiveReadHandle.passphraseError(for: path, after: error)
                     }
                     throw error
                 }
             }
-            try disk.finishEntry()
+            try disk.finish()
         }
-        try disk.close()
+        disk.close()
         return report
     }
 }

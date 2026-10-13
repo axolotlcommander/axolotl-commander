@@ -840,3 +840,143 @@ func removingHardLinkTargetKeepsLinkData(format: ArchiveFormat) async throws {
         #expect(inode(dest.sub("x/a")) == inode(dest.sub("c")))
     }
 }
+
+// MARK: - Writing to disk
+
+/// The process umask, read without changing it: the mode a new file gets.
+private func probeUmask(in dir: URL) -> mode_t {
+    let path = dir.path + "/umask-probe-\(UUID().uuidString)"
+    let fd = open(path, O_WRONLY | O_CREAT | O_EXCL, 0o777)
+    defer { close(fd); unlink(path) }
+    var st = stat()
+    fstat(fd, &st)
+    return ~st.st_mode & 0o777
+}
+
+private func lstatOf(_ url: URL) -> stat? {
+    var st = stat()
+    return lstat(url.path, &st) == 0 ? st : nil
+}
+
+/// Modes, dates (a folder's too, set after its contents), symlinks and hard links.
+@Test func extractionKeepsModesDatesAndLinks() async throws {
+    try await withSandbox { root in
+        let script = """
+        import io, sys, tarfile
+        def add(t, name, kind=tarfile.REGTYPE, mode=0o644, mtime=0, data=b'', link=''):
+            i = tarfile.TarInfo(name); i.type = kind; i.mode = mode; i.mtime = mtime; i.linkname = link
+            i.size = len(data) if kind == tarfile.REGTYPE else 0
+            t.addfile(i, io.BytesIO(data) if kind == tarfile.REGTYPE else None)
+        with tarfile.open(sys.argv[1], 'w', format=tarfile.PAX_FORMAT) as t:
+            add(t, 'd', tarfile.DIRTYPE, 0o750, 1000000000)
+            add(t, 'd/f.txt', mtime=1050000000, data=b'f')
+            add(t, 'run.sh', mode=0o755, mtime=1100000000, data=b'#!/bin/sh')
+            add(t, 'private.txt', mode=0o600, mtime=1100000000, data=b'p')
+            add(t, 'zero.txt', mode=0, mtime=1100000000, data=b'z')
+            add(t, 'ln', tarfile.SYMTYPE, mtime=1200000000, link='run.sh')
+            add(t, 'hard', tarfile.LNKTYPE, mtime=1100000000, link='run.sh')
+        """
+        let archive = root.sub("modes.tar")
+        try python(script, [archive.path], in: root)
+        let dest = root.sub("dest")
+        _ = try await extractAll(archive, to: dest)
+        let mask = probeUmask(in: root)
+
+        let d = try #require(lstatOf(dest.sub("d")))
+        #expect(d.st_mode & 0o777 == 0o750 & ~mask)
+        #expect(d.st_mtimespec.tv_sec == 1_000_000_000)
+        #expect(lstatOf(dest.sub("d/f.txt"))?.st_mtimespec.tv_sec == 1_050_000_000)
+        let run = try #require(lstatOf(dest.sub("run.sh")))
+        #expect(run.st_mode & 0o777 == 0o755 & ~mask)
+        #expect(run.st_mtimespec.tv_sec == 1_100_000_000)
+        #expect(lstatOf(dest.sub("private.txt")).map { $0.st_mode & 0o777 } == 0o600 & ~mask)
+        #expect(lstatOf(dest.sub("zero.txt")).map { $0.st_mode & 0o777 } == 0o644 & ~mask)
+        let ln = try #require(lstatOf(dest.sub("ln")))
+        #expect(ln.st_mode & S_IFMT == S_IFLNK && ln.st_mtimespec.tv_sec == 1_200_000_000)
+        #expect((try? FileManager.default.destinationOfSymbolicLink(atPath: dest.sub("ln").path)) == "run.sh")
+        #expect(lstatOf(dest.sub("hard"))?.st_ino == run.st_ino)
+        #expect(read(dest.sub("hard")) == Data("#!/bin/sh".utf8))
+    }
+}
+
+/// Overwriting replaces a symlink at the target instead of writing through it,
+/// and a file standing where the archive has a folder.
+@Test func extractionOverwriteReplacesLinksAndFiles() async throws {
+    try await withSandbox { root in
+        let outside = root.sub("outside.txt")
+        try write(outside, "keep")
+        let dest = root.sub("dest")
+        try FileManager.default.createDirectory(at: dest, withIntermediateDirectories: true)
+        try FileManager.default.createSymbolicLink(atPath: dest.sub("a.txt").path, withDestinationPath: outside.path)
+        try write(dest.sub("d"), "a file where a folder comes")
+
+        let src = root.sub("src")
+        try write(src.sub("a.txt"), "new")
+        try write(src.sub("d/in.txt"), "in")
+        let archive = root.sub("o.zip")
+        try await ArchiveWriter.create(archive, format: .zip, adding: [
+            .init(file: src.sub("a.txt"), path: "a.txt"),
+            .init(file: src.sub("d"), path: "d"),
+        ], progress: noProgress)
+
+        _ = try await extractAll(archive, to: dest, overwrite: true)
+        #expect(read(outside) == Data("keep".utf8))
+        #expect(lstatOf(dest.sub("a.txt")).map { $0.st_mode & S_IFMT } == S_IFREG)
+        #expect(read(dest.sub("a.txt")) == Data("new".utf8))
+        #expect(read(dest.sub("d/in.txt")) == Data("in".utf8))
+    }
+}
+
+/// Files that other threads create while archives are extracted keep their normal mode
+/// (libarchive's disk writer set the process umask to 0 for a moment).
+@Test func extractionLeavesTheUmaskAlone() async throws {
+    try await withSandbox { root in
+        let src = root.sub("src")
+        try write(src.sub("x.txt"), "x")
+        let archive = root.sub("u.zip")
+        try await ArchiveWriter.create(archive, format: .zip, adding: [.init(file: src.sub("x.txt"), path: "x.txt")], progress: noProgress)
+        let probes = root.sub("probes")
+        try FileManager.default.createDirectory(at: probes, withIntermediateDirectories: true)
+        let expected = 0o666 & ~probeUmask(in: probes)
+
+        // Threads create files while archives are extracted, until the extractions end.
+        let done = Flag()
+        let watchers = (0..<4).map { w in
+            watchFileModes(probes.path + "/w\(w)", expected: expected, until: done)
+        }
+        for i in 0..<1_500 {
+            _ = try await extractAll(archive, to: root.sub("out/\(i)"))
+        }
+        done.set()
+        var wrong = 0
+        for watcher in watchers { wrong += await watcher.value }
+        #expect(wrong == 0)
+    }
+}
+
+private final class Flag: @unchecked Sendable {
+    private let lock = NSLock()
+    private var value = false
+    func set() { lock.withLock { value = true } }
+    var isSet: Bool { lock.withLock { value } }
+}
+
+/// Creates and removes `path` until `flag` is set; returns how many times the file
+/// did not get the `expected` mode.
+private func watchFileModes(_ path: String, expected: mode_t, until flag: Flag) -> Task<Int, Never> {
+    Task.detached {
+        var wrong = 0
+        while !flag.isSet {
+            for _ in 0..<64 {
+                let fd = open(path, O_WRONLY | O_CREAT | O_EXCL, 0o666)
+                guard fd >= 0 else { continue }
+                var st = stat()
+                fstat(fd, &st)
+                if st.st_mode & 0o777 != expected { wrong += 1 }
+                close(fd)
+                unlink(path)
+            }
+        }
+        return wrong
+    }
+}
