@@ -243,6 +243,12 @@ final class PanelViewController: NSViewController {
         volumeBar.onDisconnectServer = { endpoint in
             Task { await ServerConnectionsUI.shared.disconnect([endpoint]) }
         }
+        volumeBar.onEjectVolume = { [weak self] volume in
+            VolumeEjector.eject([.volume(volume)], window: self?.view.window)
+        }
+        volumeBar.onVolumeInfo = { [weak self] url in
+            VolumeInfoSheet.show(for: url, in: self?.view.window)
+        }
 
         configureTabStrip()
 
@@ -373,6 +379,30 @@ final class PanelViewController: NSViewController {
         updateStatus()
         watchLocation()
         tabsChanged()
+    }
+
+    /// What ⌘E ejects or disconnects for this panel's location (spec 022).
+    var ejectTarget: EjectTarget? {
+        EjectTarget.resolve(location: model.location, archiveFile: model.archive?.archive, isNetwork: model.isNetwork,
+                            remoteEndpoint: model.remote?.endpoint, volumes: Volumes.mounted(), rootOf: Volumes.root(of:))
+    }
+
+    /// Work of this panel that reads the disk (spec 022: an eject waits for it).
+    var volumeUsers: [VolumeUser] {
+        isSizing ? [VolumeUser(title: String(localized: "Calculating folder sizes"), urls: [model.location])] : []
+    }
+
+    /// Before an eject: the panel and its tabs leave the volume at `root` for the home folder, and
+    /// the panel stops watching it at once (the navigation finishes later).
+    func leave(volume root: URL) {
+        let home = FileManager.default.homeDirectoryForCurrentUser
+        let isOn = { (url: URL) in VolumeUse.isOnVolume(url, root: root) }
+        if tabs.redirect(where: isOn, to: home) > 0 { tabStrip.show(titles: tabs.tabs.map(\.title), active: tabs.active) }
+        guard isOn(model.location) || isOn(watchedURL ?? home) else { return }
+        watcher?.cancel()
+        watcher = nil
+        watchedURL = nil
+        if isOn(model.location) { go(to: home) }
     }
 
     /// Inside an archive the folder holding the archive is watched: rewriting it replaces the file.
@@ -682,7 +712,7 @@ final class PanelViewController: NSViewController {
         .quickFilter, .quickFilterLast, .folderHistory,
         .copyAs, .makeDirectoryInOtherPanel, .viewCursorFile, .packAndMove, .testArchives,
         .toggleSelectionInPlace, .selectAllFiles, .deselectAllFiles,
-        .find, .pack, .unpack, .connectToServer, .disconnect, .compareFiles,
+        .find, .pack, .unpack, .connectToServer, .disconnect, .ejectVolume, .compareFiles,
         .changeCase, .batchRename, .calculateChecksums, .verifyChecksums, .occupiedSpace, .userMenu,
         .contextMenu, .moveFilesHere, .invertAll, .restoreSelection, .saveSelection, .loadSelection, .volumeInfo,
         .newSymbolicLink, .newHardLink, .editSymbolicLink, .pasteAsSymbolicLink, .goToLinkTarget, .changeAttributes,
@@ -750,7 +780,9 @@ final class PanelViewController: NSViewController {
         case .copyAs: return model.cursorItem.map { !$0.isParent } ?? false
         case .makeDirectoryInOtherPanel: return router.map { $0.otherPanel(than: self).canPerform(.makeDirectory) } ?? false
         case .viewCursorFile: return model.cursorItem.map { !$0.isParent && (!$0.isDirectory || $0.isPackage) } ?? false
-        case .disconnect: return !ServerConnectionsUI.shared.opened.isEmpty
+        case .disconnect:
+            return DisconnectList.isEnabled(servers: ServerConnectionsUI.shared.opened, volumes: Volumes.mounted())
+        case .ejectVolume: return ejectTarget != nil
         default: return true
         }
     }
@@ -884,6 +916,7 @@ final class PanelViewController: NSViewController {
         case .userMenu: UserMenuPresenter.show(for: self)
         case .connectToServer: ConnectSheet.show(for: self)
         case .disconnect: DisconnectSheet.show(for: self)
+        case .ejectVolume: if let ejectTarget { VolumeEjector.eject([ejectTarget], window: view.window) }
         case .pack: router?.operations.pack(targets(), from: self)
         case .unpack: router?.operations.unpack(archiveTargets(), from: self)
         case .testArchives: router?.operations.testArchives(archiveTargets(), from: self)

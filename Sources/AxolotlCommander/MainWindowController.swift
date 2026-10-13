@@ -675,6 +675,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         if let field = sortFields[command] { menuItem.state = activePanel.model.sort.field == field ? .on : .off }
         if command == .maximizePanel { menuItem.title = maximizedSide == nil ? CommandRegistry.spec(.maximizePanel).localizedTitle
                                                   : String(localized: "Restore Panels") }
+        if command == .ejectVolume { menuItem.title = EjectTarget.title(for: activePanel.ejectTarget) }
         return canPerform(command)
     }
 }

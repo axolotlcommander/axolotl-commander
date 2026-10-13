@@ -81,6 +81,16 @@
         }
       }
     },
+    "%@ are on the same disk as “%@” and will be ejected too.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ jsou na stejném disku jako „%@“ a vysunou se také."
+          }
+        }
+      }
+    },
     "%@ in %lld files and %lld folders (%@ s)": {
       "localizations": {
         "cs": {
@@ -625,6 +635,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Příkaz s proměnnou souboru se spustí jednou pro každý vybraný soubor."
+          }
+        }
+      }
+    },
+    "A file on it is open in this or another app.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Na svazku je otevřený soubor v této nebo jiné aplikaci."
           }
         }
       }
@@ -1215,6 +1235,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Spočítat velikosti složek"
+          }
+        }
+      }
+    },
+    "Calculating folder sizes": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Počítání velikostí složek"
           }
         }
       }
@@ -2170,6 +2200,26 @@
         }
       }
     },
+    "Disconnect or Eject": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odpojit nebo vysunout"
+          }
+        }
+      }
+    },
+    "Disconnect “%@”": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odpojit „%@“"
+          }
+        }
+      }
+    },
     "Disconnect…": {
       "extractionState": "manual",
       "localizations": {
@@ -2177,6 +2227,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Odpojit…"
+          }
+        }
+      }
+    },
+    "Disk Map": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mapa disku"
           }
         }
       }
@@ -2198,6 +2258,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Mapa disku…"
+          }
+        }
+      }
+    },
+    "Disks": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disky"
           }
         }
       }
@@ -2262,12 +2332,62 @@
         }
       }
     },
+    "Eject": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vysunout"
+          }
+        }
+      }
+    },
+    "Eject Volume": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vysunout svazek"
+          }
+        }
+      }
+    },
+    "Eject all volumes of this disk?": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vysunout všechny svazky tohoto disku?"
+          }
+        }
+      }
+    },
+    "Eject “%@”": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vysunout „%@“"
+          }
+        }
+      }
+    },
     "Existing: %@": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Stávající: %@"
+          }
+        }
+      }
+    },
+    "External Disk": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Externí disk"
           }
         }
       }
@@ -2282,12 +2402,42 @@
         }
       }
     },
+    "It is in use: %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Používá ho: %@"
+          }
+        }
+      }
+    },
+    "Left Volume…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Svazek vlevo…"
+          }
+        }
+      }
+    },
     "More…": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Další…"
+          }
+        }
+      }
+    },
+    "Network Volume": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Síťový svazek"
           }
         }
       }
@@ -2372,12 +2522,32 @@
         }
       }
     },
+    "Right Volume…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Svazek vpravo…"
+          }
+        }
+      }
+    },
     "Selected %@, %@ — %@": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Vybráno: %1$@, %2$@ – %3$@"
+          }
+        }
+      }
+    },
+    "Some volumes could not be ejected.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Některé svazky se nepodařilo vysunout."
           }
         }
       }
@@ -2418,6 +2588,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Název nesmí obsahovat „/“."
+          }
+        }
+      }
+    },
+    "This volume can’t be ejected.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tento svazek nelze vysunout."
           }
         }
       }
@@ -8308,6 +8488,16 @@
         }
       }
     },
+    "“%@” could not be ejected.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ se nepodařilo vysunout."
+          }
+        }
+      }
+    },
     "“%@” ended with status %d.": {
       "localizations": {
         "cs": {
@@ -8364,6 +8554,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "„%@“ není platný název."
+          }
+        }
+      }
+    },
+    "“%@” on the same disk is in use: %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ na stejném disku se používá: %@"
           }
         }
       }

@@ -43,7 +43,7 @@ public enum Command: String, CaseIterable, Hashable, Sendable {
 
     // Commands
     case find, occupiedSpace, openTerminal, revealInFinder, goToLinkTarget, userMenu, volumeInfo
-    case connectToServer, disconnect, compareFiles
+    case connectToServer, disconnect, ejectVolume, compareFiles
     case calculateChecksums, verifyChecksums
 
     // Options
@@ -98,7 +98,7 @@ public enum Command: String, CaseIterable, Hashable, Sendable {
 }
 
 public enum MenuID: String, CaseIterable, Sendable {
-    case app, file, edit, view, go, left, right, commands, options, window, help
+    case app, file, edit, view, go, commands, options, window, help
 }
 
 /// Where a command lives. Panel commands need keyboard focus in a panel and are
@@ -247,6 +247,8 @@ public enum CommandRegistry {
         add(.editPath, "Edit Path", .go, [ch("l", m)])
         add(.hotPaths, "Hot Paths…", .go, [f(9, s), ch("d", c)])
         add(.workingDirectories, "Working Directories…", .go, [f(12, o), f(12, [c, o])])
+        add(.leftVolumeMenu, "Left Volume…", .go, [f(1, o), f(1, [c, o])], sep: true)
+        add(.rightVolumeMenu, "Right Volume…", .go, [f(2, o), f(2, [c, o])])
         add(.newTab, "New Tab", .go, [ch("t", [c, s])], sep: true)
         add(.closeTab, "Close Tab", .go, [ch("w", [c, s])])
         add(.nextTab, "Next Tab", .go, [K(.pageDown, [c, s])])
@@ -257,9 +259,6 @@ public enum CommandRegistry {
         add(.reopenClosedTab, "Reopen Closed Tab", .go, [ch("t", [m, s])])
         add(.closeOtherTabs, "Close Other Tabs", .go, [ch("w", [m, o])])
         add(.tabList, "Tab List…", .go, [ch("a", [c, s]), ch("\\", [m, s])])
-
-        add(.leftVolumeMenu, "Volume…", .left, [f(1, o), f(1, [c, o])])
-        add(.rightVolumeMenu, "Volume…", .right, [f(2, o), f(2, [c, o])])
 
         add(.find, "Find Files…", .commands, [f(7, o), f(7, [c, o]), ch("f", m)])
         add(.occupiedSpace, "Disk Map…", .commands, [f(10, o), f(10, [c, o]), ch("d", [c, s])])
@@ -274,6 +273,7 @@ public enum CommandRegistry {
         add(.userMenu, "User Menu…", .commands, [f(9)], sep: true)
         add(.connectToServer, "Connect to Server…", .commands, [ch("k", m), ch("f", [c, s]), ch("f", c), ch("n", c)], sep: true)
         add(.disconnect, "Disconnect…", .commands, [f(12)])
+        add(.ejectVolume, "Eject Volume", .commands, [ch("e", m)])
 
         add(.configureKeys, "Keyboard Shortcuts…", .options, scope: .app)
 

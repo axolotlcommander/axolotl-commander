@@ -15,9 +15,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
   the last 10 destinations; ⌃D opens the hot paths directly.
 - Copying or moving one item puts its name in "To:", so it can be renamed on the way; F5/F6 again
   selects the name, the extension, the folder or the whole text.
+- Eject Volume (⌘E) ejects the volume of the active panel (or disconnects its server); ejectable
+  volumes show ⏏ in the volume bar, and a right click on a volume offers Eject and Volume Information….
+  Disconnect… (F12) also lists network volumes and ejectable disks. Panels on the volume go to the
+  home folder first, and nothing is ejected while one of the app's operations uses it.
 
 ### Changed
 
+- The Left and Right menus are gone: Left Volume… (⌥F1) and Right Volume… (⌥F2) are in the Go menu.
 - Arrow keys in a question with buttons (such as the replace question while copying) move the
   default button, so Return presses the chosen one; Esc still cancels.
 - ⇧F2 compares the panels at once with the saved options (Compare Panels); ⌃F10 opens the

@@ -123,7 +123,8 @@ extension OperationsController {
             }
             return
         }
-        let state = OperationState(title: kind == .copy ? String(localized: "Copying…") : String(localized: "Moving…"))
+        let state = OperationState(title: kind == .copy ? String(localized: "Copying…") : String(localized: "Moving…"),
+                                   urls: sources + [destination])
         let transfer = RemoteTransfer()
         perform(state) {
             let progress: RemoteTransfer.Progress = { p in Task { @MainActor in state.progress = p } }
