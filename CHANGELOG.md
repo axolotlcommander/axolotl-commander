@@ -46,7 +46,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 
 - The viewer opens files with very long lines (such as minified JSON of tens of MB) in seconds
   instead of minutes and gigabytes of memory: lines longer than 10 000 characters are split on
-  screen only, while copying, saving and Go to Line keep the original text.
+  screen only, while find, copying, saving and Go to Line work on the original text.
 - Clicking anywhere on a panel makes it the active one, not only clicking a file: the empty rows
   below the last file, the gaps and the info line, a column header, and a tab all do. Clicking
   into a panel also takes the keyboard back from the command line.

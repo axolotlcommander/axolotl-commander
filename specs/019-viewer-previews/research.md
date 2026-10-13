@@ -50,11 +50,11 @@
   breaks into lines longer than 10 000 UTF-16 units; an experiment showed lines of 2 000–30 000 lay out
   instantly. Copy, Save Copy, Go to Line and highlighting map back to the source. Measured on the 26 MB
   file after the change: Preview formatted within a few seconds at 270 MB (the formatter alone 0.1 s), Text in about 3 s at 375 MB.
-  Limit: the system find bar searches the displayed text, so a match that spans an inserted break is
-  not found.
+  Find: the text view's own find bar would search the displayed text and miss a match across an
+  inserted break, so the viewer runs its own `NSTextFinder` with a client (`ViewerFindClient`) that
+  hands out the source text and maps selection, scrolling and match rectangles to the display.
 - **Alternatives for long lines**: a custom layout for one huge line (much more code); no wrapping for
-  long lines (TextKit 2 still lays out the paragraph); a find client over the source text (possible
-  later if the find limit matters).
+  long lines (TextKit 2 still lays out the paragraph).
 - **Alternatives**: the first design (above 20 MB open Text and ask "Format it?") — dropped for the
   reason above; asking before anything is shown (still slow when Text is chosen).
 

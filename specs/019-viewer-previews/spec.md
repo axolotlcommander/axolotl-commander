@@ -118,8 +118,8 @@ take GB"):
 
 - Text mode with a huge line: lines over 10 000 characters are split for display only (a change of the
   earlier edge case that left Text mode as it was). Copying, saving and Go to Line keep the source text;
-  the status line says the long lines are split. A find match across a split is not found (accepted
-  limit for now).
+  the status line says the long lines are split. Find searches the source text as well, so a match
+  across a split is found (the maintainer asked for it the same day instead of keeping it as a limit).
 - Formatting no longer builds a node list: the formatter writes the text during its validating pass.
 
 ## User Scenarios & Testing *(mandatory)*
@@ -226,8 +226,8 @@ A user opens F#, Razor, solution and MSBuild files with F3 and sees them highlig
   Above 64 MB (the Text mode limit) the file opens in Text mode, and ⌘3 formats it on request.
 - **A huge minified file in Text mode** (one line of tens of MB): lines longer than 10 000 characters are
   split on screen only, so the file opens in seconds; copy, Save Copy and Go to Line use the original
-  text, and the status line says "long lines split for display". Find does not match text across such a
-  split.
+  text, and the status line says "long lines split for display". Find searches the original text, so a
+  match across such a split is found.
 - **Very deep nesting**: indentation stops growing after 64 levels, so the formatted text stays about as
   long as the source.
 - **Duplicate keys** in an object: all are shown in file order.

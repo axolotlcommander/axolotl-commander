@@ -115,8 +115,14 @@
 - [X] T018 GUI check of `big.json` (26 MB, one line) on the test copy, 2026-10-13: Preview formatted
   within a few seconds at 270 MB (before about 5 s and 1 GB; the formatter alone 0.1 s); Text in
   about 3 s at 375 MB (before about 90 s and 4.6 GB); select all + copy gives the 25 954 043 source
-  bytes with no line breaks; find jumps to a match; a match across an inserted break is not found
-  (documented limit).
+  bytes with no line breaks; find jumps to a match; a match across an inserted break was not found.
+- [X] T019 [US1] Find over the source text (spec Clarifications "memory"): `ViewerFindClient` in
+  `Sources/AxolotlCommander/Viewer/ViewerFindClient.swift` (source string, selection, scrolling, match
+  rectangles and indicator drawing through TextKit 2) and an own `NSTextFinder` in
+  `ViewerWindowController`. Also fixed: a formatting result that arrives after switching to Text no
+  longer replaces the source. GUI check on `big.json`: `2384148,"active"` across a break found and
+  highlighted on both lines, copied without a line break; `"user73826"` in the formatted preview
+  scrolled to and highlighted in place.
 
 ## Dependencies
 

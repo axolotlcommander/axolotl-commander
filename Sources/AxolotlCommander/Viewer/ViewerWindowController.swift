@@ -199,6 +199,9 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
     private let hexScroll = NSScrollView()
     private let hexView = HexView()
     private let findBar = HexFindBar()
+    /// The find bar of the text view, over the source text (`ViewerFindClient`).
+    private let textFinder = NSTextFinder()
+    private lazy var findClient = ViewerFindClient(textView: textView)
     private let markdownPreview = MarkdownPreview()
     private let imagePreview = ImagePreview()
     private let tablePreview = TablePreview()
@@ -255,8 +258,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         textView.isEditable = false
         textView.isSelectable = true
         textView.isRichText = false
-        textView.usesFindBar = true
-        textView.isIncrementalSearchingEnabled = true
+        textView.usesFindBar = false
         textView.drawsBackground = true
         textView.backgroundColor = .textBackgroundColor
         textView.textContainerInset = NSSize(width: 4, height: 4)
@@ -268,6 +270,10 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         textScroll.hasVerticalScroller = true
         textScroll.autohidesScrollers = true
         textScroll.findBarPosition = .aboveContent
+        textFinder.client = findClient
+        textFinder.findBarContainer = textScroll
+        textFinder.isIncrementalSearchingEnabled = true
+        textFinder.incrementalSearchingShouldDimContentView = true
 
         hexView.onKey = { [weak self] in self?.handleKey($0) ?? false }
         hexView.onSelectionChange = { [weak self] in self?.updateInfo() }
@@ -504,16 +510,19 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
                     }
                 }.value
                 guard !Task.isCancelled else { return }
+                // The user may have switched to Text or Hex meanwhile: keep the result, show it only in
+                // the preview.
                 switch result {
                 case .success(let (text, lineError)):
                     jsonText = text
                     jsonLineError = lineError
-                    showFormattedJSON(text, at: position)
+                    if showsFormattedJSON { showFormattedJSON(text, at: position) }
                 case .failure(let error as JSONParseError):
                     // Not JSON after all: the source with the place of the first error.
                     jsonError = error
                     modeControl.setEnabled(false, forSegment: 2)
                     modeOverride = nil
+                    guard mode == .preview else { return updateStatus() }
                     mode = .text
                     show(at: 0)
                 case .failure:
@@ -582,7 +591,9 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
     private func setText(_ text: SplitText) {
         textGeneration += 1
         highlightTask?.cancel()
+        textFinder.noteClientStringWillChange()
         shownText = text
+        findClient.show(text)
         textView.sourceText = text.isSplit ? { text.sourceText(ofDisplay: $0) } : nil
         textView.textStorage?.setAttributedString(NSAttributedString(string: text.display, attributes: [
             .font: font, .foregroundColor: NSColor.textColor,
@@ -1049,9 +1060,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
                 if findBar.query.isEmpty { showFindBar() } else { findInBar(backward: action == .previousMatch) }
             }
         case .text, .preview:
-            let item = NSMenuItem()
-            item.tag = action.rawValue
-            textView.performTextFinderAction(item)
+            textFinder.performAction(action)
         case .hex:
             switch action {
             case .showFindInterface:
