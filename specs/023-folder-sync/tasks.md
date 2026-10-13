@@ -72,10 +72,27 @@
 
 ## Phase 5: Polish
 
-- [ ] T013 Czech strings complete; CHANGELOG (Unreleased, Added); spec status. Build without warnings,
+- [X] T013 Czech strings complete; CHANGELOG (Unreleased, Added); spec status. Build without warnings,
   `swift test` green, commit.
-- [ ] T014 GUI check on the test copy following quickstart.md (scratch folders only); record the result
+- [X] T014 GUI check on the test copy following quickstart.md (scratch folders only); record the result
   here.
+  - 2026-10-13, test copy, folders `sync/L` and `sync/R` in the scratch folder: ⌥⇧F10 opened the sheet
+    with both folders and the defaults (delete disabled for Both ways). Both ways: newer-left →,
+    newer-right ←, only-left.txt and only-left-dir (one row, 2 files) →, only-right.txt ←, sub/deep.txt →,
+    size.txt and kind (file vs folder) ≠; same, close (1 s), fat (exactly 1 h), content (same size and
+    date), the link and .hidden (hidden files off) were not listed. Summary "Copy 6 files … to the
+    right, 2 files … to the left". Space excluded build (–, summary 5 files), ← on only-left.txt changed
+    nothing, → then = on size.txt; F3 opened Compare Files for size.txt; Left Only off hid those rows and
+    kept the summary. Return → confirmation → Synchronize: files copied with their dates, the window
+    compared again and showed only build, kind and size.txt. Esc closed the window. Left to right with
+    deleting, content on and ignore folders `build`: content.txt ≠, build not listed, a right-only file
+    ✕, confirmation "Move to the Trash 1 item"; the run moved it to the Trash (the test removed only that
+    item from the Trash afterwards). Refusals: left `sync`, right `sync/L/sub` → "One folder is inside
+    the other"; both `sync/L` → "Both panels show the same folder".
+  - Fixed during the check: the confirmation started with an empty line when nothing was copied.
+  - Not checked in the GUI: ⌥⇧F10 bringing an open sync window to the front (the synthetic click did not
+    make the main window key), a run that finds a changed item, and a volume without a Trash (both
+    covered by `SyncRunnerTests`).
 
 ## Dependencies
 

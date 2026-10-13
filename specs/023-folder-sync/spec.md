@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-13
 
-**Status**: Draft
+**Status**: Implemented
 
 **Input**: User description: "Synchronize folders: a new window that compares the folder trees of the left
 and right panel and copies (optionally deletes) the differences in a chosen direction." (Proposal written in

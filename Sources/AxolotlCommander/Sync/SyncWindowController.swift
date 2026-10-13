@@ -562,9 +562,9 @@ final class SyncWindowController: NSWindowController, NSWindowDelegate, NSTableV
     private static func confirmation(_ plan: SyncPlan) -> String {
         var lines: [String] = []
         if let copy = plan.copyLine { lines.append(copy) }
-        if let trash = plan.trashLine { lines += ["", trash] }
-        lines += ["", String(localized: "Items that change before they are copied are skipped.")]
-        return lines.joined(separator: "\n")
+        if let trash = plan.trashLine { lines.append(trash) }
+        lines.append(String(localized: "Items that change before they are copied are skipped."))
+        return lines.joined(separator: "\n\n")
     }
 
     private func run(_ plan: SyncPlan, _ comparison: SyncComparison, main: MainWindowController) {
