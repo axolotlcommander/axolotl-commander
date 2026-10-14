@@ -4,7 +4,7 @@
 import CommanderCore
 import SwiftUI
 
-enum SettingsTab: String { case general, viewer, appearance, hotPaths, userMenu, buttonBar, keyboard }
+enum SettingsTab: String { case general, panels, viewer, appearance, hotPaths, userMenu, buttonBar, keyboard }
 
 struct SettingsView: View {
     @AppStorage(Launcher.terminalDefaultsKey) private var terminal = "com.apple.Terminal"
@@ -44,9 +44,15 @@ struct SettingsView: View {
             .disabled(!choice.canHide(number))
     }
 
+    /// A tab's form that scrolls when it is taller than the window, so it never pushes the tabs under the
+    /// title bar.
+    private func scrolling(_ form: some View) -> some View {
+        ScrollView { form.padding() }
+    }
+
     var body: some View {
         TabView(selection: $tab) {
-            Form {
+            scrolling(Form {
                 Picker("Terminal:", selection: $terminal) {
                     ForEach(Launcher.installedTerminals) { Text($0.name).tag($0.bundleID) }
                 }
@@ -79,7 +85,23 @@ struct SettingsView: View {
                     }
                     .padding(.leading, 20)
                 }
-                Section("Panels") {
+                Section {
+                    HStack {
+                        Button("Export Settings…") { SettingsTransfer.export(from: NSApp.keyWindow) }
+                        Button("Import Settings…") { SettingsTransfer.importSettings(from: NSApp.keyWindow) }
+                        Spacer()
+                        // The release notes of every version (spec 026); also in Help and About.
+                        Button("What's New…") { WhatsNew.show() }
+                    }
+                    Text("One file with the keys, preferences, appearance, hot paths, user menu, saved servers and toolbar. Passwords are never included.")
+                        .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                }
+            })
+            .tabItem { Label("General", systemImage: "gearshape") }
+            .tag(SettingsTab.general.rawValue)
+
+            scrolling(Form {
+                Section {
                     behavior("Space moves the cursor down", $spaceMovesDown,
                              "Off: Space marks the item and the cursor stays on it.")
                     behavior("Typing goes to the command line", $typingToCommandLine,
@@ -102,18 +124,9 @@ struct SettingsView: View {
                         .fixedSize()
                     }
                 }
-                Section {
-                    HStack {
-                        Button("Export Settings…") { SettingsTransfer.export(from: NSApp.keyWindow) }
-                        Button("Import Settings…") { SettingsTransfer.importSettings(from: NSApp.keyWindow) }
-                    }
-                    Text("One file with the keys, preferences, appearance, hot paths, user menu, saved servers and toolbar. Passwords are never included.")
-                        .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-                }
-            }
-            .padding()
-            .tabItem { Label("General", systemImage: "gearshape") }
-            .tag(SettingsTab.general.rawValue)
+            })
+            .tabItem { Label("Panels", systemImage: "rectangle.split.2x1") }
+            .tag(SettingsTab.panels.rawValue)
 
             ViewerSettings()
                 .tabItem { Label("Viewer & Editor", systemImage: "doc.text.magnifyingglass") }
@@ -139,7 +152,7 @@ struct SettingsView: View {
                 .tabItem { Label("Keyboard", systemImage: "keyboard") }
                 .tag(SettingsTab.keyboard.rawValue)
         }
-        .frame(width: 720, height: 590)
+        .frame(width: 720, height: 600)
     }
 }
 

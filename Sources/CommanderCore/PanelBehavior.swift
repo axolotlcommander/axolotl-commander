@@ -3,7 +3,7 @@
 
 public import Foundation
 
-/// Panel behavior options from Settings → General → Panels (`specs/011-panel-behavior-options`).
+/// Panel behavior options from Settings → Panels (`specs/011-panel-behavior-options`).
 /// The keys are part of the settings file and are never renamed.
 public struct PanelBehavior: Equatable, Sendable {
     public static let spaceKey = "panel.spaceMovesDown"

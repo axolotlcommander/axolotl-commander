@@ -25,6 +25,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         if let window = controller.window {
             DispatchQueue.main.async { FunctionKeys.showNoticeIfNeeded(in: window) }
         }
+        WhatsNew.showAfterStart()
         Task { await ArchiveEdits.shared.offerPendingFromLastTime() }
     }
 
@@ -90,7 +91,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
 
     func canPerform(_ command: Command) -> Bool {
         switch command {
-        case .about, .settings, .exportSettings, .quit, .configureKeys, .help: true
+        case .about, .settings, .exportSettings, .quit, .configureKeys, .help, .whatsNew: true
         case .importSettings: SettingsTransfer.canImport
         default: false
         }
@@ -98,7 +99,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
 
     func perform(_ command: Command) {
         switch command {
-        case .about: NSApp.orderFrontStandardAboutPanel(nil)
+        case .about: AboutWindow.show()
+        case .whatsNew: WhatsNew.show()
         case .settings: showSettings()
         case .configureKeys: showSettings(tab: .keyboard)
         case .exportSettings: SettingsTransfer.export(from: NSApp.keyWindow)

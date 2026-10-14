@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-14
 
-**Status**: Draft
+**Status**: Implemented
 
 **Input**: User description: "What's New window: shows the release notes of the app (from the CHANGELOG.md
 bundled into the app) once after the app was updated to a newer version, and on demand from the menu, the
@@ -40,6 +40,9 @@ changelog entry.
 - Q: Where else can it be opened? → A: Help → What's New…, a link in the About window and a button in
   Settings → General.
 - Q: Where do the notes come from? → A: The changelog bundled into the app; nothing is downloaded.
+- Q: Where in Settings → General does the button go? → A: (during the GUI check) In the row of Export /
+  Import Settings, at its right end. The General tab no longer fitted the window, so the panel options moved
+  to their own Panels tab and every tab of these two scrolls when it is taller than the window.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -177,7 +180,8 @@ appearance; a link opens the browser; text can be selected and copied.
   text inside a section is shown as it is.
 - Two copies starting at once are rare; it is enough that the one that updates the remembered version first
   shows the window.
-- The About window keeps the standard macOS look; the What's New link is added to its credits text.
+- The About window keeps the content and look of the standard macOS panel (icon, name, version, credits,
+  copyright); it is the app's own window because the standard panel cannot run an action from a link (plan R6).
 - Deviation from the reference: the reference has no window after an update; this is an addition agreed with
   the maintainer.
 

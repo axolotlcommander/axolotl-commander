@@ -11158,13 +11158,13 @@
         }
       }
     },
-    "Space, typing into the command line, ⌃← / ⌃→ and the volume buttons are set in General → Panels.": {
+    "Space, typing into the command line, ⌃← / ⌃→ and the volume buttons are set on the Panels tab.": {
       "extractionState": "manual",
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mezerník, psaní do příkazové řádky, ⌃← / ⌃→ a tlačítka disků se nastavují v Obecné → Panely."
+            "value": "Mezerník, psaní do příkazové řádky, ⌃← / ⌃→ a tlačítka disků se nastavují na záložce Panely."
           }
         }
       }
@@ -11770,6 +11770,46 @@
           "stringUnit": {
             "state": "translated",
             "value": "Velké"
+          }
+        }
+      }
+    },
+    "What's New in Axolotl Commander": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Co je nového v Axolotl Commanderu"
+          }
+        }
+      }
+    },
+    "No release notes are available.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Poznámky k vydání nejsou k dispozici."
+          }
+        }
+      }
+    },
+    "Version %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verze %@"
+          }
+        }
+      }
+    },
+    "What's New…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Co je nového…"
           }
         }
       }
