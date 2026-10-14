@@ -6,6 +6,9 @@ import CommanderCore
 
 /// Tabs, hot paths, Go to Folder and highlighting of one panel.
 extension PanelViewController {
+    /// Settings → Panels "Open new tabs next to the current tab"; off: new tabs go after the last tab.
+    static var nextToCurrent: Bool { PanelBehavior(defaults: .standard).newTabsNextToCurrent }
+
     // MARK: Tabs
 
     func configureTabStrip() {
@@ -54,7 +57,7 @@ extension PanelViewController {
                stored.branch == nil {
                 keeping.cursorName = left.cursorName
             }
-            tabs.split(keeping: keeping, opened: snapshot)
+            tabs.split(keeping: keeping, opened: snapshot, nextToCurrent: Self.nextToCurrent)
         } else {
             tabs.updateCurrent(snapshot)
         }
@@ -63,13 +66,13 @@ extension PanelViewController {
     }
 
     /// Shows a state from elsewhere (Swap Panels, Same Folder as Other of a flat listing); a locked tab keeps
-    /// its folder and the state opens in a new tab after it.
+    /// its folder and the state opens in a new tab.
     func show(_ state: PanelState) async {
         tabs.updateCurrent(model.snapshot())
         if tabs.current.lock?.mode == .locked, Self.place(of: state) != Self.place(of: tabs.current) {
             var opened = state
             opened.lock = nil
-            tabs.open(opened, activate: true)
+            tabs.open(opened, activate: true, nextToCurrent: Self.nextToCurrent)
         }
         await restoreTab(state)
     }
@@ -91,7 +94,7 @@ extension PanelViewController {
     /// Duplicate Tab: an unlocked copy right after the tab, active.
     func duplicateTab(at index: Int? = nil) {
         tabs.updateCurrent(model.snapshot())
-        tabs.duplicate(at: index ?? tabs.active)
+        tabs.duplicate(at: index ?? tabs.active, nextToCurrent: Self.nextToCurrent)
         Task { await restoreTab(tabs.current) }
     }
 
@@ -109,7 +112,7 @@ extension PanelViewController {
     /// ⌃⇧T: a new tab with the same folder, sort, filter and cursor, placed after the current one.
     func newTab() {
         tabs.updateCurrent(model.snapshot())
-        tabs.open(model.snapshot())
+        tabs.open(model.snapshot(), nextToCurrent: Self.nextToCurrent)
         tabsChanged()
     }
 
@@ -136,7 +139,7 @@ extension PanelViewController {
     /// Inserts a tab after the current one; an active one is shown at once.
     func openTab(_ state: PanelState, activate: Bool) {
         tabs.updateCurrent(model.snapshot())
-        tabs.open(state, activate: activate)
+        tabs.open(state, activate: activate, nextToCurrent: Self.nextToCurrent)
         if activate { Task { await restoreTab(tabs.current) } } else { tabsChanged() }
     }
 
@@ -144,7 +147,7 @@ extension PanelViewController {
     func reopenClosedTab(at index: Int = 0) {
         guard let state = closedTabs.remove(at: index) else { NSSound.beep(); return }
         tabs.updateCurrent(model.snapshot())
-        tabs.open(state, activate: true)
+        tabs.open(state, activate: true, nextToCurrent: Self.nextToCurrent)
         tabs.returnCurrentToLock()
         Task { await restoreTab(tabs.current) }
     }
@@ -307,7 +310,7 @@ extension PanelViewController {
     /// A new active tab showing the current folder; `then` runs once it is shown.
     private func openNewTab(then action: @escaping (PanelViewController) -> Void) {
         tabs.updateCurrent(model.snapshot())
-        tabs.open(model.snapshot(), activate: true)
+        tabs.open(model.snapshot(), activate: true, nextToCurrent: Self.nextToCurrent)
         Task {
             await restoreTab(tabs.current)
             action(self)

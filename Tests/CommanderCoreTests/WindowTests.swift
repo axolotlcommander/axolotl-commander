@@ -219,13 +219,33 @@ private func dir(_ name: String) -> FileItem {
 // MARK: TabList
 
 @Suite struct TabListTests {
-    @Test func openInsertsAfterActive() {
+    @Test func openAddsAtTheEnd() {
         var t = tabs("a", "b", "c", active: 0)       // opened in order, then select(0)
         #expect(titles(t) == ["a", "b", "c"])
         t.open(state("/n"))
+        #expect(titles(t) == ["a", "b", "c", "n"])
+        #expect(t.active == 3)
+        #expect(t.current.title == "n")
+    }
+
+    @Test func openNextToCurrentInsertsAfterActive() {
+        var t = tabs("a", "b", "c", active: 0)
+        t.open(state("/n"), nextToCurrent: true)
         #expect(titles(t) == ["a", "n", "b", "c"])
         #expect(t.active == 1)
-        #expect(t.current.title == "n")
+        t.open(state("/m"), activate: false, nextToCurrent: true)
+        #expect(titles(t) == ["a", "n", "m", "b", "c"])
+        #expect(t.active == 1)
+    }
+
+    @Test func duplicateGoesToTheEndUnlessNextToCurrent() {
+        var t = tabs("a", "b", "c", active: 0)
+        t.duplicate(at: 0)
+        #expect(titles(t) == ["a", "b", "c", "a"])
+        #expect(t.active == 3)
+        t.duplicate(at: 1, nextToCurrent: true)
+        #expect(titles(t) == ["a", "b", "b", "c", "a"])
+        #expect(t.active == 2)
     }
 
     @Test func closeLastIsRefused() {
@@ -666,11 +686,11 @@ private func dir(_ name: String) -> FileItem {
         list.open(state("/b"))
         list.select(0)
         list.open(state("/c"), activate: false)
-        #expect(list.tabs.map(\.location.path) == ["/a", "/c", "/b"])
+        #expect(list.tabs.map(\.location.path) == ["/a", "/b", "/c"])
         #expect(list.active == 0)
         list.open(state("/d"), activate: true)
-        #expect(list.tabs.map(\.location.path) == ["/a", "/d", "/c", "/b"])
-        #expect(list.active == 1)
+        #expect(list.tabs.map(\.location.path) == ["/a", "/b", "/c", "/d"])
+        #expect(list.active == 3)
     }
 
     @Test func closedTabsAreNewestFirstAndLimited() {

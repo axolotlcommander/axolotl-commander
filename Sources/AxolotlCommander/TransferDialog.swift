@@ -24,7 +24,8 @@ final class TransferDialog: NSObject {
                                        styleMask: [.titled], backing: .buffered, defer: true)
     private let field = NSTextField()
     private let maskField = NSTextField(string: "*.*")
-    private let menuButton = NSButton()
+    private lazy var menuButton = DestinationMenuPopup.button(target: self, action: #selector(showDestinations))
+    private lazy var popup = DestinationMenuPopup { [weak self] folder in self?.choose(folder: folder) }
     private let single: Single?
     /// F5 for copy, F6 for move: the key that opened the dialog.
     private let cycleKey: UInt16
@@ -61,12 +62,6 @@ final class TransferDialog: NSObject {
         let heading = NSTextField(labelWithString: title)
         heading.font = .boldSystemFont(ofSize: NSFont.systemFontSize)
         heading.lineBreakMode = .byTruncatingMiddle
-        menuButton.image = NSImage(systemSymbolName: "chevron.down", accessibilityDescription: String(localized: "Destinations"))
-        menuButton.bezelStyle = .push
-        menuButton.target = self
-        menuButton.action = #selector(showDestinations)
-        menuButton.toolTip = String(localized: "Destinations (⌥↓)")
-        menuButton.refusesFirstResponder = true
         field.lineBreakMode = .byTruncatingHead
         field.cell?.isScrollable = true
         let toRow = NSStackView(views: [field, menuButton])
@@ -148,40 +143,11 @@ final class TransferDialog: NSObject {
     }
 
     private func showMenu(_ entries: [DestinationMenu.Entry]) {
-        guard !entries.isEmpty else {
-            NSSound.beep()
-            return
-        }
-        let menu = NSMenu()
-        menu.autoenablesItems = false
-        var section: DestinationMenu.Section?
-        for entry in entries {
-            if entry.section != section {
-                if section != nil { menu.addItem(.separator()) }
-                menu.addItem(.sectionHeader(title: Self.title(of: entry.section)))
-                section = entry.section
-            }
-            let item = NSMenuItem(title: entry.title, action: #selector(choose(_:)), keyEquivalent: "")
-            item.target = self
-            item.representedObject = entry.path
-            if entry.title != entry.path { item.toolTip = entry.path }
-            menu.addItem(item)
-        }
-        menu.popUp(positioning: nil, at: NSPoint(x: 0, y: menuButton.bounds.height + 4), in: menuButton)
-    }
-
-    private static func title(of section: DestinationMenu.Section) -> String {
-        switch section {
-        case .otherPanel: String(localized: "Other Panel")
-        case .tabs: String(localized: "Tabs")
-        case .hotPaths: String(localized: "Hot Paths")
-        case .recent: String(localized: "Recent Destinations")
-        }
+        popup.show(entries, under: menuButton)
     }
 
     /// The chosen folder replaces the folder part; the item's name stays.
-    @objc private func choose(_ sender: NSMenuItem) {
-        guard let folder = sender.representedObject as? String else { return }
+    private func choose(folder: String) {
         if single != nil {
             let text = field.stringValue
             let name = text.hasSuffix("/") ? "" : String(text.split(separator: "/", omittingEmptySubsequences: false).last ?? "")

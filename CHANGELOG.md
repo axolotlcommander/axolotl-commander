@@ -5,6 +5,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-10-14
+
+### Added
+
+- File → Split File… cuts a file into parts of a chosen size (25 MB for e-mail, CD, DVD, the FAT32
+  limit, or any size typed with k, M or G) named `name.001`, `name.002`, … and optionally writes a
+  `name.crc` checksum file. File → Combine Files… joins such parts again — from any part, the `.crc`
+  file or the marked files — and checks the result against the checksum file. Both write into the other
+  panel's folder by default, check the free space first and leave nothing behind when cancelled.
+
+### Changed
+
+- New tabs are added after the last tab instead of after the active one — also a duplicated tab and a
+  folder opened from a locked tab. Settings → Panels → "Open new tabs next to the current tab" brings
+  back the old placement.
+
 ## [0.6.0] - 2026-10-14
 
 ### Added

@@ -34,15 +34,17 @@ public struct TabList: Codable, Hashable, Sendable {
         tabs[active] = state
     }
 
-    /// Inserts `state` right after the active tab and activates it.
-    public mutating func open(_ state: PanelState) {
-        open(state, activate: true)
+    /// Adds `state` as the last tab (or right after the active one, `nextToCurrent`) and activates it.
+    public mutating func open(_ state: PanelState, nextToCurrent: Bool = false) {
+        open(state, activate: true, nextToCurrent: nextToCurrent)
     }
 
-    /// Inserts `state` right after the active tab; a background tab leaves the active one active.
-    public mutating func open(_ state: PanelState, activate: Bool) {
-        tabs.insert(state, at: active + 1)
-        if activate { active += 1 }
+    /// Adds `state` as the last tab, or right after the active one with `nextToCurrent` (the setting
+    /// "Open new tabs next to the current tab"); a background tab leaves the active one active.
+    public mutating func open(_ state: PanelState, activate: Bool, nextToCurrent: Bool = false) {
+        let index = nextToCurrent ? active + 1 : tabs.count
+        tabs.insert(state, at: index)
+        if activate { active = index }
     }
 
     /// Closes the active tab; returns false (changing nothing) for the only tab.
@@ -93,13 +95,13 @@ public struct TabList: Codable, Hashable, Sendable {
 
     /// A folder change in the active locked tab: the tab gets `keeping` back (its lock stays) and `opened`
     /// becomes a new unlocked tab right after it, active.
-    public mutating func split(keeping: PanelState, opened: PanelState) {
+    public mutating func split(keeping: PanelState, opened: PanelState, nextToCurrent: Bool = false) {
         var kept = keeping
         kept.lock = tabs[active].lock
         tabs[active] = kept
         var new = opened
         new.lock = nil
-        open(new, activate: true)
+        open(new, activate: true, nextToCurrent: nextToCurrent)
     }
 
     /// The active tab, when locked with folder changes allowed, shows its locked folder again.
@@ -141,13 +143,15 @@ public struct TabList: Codable, Hashable, Sendable {
         return all.indices.filter(doomed.contains).map { all[$0] }
     }
 
-    /// Duplicate Tab: an unlocked copy of the tab at `index` right after it, active.
-    public mutating func duplicate(at index: Int) {
+    /// Duplicate Tab: an unlocked copy of the tab at `index` as the last tab (or right after it,
+    /// `nextToCurrent`), active.
+    public mutating func duplicate(at index: Int, nextToCurrent: Bool = false) {
         guard tabs.indices.contains(index) else { return }
         var copy = tabs[index]
         copy.lock = nil
-        tabs.insert(copy, at: index + 1)
-        active = index + 1
+        let target = nextToCurrent ? index + 1 : tabs.count
+        tabs.insert(copy, at: target)
+        active = target
     }
 
     /// Removes the locks of the tabs whose location or locked folder matches (an ejected volume, a

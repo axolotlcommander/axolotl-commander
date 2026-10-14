@@ -111,10 +111,10 @@ private func vol(
         #expect(n == 1)
         #expect(list.tabs[0].location == a)
         #expect(list.tabs[0].cursorName == "c")
-        #expect(list.tabs[1].location == home)
-        #expect(list.tabs[2].location.path == "/tmp")
-        #expect(list.tabs[1].cursorName == nil)
-        #expect(list.tabs[1].selectedNames.isEmpty)
+        #expect(list.tabs[1].location.path == "/tmp")
+        #expect(list.tabs[2].location == home)
+        #expect(list.tabs[2].cursorName == nil)
+        #expect(list.tabs[2].selectedNames.isEmpty)
     }
 
     @Test func keepsHistory() {
