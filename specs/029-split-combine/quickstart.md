@@ -23,3 +23,9 @@ folders in the session scratchpad (`split/src` with a 60 MB random file `data.bi
    expected and actual values; the file is kept.
 9. Remove `.002` and combine: the message names `data.bin.002`; nothing written.
 10. Split a larger file (300 MB) and cancel during progress: `split/out` holds exactly what it held before.
+
+## Result (2026-10-14, test copy, Czech)
+
+All ten steps passed. Found and fixed during the check: the custom size field ran to the sheet edge (now as
+wide as "To:"), Combine's staging folder stayed visible while the result message was shown (now removed
+before the refresh), and the progress line of Combine did not count the joined parts.

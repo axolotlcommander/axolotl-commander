@@ -52,7 +52,7 @@
 
 - [X] T010 Czech strings in `Resources/Localizable.xcstrings`; no text cut.
 - [X] T011 `scripts/bump-version.sh minor` (0.7.0); `CHANGELOG.md` and `CHANGELOG.cs.md` entries.
-- [ ] T012 GUI check: quickstart steps 1–10 on the test copy; spec Status → Implemented; `docs/STATE.md`.
+- [X] T012 GUI check: quickstart steps 1–10 on the test copy; spec Status → Implemented; `docs/STATE.md`.
 
 ## Dependencies
 

@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-14
 
-**Status**: Draft
+**Status**: Implemented
 
 **Input**: User description: "Split and combine files: cut a large file into numbered parts of a chosen size
 (with an optional checksum file) and join such parts back into the original file." Agreed with the maintainer
