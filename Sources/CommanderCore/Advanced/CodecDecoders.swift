@@ -238,9 +238,9 @@ struct UUDecoder {
         while count > 0 {
             let a = value(line[i], alphabet) ?? 0, b = value(line[i + 1], alphabet) ?? 0
             let c = value(line[i + 2], alphabet) ?? 0, d = value(line[i + 3], alphabet) ?? 0
-            let group = [UInt8(truncatingIfNeeded: a << 2 | b >> 4), UInt8(truncatingIfNeeded: b << 4 | c >> 2),
-                         UInt8(truncatingIfNeeded: c << 6 | d)]
-            out.append(contentsOf: group.prefix(count))
+            out.append(UInt8(truncatingIfNeeded: a << 2 | b >> 4))
+            if count > 1 { out.append(UInt8(truncatingIfNeeded: b << 4 | c >> 2)) }
+            if count > 2 { out.append(UInt8(truncatingIfNeeded: c << 6 | d)) }
             count -= min(count, 3)
             i += 4
         }
