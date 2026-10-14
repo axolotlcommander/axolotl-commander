@@ -24,15 +24,15 @@ extension OperationsController {
         return lines.joined(separator: "\n")
     }
 
-    /// Moves the staged files into `folder` with the conflict question of spec 021; returns the names that
-    /// were not saved because the user kept the existing files.
-    private func moveIn(_ staged: [URL], to folder: URL) async throws -> [String] {
+    /// Moves the staged files into `folder` with the conflict question of spec 021; returns the name each
+    /// file was saved under (another one after "keep both"), or nil when the user kept the existing file.
+    private func moveIn(_ staged: [URL], to folder: URL) async throws -> [String?] {
         guard !staged.isEmpty else { return [] }
         let moved = try await operations.transfer(
             TransferRequest(kind: .move, sources: staged, destinationDirectory: folder),
             progress: { _ in },
             conflict: { [asker = ConflictAsker(window: window)] conflict in await asker.ask(conflict) })
-        return moved.skipped.map(\.lastPathComponent)
+        return staged.map { moved.skipped.contains($0) ? nil : moved.renamed[$0] ?? $0.lastPathComponent }
     }
 
     // MARK: Encode
@@ -90,10 +90,11 @@ extension OperationsController {
                         base += size
                     }
                     state.progress.doneItems = files.count
-                    let kept = try await self.moveIn(staged, to: target)
+                    let saved = try await self.moveIn(staged, to: target)
+                    let kept = zip(staged, saved).filter { $1 == nil }.map(\.0.lastPathComponent)
                     try? FileManager.default.removeItem(at: staging)
                     panel.model.deselectAll()
-                    await self.show(staged.first?.lastPathComponent, in: target, from: panel)
+                    await self.show(saved.compactMap { $0 }.first, in: target, from: panel)
                     var notes: [String] = []
                     if !kept.isEmpty {
                         notes.append(String(localized: "Not saved, the existing files were kept:") + "\n" + Self.list(kept))
@@ -167,12 +168,18 @@ extension OperationsController {
                                           String(localized: "Nothing was written. Decode File reads MIME messages (.eml), UUE, XXE, BinHex and Base64 text."))
                         return
                     }
-                    let kept = try await self.moveIn(decoded.map(\.url), to: target)
+                    let saved = try await self.moveIn(decoded.map(\.url), to: target)
                     try? FileManager.default.removeItem(at: staging)
                     panel.model.deselectAll()
-                    let written = decoded.filter { !kept.contains($0.name) }
+                    let written = zip(decoded, saved).compactMap { file, name -> DecodedFile? in
+                        guard let name else { return nil }
+                        var file = file
+                        file.name = name
+                        return file
+                    }
+                    let kept = zip(decoded, saved).filter { $1 == nil }.map(\.0.name)
                     await self.show(written.first?.name, in: target, from: panel)
-                    await self.reportDecoded(decoded, kept: kept, folders: folders)
+                    await self.reportDecoded(written, kept: kept, folders: folders)
                 }
             } catch {
                 report(error)
@@ -180,8 +187,8 @@ extension OperationsController {
         }
     }
 
-    private func reportDecoded(_ decoded: [DecodedFile], kept: [String], folders: Int) async {
-        let written = decoded.filter { !kept.contains($0.name) }
+    /// `written` carries the names the files were saved under.
+    private func reportDecoded(_ written: [DecodedFile], kept: [String], folders: Int) async {
         let title = written.count == 1
             ? String(localized: "“\(written[0].name)” was decoded.")
             : String(localized: "Decoded files: \(written.count)")

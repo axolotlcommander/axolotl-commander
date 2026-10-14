@@ -168,13 +168,15 @@ extension OperationsController {
                     // Gone before the panel is refreshed, so the hidden folder never shows up there.
                     try? FileManager.default.removeItem(at: output.staging)
                     panel.model.deselectAll()
-                    await self.show(name, in: folder, from: panel)
+                    // "Keep both" in the conflict question saves the file under another name.
+                    let saved = moved.renamed[output.staged] ?? name
+                    await self.show(saved, in: folder, from: panel)
                     if moved.skipped.contains(output.staged) || moved.copied == 0 {
                         await self.inform(String(localized: "The combined file was not saved."),
                                           String(localized: "“\(name)” already exists and was kept."))
                         return
                     }
-                    await self.reportCheck(output, name: name)
+                    await self.reportCheck(output, name: saved)
                 }
             } catch {
                 report(error)
