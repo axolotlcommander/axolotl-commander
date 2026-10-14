@@ -49,6 +49,7 @@ public enum KeyScheme: String, CaseIterable, Hashable, Sendable {
             .restoreSelection: [K(.numSlash)],
             .openTerminal: [ch("/", c)],
             .viewModeDetailed: [f(2, c), ch("1", [c, o])],
+            .viewModeThumbnails: [f(1, [c, s]), ch("3", [c, o])],
             .changeAttributes: [],
             .disconnect: [ch("f", [c, s]), f(12)],
             .connectToServer: [ch("k", m), ch("f", c), ch("n", c)],

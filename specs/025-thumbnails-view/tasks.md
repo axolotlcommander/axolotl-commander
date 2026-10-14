@@ -5,20 +5,20 @@
 
 ## Phase 1: Foundational (core)
 
-- [ ] T001 `PanelGrid` and `MoveKey` in `Sources/CommanderCore/Window/PanelGrid.swift` (NEW, SPDX header) with
+- [X] T001 `PanelGrid` and `MoveKey` in `Sources/CommanderCore/Window/PanelGrid.swift` (NEW, SPDX header) with
   the table of data-model.md; tests first in `Tests/CommanderCoreTests/PanelGridTests.swift` (NEW): every key
   for `.list`, `.columns`, `.rows`, clamping at both ends, ↓ above a shorter last row lands on the last item,
   ↑ from the first row on the first item, count 1.
-- [ ] T002 `GridGeometry.indices(in:)` in the same file for both orders (rectangles over several lines, a
+- [X] T002 `GridGeometry.indices(in:)` in the same file for both orders (rectangles over several lines, a
   rectangle only in a gap, beyond the last item, negative origin); tests in `PanelGridTests.swift`.
-- [ ] T003 [P] `PanelViewMode.thumbnails` and a tolerant decode of `leftMode` / `rightMode` (unknown value →
+- [X] T003 [P] `PanelViewMode.thumbnails` and a tolerant decode of `leftMode` / `rightMode` (unknown value →
   `detailed`, the rest of the layout kept) in `Sources/CommanderCore/Window/WindowLayout.swift`; tests for the
   round trip and the fallback in `Tests/CommanderCoreTests/ThumbnailTests.swift` (NEW).
-- [ ] T004 [P] `ThumbnailSize` (points 64/128/256, `larger`, `smaller`, key `panel.thumbnailSize`, default
+- [X] T004 [P] `ThumbnailSize` (points 64/128/256, `larger`, `smaller`, key `panel.thumbnailSize`, default
   `medium`, reading from `UserDefaults`), `ThumbnailKey`, `ThumbnailPolicy` in
   `Sources/CommanderCore/Thumbnails.swift` (NEW); `PreferenceSpec` in
   `Sources/CommanderCore/Settings/AppSettingsCatalog.swift`; tests in `ThumbnailTests.swift`.
-- [ ] T005 [P] Commands `viewModeThumbnails` ("Thumbnails", ⌃⌥3), `thumbnailsLarger` ("Larger Thumbnails",
+- [X] T005 [P] Commands `viewModeThumbnails` ("Thumbnails", ⌃⌥3), `thumbnailsLarger` ("Larger Thumbnails",
   ⌘+ ⌘=) and `thumbnailsSmaller` ("Smaller Thumbnails", ⌘−) in the View menu in
   `Sources/CommanderCore/Command.swift`; Classic Commander adds ⌃⇧F1 to `viewModeThumbnails` in
   `Sources/CommanderCore/KeyScheme.swift`; a test that the chords do not clash in the panel scope.
@@ -56,11 +56,11 @@
 **Goal**: cells show the system's previews, fast and smooth in large folders.
 **Independent test**: quickstart steps 1 and 7.
 
-- [ ] T012 [US2] Tests first in `ThumbnailTests.swift`: `ThumbnailCache` (limit by cost, least recently used
+- [X] T012 [US2] Tests first in `ThumbnailTests.swift`: `ThumbnailCache` (limit by cost, least recently used
   dropped first, a read makes an entry recent, keys differ by date and size) and `ThumbnailQueue` (at most
   `limit` running, visible keys before margin keys, keys no longer wanted are cancelled, `finished` starts
   the next).
-- [ ] T013 [US2] `ThumbnailCache` and `ThumbnailQueue` in `Sources/CommanderCore/Thumbnails.swift` until T012
+- [X] T013 [US2] `ThumbnailCache` and `ThumbnailQueue` in `Sources/CommanderCore/Thumbnails.swift` until T012
   passes.
 - [ ] T014 [US2] `ThumbnailLoader` in `Sources/AxolotlCommander/ThumbnailLoader.swift` (NEW): requests with
   `QLThumbnailGenerator` (`.icon` and `.thumbnail`, the cell size and the backing scale), cancels by the
