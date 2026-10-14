@@ -20,6 +20,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
   made by macOS for pictures, PDFs, videos, documents and more, loaded in the background for the
   visible cells and kept in memory only. Three sizes in Settings → Panels; ⌘+ / ⌘−, ⌘ + scroll wheel
   or a pinch change it while the view is shown. Archives, servers and Network show icons only.
+- What's New: after an update the app shows once what changed since the version that ran before.
+  Help → What's New…, the About window and Settings → General open the notes of every version. The notes
+  come in Czech when the app runs in Czech.
+
+### Changed
+
+- Settings: the panel options (Space, typing, ⌃← / ⌃→, volume buttons, right mouse button, thumbnail
+  size) have their own Panels tab instead of a section of General.
 
 ### Fixed
 
@@ -27,7 +35,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
   marked items.
 - A drop onto a folder's icon (in Detailed and Brief view) was refused; it now goes into the folder like
   a drop onto its name.
-- Long descriptions in Settings wrap instead of ending in "…".
+- Long descriptions in Settings wrap instead of ending in "…"; a tab taller than the window scrolls
+  instead of pushing the tabs under the title bar.
 
 ## [0.5.0] - 2026-10-13
 
@@ -207,7 +216,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
   counts) for every rounded size in the app: panels, status bars, the volume bar, operations,
   Properties, Compare and Disk Usage.
 - A size that does not fit a narrow Size column shows an ellipsis, never a cut number.
-- Branch view (⌃B, View → Branch View (With Subfolders)), as in Total Commander: the panel lists
+- Branch view (⌃B, View → Branch View (With Subfolders)): the panel lists
   every file of the folder and of all its subfolders in one list. The Name column shows the file's
   own name; the status bar shows its path below the folder. ⌃B again returns to the folder. It
   works in folders on disk, in archives and on servers; a long scan shows its progress, and Esc stops

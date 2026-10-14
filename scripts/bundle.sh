@@ -22,13 +22,15 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN/AxolotlCommander" "$APP/Contents/MacOS/"
 cp Resources/AppIcon.icns Resources/Credits.html "$APP/Contents/Resources/"
 # GPL: the license and notices travel with every copy of the program
-cp LICENSE NOTICE AUTHORS THIRD_PARTY.md THIRD_PARTY_LICENSES.txt "$APP/Contents/Resources/"
+cp LICENSE NOTICE AUTHORS THIRD_PARTY.md THIRD_PARTY_LICENSES.txt CHANGELOG.md "$APP/Contents/Resources/"
 for b in "$BIN"/*.bundle; do [ -e "$b" ] && cp -R "$b" "$APP/Contents/Resources/"; done
 # String Catalogs -> en.lproj / cs.lproj (Localizable.strings[dict], InfoPlist.strings); strings load
 # from Bundle.main, InfoPlist.strings localizes the Info.plist texts below (folder access prompts)
 xcrun xcstringstool compile Resources/Localizable.xcstrings --output-directory "$APP/Contents/Resources"
 xcrun xcstringstool compile Resources/InfoPlist.xcstrings --output-directory "$APP/Contents/Resources"
 mkdir -p "$APP/Contents/Resources/en.lproj"
+# The Czech release notes for the What's New window (spec 026)
+cp CHANGELOG.cs.md "$APP/Contents/Resources/cs.lproj/CHANGELOG.md"
 cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">

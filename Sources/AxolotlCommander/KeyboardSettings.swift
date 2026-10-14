@@ -36,7 +36,7 @@ struct KeyboardSettings: View {
                 }
                 .fixedSize()
                 // The scheme changes keys only; the behavior options are separate (spec 011).
-                Text("Space, typing into the command line, ⌃← / ⌃→ and the volume buttons are set in General → Panels.")
+                Text("Space, typing into the command line, ⌃← / ⌃→ and the volume buttons are set on the Panels tab.")
                     .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             }
             HStack {
