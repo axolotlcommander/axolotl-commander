@@ -39,6 +39,12 @@ strip, and "close other / all tabs" keeps locked tabs.
   again after another tab of the same panel was active (as the usual commanders do). No setting for it.
 - Q: Which other actions join the tab menu? → A: Duplicate Tab, Copy Tab to Other Panel, Close Tabs to the
   Right and Reopen Closed Tab. Renaming tabs is a separate later specification.
+- Q: Where do the lock mark and the close button go? (added while planning, 2026-10-14) → A: They share
+  one place at the left end of the tab, as in the screenshot the maintainer sent: while the pointer is over a
+  tab (any tab, active or not) it shows the close button; otherwise a locked tab shows the lock, and the
+  active unlocked tab shows the close button as today. The name stays centered and does not move.
+- Q: Right click on the empty part of the strip? (planning, 2026-10-14) → A: The tabs share the strip's whole
+  width, so it has no empty part; New Tab and Reopen Closed Tab are in every tab's menu instead.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -113,12 +119,15 @@ each names the mode and the locked folder's path.
 **Acceptance Scenarios**:
 
 1. **Given** a locked tab (either mode), **When** the strip is shown, **Then** a small lock mark is shown
-   before the tab's name; the name stays the folder name.
-2. **Given** a locked tab, **When** the pointer rests on it, **Then** the tooltip says "Locked" or "Locked,
+   at the left end of the tab; the name stays the folder name.
+2. **Given** any tab of a strip with more than one tab, **When** the pointer is over it, **Then** the left
+   end shows the close button instead of the lock (or of nothing); a click on it closes that tab. The active
+   unlocked tab shows the close button also without the pointer, as today.
+3. **Given** a locked tab, **When** the pointer rests on it, **Then** the tooltip says "Locked" or "Locked,
    folder changes allowed" and the path of the locked folder.
-3. **Given** many tabs with long names in a narrow window, **When** tabs get narrow, **Then** the lock mark
+4. **Given** many tabs with long names in a narrow window, **When** tabs get narrow, **Then** the lock mark
    and the close button stay visible and only the name is shortened.
-4. **Given** the tab list (keyboard), **When** it is shown, **Then** locked tabs carry the lock mark too.
+5. **Given** the tab list (keyboard), **When** it is shown, **Then** locked tabs carry the lock mark too.
 
 ---
 
@@ -171,12 +180,10 @@ that tab, not on the active one.
 4. **Given** the last tab of the strip, **When** its menu opens, **Then** Close Tabs to the Right is disabled;
    Reopen Closed Tab is disabled when no tab of the panel was closed; Close Tab and Close Other Tabs are
    disabled when the panel has only one tab.
-5. **Given** a right click on the empty part of the strip, **When** the menu opens, **Then** it offers New
-   Tab and Reopen Closed Tab.
-6. **Given** the main menu, **When** the user opens its tab commands, **Then** Duplicate Tab, Copy Tab to
+5. **Given** the main menu, **When** the user opens its tab commands, **Then** Duplicate Tab, Copy Tab to
    Other Panel, Close Tabs to the Right and the two lock commands are there too, acting on the active tab of
    the active panel.
-7. **Given** the app runs in Czech, **When** any of these menus opens, **Then** no item text is cut.
+6. **Given** the app runs in Czech, **When** any of these menus opens, **Then** no item text is cut.
 
 ---
 
@@ -220,9 +227,10 @@ that tab, not on the active one.
 - **FR-005**: A tab locked with folder changes allowed MUST change folders like a normal tab, and MUST show
   its locked folder again whenever it becomes the active tab of its panel after another tab of that panel
   was active, with the cursor on the remembered item if it still exists.
-- **FR-006**: A locked tab (either mode) MUST show a lock mark before its name in the strip and in the tab
-  list; its tooltip MUST name the mode and the locked folder's path; the mark and the close button MUST stay
-  visible when tabs are narrow.
+- **FR-006**: A locked tab (either mode) MUST show a lock mark at the left end of its strip entry and in the
+  tab list; its tooltip MUST name the mode and the locked folder's path. The left end MUST show the close
+  button instead while the pointer is over the tab (any tab, when the panel has more than one), and on the
+  active unlocked tab; the mark and the close button MUST stay visible when tabs are narrow.
 - **FR-007**: Lock modes and locked folders MUST be saved with the window layout and restored at start, a
   tab locked with folder changes allowed MUST start on its locked folder, and layouts without lock data MUST
   load with unlocked tabs.
@@ -236,8 +244,7 @@ that tab, not on the active one.
   locked with that parent as the locked folder.
 - **FR-013**: The tab context menu MUST offer New Tab, Duplicate Tab, Copy Tab to Other Panel, the two lock
   modes, Close Tab, Close Other Tabs, Close Tabs to the Right and Reopen Closed Tab, in groups as in User
-  Story 5, acting on the tab under the pointer; the empty part of the strip MUST offer New Tab and Reopen
-  Closed Tab.
+  Story 5, acting on the tab under the pointer.
 - **FR-014**: Duplicate Tab MUST open an unlocked copy of the tab (folder, sort, filter, cursor, history)
   right after it and activate it; Copy Tab to Other Panel MUST open such a copy as the active tab of the
   other panel.
