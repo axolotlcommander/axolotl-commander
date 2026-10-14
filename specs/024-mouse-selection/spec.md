@@ -69,6 +69,9 @@ This spec changes behavior, so its pull request raises the minor version (`CLAUD
 - Q: Marking by dragging with ⌃ held over items ("paint")? → A: No; it would clash with drag & drop. Marking
   the items passed over is a right drag in the Norton-style mode only.
 - Q: Keyboard marking? → A: Unchanged. Moving the cursor with the keys never clears the marks.
+- Q: In the Norton-style mode, what does the menu opened by a long right press act on? → A: The marks stay;
+  the cursor moves to the pressed item and the menu acts on the marked items, or on the pressed item when
+  nothing is marked (agreed during planning: "jo pokračuj").
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -240,8 +243,8 @@ long press and with ⌃+right click, then turn it off and check that the right c
 - **FR-016**: With the setting on, a right drag MUST mark or unmark every item passed over; the first item
   decides (unmarked → mark, marked → unmark).
 - **FR-017**: With the setting on, holding the right button on the same spot for about half a second MUST
-  open the context menu without changing marks; ⌃+right click MUST open it at once. The keyboard ways to
-  open it (⇧F10) stay.
+  open the context menu without changing marks; ⌃+right click MUST open it at once. That menu acts on the
+  marked items, or on the pressed item when nothing is marked. The keyboard ways to open it (⇧F10) stay.
 - **FR-018**: With the setting on, a left click without a modifier MUST only move the cursor and keep the
   marks; ⌃/⌘/⇧ left clicks and the rubber band MUST work as in the default mode.
 
