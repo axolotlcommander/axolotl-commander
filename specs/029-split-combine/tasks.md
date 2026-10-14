@@ -5,16 +5,16 @@
 
 ## Phase 1: Core (blocking)
 
-- [ ] T001 `Sources/CommanderCore/Advanced/SplitCombine.swift` (NEW): `PartSize` (presets of R1, `parse` of
+- [X] T001 `Sources/CommanderCore/Advanced/SplitCombine.swift` (NEW): `PartSize` (presets of R1, `parse` of
   R2, `count`, `problem` → `.invalid` / `.notLarger` / `.tooManyParts` "> 999"), `PartName` (R3,
   `name(base:index:)`, `parse(_:) -> (base, number)?` for "<base>.<3+ digits>"), `ChecksumFile` (R4, `text`,
   lenient `init?(data:)`, unsafe names → nil), `PartSet` (`find(around:in:)`, `marked(_:)`, `defaultName`,
   `totalSize`, R5), `SplitCombineError`, `FreeSpace.available(at:)` (R6).
-- [ ] T002 `Sources/CommanderCore/Advanced/FileSplitter.swift` (NEW): `split(source:name:partSize:writeChecksum:
+- [X] T002 `Sources/CommanderCore/Advanced/FileSplitter.swift` (NEW): `split(source:name:partSize:writeChecksum:
   into:replacing:progress:)` (R7: staging `.~icmd-<uuid>`, `O_EXCL`, 4 MiB chunks, CRC32, size check, commit
   with `RENAME_EXCL` or `rename` for the confirmed names, rollback, staging removed) and `existingNames(...)`
   for the question; `combine(parts:name:checksum:into:progress:) -> CombineOutput` (R8).
-- [ ] T003 `Tests/CommanderCoreTests/SplitCombineTests.swift` (NEW, temporary folder only): presets and
+- [X] T003 `Tests/CommanderCoreTests/SplitCombineTests.swift` (NEW, temporary folder only): presets and
   parser (units, decimal comma, spaces, invalid, zero), count and problems (exact multiple, remainder, one
   part, 999 limit, > 4 GB arithmetic); names; checksum file round trip, CR / LF / CR LF, case, spaces, extra
   lines, unsafe names; set from a part / from the `.crc` / gaps / missing first / marked natural order with

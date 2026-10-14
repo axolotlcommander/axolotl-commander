@@ -9,7 +9,7 @@
 | `count(fileSize:partSize:) -> Int` | ⌈fileSize / partSize⌉. |
 | `problem(fileSize:partSize:) -> Problem?` | `.invalid`, `.notLarger`, `.tooManyParts` (> 999). |
 
-## ChecksumFile (core)
+## SplitChecksum (core)
 
 | Field | Type | Meaning |
 |---|---|---|
