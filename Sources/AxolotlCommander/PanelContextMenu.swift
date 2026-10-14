@@ -61,7 +61,7 @@ extension PanelViewController {
     private func popUpAtCursor(_ menu: NSMenu) {
         let rect: NSRect = switch viewMode {
         case .detailed: tableView.rect(ofRow: model.cursor)
-        case .brief: briefView.frameForItem(at: model.cursor)
+        case .brief, .thumbnails: briefView.frameForItem(at: model.cursor)
         }
         menu.popUp(positioning: nil, at: NSPoint(x: rect.minX + 24, y: rect.maxY), in: listView)
     }

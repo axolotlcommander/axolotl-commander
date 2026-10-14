@@ -23,7 +23,7 @@ public enum Command: String, CaseIterable, Hashable, Sendable {
     case sortByName, sortByExtension, sortByDate, sortBySize
     case filter, refresh, toggleHidden, branchView, branchViewSelected, maximizePanel, comparePanels, comparePanelsNow, calculateSizes
     case swapPanels, sameFolderAsOther
-    case viewModeDetailed, viewModeBrief
+    case viewModeDetailed, viewModeBrief, viewModeThumbnails, thumbnailsLarger, thumbnailsSmaller
     case toggleCommandLine, toggleFunctionKeyBar, toggleButtonBar, toggleVolumeBar, toggleDriveRow
 
     // Go (active panel)
@@ -216,6 +216,9 @@ public enum CommandRegistry {
         add(.sortBySize, "Sort by Size", .view, [f(6, c)])
         add(.viewModeDetailed, "Detailed", .view, [ch("1", [c, o])], sep: true)
         add(.viewModeBrief, "Brief", .view, [ch("2", [c, o]), f(1, c)])
+        add(.viewModeThumbnails, "Thumbnails", .view, [ch("3", [c, o])])
+        add(.thumbnailsLarger, "Larger Thumbnails", .view, [ch("+", m), ch("=", m)])
+        add(.thumbnailsSmaller, "Smaller Thumbnails", .view, [ch("-", m)])
         add(.toggleHidden, "Show Hidden Files", .view, [ch(".", [m, s])], sep: true)
         add(.branchView, "Branch View (With Subfolders)", .view, [ch("b", c)])
         add(.branchViewSelected, "Branch View of Selected Items", .view, [ch("b", [c, s])])
