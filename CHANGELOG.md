@@ -17,8 +17,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 
 ### Changed
 
-- A new tab is added after the last tab instead of after the active one. A folder opened from a locked
-  tab still opens right after it.
+- New tabs are added after the last tab instead of after the active one — also a duplicated tab and a
+  folder opened from a locked tab. Settings → Panels → "Open new tabs next to the current tab" brings
+  back the old placement.
 
 ## [0.6.0] - 2026-10-14
 

@@ -54,6 +54,7 @@ extension SettingsCatalog {
         PreferenceSpec(PanelBehavior.volumesKey, .bool, default: .bool(PanelBehavior().volumeButtonsFollow)),
         PreferenceSpec(PanelBehavior.rightButtonKey, .bool, default: .bool(PanelBehavior().rightButtonMarks)),
         PreferenceSpec(PanelBehavior.alwaysShowTabsKey, .bool, default: .bool(PanelBehavior().alwaysShowTabs)),
+        PreferenceSpec(PanelBehavior.tabsNextToCurrentKey, .bool, default: .bool(PanelBehavior().newTabsNextToCurrent)),
         PreferenceSpec(ThumbnailSize.key, .string(allowed: values(ThumbnailSize.self)),
                        default: .string(ThumbnailSize.default.rawValue)),
         PreferenceSpec(UpdateState.automaticKey, .bool, default: .bool(true)),

@@ -228,6 +228,26 @@ private func dir(_ name: String) -> FileItem {
         #expect(t.current.title == "n")
     }
 
+    @Test func openNextToCurrentInsertsAfterActive() {
+        var t = tabs("a", "b", "c", active: 0)
+        t.open(state("/n"), nextToCurrent: true)
+        #expect(titles(t) == ["a", "n", "b", "c"])
+        #expect(t.active == 1)
+        t.open(state("/m"), activate: false, nextToCurrent: true)
+        #expect(titles(t) == ["a", "n", "m", "b", "c"])
+        #expect(t.active == 1)
+    }
+
+    @Test func duplicateGoesToTheEndUnlessNextToCurrent() {
+        var t = tabs("a", "b", "c", active: 0)
+        t.duplicate(at: 0)
+        #expect(titles(t) == ["a", "b", "c", "a"])
+        #expect(t.active == 3)
+        t.duplicate(at: 1, nextToCurrent: true)
+        #expect(titles(t) == ["a", "b", "b", "c", "a"])
+        #expect(t.active == 2)
+    }
+
     @Test func closeLastIsRefused() {
         var t = TabList(state("/a"))
         let r1 = t.closeCurrent()

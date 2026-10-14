@@ -18,6 +18,7 @@ struct SettingsView: View {
     @AppStorage(PanelBehavior.spaceKey) private var spaceMovesDown = PanelBehavior().spaceMovesDown
     @AppStorage(PanelBehavior.rightButtonKey) private var rightButtonMarks = PanelBehavior().rightButtonMarks
     @AppStorage(PanelBehavior.alwaysShowTabsKey) private var alwaysShowTabs = PanelBehavior().alwaysShowTabs
+    @AppStorage(PanelBehavior.tabsNextToCurrentKey) private var tabsNextToCurrent = PanelBehavior().newTabsNextToCurrent
     @AppStorage(PanelBehavior.typingKey) private var typingToCommandLine = PanelBehavior().typingToCommandLine
     @AppStorage(PanelBehavior.arrowsKey) private var arrowsTargetPointedPanel = PanelBehavior().arrowsTargetPointedPanel
     @AppStorage(PanelBehavior.volumesKey) private var volumeButtonsFollow = PanelBehavior().volumeButtonsFollow
@@ -116,6 +117,8 @@ struct SettingsView: View {
                              "A right click marks, a right drag marks the items passed over, holding the right button opens the context menu. Off: a right click opens the context menu.")
                     behavior("Always show the tab bar", $alwaysShowTabs,
                              "Off: the tab bar appears when a panel has more than one tab.")
+                    behavior("Open new tabs next to the current tab", $tabsNextToCurrent,
+                             "Off: a new tab is added after the last tab.")
                     // In the content column: a form label this long would push the labels out of the window.
                     HStack {
                         Text("Thumbnail size:")

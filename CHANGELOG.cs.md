@@ -18,8 +18,8 @@ Formát vychází z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ve
 
 ### Změněno
 
-- Nová záložka se přidá za poslední záložku, ne za aktivní. Složka otevřená ze zamčené záložky se dál
-  otevře hned za ní.
+- Nové záložky se přidávají za poslední záložku, ne za aktivní — i duplikovaná záložka a složka otevřená
+  ze zamčené záložky. Nastavení → Panely → „Otevírat nové záložky vedle aktuální“ vrátí původní umístění.
 
 ## [0.6.0] - 2026-10-14
 

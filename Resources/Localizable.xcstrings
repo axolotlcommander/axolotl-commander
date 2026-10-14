@@ -3471,6 +3471,16 @@
         }
       }
     },
+    "Off: a new tab is added after the last tab.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vypnuto: nová záložka se přidá za poslední záložku."
+          }
+        }
+      }
+    },
     "Off: the tab bar appears when a panel has more than one tab.": {
       "localizations": {
         "cs": {
@@ -3487,6 +3497,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Jedna složka je uvnitř druhé"
+          }
+        }
+      }
+    },
+    "Open new tabs next to the current tab": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otevírat nové záložky vedle aktuální"
           }
         }
       }

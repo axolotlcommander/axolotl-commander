@@ -12,6 +12,7 @@ public struct PanelBehavior: Equatable, Sendable {
     public static let volumesKey = "panel.volumeButtonsFollow"
     public static let rightButtonKey = "panel.rightButtonMarks"
     public static let alwaysShowTabsKey = "panel.alwaysShowTabs"
+    public static let tabsNextToCurrentKey = "panel.newTabsNextToCurrent"
 
     /// Space marks the item and moves the cursor down (off: the cursor stays).
     public var spaceMovesDown = true
@@ -26,6 +27,8 @@ public struct PanelBehavior: Equatable, Sendable {
     public var rightButtonMarks = false
     /// The tab bar shows even for a single tab (`specs/028-tab-locking`); off: it hides with one tab.
     public var alwaysShowTabs = false
+    /// New tabs open right after the active tab; off: after the last tab.
+    public var newTabsNextToCurrent = false
 
     public var mouseSelectionMode: MouseSelectionMode { rightButtonMarks ? .rightButtonMarks : .standard }
 
@@ -41,6 +44,7 @@ public struct PanelBehavior: Equatable, Sendable {
         volumeButtonsFollow = bool(Self.volumesKey, false)
         rightButtonMarks = bool(Self.rightButtonKey, false)
         alwaysShowTabs = bool(Self.alwaysShowTabsKey, false)
+        newTabsNextToCurrent = bool(Self.tabsNextToCurrentKey, false)
     }
 }
 

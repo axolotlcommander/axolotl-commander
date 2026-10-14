@@ -39,12 +39,12 @@ import Testing
         #expect(list.current.lock == TabLock(mode: .allowsChanges, folder: URL(filePath: "/work"), cursorName: "notes.txt"))
     }
 
-    @Test func splitOpensTheNewFolderAfterTheLockedTab() {
+    @Test func splitOpensTheNewFolderAtTheEnd() {
         var list = Self.list(["/a", "/b"])
         list.setLock(.locked, at: 0)
         list.split(keeping: Self.state("/a", cursor: "sub"), opened: Self.state("/a/sub"))
-        #expect(locations(list) == ["/a", "/a/sub", "/b"])
-        #expect(list.active == 1)
+        #expect(locations(list) == ["/a", "/b", "/a/sub"])
+        #expect(list.active == 2)
         #expect(list.tabs[0].lock?.mode == .locked)
         #expect(list.tabs[0].cursorName == "sub")
         #expect(list.tabs[1].lock == nil)
@@ -110,9 +110,9 @@ import Testing
         var list = Self.list(["/a", "/b"])
         list.setLock(.locked, at: 0)
         list.duplicate(at: 0)
-        #expect(locations(list) == ["/a", "/a", "/b"])
-        #expect(list.active == 1)
-        #expect(list.tabs[0].lock != nil && list.tabs[1].lock == nil)
+        #expect(locations(list) == ["/a", "/b", "/a"])
+        #expect(list.active == 2)
+        #expect(list.tabs[0].lock != nil && list.tabs[2].lock == nil)
     }
 
     @Test func ejectedVolumesDropLocks() {
@@ -139,6 +139,25 @@ import Testing
         list.setLock(.allowsChanges, at: 0)
         list.relock(at: 0, to: URL(filePath: "/gone"))
         #expect(list.current.lock?.folder.path == "/gone" && list.current.lock?.cursorName == nil)
+    }
+
+    @Test func splitNextToCurrentOpensRightAfterTheLockedTab() {
+        var list = Self.list(["/a", "/b"])
+        list.select(0)
+        list.setLock(.locked, at: 0)
+        list.split(keeping: Self.state("/a", cursor: "sub"), opened: Self.state("/a/sub"), nextToCurrent: true)
+        #expect(locations(list) == ["/a", "/a/sub", "/b"])
+        #expect(list.active == 1)
+    }
+
+    @Test func newTabsNextToCurrentSetting() {
+        #expect(PanelBehavior().newTabsNextToCurrent == false)
+        let suite = "TabLockTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        defaults.set(true, forKey: PanelBehavior.tabsNextToCurrentKey)
+        #expect(PanelBehavior(defaults: defaults).newTabsNextToCurrent)
+        #expect(PanelBehavior.tabsNextToCurrentKey == "panel.newTabsNextToCurrent")
     }
 
     @Test func alwaysShowTabsSetting() {
