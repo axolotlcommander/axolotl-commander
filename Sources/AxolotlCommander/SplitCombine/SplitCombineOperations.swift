@@ -105,7 +105,7 @@ extension OperationsController {
     private func confirmReplace(_ names: [String], in folder: URL) async -> Bool {
         let alert = NSAlert()
         alert.alertStyle = .warning
-        alert.messageText = String(localized: "Replace \(names.count) existing files in “\(folder.lastPathComponent)”?")
+        alert.messageText = String(localized: "These files already exist in “\(folder.lastPathComponent)”:")
         let shown = names.prefix(10).joined(separator: "\n")
         alert.informativeText = (names.count > 10 ? shown + "\n" + String(localized: "and \(names.count - 10) more") : shown)
             + "\n\n" + String(localized: "They are replaced only after all new parts have been written.")
@@ -186,7 +186,9 @@ extension OperationsController {
             let alert = NSAlert()
             alert.alertStyle = .warning
             alert.messageText = String(localized: "“\(name)” does not match the checksum file.")
-            let expected = String(localized: "Expected: size \(expectedSize.map(Format.grouped) ?? "–") bytes, CRC32 \(expectedCRC.map(SplitChecksum.hex) ?? "–")")
+            let expectedSizeText = expectedSize.map(Format.grouped) ?? "–"
+            let expectedCRCText = expectedCRC.map(SplitChecksum.hex) ?? "–"
+            let expected = String(localized: "Expected: size \(expectedSizeText) bytes, CRC32 \(expectedCRCText)")
             let actual = String(localized: "Result: size \(Format.grouped(output.size)) bytes, CRC32 \(SplitChecksum.hex(output.crc32))")
             alert.informativeText = expected + "\n" + actual + "\n\n"
                 + String(localized: "The file was kept. A part may be damaged or missing; check the parts and combine again.")

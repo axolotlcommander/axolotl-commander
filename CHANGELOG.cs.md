@@ -5,6 +5,17 @@ Formát vychází z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ve
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-10-14
+
+### Přidáno
+
+- Soubor → Rozdělit soubor… rozdělí soubor na části zvolené velikosti (25 MB pro e-mail, CD, DVD, limit
+  FAT32 nebo libovolná velikost zadaná s k, M nebo G) pojmenované `jméno.001`, `jméno.002`, … a volitelně
+  zapíše soubor s kontrolním součtem `jméno.crc`. Soubor → Spojit soubory… takové části znovu spojí — od
+  kterékoli části, od souboru `.crc` nebo z označených souborů — a výsledek ověří podle kontrolního součtu.
+  Obojí zapisuje ve výchozím stavu do složky druhého panelu, předem zkontroluje volné místo a po zrušení
+  nic nenechá.
+
 ## [0.6.0] - 2026-10-14
 
 ### Přidáno

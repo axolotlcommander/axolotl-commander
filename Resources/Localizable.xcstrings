@@ -673,6 +673,56 @@
         }
       }
     },
+    "100 MB": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "100 MB"
+          }
+        }
+      }
+    },
+    "25 MB (e-mail)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "25 MB (e-mail)"
+          }
+        }
+      }
+    },
+    "4 GB − 1 byte (FAT32)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "4 GB − 1 bajt (FAT32)"
+          }
+        }
+      }
+    },
+    "4.7 GB (DVD)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "4,7 GB (DVD)"
+          }
+        }
+      }
+    },
+    "700 MB (CD)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "700 MB (CD)"
+          }
+        }
+      }
+    },
     "A byte order mark or valid UTF-8 always wins; this encoding is used for other text.": {
       "localizations": {
         "cs": {
@@ -709,6 +759,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Složka si při kopírování na server, ze serveru nebo do archivu a z archivu ponechá svůj název."
+          }
+        }
+      }
+    },
+    "A folder named “%@” is in the target folder; it can’t be replaced by a part.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "V cílové složce je složka „%@“; část ji nemůže nahradit."
           }
         }
       }
@@ -759,6 +819,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Je k dispozici nová verze Axolotl Commanderu"
+          }
+        }
+      }
+    },
+    "A number with an optional unit k, M or G (1024-based); bytes without a unit.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Číslo s jednotkou k, M nebo G (násobky 1024); bez jednotky v bajtech."
           }
         }
       }
@@ -1414,12 +1484,32 @@
         }
       }
     },
+    "Can’t read: %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nelze číst: %@"
+          }
+        }
+      }
+    },
     "Can’t verify that “%@” is a different file; nothing was removed.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Nelze ověřit, že „%@“ je jiný soubor; nic nebylo odstraněno."
+          }
+        }
+      }
+    },
+    "Can’t write: %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nelze zapsat: %@"
           }
         }
       }
@@ -1756,6 +1846,56 @@
           "stringUnit": {
             "state": "translated",
             "value": "Barva"
+          }
+        }
+      }
+    },
+    "Combine": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spojit"
+          }
+        }
+      }
+    },
+    "Combine Files…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spojit soubory…"
+          }
+        }
+      }
+    },
+    "Combine the parts starting with “%@”": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spojit části počínaje „%@“"
+          }
+        }
+      }
+    },
+    "Combine “%@”": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spojit „%@“"
+          }
+        }
+      }
+    },
+    "Combining into “%@”…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spojuji do „%@“…"
           }
         }
       }
@@ -2199,6 +2339,16 @@
         }
       }
     },
+    "Create checksum file": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vytvořit soubor s kontrolním součtem"
+          }
+        }
+      }
+    },
     "Created": {
       "localizations": {
         "cs": {
@@ -2215,6 +2365,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vytvořeno:"
+          }
+        }
+      }
+    },
+    "Creates %lld parts": {
+      "localizations": {
+        "cs": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Vznikne %lld část"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Vzniknou %lld části"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Vznikne %lld části"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Vznikne %lld částí"
+                }
+              }
+            }
           }
         }
       }
@@ -2245,6 +2429,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Upravit lištu tlačítek…"
+          }
+        }
+      }
+    },
+    "Custom…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vlastní…"
           }
         }
       }
@@ -2757,6 +2951,16 @@
         }
       }
     },
+    "e.g. 10M, 1,5G, 500k": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "např. 10M, 1,5G, 500k"
+          }
+        }
+      }
+    },
     "Eject": {
       "localizations": {
         "cs": {
@@ -2797,6 +3001,26 @@
         }
       }
     },
+    "Enter a name for the combined file.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zadejte jméno spojeného souboru."
+          }
+        }
+      }
+    },
+    "Enter a part size, e.g. 10M.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zadejte velikost části, např. 10M."
+          }
+        }
+      }
+    },
     "Equal": {
       "localizations": {
         "cs": {
@@ -2833,6 +3057,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Stávající: %@"
+          }
+        }
+      }
+    },
+    "Expected: size %@ bytes, CRC32 %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Očekáváno: velikost %@ bajtů, CRC32 %@"
           }
         }
       }
@@ -3067,12 +3301,32 @@
         }
       }
     },
+    "Mark one file, or put the cursor on it with nothing marked.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Označte jeden soubor, nebo na něj dejte kurzor a nic neoznačujte."
+          }
+        }
+      }
+    },
     "Mono": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Mono"
+          }
+        }
+      }
+    },
+    "More than %lld parts would be needed; choose a larger size.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bylo by potřeba víc než %lld částí; zvolte větší velikost."
           }
         }
       }
@@ -3167,6 +3421,26 @@
         }
       }
     },
+    "No checksum file: the result will not be checked.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bez souboru s kontrolním součtem: výsledek se neověří."
+          }
+        }
+      }
+    },
+    "No parts to combine were found. Parts are named like “name.001”, “name.002”, …; or mark the files to combine.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nenašly se žádné části ke spojení. Části se jmenují jako „jméno.001“, „jméno.002“, …; nebo označte soubory, které se mají spojit."
+          }
+        }
+      }
+    },
     "No release notes came with this version.": {
       "localizations": {
         "cs": {
@@ -3237,6 +3511,26 @@
         }
       }
     },
+    "Part size:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Velikost části:"
+          }
+        }
+      }
+    },
+    "Parts: %lld · total size: %@ (%@ bytes)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Částí: %lld · celková velikost: %@ (%@ bajtů)"
+          }
+        }
+      }
+    },
     "Recent Destinations": {
       "localizations": {
         "cs": {
@@ -3287,6 +3581,16 @@
         }
       }
     },
+    "Replace": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nahradit"
+          }
+        }
+      }
+    },
     "Replace the item on the left (it goes to the Trash)": {
       "localizations": {
         "cs": {
@@ -3303,6 +3607,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nahradit položku vpravo (původní jde do Koše)"
+          }
+        }
+      }
+    },
+    "Result: size %@ bytes, CRC32 %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Výsledek: velikost %@ bajtů, CRC32 %@"
           }
         }
       }
@@ -3388,6 +3702,16 @@
         }
       }
     },
+    "Size: %@ bytes, CRC32: %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Velikost: %@ bajtů, CRC32: %@"
+          }
+        }
+      }
+    },
     "Skip This Version": {
       "localizations": {
         "cs": {
@@ -3424,6 +3748,66 @@
           "stringUnit": {
             "state": "translated",
             "value": "Některé svazky se nepodařilo vysunout."
+          }
+        }
+      }
+    },
+    "Split": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rozdělit"
+          }
+        }
+      }
+    },
+    "Split and Combine work only with folders on this Mac’s disks, not on servers or inside archives.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rozdělit a Spojit pracují jen se složkami na discích tohoto Macu, ne na serverech ani v archivech."
+          }
+        }
+      }
+    },
+    "Split File…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rozdělit soubor…"
+          }
+        }
+      }
+    },
+    "Split works on one file at a time.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rozdělit pracuje vždy s jedním souborem."
+          }
+        }
+      }
+    },
+    "Split “%@” into parts": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rozdělit „%@“ na části"
+          }
+        }
+      }
+    },
+    "Splitting “%@”…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rozděluji „%@“…"
           }
         }
       }
@@ -3538,6 +3922,16 @@
         }
       }
     },
+    "The combined file was not saved.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spojený soubor se neuložil."
+          }
+        }
+      }
+    },
     "The download does not contain the app as expected.": {
       "localizations": {
         "cs": {
@@ -3604,6 +3998,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Soubor nelze otevřít."
+          }
+        }
+      }
+    },
+    "The file is not larger than one part.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soubor není větší než jedna část."
+          }
+        }
+      }
+    },
+    "The file was kept. A part may be damaged or missing; check the parts and combine again.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soubor zůstal uložený. Některá část může být poškozená nebo chybět; zkontrolujte části a spojte je znovu."
           }
         }
       }
@@ -3718,12 +4132,72 @@
         }
       }
     },
+    "The result will be checked against “%@”.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Výsledek se ověří podle „%@“."
+          }
+        }
+      }
+    },
+    "There is not enough space in the target: %@ is needed, %@ is available. Nothing was written.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "V cíli není dost místa: potřeba %@, volno %@. Nic se nezapsalo."
+          }
+        }
+      }
+    },
     "There is nothing to synchronize.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Není co synchronizovat."
+          }
+        }
+      }
+    },
+    "There was no checksum file, so the result was not checked.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soubor s kontrolním součtem nebyl k dispozici, výsledek se neověřil."
+          }
+        }
+      }
+    },
+    "These files already exist in “%@”:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tyto soubory už ve složce „%@“ existují:"
+          }
+        }
+      }
+    },
+    "These parts are missing: %@. Nothing was written.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chybí tyto části: %@. Nic se nezapsalo."
+          }
+        }
+      }
+    },
+    "They are replaced only after all new parts have been written.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nahradí se, až budou zapsané všechny nové části."
           }
         }
       }
@@ -9292,6 +9766,16 @@
         }
       }
     },
+    "Writes a small file with the original name, size and CRC32, so Combine Files can check the result.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapíše malý soubor s původním jménem, velikostí a CRC32, aby Spojit soubory mohlo výsledek ověřit."
+          }
+        }
+      }
+    },
     "Year": {
       "localizations": {
         "cs": {
@@ -9904,6 +10388,16 @@
         }
       }
     },
+    "“%@” already exists and was kept.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soubor „%@“ už existuje a zůstal beze změny."
+          }
+        }
+      }
+    },
     "“%@” already exists in “%@”.": {
       "localizations": {
         "cs": {
@@ -9930,6 +10424,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "„%@“ již existuje."
+          }
+        }
+      }
+    },
+    "“%@” appeared in the target folder while the file was split. Nothing was written.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soubor „%@“ se v cílové složce objevil během rozdělování. Nic se nezapsalo."
+          }
+        }
+      }
+    },
+    "“%@” cannot be read; the result will not be checked.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ nejde přečíst; výsledek se neověří."
           }
         }
       }
@@ -9974,12 +10488,32 @@
         }
       }
     },
+    "“%@” changed while it was split. Nothing was written; try again when the file no longer changes.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soubor „%@“ se během rozdělování změnil. Nic se nezapsalo; zkuste to znovu, až se soubor přestane měnit."
+          }
+        }
+      }
+    },
     "“%@” could not be ejected.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "„%@“ se nepodařilo vysunout."
+          }
+        }
+      }
+    },
+    "“%@” does not match the checksum file.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soubor „%@“ neodpovídá souboru s kontrolním součtem."
           }
         }
       }
@@ -10034,6 +10568,26 @@
         }
       }
     },
+    "“%@” is not a file.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ není soubor."
+          }
+        }
+      }
+    },
+    "“%@” is not a folder.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ není složka."
+          }
+        }
+      }
+    },
     "“%@” is not a valid name.": {
       "localizations": {
         "cs": {
@@ -10060,6 +10614,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "„%@“ byl změněn."
+          }
+        }
+      }
+    },
+    "“%@” was combined and matches the checksum file.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soubor „%@“ je spojený a odpovídá souboru s kontrolním součtem."
+          }
+        }
+      }
+    },
+    "“%@” was combined.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soubor „%@“ je spojený."
           }
         }
       }

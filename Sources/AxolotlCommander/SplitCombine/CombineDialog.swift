@@ -40,10 +40,10 @@ final class CombineDialog: NSObject {
         let first = set.parts.first?.lastPathComponent ?? ""
         let heading = NSTextField(labelWithString: set.parts.count == 1
             ? String(localized: "Combine “\(first)”")
-            : String(localized: "Combine \(set.parts.count) parts starting with “\(first)”"))
+            : String(localized: "Combine the parts starting with “\(first)”"))
         heading.font = .boldSystemFont(ofSize: NSFont.systemFontSize)
         heading.lineBreakMode = .byTruncatingMiddle
-        let sizeLine = NSTextField(labelWithString: String(localized: "Total size: \(Format.bytes(totalSize)) (\(Format.grouped(totalSize)) bytes)"))
+        let sizeLine = NSTextField(labelWithString: String(localized: "Parts: \(set.parts.count) · total size: \(Format.bytes(totalSize)) (\(Format.grouped(totalSize)) bytes)"))
         sizeLine.textColor = .secondaryLabelColor
         let check: String
         if let file = set.checksumFile, let checksum = set.checksum, checksum.size != nil || checksum.crc32 != nil {
