@@ -23,6 +23,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 - What's New: after an update the app shows once what changed since the version that ran before.
   Help → What's New…, the About window and Settings → General open the notes of every version. The notes
   come in Czech when the app runs in Czech.
+- Updates: once a day the app checks whether a newer version is published (Settings → General can turn
+  it off and has Check Now; also Axolotl Commander → Check for Updates… and the About window). A found
+  version shows as a small "↑ Version X.Y.Z" button in the title bar, without a pop-up. The update
+  window shows what the new version brings, in Czech when the app runs in Czech; Install and Relaunch
+  downloads it, checks its checksum and signature, puts it in place of the running app (the old one goes
+  to the Trash) and starts it. Running file operations are never interrupted. Remind Me Later and Skip
+  This Version hide the button; when the app cannot update itself it says why and offers Download….
+- Every release on GitHub describes its changes in English and Czech.
 
 ### Changed
 
