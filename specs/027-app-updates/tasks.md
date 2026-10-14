@@ -36,6 +36,9 @@
 - [ ] T009 [US1] `Sources/AxolotlCommander/UpdateWindow.swift`: the window (title, versions, date, notes,
   buttons, checkbox, Esc = Remind Me Later), one window at a time, Download… with the reason when
   `InstallCapability` says manual.
+- [ ] T021 [US1] Title-bar button "↑ Version X.Y.Z" on the main window (R10, clarification 2026-10-14): shown
+  from the remembered result, hidden by Remind Me Later (24 h) and Skip This Version; a click opens the update
+  window; the automatic check opens no window.
 - [ ] T010 [US3] `Sources/CommanderCore/Command.swift` `checkForUpdates` in the app menu after About;
   `Sources/AxolotlCommander/AppDelegate.swift` canPerform/perform and the checker start.
 

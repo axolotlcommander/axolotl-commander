@@ -61,6 +61,11 @@ on, so its pull request adds only changelog entries.
 - Q: Which notes does the update window show? → A: The notes of every version newer than the running one up
   to the offered one, from the changelogs published with that release, in the app's language (English for a
   version without a translation). After the relaunch What's New shows them once more (spec 026).
+- Q: Does the automatic check open a window? (added during implementation, 2026-10-14) → A: No. It shows
+  an unobtrusive button "↑ Version X.Y.Z" at the right end of the main window's title bar; it takes no focus
+  and opens nothing. A click on it, or "Check for Updates…", opens the update window. Remind Me Later hides
+  the button until the next day, Skip This Version hides it for that version. The manual check opens the
+  window at once as before.
 - Q: How are the notes in both languages made for a release? → A: Automatically by the release workflow
   from the two changelogs (the release description and the attached changelog files); the workflow stops
   before creating the release when either changelog has no notes for the version. Each pull request adds its
@@ -72,20 +77,20 @@ on, so its pull request adds only changelog entries.
 ### User Story 1 - Learn about a new version without looking for it (Priority: P1)
 
 A user works with the app as usual. Once a day the app quietly asks the release server whether a newer
-version is out. When one is, a window tells them which version it is, when it was released and what it
-brings, in their language. Nothing happens when there is nothing new or the Mac is offline.
+version is out. When one is, a small button in the main window's title bar names the new version; a click
+on it opens a window that tells them when it was released and what it brings, in their language. Nothing happens when there is nothing new or the Mac is offline.
 
 **Why this priority**: Without it users stay on old versions and miss fixes; it is the base of the feature.
 
 **Independent Test**: Point the check at a test server that announces a newer version; start the app: the
-window appears a few seconds after the main window with the right versions and notes; start again the same
-day: no check, no window.
+title-bar button appears a few seconds after the main window, and a click on it opens the window with the
+right versions and notes; start again the same day: no check.
 
 **Acceptance Scenarios**:
 
 1. **Given** automatic checking is on and the last check was more than 24 hours ago, **When** the app starts,
    **Then** a few seconds after the main window it checks once, and if a newer published release exists the
-   update window appears without taking the focus from a dialog in progress.
+   button "↑ Version X.Y.Z" appears in the main window's title bar; no window opens and the focus stays.
 2. **Given** a check succeeded less than 24 hours ago, **When** the app starts or keeps running, **Then** it
    does not check again until 24 hours have passed.
 3. **Given** the check failed (offline, server error, too many requests), **When** an hour has passed,
@@ -94,8 +99,7 @@ day: no check, no window.
    **Then** nothing is shown and the result is remembered as "up to date".
 5. **Given** automatic checking is turned off, **When** the app runs for days, **Then** it never contacts
    the release server by itself.
-6. **Given** two copies of the app run, **When** a check is due, **Then** only one checks and shows the
-   window.
+6. **Given** two copies of the app run, **When** a check is due, **Then** only one checks; the other shows the button from the remembered result.
 
 ---
 
@@ -158,20 +162,20 @@ with the same version it says the app is up to date; with the server stopped it 
 
 ### User Story 4 - Decide later or skip a version (Priority: P2)
 
-The user does not want to update now. "Remind Me Later" (or Esc) closes the window until the next day;
-"Skip This Version" stops reminders for this version, but a newer one is announced again.
+The user does not want to update now. "Remind Me Later" (or Esc) closes the window and hides the title-bar
+button until the next day; "Skip This Version" hides it for this version, but a newer one is announced again.
 
 **Why this priority**: An update offer must not nag; it follows the reference.
 
-**Independent Test**: Remind Me Later → no window at the next starts the same day, the window the next day;
-Skip → no window for that version, a window when a newer one appears.
+**Independent Test**: Remind Me Later → no title-bar button at the next starts the same day, the button the
+next day; Skip → no button for that version, the button when a newer one appears.
 
 **Acceptance Scenarios**:
 
 1. **Given** the update window, **When** the user presses Remind Me Later or Esc, **Then** the window closes
-   and the automatic check does not show this version again for 24 hours.
+   and the title-bar button for this version stays hidden for 24 hours.
 2. **Given** the update window, **When** the user presses Skip This Version, **Then** the automatic check
-   does not show this version again; a newer version is shown.
+   does not show this version again; a newer version shows the button again.
 3. **Given** the update window, **When** the user clears "Check for updates automatically", **Then** the
    setting changes at once (also in Settings).
 
@@ -256,7 +260,8 @@ the workflow stops with a message before creating the release.
 
 - **FR-001**: The app MUST check for a newer published release automatically, on by default, at most once
   per 24 hours (a few seconds after the start, and while running), and after a failed check at most once an
-  hour, silently.
+  hour, silently. A found update MUST be shown only as a button "↑ Version X.Y.Z" at the right end of the
+  main window's title bar (no window, no focus taken); a click on it opens the update window.
 - **FR-002**: Settings → General MUST have "Check for updates automatically", the date and result of the
   last check, and Check Now; turning the option off MUST stop all automatic contact with the release server.
 - **FR-003**: "Check for Updates…" in the app menu, Check Now in Settings and in About MUST check at once and
@@ -273,8 +278,8 @@ the workflow stops with a message before creating the release.
 - **FR-007**: The update window MUST offer Install and Relaunch (default), Remind Me Later (Esc), Skip This
   Version and the automatic-check checkbox; when this app cannot install itself, the default MUST be
   Download… (the release page in the browser) with the reason shown.
-- **FR-008**: Remind Me Later MUST keep the automatic check from showing the version for 24 hours; Skip This
-  Version MUST keep it from showing that version again; a manual check MUST ignore both.
+- **FR-008**: Remind Me Later MUST hide the title-bar button for 24 hours; Skip This Version MUST hide it for
+  that version (a newer one shows it again); a manual check MUST ignore both.
 - **FR-009**: Install and Relaunch MUST download the archive with progress and Cancel, verify it against the
   published checksum, and verify that the new app has the same identifier, the announced version and a
   valid signature by the same certificate as the running app, before anything is replaced.
@@ -292,7 +297,8 @@ the workflow stops with a message before creating the release.
   own temporary folder.
 - **FR-014**: The About window MUST show the last result (available with Install…, up to date with the date,
   or never checked) and Check Now; opening About or Settings MUST NOT contact the server.
-- **FR-015**: Only one running copy MUST check and show the update window at a time.
+- **FR-015**: Only one running copy MUST check at a time; every copy shows the title-bar button from the
+  remembered result.
 - **FR-016**: The release workflow MUST publish with every release the version's English and Czech notes as
   the release description and attach both changelogs; it MUST stop before creating the release when either
   changelog has no notes for the version.
