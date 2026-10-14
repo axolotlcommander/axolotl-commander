@@ -57,7 +57,8 @@ final class PanelTableView: NSTableView, NSServicesMenuRequestor {
         window?.makeFirstResponder(self)
         let hit = MouseHit(index: row >= 0 ? row : nil, onName: row >= 0 && isOnName(point, row: row))
         let result = panel.mousePressed(event, hit: hit, in: self) { [unowned self] rect in
-            let rows = rows(in: rect)
+            // Rows span the full width: a straight vertical drag (no width) still covers them.
+            let rows = rows(in: NSRect(x: bounds.minX, y: rect.minY, width: bounds.width, height: max(rect.height, 1)))
             return IndexSet(integersIn: rows.location..<rows.location + rows.length)
         }
         guard result == .dragOrClick else { return }
