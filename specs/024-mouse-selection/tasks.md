@@ -87,14 +87,14 @@ click keeps the marks.
 - [ ] T016 [US3] Tests in `Tests/CommanderCoreTests/PanelMouseTests.swift`: right click toggles and moves the
   cursor; right drag from an unmarked item marks every item passed over, from a marked item unmarks; a
   range filled between non-adjacent rows; ".." skipped.
-- [ ] T017 [US3] `toggleMarkByRightClick(at:)`, `beginRightDrag(at:) -> Bool`, `rightDrag(over:marking:)` in
+- [ ] T017 [US3] `toggleMarkByRightClick(at:)`, `beginRightDrag(at:) -> Bool`, `rightDrag(from:to:marking:)` in
   `Sources/CommanderCore/PanelMouse.swift` until T016 passes.
-- [ ] T018 [US3] `contextMenu(at:keepMarks:)` in `Sources/AxolotlCommander/PanelContextMenu.swift`: with
-  `keepMarks` the marks stay, the cursor moves, the menu acts on the marked items or the pressed one
+- [ ] T018 [US3] `contextMenu(at:)` in `Sources/AxolotlCommander/PanelContextMenu.swift`: with the setting
+  on the marks stay, the cursor moves, the menu acts on the marked items or the pressed one
   (Clarifications 2026-10-14).
 - [ ] T019 [US3] Right-button tracking in `Sources/AxolotlCommander/PanelMouseTracking.swift` (research R7):
   ⌃ → menu at once; wait up to 0.5 s for a release (toggle), a drag over 3 points (paint with autoscroll)
-  or the timeout (menu with `keepMarks`); `rightMouseDown` overrides in `PanelTableView` and
+  or the timeout (menu, marks kept); `rightMouseDown` overrides in `PanelTableView` and
   `BriefGridView` call it only when `PanelBehavior(defaults: .standard).rightButtonMarks` is on, else
   today's path.
 - [ ] T020 [US3] Settings toggle "Right mouse button marks (Norton Commander style)" with a caption in the

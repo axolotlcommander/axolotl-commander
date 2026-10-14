@@ -45,8 +45,9 @@
 - **Decision**: `BriefGridView.mouseDown` (already custom, does not call `super`) gets the same decision
   tree. Its own drag start (`mouseDragged`, 4 points) runs only for a plain press on an item's icon or name.
   The name zone comes from the `BriefItem` view's icon and label.
-- Items under a rectangle are computed from the grid geometry (fixed item size, line spacing, insets,
-  rows per column), not by asking the layout for every element: O(columns touched).
+- Items under a rectangle are computed from the grid geometry (the frames of the first item and of the
+  first item of the second column give the item size, the column stride and the rows per column), not by
+  asking the layout for every element: O(columns touched).
 
 ## R5. ⌃+click versus the system context menu
 
@@ -82,8 +83,8 @@
     - the time runs out without movement → the context menu (FR-017).
 - **Menu in Norton mode**: marks are the point of this mode, so a long press does not clear them; the cursor
   moves to the item and the menu acts on the marked items, or on the pressed item when none are marked.
-  `contextMenu(at:keepMarks:)` gets a flag for this. In the default mode the right click keeps today's
-  behavior (FR-008).
+  `contextMenu(at:)` keeps the marks whenever the setting is on (also for ⌃+right click and ⇧F10). In the
+  default mode the right click keeps today's behavior (FR-008).
 - With the setting on, a plain left press only moves the cursor (FR-018); drag & drop from a marked item
   carries all marked items, from an unmarked one only that item (today's drag rule).
 
@@ -102,3 +103,11 @@
   in both views, the rubber band past the bottom edge, a drag of marked items cancelled with Esc, the right
   click menu, the Norton setting on and off. Mouse events only inside the test window, modifiers always
   released.
+
+## R10. Measured (2026-10-14)
+
+- `NameRules.key` did NFC and case folding for every name; marking 100 000 items took about 0.7 s in a
+  debug build. ASCII names now skip that work (NFC leaves them alone, folding is lowercasing; a test
+  compares all 127 ASCII characters with the Unicode path).
+- Release build (`swift test -c release -Xswiftc -enable-testing`): a rubber band covering 100 000 items in
+  one step 31 ms, a ⇧+click range over them 26 ms (SC-003: under 0.1 s).

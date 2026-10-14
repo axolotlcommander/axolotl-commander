@@ -25,7 +25,7 @@
     press with the 0.5 s timer and right drag), `RubberBandView` overlay, name-zone hit tests for
     `FileCellView` and `BriefItem` (R6, R7).
   - `PanelViewController.marksChanged()`: redraw visible rows/items and the info line only (R8).
-  - `PanelContextMenu.swift`: `contextMenu(at:keepMarks:)`, used by the Norton long press (R7).
+  - `PanelContextMenu.swift`: `contextMenu(at:)` keeps the marks while the setting is on (R7).
   - `SettingsView.swift`: the "Right mouse button marks (Norton Commander style)" toggle in Panels.
   - Czech strings in `Resources/Localizable.xcstrings`; `CHANGELOG.md` entry; `bump-version.sh minor` in the
     pull request.

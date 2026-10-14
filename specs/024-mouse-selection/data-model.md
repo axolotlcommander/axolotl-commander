@@ -32,13 +32,13 @@ public struct MouseModifiers: OptionSet, Sendable {
 | Method | Rule |
 |---|---|
 | `mousePressed(at:modifiers:mode:) -> Bool` | Left press on an item. Applies FR-001 (plain, unmarked: clear, cursor), FR-003 (⇧: clear, mark cursor…index), FR-004 (⌃⇧: add cursor…index), FR-005 (⌃/⌘: toggle); in `.rightButtonMarks` a plain press only moves the cursor (FR-018). Returns whether drag & drop may start (plain press only, FR-006). |
-| `mouseReleased(at:)` | Left release on the same item without a drag after a plain press in `.standard`: when the item is marked, it becomes the only marked item (FR-002). |
+| `mouseReleased(at:mode:)` | Left release on the same item without a drag after a plain press in `.standard`: when the item is marked, it becomes the only marked item (FR-002). |
 | `mousePressedOnEmptySpace(mode:)` | `.standard`: clear the marks; cursor unchanged (FR-007). |
 | `beginRubberBand(modifiers:) -> RubberBand` | Plain: clears the marks (stored for ⌃W). |
 | `updateRubberBand(_:covering:)` | Applies the band to the items now covered (`IndexSet`), changing only items that entered or left (FR-011). |
 | `toggleMarkByRightClick(at:)` | Norton: toggle the mark, move the cursor (FR-015). |
 | `beginRightDrag(at:) -> Bool` | Norton: the state the first item decides (unmarked → `true`) and applies it to that item (FR-016). |
-| `rightDrag(over:marking:)` | Applies the state to an index range (filled between the last and current row). |
+| `rightDrag(from:to:marking:)` | Applies the state to every item between the last and the current row and moves the cursor there. |
 
 Every method skips ".." (FR-019) and stores the old marks in `previousSelection` before removing any
 (FR-020). A range is `min(cursor, index)…max(cursor, index)`.
