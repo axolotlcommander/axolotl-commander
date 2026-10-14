@@ -123,6 +123,12 @@ import Testing
         let onX = { (url: URL) in url.path.hasPrefix("/Volumes/X") }
         list.unlock(where: onX)
         #expect(list.tabs.map { $0.lock == nil } == [true, true, false])
+        // A tab that browsed away from a locked folder on the volume is unlocked too.
+        var away = Self.list(["/Volumes/X/a", "/c"])
+        away.setLock(.allowsChanges, at: 0)
+        away.updateCurrent(Self.state("/elsewhere"))
+        away.unlock(where: onX)
+        #expect(away.tabs[0].lock == nil)
         list.setLock(.locked, at: 1)
         list.redirect(where: onX, to: URL(filePath: "/Users/u"))
         #expect(list.tabs[1].lock == nil && list.tabs[1].location.path == "/Users/u")

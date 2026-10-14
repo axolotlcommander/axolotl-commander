@@ -21,27 +21,27 @@
 
 ## Phase 2: US1 + US2 — lock, split, return (P1)
 
-- [ ] T005 [US1] `Sources/AxolotlCommander/PanelTabs.swift`: the split in `tabsChanged()` for a `.locked` tab
+- [X] T005 [US1] `Sources/AxolotlCommander/PanelTabs.swift`: the split in `tabsChanged()` for a `.locked` tab
   (cursor of the locked tab from the model's last Back entry); `setLock(mode:at:)` toggling (R2).
-- [ ] T006 [US2] `PanelTabs.swift`: `returnCurrentToLock()` before restoring on `switchTab`, `closeTab` of the
+- [X] T006 [US2] `PanelTabs.swift`: `returnCurrentToLock()` before restoring on `switchTab`, `closeTab` of the
   active tab and reopen; `restoreTab` stores the tab (and `relock`s a missing locked folder) before the strip
   updates (R3, R7).
-- [ ] T007 [US1] `Sources/CommanderCore/Command.swift`: `lockTab` ("Lock Tab"), `lockTabAllowingChanges`
+- [X] T007 [US1] `Sources/CommanderCore/Command.swift`: `lockTab` ("Lock Tab"), `lockTabAllowingChanges`
   ("Lock Tab, Allow Folder Changes"), `duplicateTab`, `copyTabToOtherPanel`, `closeTabsToRight` in the Go
   menu next to the tab commands, no keys; `PanelViewController` `canPerform` / `perform`;
   `MainWindowController` checkmarks and Copy Tab to Other Panel.
 
 ## Phase 3: US3 — marks (P1)
 
-- [ ] T008 [US3] `Sources/AxolotlCommander/TabStrip.swift`: `Item` (title, lock, tooltip), `show(_:active:
+- [X] T008 [US3] `Sources/AxolotlCommander/TabStrip.swift`: `Item` (title, lock, tooltip), `show(_:active:
   canReopen:)`, hover tracking and the left slot rule (R8); callers updated (`PanelTabs`,
   `PanelViewController.leave`, `ServerConnectionsUI`).
-- [ ] T009 [US3] Tab list (`showTabList`): the lock symbol on locked tabs.
+- [X] T009 [US3] Tab list (`showTabList`): the lock symbol on locked tabs.
 
 ## Phase 4: US4 + US5 — persistence details and tab menu (P2)
 
-- [ ] T010 [US5] `TabStrip.swift` context menu: the full list with enabled states; callbacks to the panel.
-- [ ] T011 [US4] Close Other Tabs / Close Tabs to the Right keep locked tabs (panel uses the core
+- [X] T010 [US5] `TabStrip.swift` context menu: the full list with enabled states; callbacks to the panel.
+- [X] T011 [US4] Close Other Tabs / Close Tabs to the Right keep locked tabs (panel uses the core
   operations, pushes the removed ones to the closed tabs); eject and disconnect unlock first (R6);
   `MainWindowController.loadLayout` → `returnAllToLocks()`.
 

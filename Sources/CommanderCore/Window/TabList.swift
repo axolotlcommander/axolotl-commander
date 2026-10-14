@@ -150,9 +150,12 @@ public struct TabList: Codable, Hashable, Sendable {
         active = index + 1
     }
 
-    /// Removes the locks of the tabs whose location matches (an ejected volume, a disconnected server).
+    /// Removes the locks of the tabs whose location or locked folder matches (an ejected volume, a
+    /// disconnected server).
     public mutating func unlock(where match: (URL) -> Bool) {
-        for i in tabs.indices where match(tabs[i].location) { tabs[i].lock = nil }
+        for i in tabs.indices {
+            if match(tabs[i].location) || tabs[i].lock.map({ match($0.folder) }) == true { tabs[i].lock = nil }
+        }
     }
 
     /// The locked folder of the tab at `index` is gone: the lock moves to `folder`.

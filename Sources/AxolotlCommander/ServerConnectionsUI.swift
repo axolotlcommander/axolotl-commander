@@ -71,9 +71,9 @@ final class ServerConnectionsUI {
         for controller in NSApp.windows.compactMap({ $0.windowController as? MainWindowController }) {
             for panel in [controller.left, controller.right] {
                 let isOn = { (url: URL) in RemoteURL.parse(url).map { endpoints.contains($0.endpoint) } ?? false }
-                if panel.tabs.redirect(where: isOn, to: home) > 0 {
-                    panel.tabStrip.show(titles: panel.tabs.tabs.map(\.title), active: panel.tabs.active)
-                }
+                panel.tabs.unlock(where: isOn)
+                panel.tabs.redirect(where: isOn, to: home)
+                panel.showTabs()
                 guard isOn(panel.model.location) else { continue }
                 panel.go(to: home)
             }
