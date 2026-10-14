@@ -47,10 +47,10 @@
   `Sources/CommanderCore/Updates/ReleaseNotes.swift`, `Tests/CommanderCoreTests/ReleaseNotesTests.swift` (R8).
 - [X] T013 `WhatsNew.bundledNotes` reads `Resources/CHANGELOG.md` by path and merges
   `<language>.lproj/CHANGELOG.md` in `Sources/AxolotlCommander/WhatsNewWindow.swift`.
-- [ ] T014 `CHANGELOG.cs.md` (NEW): the Czech translation of every version, the same headings.
+- [X] T014 `CHANGELOG.cs.md` (NEW): the Czech translation of every version, the same headings.
 - [X] T015 `scripts/bundle.sh` copies it to `cs.lproj/CHANGELOG.md`; `scripts/bump-version.sh` adds the
   heading to both files; `CLAUDE.md` and the constitution (VII, 1.2.0) allow the translation.
-- [ ] T016 GUI check: the Czech test copy shows Czech notes; a version removed from the translation shows
+- [X] T016 GUI check: the Czech test copy shows Czech notes; a version removed from the translation shows
   in English.
 
 ## GUI check (2026-10-14, test copy)
@@ -64,6 +64,10 @@
   than the window (the tabs were partly under the title bar, the last description cut) → the panel options
   have their own Panels tab, General and Panels scroll when taller than the window, and the button is at the
   right end of the Export / Import row. All eight tabs checked by screenshot.
+- Czech notes (test copy in Czech, in front): 0.6.0 showed "Přidáno / Změněno / Opraveno" and the Czech
+  items; with the Czech 0.5.0 section emptied in the test copy's bundle, 0.5.0 showed in English. A window of
+  an app started in the background and covered by other windows stays blank until it is uncovered (WebKit
+  does not paint it); not a defect of the window.
 - Not tried in the GUI: ⌘C (it would overwrite the user's clipboard) and dark appearance (not switched for
   the whole Mac); both come from the viewer's web view and renderer (spec 019).
 
