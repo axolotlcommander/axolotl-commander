@@ -147,7 +147,8 @@ final class SplitDialog: NSObject, NSTextFieldDelegate {
             stack.bottomAnchor.constraint(equalTo: content.bottomAnchor),
             content.widthAnchor.constraint(equalToConstant: 560),
             field.widthAnchor.constraint(equalToConstant: 420),
-            customField.widthAnchor.constraint(greaterThanOrEqualToConstant: 140),
+            // The custom size field ends where the destinations button does.
+            sizeRow.widthAnchor.constraint(equalTo: toRow.widthAnchor),
             heading.widthAnchor.constraint(lessThanOrEqualToConstant: 520),
             countLabel.widthAnchor.constraint(lessThanOrEqualToConstant: 440),
             buttons.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -40),

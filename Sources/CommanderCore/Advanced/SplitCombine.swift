@@ -257,13 +257,18 @@ public struct PartSet: Equatable, Sendable {
 
     /// Sum of the part sizes (links followed).
     public func totalSize() throws -> Int64 {
-        try parts.reduce(0) { sum, url in
+        try partSizes().reduce(0, +)
+    }
+
+    /// The size of each part, in order; every part must be a regular file.
+    public func partSizes() throws -> [Int64] {
+        try parts.map { url in
             var st = stat()
             guard stat(url.path(percentEncoded: false), &st) == 0 else {
                 throw SplitCombineError.cannotRead(url.path(percentEncoded: false))
             }
             guard st.st_mode & S_IFMT == S_IFREG else { throw SplitCombineError.notRegularFile(url.lastPathComponent) }
-            return sum + Int64(st.st_size)
+            return Int64(st.st_size)
         }
     }
 

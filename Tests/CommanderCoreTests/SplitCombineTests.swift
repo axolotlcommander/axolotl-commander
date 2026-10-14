@@ -163,6 +163,7 @@ private func bytes(_ count: Int, seed: UInt8 = 7) -> Data {
                 let set = try PartSet.find(around: written[1].lastPathComponent, in: out)
                 #expect(set.parts.count == count)
                 #expect(try set.totalSize() == Int64(size))
+                #expect(try set.partSizes().dropLast().allSatisfy { $0 == Int64(part) })
                 let output = try await FileSplitter.combine(set, name: "joined", into: source)
                 #expect(output.check == .passed)
                 #expect(try Data(contentsOf: output.staged) == content)

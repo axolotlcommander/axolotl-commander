@@ -120,7 +120,7 @@ extension OperationsController {
         guard !isBusy, let window else { return }
         let marked = panel.model.selectedItems.filter { !$0.isParent }
         let set: PartSet
-        let totalSize: Int64
+        let partSizes: [Int64]
         do {
             if marked.count > 1 {
                 if let folder = marked.first(where: { $0.isDirectory || $0.isPackage }) {
@@ -131,11 +131,14 @@ extension OperationsController {
                 guard let item = marked.first ?? panel.model.cursorItem, !item.isParent, !item.isDirectory else { return }
                 set = try PartSet.find(around: item.name, in: item.url.deletingLastPathComponent())
             }
-            totalSize = try set.totalSize()
+            partSizes = try set.partSizes()
         } catch {
             report(error)
             return
         }
+        let totalSize = partSizes.reduce(0, +)
+        // Where each part ends in the joined file, for the "N of M items" line.
+        let ends = partSizes.reduce(into: [Int64]()) { $0.append(($0.last ?? 0) + $1) }
         let folder = defaultTargetFolder(for: panel, source: set.parts[0])
         Task {
             guard let text = await CombineDialog.run(
@@ -151,7 +154,10 @@ extension OperationsController {
                                                    doneItems: 0, currentName: name)
                 perform(state) {
                     let output = try await FileSplitter.combine(set, name: name, into: folder, progress: { done in
-                        Task { @MainActor in state.progress.doneBytes = done }
+                        Task { @MainActor in
+                            state.progress.doneBytes = done
+                            state.progress.doneItems = ends.prefix { $0 <= done }.count
+                        }
                     })
                     defer { try? FileManager.default.removeItem(at: output.staging) }
                     // The joined file goes in like an unpacked one: the conflict question of spec 021.
@@ -159,6 +165,8 @@ extension OperationsController {
                         TransferRequest(kind: .move, sources: [output.staged], destinationDirectory: folder),
                         progress: { _ in },
                         conflict: { [asker = ConflictAsker(window: self.window)] conflict in await asker.ask(conflict) })
+                    // Gone before the panel is refreshed, so the hidden folder never shows up there.
+                    try? FileManager.default.removeItem(at: output.staging)
                     panel.model.deselectAll()
                     await self.show(name, in: folder, from: panel)
                     if moved.skipped.contains(output.staged) || moved.copied == 0 {
