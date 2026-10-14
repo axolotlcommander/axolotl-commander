@@ -34,15 +34,70 @@ final class BriefGridView: NSCollectionView {
     private var dragStart: (point: NSPoint, index: Int)?
 
     override func menu(for event: NSEvent) -> NSMenu? {
-        onMenu?(indexPathForItem(at: convert(event.locationInWindow, from: nil))?.item)
+        // ⌃ + left click marks (spec 024); AppKit would show the context menu for it.
+        if event.type == .leftMouseDown { return nil }
+        return onMenu?(indexPathForItem(at: convert(event.locationInWindow, from: nil))?.item)
     }
+
+    /// The panel that runs mouse marking (spec 024).
+    weak var panel: PanelViewController?
+    /// The item of a plain press on a name, until the release or a drag.
+    private var pendingRelease: Int?
 
     override func mouseDown(with event: NSEvent) {
         window?.makeFirstResponder(self)
         let point = convert(event.locationInWindow, from: nil)
         let index = indexPathForItem(at: point)?.item
-        dragStart = index.map { (point, $0) }
-        if let index { onClick?(index, event.clickCount) }
+        dragStart = nil
+        pendingRelease = nil
+        guard let panel else { return }
+        let hit = MouseHit(index: index, onName: index.map { isOnName(point, index: $0) } ?? false)
+        let result = panel.mousePressed(event, hit: hit, in: self) { [unowned self] in items(in: $0) }
+        guard result == .dragOrClick, let index else { return }
+        dragStart = (point, index)
+        pendingRelease = index
+        if event.clickCount == 2 { onClick?(index, 2) }
+    }
+
+    override func rightMouseDown(with event: NSEvent) {
+        let index = indexPathForItem(at: convert(event.locationInWindow, from: nil))?.item
+        let handled = panel?.rightMousePressed(event, index: index, in: self) { [unowned self] in
+            indexPathForItem(at: $0)?.item
+        } ?? false
+        if !handled { super.rightMouseDown(with: event) }
+    }
+
+    /// Whether `point` is on the icon or the name text of the item (where drag & drop starts).
+    private func isOnName(_ point: NSPoint, index: Int) -> Bool {
+        guard let cell = item(at: index)?.view as? BriefCellView else { return false }
+        return isOnIconOrText(cell.convert(point, from: self), in: cell, icon: cell.icon, label: cell.label)
+    }
+
+    /// The items a rectangle touches, from the grid's geometry: columns of equal height filled top to
+    /// bottom, so a large rectangle costs one range per column.
+    func items(in rect: NSRect) -> IndexSet {
+        let count = numberOfSections > 0 ? numberOfItems(inSection: 0) : 0
+        guard count > 0 else { return [] }
+        let first = frameForItem(at: 0)
+        var rows = 1
+        while rows < count, frameForItem(at: rows).minX == first.minX { rows += 1 }
+        let stride = count > rows ? frameForItem(at: rows).minX - first.minX : first.width + 8
+        guard stride > 0, first.height > 0 else { return [] }
+        let firstColumn = max(0, Int(floor((rect.minX - first.minX) / stride)))
+        let lastColumn = Int(floor((rect.maxX - first.minX) / stride))
+        let firstRow = max(0, Int(floor((rect.minY - first.minY) / first.height)))
+        let lastRow = min(rows - 1, Int(floor((rect.maxY - first.minY) / first.height)))
+        guard firstColumn <= lastColumn, firstRow <= lastRow else { return [] }
+        var result = IndexSet()
+        for column in firstColumn...lastColumn {
+            let x = first.minX + CGFloat(column) * stride
+            // The rectangle may lie in the gap between two columns only.
+            guard rect.maxX >= x, rect.minX <= x + first.width else { continue }
+            let low = column * rows + firstRow
+            guard low < count else { break }
+            result.insert(integersIn: low..<min(column * rows + lastRow + 1, count))
+        }
+        return result
     }
 
     override func mouseDragged(with event: NSEvent) {
@@ -50,6 +105,7 @@ final class BriefGridView: NSCollectionView {
         let point = convert(event.locationInWindow, from: nil)
         guard hypot(point.x - start.point.x, point.y - start.point.y) > 4 else { return }
         dragStart = nil
+        pendingRelease = nil
         let entries = onDrag?(start.index) ?? []
         guard !entries.isEmpty else { return }
         let frame = frameForItem(at: start.index)
@@ -68,7 +124,11 @@ final class BriefGridView: NSCollectionView {
         beginDraggingSession(with: items, event: event, source: self)
     }
 
-    override func mouseUp(with event: NSEvent) { dragStart = nil }
+    override func mouseUp(with event: NSEvent) {
+        dragStart = nil
+        if let index = pendingRelease { panel?.mouseReleasedAfterPlainPress(at: index) }
+        pendingRelease = nil
+    }
 
     // MARK: Dropping
 
@@ -185,6 +245,7 @@ extension PanelViewController: NSCollectionViewDataSource {
             model.moveCursor(to: index)
             if clicks == 2 { perform(.open) }
         }
+        briefView.panel = self
         briefScroll.documentView = briefView
         briefScroll.hasHorizontalScroller = true
         briefScroll.autohidesScrollers = true
@@ -226,6 +287,7 @@ extension PanelViewController: NSCollectionViewDataSource {
             item.cell.cursorStyle = index == model.cursor ? (isActive ? .active : .inactive) : .none
             if model.items.indices.contains(index) {
                 item.cell.label.textColor = briefTextColor(for: model.items[index], at: index)
+                item.cell.label.font = textFont(marked: model.isSelected(model.items[index]))
             }
         }
     }

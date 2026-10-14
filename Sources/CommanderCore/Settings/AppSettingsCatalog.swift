@@ -50,6 +50,7 @@ extension SettingsCatalog {
         PreferenceSpec(PanelBehavior.typingKey, .bool, default: .bool(PanelBehavior().typingToCommandLine)),
         PreferenceSpec(PanelBehavior.arrowsKey, .bool, default: .bool(PanelBehavior().arrowsTargetPointedPanel)),
         PreferenceSpec(PanelBehavior.volumesKey, .bool, default: .bool(PanelBehavior().volumeButtonsFollow)),
+        PreferenceSpec(PanelBehavior.rightButtonKey, .bool, default: .bool(PanelBehavior().rightButtonMarks)),
     ], toolbarKey: toolbarKey)
 
     /// AppKit's autosave key of the main window toolbar ("MainToolbar").

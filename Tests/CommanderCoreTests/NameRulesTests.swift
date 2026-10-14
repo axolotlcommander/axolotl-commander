@@ -13,6 +13,16 @@ import Foundation
         #expect(r.key("e\u{301}") == "\u{E9}")
     }
 
+    @Test func asciiKeysMatchTheUnicodePath() {
+        let all = String((1..<128).map { Character(UnicodeScalar(UInt8($0))) })
+        for rules in [NameRules(caseSensitive: false), NameRules(caseSensitive: true)] {
+            let slow = rules.caseSensitive ? all.precomposedStringWithCanonicalMapping
+                : all.folding(options: .caseInsensitive, locale: nil).precomposedStringWithCanonicalMapping
+            #expect(rules.key(all) == slow)
+            #expect(rules.key("Read Me.TXT") == (rules.caseSensitive ? "Read Me.TXT" : "read me.txt"))
+        }
+    }
+
     @Test func caseHandling() {
         #expect(NameRules.apfsDefault.same("Readme.TXT", "readme.txt"))
         #expect(!NameRules(caseSensitive: true).same("Readme", "readme"))

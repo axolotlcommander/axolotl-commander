@@ -7,14 +7,18 @@ import UniformTypeIdentifiers
 
 /// Right click or ⇧F10 in a panel: a Finder-like menu. On an item it works on that item or, when
 /// the item is marked, on all marked items; a click on an unmarked item clears the marks first, as in
-/// Finder. On empty space (or "..") it offers what can be done in the folder itself.
+/// Finder (with "Right mouse button marks" on, the marks stay and the menu acts on them). On empty space
+/// (or "..") it offers what can be done in the folder itself.
 extension PanelViewController {
     /// The menu for a right click at the row `index` (nil = empty space).
     func contextMenu(at index: Int?) -> NSMenu? {
         view.window?.makeFirstResponder(listView)
         if let index, model.items.indices.contains(index), !model.items[index].isParent {
             let item = model.items[index]
-            if !model.isSelected(item), !model.selectedItems.isEmpty { model.deselectAll() }
+            // With the right button marking (spec 024) the marks are kept and the menu acts on them.
+            if !model.isSelected(item), !model.selectedItems.isEmpty, mouseSelectionMode == .standard {
+                model.deselectAll()
+            }
             model.moveCursor(to: index)
             modelChanged()
             return plain(itemMenu())

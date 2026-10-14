@@ -5,6 +5,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-10-14
+
+### Added
+
+- Marking with the mouse: ⌃-click or ⌘-click marks or unmarks one item, ⇧-click marks the range from
+  the cursor (the old marks go), ⌃⇧-click or ⌘⇧-click adds another range, and a plain click starts over
+  (⌃W brings the marks back). Dragging from empty space draws a rectangle that marks the items it
+  touches (with ⇧ it adds, with ⌃/⌘ it toggles) and scrolls the list at the edge. In Detailed view
+  drag & drop starts from the icon or the name.
+- Settings → Panels → "Right mouse button marks (Norton Commander style)": a right click marks, a right
+  drag marks the items passed over, holding the right button opens the context menu.
+
+### Fixed
+
+- Dragging marked items in Detailed view: a drag from a marked row did not start; now it carries all
+  marked items.
+
 ## [0.5.0] - 2026-10-13
 
 ### Added
