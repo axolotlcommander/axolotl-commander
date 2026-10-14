@@ -1,0 +1,33 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# Publishing a release (or running this by hand) starts the deploy of the website
+# (axolotlcommander/axolotlcommander-org, workflow pages.yml), so its Download button shows the new
+# version at once instead of after the site's daily schedule.
+#
+# Needs the repository secret SITE_DISPATCH_TOKEN: a fine-grained personal access token limited
+# to the repository axolotlcommander/axolotlcommander-org with the permission "Actions: Read and
+# write". Without it the job only warns and the site refreshes on its own schedule.
+name: Refresh website
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  dispatch:
+    name: Start site deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Run the site's deploy workflow
+        env:
+          GH_TOKEN: ${{ secrets.SITE_DISPATCH_TOKEN }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::warning::SITE_DISPATCH_TOKEN is not set; the website refreshes on its daily schedule."
+            exit 0
+          fi
+          gh workflow run pages.yml --repo axolotlcommander/axolotlcommander-org --ref main
