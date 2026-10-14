@@ -1239,6 +1239,26 @@
         }
       }
     },
+    "Base64 (MIME, .b64)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Base64 (MIME, .b64)"
+          }
+        }
+      }
+    },
+    "Base64 keeps the file name in a small MIME header; UUE is the older format read by uudecode.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Base64 uloží název souboru do malé hlavičky MIME; UUE je starší formát, který čte uudecode."
+          }
+        }
+      }
+    },
     "Batch Rename": {
       "localizations": {
         "cs": {
@@ -2453,6 +2473,16 @@
         }
       }
     },
+    "Damaged — the checksum does not match:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Poškozené — kontrolní součet nesouhlasí:"
+          }
+        }
+      }
+    },
     "Date": {
       "localizations": {
         "cs": {
@@ -2479,6 +2509,90 @@
           "stringUnit": {
             "state": "translated",
             "value": "Den"
+          }
+        }
+      }
+    },
+    "Decode": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dekódovat"
+          }
+        }
+      }
+    },
+    "Decode %lld files": {
+      "localizations": {
+        "cs": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Dekódovat %lld soubor"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Dekódovat %lld soubory"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Dekódovat %lld souboru"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Dekódovat %lld souborů"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "Decode File…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dekódovat soubor…"
+          }
+        }
+      }
+    },
+    "Decode “%@”": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dekódovat „%@“"
+          }
+        }
+      }
+    },
+    "Decoded files: %lld": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dekódované soubory: %lld"
+          }
+        }
+      }
+    },
+    "Decoding…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dekóduji…"
           }
         }
       }
@@ -2961,6 +3075,16 @@
         }
       }
     },
+    "Each file gets its own text file; total size %@.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Každý soubor dostane vlastní textový soubor; celková velikost %@."
+          }
+        }
+      }
+    },
     "Eject": {
       "localizations": {
         "cs": {
@@ -2997,6 +3121,90 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vysunout „%@“"
+          }
+        }
+      }
+    },
+    "Encode": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zakódovat"
+          }
+        }
+      }
+    },
+    "Encode %lld files as text": {
+      "localizations": {
+        "cs": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Zakódovat %lld soubor jako text"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Zakódovat %lld soubory jako text"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Zakódovat %lld souboru jako text"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Zakódovat %lld souborů jako text"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "Encode File…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zakódovat soubor…"
+          }
+        }
+      }
+    },
+    "Encode “%@” as text": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zakódovat „%@“ jako text"
+          }
+        }
+      }
+    },
+    "Encoded %lld of %lld files.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zakódováno souborů: %lld z %lld."
+          }
+        }
+      }
+    },
+    "Encoding…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kóduji…"
           }
         }
       }
@@ -3101,6 +3309,16 @@
         }
       }
     },
+    "Folders are left out (%lld).": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Složky se vynechávají (%lld)."
+          }
+        }
+      }
+    },
     "Folders inside each other cannot be synchronized: copying would go on into the copy.": {
       "localizations": {
         "cs": {
@@ -3147,6 +3365,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zahrnout"
+          }
+        }
+      }
+    },
+    "Incomplete — the data ended before its end marker:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neúplné — data skončila před koncovou značkou:"
           }
         }
       }
@@ -3431,6 +3659,26 @@
         }
       }
     },
+    "No decoded file was saved.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Žádný dekódovaný soubor se neuložil."
+          }
+        }
+      }
+    },
+    "No encoded data was found.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nenašla se žádná zakódovaná data."
+          }
+        }
+      }
+    },
     "No parts to combine were found. Parts are named like “name.001”, “name.002”, …; or mark the files to combine.": {
       "localizations": {
         "cs": {
@@ -3461,12 +3709,32 @@
         }
       }
     },
+    "Not saved, the existing files were kept:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuloženo, stávající soubory zůstaly:"
+          }
+        }
+      }
+    },
     "Nothing to do": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Není co dělat"
+          }
+        }
+      }
+    },
+    "Nothing was written. Decode File reads MIME messages (.eml), UUE, XXE, BinHex and Base64 text.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nic se nezapsalo. Dekódovat soubor čte zprávy MIME (.eml), UUE, XXE, BinHex a text Base64."
           }
         }
       }
@@ -3722,6 +3990,16 @@
         }
       }
     },
+    "Size: %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Velikost: %@"
+          }
+        }
+      }
+    },
     "Size: %@ bytes, CRC32: %@": {
       "localizations": {
         "cs": {
@@ -3782,12 +4060,22 @@
         }
       }
     },
-    "Split and Combine work only with folders on this Mac’s disks, not on servers or inside archives.": {
+    "The files are read in name order as one text, so a file encoded in several pieces is joined.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rozdělit a Spojit pracují jen se složkami na discích tohoto Macu, ne na serverech ani v archivech."
+            "value": "Soubory se čtou podle názvu jako jeden text, takže se soubor zakódovaný do několika kusů spojí."
+          }
+        }
+      }
+    },
+    "This works only with folders on this Mac’s disks, not on servers or inside archives.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Funguje jen se složkami na discích tohoto Macu, ne na serverech ani v archivech."
           }
         }
       }
@@ -4278,6 +4566,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Aktuální (zkontrolováno %@)."
+          }
+        }
+      }
+    },
+    "UUE (.uue)": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "UUE (.uue)"
           }
         }
       }
@@ -10654,6 +10952,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Soubor „%@“ je spojený."
+          }
+        }
+      }
+    },
+    "“%@” was decoded.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soubor „%@“ je dekódovaný."
           }
         }
       }

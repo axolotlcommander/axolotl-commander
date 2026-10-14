@@ -37,6 +37,11 @@ public struct DecodedFile: Equatable, Sendable {
 
 /// Encode File and Decode File (spec 030): Base64 / UUE out, MIME, UUE, XXE, BinHex and Base64 in.
 public enum FileCodec {
+    /// A new hidden staging folder inside `folder` for the files of one run (spec 029, R7).
+    public static func makeStaging(in folder: URL) throws -> URL {
+        try FileSplitter.makeStaging(in: folder)
+    }
+
     // MARK: Encoding
 
     /// 855 is a multiple of 57 (one Base64 line) and of 45 (one UUE line).

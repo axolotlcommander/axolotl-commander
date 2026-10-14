@@ -25,11 +25,11 @@ extension OperationsController {
 }
 
 /// Target problems found before anything is written; the message is made on the main actor.
-private struct SplitTargetError: LocalizedError {
+struct SplitTargetError: LocalizedError {
     let errorDescription: String?
 
     static var notLocal: Self {
-        Self(errorDescription: String(localized: "Split and Combine work only with folders on this Mac’s disks, not on servers or inside archives."))
+        Self(errorDescription: String(localized: "This works only with folders on this Mac’s disks, not on servers or inside archives."))
     }
 
     static func notAFolder(_ path: String) -> Self {
@@ -225,13 +225,13 @@ extension OperationsController {
     // MARK: Shared
 
     /// The other panel's folder when it is a local folder, otherwise the folder of the file.
-    private func defaultTargetFolder(for panel: PanelViewController, source: URL) -> URL {
+    func defaultTargetFolder(for panel: PanelViewController, source: URL) -> URL {
         let other = windowController.otherPanel(than: panel).model
         if other.archive == nil, other.results == nil, other.remote == nil, !other.isNetwork { return other.location }
         return panel.isFlatListing ? source.deletingLastPathComponent() : panel.model.location
     }
 
-    private func targetFolder(_ text: String, panel: PanelViewController) throws -> URL {
+    func targetFolder(_ text: String, panel: PanelViewController) throws -> URL {
         let url = try PathInput.resolve(text, relativeTo: panel.model.location, absoluteIsLocal: true)
         guard Self.isLocal(url) else { throw SplitTargetError.notLocal }
         var isDirectory: ObjCBool = false
@@ -241,35 +241,35 @@ extension OperationsController {
         return url
     }
 
-    private static func isLocal(_ url: URL) -> Bool {
+    static func isLocal(_ url: URL) -> Bool {
         RemoteURL.parse(url) == nil && ArchivePath.split(url) == nil && !NetworkPlaces.isNetwork(url)
     }
 
-    private static func exists(_ url: URL) -> Bool {
+    static func exists(_ url: URL) -> Bool {
         FileManager.default.fileExists(atPath: url.path(percentEncoded: false))
     }
 
     /// A missing target folder is created, as the Copy dialog does.
-    private static func createIfMissing(_ folder: URL) throws {
+    static func createIfMissing(_ folder: URL) throws {
         guard !exists(folder) else { return }
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
     }
 
-    private static func checkSpace(_ needed: Int64, at folder: URL) throws {
+    static func checkSpace(_ needed: Int64, at folder: URL) throws {
         if let available = FreeSpace.available(at: folder), available < needed {
             throw SplitTargetError.notEnoughSpace(needed: needed, available: available)
         }
     }
 
     /// Size of the file `url` points to; nil when it is not a regular file.
-    private static func regularFileSize(_ url: URL) -> Int64? {
+    static func regularFileSize(_ url: URL) -> Int64? {
         var st = stat()
         guard stat(url.path(percentEncoded: false), &st) == 0, st.st_mode & S_IFMT == S_IFREG else { return nil }
         return Int64(st.st_size)
     }
 
     /// Refreshes the panels showing `folder` and puts the cursor on `name`.
-    private func show(_ name: String?, in folder: URL, from panel: PanelViewController) async {
+    func show(_ name: String?, in folder: URL, from panel: PanelViewController) async {
         let other = windowController.otherPanel(than: panel)
         for target in [other, panel] where target.model.location.standardizedFileURL == folder.standardizedFileURL {
             await target.model.refresh()

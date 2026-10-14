@@ -48,4 +48,5 @@ All types are in `CommanderCore` (`Sources/CommanderCore/Advanced/`), `Sendable`
 - `encodedSize(_ size: Int64, format:) -> Int64` — the upper bound for the free space check.
 - `decode(_ inputs: [URL], into staging: URL, progress:) async throws -> [DecodedFile]` — empty when nothing
   was found; throws `CancellationError` on cancel (the caller removes the staging folder).
-- Errors: `CodecError.cannotRead(path)`, `.cannotWrite(path)`, `.notRegularFile(name)`.
+- Errors: the `SplitCombineError` cases of spec 029 (`cannotRead`, `cannotWrite`, `notRegularFile`), so the
+  messages are shared; `makeStaging(in:)` creates the staging folder.
