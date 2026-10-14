@@ -41,6 +41,18 @@
 - [X] T010 `CHANGELOG.md` entry under 0.6.0 (Added); no version bump.
 - [X] T011 GUI check: quickstart steps 1–9 on the test copy; spec Status → Implemented; `docs/STATE.md`.
 
+## Phase 4: Czech notes (clarification 2026-10-14)
+
+- [X] T012 `ReleaseNotes.localized(_:translated:)` and its unit test in
+  `Sources/CommanderCore/Updates/ReleaseNotes.swift`, `Tests/CommanderCoreTests/ReleaseNotesTests.swift` (R8).
+- [X] T013 `WhatsNew.bundledNotes` reads `Resources/CHANGELOG.md` by path and merges
+  `<language>.lproj/CHANGELOG.md` in `Sources/AxolotlCommander/WhatsNewWindow.swift`.
+- [ ] T014 `CHANGELOG.cs.md` (NEW): the Czech translation of every version, the same headings.
+- [X] T015 `scripts/bundle.sh` copies it to `cs.lproj/CHANGELOG.md`; `scripts/bump-version.sh` adds the
+  heading to both files; `CLAUDE.md` and the constitution (VII, 1.2.0) allow the translation.
+- [ ] T016 GUI check: the Czech test copy shows Czech notes; a version removed from the translation shows
+  in English.
+
 ## GUI check (2026-10-14, test copy)
 
 - `app.lastRunVersion` = 0.4.2 → a second after the main window the window showed 0.6.0 and 0.5.0 (the

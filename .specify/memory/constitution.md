@@ -1,7 +1,7 @@
 <!--
 Sync Impact Report
-- Version: 1.0.0 → 1.1.0 (translated to English; new principle VII Language; stage commit
-  prefix renamed to `[Stage N]`)
+- Version: 1.1.0 → 1.2.0 (VII Language: the Czech release notes `CHANGELOG.cs.md` are a second
+  allowed translation next to the String Catalog; spec 026)
 - Principles: I User data safety, II Faithful reference behavior, III Native macOS,
   IV Testable core, V Clean-room implementation and GPL, VI Incremental delivery, VII Language
 - Templates: plan/spec/tasks-template.md unchanged (Constitution Check reads this file)
@@ -70,7 +70,8 @@ details (paths, scripts, test app) are in `CLAUDE.md`, the stage plan in `docs/P
 ### VII. Language
 
 - Everything committed to git is in English: code, comments, documentation, specs, plans,
-  tasks and commit messages. Localized UI text lives only in the String Catalog.
+  tasks and commit messages. Localized UI text lives only in the String Catalog; the one other
+  translation is `CHANGELOG.cs.md`, the Czech release notes shown in the app.
 - Contributors discuss in their own language. Agents talk to each contributor in that
   language, translate existing documents for them on request, and write the agreed result
   into git in English.
@@ -98,4 +99,4 @@ commit are enough.
   templates.
 - Compliance review: every plan (`plan.md`) and every code review.
 
-**Version**: 1.1.0 | **Ratified**: 2026-10-08 | **Last Amended**: 2026-10-08
+**Version**: 1.2.0 | **Ratified**: 2026-10-08 | **Last Amended**: 2026-10-14

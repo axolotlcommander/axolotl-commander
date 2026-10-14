@@ -11,11 +11,18 @@ import WebKit
 enum WhatsNew {
     private static var controller: WhatsNewWindowController?
 
-    /// The changelog inside the app bundle; nil for a development build run without a bundle.
+    /// The changelog inside the app bundle in the app's language (a version without a translation stays in
+    /// English); nil for a development build run without a bundle.
     static var bundledNotes: [ReleaseNote]? {
-        guard let url = Bundle.main.url(forResource: "CHANGELOG", withExtension: "md"),
-              let text = try? String(contentsOf: url, encoding: .utf8) else { return nil }
-        return ReleaseNotes.parse(text)
+        guard let resources = Bundle.main.resourceURL,
+              let text = try? String(contentsOf: resources.appendingPathComponent("CHANGELOG.md"), encoding: .utf8)
+        else { return nil }
+        let english = ReleaseNotes.parse(text)
+        guard let language = Bundle.main.preferredLocalizations.first, language != "en",
+              let translated = try? String(contentsOf: resources.appendingPathComponent("\(language).lproj/CHANGELOG.md"),
+                                           encoding: .utf8)
+        else { return english }
+        return ReleaseNotes.localized(english, translated: ReleaseNotes.parse(translated))
     }
 
     static var runningVersion: AppVersion? {

@@ -43,6 +43,9 @@ changelog entry.
 - Q: Where in Settings → General does the button go? → A: (during the GUI check) In the row of Export /
   Import Settings, at its right end. The General tab no longer fitted the window, so the panel options moved
   to their own Panels tab and every tab of these two scrolls when it is taller than the window.
+- Q: Can the notes be in Czech too? → A: (maintainer, during implementation) Yes. A Czech translation of the
+  changelog travels with the app; the window shows the notes in the app's language, and a version without a
+  translation in English. Translating the notes is no longer out of scope.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -126,6 +129,9 @@ appearance; a link opens the browser; text can be selected and copied.
 - A sheet or dialog is open when the window would appear: the window waits until it is closed and does not
   take the keyboard focus from it.
 - Versions compare by number, not as text: 0.10.0 is newer than 0.9.9.
+- The translation lacks a version, has it empty, or has a version the English changelog does not: the English
+  notes are shown for the first two; the third is ignored (the English changelog decides which versions
+  exist).
 
 ## Requirements *(mandatory)*
 
@@ -151,8 +157,11 @@ appearance; a link opens the browser; text can be selected and copied.
 - **FR-008**: The "Unreleased" section MUST never be shown.
 - **FR-009**: Esc, ⌘W and a Close button (the default button, Return) MUST close the window; it MUST be
   resizable and remember its size.
-- **FR-010**: The window title and buttons MUST be localized; the notes stay in English.
-- **FR-011**: Every app bundle built by the project's bundle script MUST contain the changelog.
+- **FR-010**: The window title and buttons MUST be localized. The notes MUST be shown in the app's language
+  when the bundled changelog has a translation for it (Czech); each version without a translated section
+  MUST be shown in English. The version headings and dates come from the English changelog.
+- **FR-011**: Every app bundle built by the project's bundle script MUST contain the changelog and its Czech
+  translation.
 - **FR-012**: A missing, empty or malformed changelog MUST NOT crash the app; on demand the window says that
   no notes are available.
 - **FR-013**: When two copies of the app start, at most one MUST show the window by itself.
@@ -160,7 +169,7 @@ appearance; a link opens the browser; text can be selected and copied.
 ### Key Entities
 
 - **Release notes**: the versions of the bundled changelog, each with a version number, an optional date and
-  its body (the lists and text below the heading).
+  its body (the lists and text below the heading); the body may come from the translation.
 - **Last run version**: the version that last started on this Mac, kept in the app's settings.
 
 ## Success Criteria *(mandatory)*
@@ -188,5 +197,4 @@ appearance; a link opens the browser; text can be selected and copied.
 ## Out of Scope
 
 - Downloading notes from the internet (the update spec shows the notes of a newer version from its release).
-- Translating the notes.
 - A "do not show again" option (the window appears once per update anyway).
