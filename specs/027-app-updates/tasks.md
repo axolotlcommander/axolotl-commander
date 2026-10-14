@@ -70,7 +70,7 @@
 
 - [X] T018 Czech strings in `Resources/Localizable.xcstrings`.
 - [X] T019 `CHANGELOG.md` and `CHANGELOG.cs.md` entries under 0.6.0 (skill `changelog-cs`).
-- [ ] T020 GUI check: quickstart steps 1–9 on the test copy with the local server; spec Status → Implemented;
+- [X] T020 GUI check: quickstart steps 1–9 on the test copy with the local server; spec Status → Implemented;
   `docs/STATE.md`.
 
 ## Dependencies

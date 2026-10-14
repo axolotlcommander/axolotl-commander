@@ -44,8 +44,22 @@ final class UpdateWindowController: NSWindowController, NSWindowDelegate {
         build(in: window, running: running)
         notesView.show(notes, empty: String(localized: "No release notes came with this version."))
         update()
-        window.center()
-        window.setFrameAutosaveName("UpdateWindow")
+        place(window)
+    }
+
+    /// Over the main window (on its screen), not on whichever screen has the keyboard focus.
+    private func place(_ window: NSWindow) {
+        guard let main = NSApp.windows.first(where: { $0.windowController is MainWindowController && $0.isVisible }) else {
+            window.center()
+            return
+        }
+        var frame = window.frame
+        frame.origin = NSPoint(x: main.frame.midX - frame.width / 2, y: main.frame.midY - frame.height / 2)
+        if let visible = main.screen?.visibleFrame {
+            frame.origin.x = min(max(frame.origin.x, visible.minX), visible.maxX - frame.width)
+            frame.origin.y = min(max(frame.origin.y, visible.minY), visible.maxY - frame.height)
+        }
+        window.setFrame(frame, display: false)
     }
 
     @available(*, unavailable)
