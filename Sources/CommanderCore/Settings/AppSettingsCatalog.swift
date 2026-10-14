@@ -53,6 +53,7 @@ extension SettingsCatalog {
         PreferenceSpec(PanelBehavior.rightButtonKey, .bool, default: .bool(PanelBehavior().rightButtonMarks)),
         PreferenceSpec(ThumbnailSize.key, .string(allowed: values(ThumbnailSize.self)),
                        default: .string(ThumbnailSize.default.rawValue)),
+        PreferenceSpec(UpdateState.automaticKey, .bool, default: .bool(true)),
     ], toolbarKey: toolbarKey)
 
     /// AppKit's autosave key of the main window toolbar ("MainToolbar").
@@ -68,6 +69,9 @@ extension SettingsCatalog {
         "recentPaths", "commandLine.history", "find.history.\\(key)", "find.options",
         "batchRename.last", "changeCase.last", "functionKeyNotice", "buttonBar.editSelection",
         "transfer.recentDestinations", "app.lastRunVersion",
+        // The update check's own state and its hidden test address (spec 027).
+        "updates.lastCheck", "updates.lastSuccess", "updates.lastResult", "updates.availableVersion",
+        "updates.skippedVersion", "updates.remindAfter", "updates.feedURL",
     ]
 
     private static func values<T: RawRepresentable & CaseIterable>(_ type: T.Type) -> Set<String>

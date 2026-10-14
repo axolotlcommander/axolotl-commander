@@ -26,6 +26,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
             DispatchQueue.main.async { FunctionKeys.showNoticeIfNeeded(in: window) }
         }
         WhatsNew.showAfterStart()
+        if let window = controller.window { UpdateToolbarItem.attach(to: window) }
+        UpdateController.shared.start()
         Task { await ArchiveEdits.shared.offerPendingFromLastTime() }
     }
 
@@ -78,6 +80,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
     func applicationWillTerminate(_ notification: Notification) {
         // Only temporary copies (view, open, compare); edited copies are in ArchiveEdits.store.
         ArchiveScratch.removeAll()
+        UpdateController.shared.applicationWillTerminate()
     }
 
     func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool { true }
@@ -91,7 +94,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
 
     func canPerform(_ command: Command) -> Bool {
         switch command {
-        case .about, .settings, .exportSettings, .quit, .configureKeys, .help, .whatsNew: true
+        case .about, .checkForUpdates, .settings, .exportSettings, .quit, .configureKeys, .help, .whatsNew: true
         case .importSettings: SettingsTransfer.canImport
         default: false
         }
@@ -101,6 +104,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         switch command {
         case .about: AboutWindow.show()
         case .whatsNew: WhatsNew.show()
+        case .checkForUpdates: UpdateController.shared.checkNow()
         case .settings: showSettings()
         case .configureKeys: showSettings(tab: .keyboard)
         case .exportSettings: SettingsTransfer.export(from: NSApp.keyWindow)

@@ -85,6 +85,7 @@ struct SettingsView: View {
                     }
                     .padding(.leading, 20)
                 }
+                UpdateSettingsSection()
                 Section {
                     HStack {
                         Button("Export Settings…") { SettingsTransfer.export(from: NSApp.keyWindow) }
@@ -365,5 +366,25 @@ private struct HotPathSettings: View {
         guard let selection, (0..<HotPaths.capacity).contains(selection + delta) else { return }
         settings.hotPaths.move(from: selection, to: selection + delta)
         self.selection = selection + delta
+    }
+}
+
+/// Settings → General: the automatic check, the last result and Check Now (spec 027, FR-002).
+private struct UpdateSettingsSection: View {
+    @AppStorage(UpdateState.automaticKey) private var automatic = true
+    @State private var status = UpdateController.shared.statusText()
+
+    var body: some View {
+        Section {
+            Toggle("Check for updates automatically", isOn: $automatic)
+            HStack {
+                Text(status).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                Spacer()
+                Button("Check Now") { UpdateController.shared.checkNow() }
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UpdateController.stateChanged)) { _ in
+            status = UpdateController.shared.statusText()
+        }
     }
 }

@@ -753,6 +753,16 @@
         }
       }
     },
+    "A new version of Axolotl Commander is available": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je k dispozici nová verze Axolotl Commanderu"
+          }
+        }
+      }
+    },
     "A right click marks, a right drag marks the items passed over, holding the right button opens the context menu. Off: a right click opens the context menu.": {
       "extractionState": "manual",
       "localizations": {
@@ -1114,6 +1124,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Volné"
+          }
+        }
+      }
+    },
+    "Axolotl Commander %@ is the latest version.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Axolotl Commander %@ je nejnovější verze."
+          }
+        }
+      }
+    },
+    "Axolotl Commander runs from a read-only disk. Move it to the Applications folder first.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Axolotl Commander běží z disku jen pro čtení. Nejdřív ho přesuňte do složky Aplikace."
           }
         }
       }
@@ -1484,6 +1514,66 @@
           "stringUnit": {
             "state": "translated",
             "value": "Mění se velikost písmen…"
+          }
+        }
+      }
+    },
+    "Check Now": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zkontrolovat"
+          }
+        }
+      }
+    },
+    "Check for Updates": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontrola aktualizací"
+          }
+        }
+      }
+    },
+    "Check for Updates…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zkontrolovat aktualizace…"
+          }
+        }
+      }
+    },
+    "Check for updates automatically": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automaticky kontrolovat aktualizace"
+          }
+        }
+      }
+    },
+    "Checking for updates…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontroluji aktualizace…"
+          }
+        }
+      }
+    },
+    "Checking the download…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ověřuji stažený soubor…"
           }
         }
       }
@@ -2607,6 +2697,26 @@
         }
       }
     },
+    "Downloading…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stahuji…"
+          }
+        }
+      }
+    },
+    "Download…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stáhnout…"
+          }
+        }
+      }
+    },
     "Eject": {
       "localizations": {
         "cs": {
@@ -2753,6 +2863,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zahrnout"
+          }
+        }
+      }
+    },
+    "Install and Relaunch": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nainstalovat a spustit znovu"
+          }
+        }
+      }
+    },
+    "Installing…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instaluji…"
+          }
+        }
+      }
+    },
+    "Install…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nainstalovat…"
           }
         }
       }
@@ -2907,6 +3047,16 @@
         }
       }
     },
+    "Never checked.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zatím nezkontrolováno."
+          }
+        }
+      }
+    },
     "New name for “%@”:": {
       "localizations": {
         "cs": {
@@ -2923,6 +3073,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nový: %@"
+          }
+        }
+      }
+    },
+    "No release notes came with this version.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "K této verzi nejsou poznámky k vydání."
+          }
+        }
+      }
+    },
+    "No suitable release was found.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vhodné vydání nebylo nalezeno."
           }
         }
       }
@@ -2973,6 +3143,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Poslední cíle"
+          }
+        }
+      }
+    },
+    "Remind Me Later": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Připomenout později"
           }
         }
       }
@@ -3108,6 +3288,26 @@
         }
       }
     },
+    "Skip This Version": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přeskočit tuto verzi"
+          }
+        }
+      }
+    },
+    "Software Update": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktualizace"
+          }
+        }
+      }
+    },
     "Some items were not synchronized": {
       "localizations": {
         "cs": {
@@ -3218,6 +3418,76 @@
         }
       }
     },
+    "The app could not be replaced: %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aplikaci se nepodařilo nahradit: %@"
+          }
+        }
+      }
+    },
+    "The check for updates failed.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontrola aktualizací selhala."
+          }
+        }
+      }
+    },
+    "The download does not contain the app as expected.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stažený soubor neobsahuje aplikaci tak, jak má."
+          }
+        }
+      }
+    },
+    "The download failed: %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stahování selhalo: %@"
+          }
+        }
+      }
+    },
+    "The download is damaged: its checksum does not match.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stažený soubor je poškozený: kontrolní součet nesouhlasí."
+          }
+        }
+      }
+    },
+    "The downloaded app has another version than the release announces.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stažená aplikace má jinou verzi, než ohlašuje vydání."
+          }
+        }
+      }
+    },
+    "The downloaded app is not Axolotl Commander.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stažená aplikace není Axolotl Commander."
+          }
+        }
+      }
+    },
     "The drawing cannot be shown.": {
       "localizations": {
         "cs": {
@@ -3238,12 +3508,32 @@
         }
       }
     },
+    "The folder of Axolotl Commander cannot be changed without an administrator password.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Složku s Axolotl Commanderem nelze bez hesla správce změnit."
+          }
+        }
+      }
+    },
     "The folders are in sync.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Složky jsou shodné."
+          }
+        }
+      }
+    },
+    "The last check failed (%@).": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Poslední kontrola selhala (%@)."
           }
         }
       }
@@ -3268,12 +3558,82 @@
         }
       }
     },
+    "The new version is signed with another certificate than this copy. Install it by hand.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nová verze je podepsaná jiným certifikátem než tato kopie. Nainstalujte ji ručně."
+          }
+        }
+      }
+    },
+    "The newest release has no app archive for this Mac yet. Try again later.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nejnovější vydání zatím nemá archiv aplikace. Zkuste to později."
+          }
+        }
+      }
+    },
+    "The release has no checksum for the download.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vydání nemá kontrolní součet pro stažený soubor."
+          }
+        }
+      }
+    },
+    "The release server answered with an error (%lld).": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server s vydáními odpověděl chybou (%lld)."
+          }
+        }
+      }
+    },
+    "The release server is busy. Try again in a few minutes.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server s vydáními je přetížený. Zkuste to za pár minut."
+          }
+        }
+      }
+    },
+    "The release server sent an answer the app does not understand.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server s vydáními poslal odpověď, které aplikace nerozumí."
+          }
+        }
+      }
+    },
     "There is nothing to synchronize.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Není co synchronizovat."
+          }
+        }
+      }
+    },
+    "This copy is not signed with the project's certificate, so it cannot check and install the new version itself.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tato kopie není podepsaná certifikátem projektu, a proto nemůže novou verzi sama ověřit a nainstalovat."
           }
         }
       }
@@ -3288,12 +3648,82 @@
         }
       }
     },
+    "This is a development build; download the new version from the release page.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toto je vývojové sestavení; novou verzi si stáhněte ze stránky vydání."
+          }
+        }
+      }
+    },
     "This volume can’t be ejected.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Tento svazek nelze vysunout."
+          }
+        }
+      }
+    },
+    "Try Again": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zkusit znovu"
+          }
+        }
+      }
+    },
+    "Up to date (checked %@).": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktuální (zkontrolováno %@)."
+          }
+        }
+      }
+    },
+    "Version %@ is available.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je k dispozici verze %@."
+          }
+        }
+      }
+    },
+    "Version %@ is out. You have version %@.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vyšla verze %@. Máte verzi %@."
+          }
+        }
+      }
+    },
+    "Version %@ was released on %@. You have version %@.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verze %@ vyšla %@. Máte verzi %@."
+          }
+        }
+      }
+    },
+    "Waiting for the file operations to finish; the update installs afterwards.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Čekám na dokončení operací se soubory; aktualizace se nainstaluje potom."
           }
         }
       }
@@ -9110,6 +9540,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "malá písmena"
+          }
+        }
+      }
+    },
+    "macOS runs Axolotl Commander from a temporary place. Move it to the Applications folder first.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "macOS spouští Axolotl Commander z dočasného umístění. Nejdřív ho přesuňte do složky Aplikace."
           }
         }
       }

@@ -24,6 +24,11 @@ if ! awk '/^## \[Unreleased\]/ { on = 1; next } /^## \[/ { on = 0 } on && NF { f
   echo "CHANGELOG.md has nothing under [Unreleased]." >&2
   exit 1
 fi
+# ...and its Czech translation too (CLAUDE.md, Versioning).
+if [ -f CHANGELOG.cs.md ] && ! scripts/changelog-cs-missing.sh Unreleased >/dev/null; then
+  echo "CHANGELOG.cs.md has no Czech notes under [Unreleased]; translate them first (skill changelog-cs)." >&2
+  exit 1
+fi
 DATE="$(date +%Y-%m-%d)"
 # The Czech translation (CHANGELOG.cs.md) gets the same heading.
 for FILE in CHANGELOG.md CHANGELOG.cs.md; do

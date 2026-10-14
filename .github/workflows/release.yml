@@ -58,6 +58,13 @@ jobs:
             echo "::error::The MACOS_CERTIFICATE_* secrets are not set; releases must be signed."
             exit 1
           fi
+          # Every release describes itself in English and Czech (spec 027): stop before the build
+          # when either changelog has no notes for the version.
+          if ! scripts/changelog-cs-missing.sh "${GITHUB_REF_NAME#v}" >/dev/null || \
+             ! scripts/release-notes.sh "${GITHUB_REF_NAME#v}" >/dev/null; then
+            echo "::error::CHANGELOG.md or CHANGELOG.cs.md has no notes for ${GITHUB_REF_NAME#v}."
+            exit 1
+          fi
           VERSION="${GITHUB_REF_NAME#v}"
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
           echo "BUILD_NUMBER=${{ github.run_number }}" >> "$GITHUB_ENV"
@@ -120,8 +127,16 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          # Builds that are not notarized start their notes with the installation steps.
-          NOTES=()
-          if [ "$HAS_NOTARY" != true ] || [ "$HAS_CERT" != true ]; then NOTES=(--notes-file .github/release-install.md); fi
-          gh release create "$GITHUB_REF_NAME" dist/* --draft --generate-notes "${NOTES[@]}" \
+          # The description is the version's notes in English and Czech; builds that are not
+          # notarized start it with the installation steps. Both changelogs go along as assets:
+          # the app reads them for its update window (spec 027).
+          NOTES="$RUNNER_TEMP/release-notes.md"
+          : > "$NOTES"
+          if [ "$HAS_NOTARY" != true ] || [ "$HAS_CERT" != true ]; then
+            cat .github/release-install.md >> "$NOTES"
+            printf '\n' >> "$NOTES"
+          fi
+          scripts/release-notes.sh "$VERSION" >> "$NOTES"
+          cp CHANGELOG.md CHANGELOG.cs.md dist/
+          gh release create "$GITHUB_REF_NAME" dist/* --draft --notes-file "$NOTES" \
             --title "Axolotl Commander $VERSION"

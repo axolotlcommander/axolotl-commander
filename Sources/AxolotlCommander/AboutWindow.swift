@@ -2,6 +2,7 @@
 // Copyright (C) 2026 The Axolotl Commander Authors
 
 import AppKit
+import CommanderCore
 
 /// The About window: the standard panel's content (icon, name, version, credits, copyright) plus a
 /// "What's New…" link (spec 026). The standard panel cannot run an action from a link.
@@ -64,12 +65,15 @@ enum AboutWindow {
         let copyright = label(info["NSHumanReadableCopyright"] as? String ?? "", font: .systemFont(ofSize: 10))
         copyright.textColor = .secondaryLabelColor
 
-        let stack = NSStackView(views: [icon, title, versionLabel, whatsNew, credits, copyright])
+        let updates = UpdateStatusRow()
+
+        let stack = NSStackView(views: [icon, title, versionLabel, whatsNew, updates, credits, copyright])
         stack.orientation = .vertical
         stack.alignment = .centerX
         stack.spacing = 8
         stack.setCustomSpacing(2, after: versionLabel)
-        stack.setCustomSpacing(14, after: whatsNew)
+        stack.setCustomSpacing(6, after: whatsNew)
+        stack.setCustomSpacing(14, after: updates)
         stack.setCustomSpacing(12, after: credits)
         stack.edgeInsets = NSEdgeInsets(top: 20, left: 24, bottom: 20, right: 24)
 
@@ -93,6 +97,51 @@ enum AboutWindow {
     private final class Actions: NSObject {
         static let shared = Actions()
         @objc func whatsNew() { WhatsNew.show() }
+    }
+}
+
+/// The last update check in About (FR-014): its result and Check Now, or Install… when a version waits. Opening
+/// About sends no request; only the button does.
+private final class UpdateStatusRow: NSStackView {
+    private let status = NSTextField(labelWithString: "")
+    private let button = NSButton(title: "", target: nil, action: nil)
+    private var observer: (any NSObjectProtocol)?
+
+    init() {
+        super.init(frame: .zero)
+        orientation = .vertical
+        alignment = .centerX
+        spacing = 4
+        status.font = .systemFont(ofSize: 11)
+        status.textColor = .secondaryLabelColor
+        status.alignment = .center
+        button.bezelStyle = .push
+        button.controlSize = .small
+        button.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
+        button.target = self
+        button.action = #selector(act)
+        button.setAccessibilityIdentifier("about.updates")
+        addArrangedSubview(status)
+        addArrangedSubview(button)
+        observer = NotificationCenter.default.addObserver(forName: UpdateController.stateChanged, object: nil,
+                                                          queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.refresh() }
+        }
+        refresh()
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { fatalError() }
+
+    private var available: Bool { UpdateController.shared.state.lastResult == .available }
+
+    private func refresh() {
+        status.stringValue = UpdateController.shared.statusText()
+        button.title = available ? String(localized: "Install…") : String(localized: "Check Now")
+    }
+
+    @objc private func act() {
+        if available { UpdateController.shared.showFound() } else { UpdateController.shared.checkNow() }
     }
 }
 
