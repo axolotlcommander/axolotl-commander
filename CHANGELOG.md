@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-10-14
+
 ### Added
 
 - Marking with the mouse: ⌃-click or ⌘-click marks or unmarks one item, ⇧-click marks the range from

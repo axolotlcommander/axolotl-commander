@@ -106,7 +106,7 @@ click keeps the marks.
 ## Phase 5: Polish
 
 - [X] T022 Czech translations for the new strings in `Resources/Localizable.xcstrings`.
-- [ ] T023 `CHANGELOG.md` "Unreleased" entry (Added: mouse marking, rubber band, right-button setting) and
+- [X] T023 `CHANGELOG.md` "Unreleased" entry (Added: mouse marking, rubber band, right-button setting) and
   `scripts/bump-version.sh minor` in the pull request.
 - [ ] T024 Full quickstart run on the test copy in both views; spec Status → Implemented; `docs/STATE.md`
   updated.
