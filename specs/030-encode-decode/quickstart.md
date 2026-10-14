@@ -20,3 +20,10 @@ file `evil.uue` named `../../evil`, a UUE file `cut.uue` without `end`, and two 
 7. Mark `part1.uue` and `part2.uue`, Decode File…: one file, equal to the original.
 8. Decode `small.txt` (plain text): "No encoded data was found"; nothing written.
 9. Decode a large UUE file (300 MB) and cancel during progress: `codec/out` holds exactly what it held before.
+
+## Result (2026-10-14, test copy, Czech)
+
+All nine steps passed; `cmp`, `uudecode` and `base64` agreed with the originals. Found and fixed during the
+check: after "Keep both" in the conflict question the result message and the cursor used the planned name
+instead of the name the file was saved under (`pic 2.bin`); the transfer report now carries the new names,
+which also fixes the same message of Combine Files (spec 029).

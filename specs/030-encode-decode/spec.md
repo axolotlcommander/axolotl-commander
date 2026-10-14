@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-14
 
-**Status**: Draft
+**Status**: Implemented
 
 **Input**: User description: "Encode and decode files: turn a file into text (Base64 or UUE) that survives
 channels that take only text, and turn such text — including e-mail attachments saved as `.eml` — back into

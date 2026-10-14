@@ -49,4 +49,4 @@
 
 - [X] T008 `Resources/Localizable.xcstrings`: Czech for all new strings; `CHANGELOG.md` /
   `CHANGELOG.cs.md` (0.7.0 Added).
-- [ ] T009 GUI check of [quickstart.md](quickstart.md) on the test copy; spec Status → Implemented.
+- [X] T009 GUI check of [quickstart.md](quickstart.md) on the test copy; spec Status → Implemented.
