@@ -1709,6 +1709,16 @@
         }
       }
     },
+    "Close Tabs to the Right": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zavřít záložky vpravo"
+          }
+        }
+      }
+    },
     "Close Viewer": {
       "extractionState": "manual",
       "localizations": {
@@ -2033,6 +2043,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kopírovat cestu jako text"
+          }
+        }
+      }
+    },
+    "Copy Tab to Other Panel": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopírovat záložku do druhého panelu"
           }
         }
       }
@@ -2717,6 +2737,16 @@
         }
       }
     },
+    "Duplicate Tab": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duplikovat záložku"
+          }
+        }
+      }
+    },
     "Eject": {
       "localizations": {
         "cs": {
@@ -2973,6 +3003,46 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vlevo: %@"
+          }
+        }
+      }
+    },
+    "Lock Tab": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zamknout záložku"
+          }
+        }
+      }
+    },
+    "Lock Tab, Allow Folder Changes": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zamknout s možností změny složky"
+          }
+        }
+      }
+    },
+    "Locked, folder changes allowed: %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zamčeno, lze měnit složku: %@"
+          }
+        }
+      }
+    },
+    "Locked: %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zamčeno: %@"
           }
         }
       }

@@ -31,6 +31,15 @@ Formát vychází z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ve
   ji stáhne, ověří kontrolní součet a podpis, dá ji na místo běžící aplikace (stará jde do Koše)
   a spustí ji. Běžící operace se soubory se nikdy nepřeruší. Připomenout později a Přeskočit tuto verzi
   tlačítko skryjí; když se aplikace nemůže aktualizovat sama, řekne proč a nabídne Stáhnout….
+- Zamykání záložek: Zamknout záložku drží záložku na její složce a každá změna složky v ní otevře
+  novou záložku hned za ní; Zamknout s možností změny složky dovolí v záložce procházet a vrátí ji na
+  její složku pokaždé, když se do ní vrátíte (i po spuštění). Zamčená záložka má vlevo zámek (při
+  najetí myší ×) a její bublina ukazuje zamčenou složku. Zavřít ostatní záložky a Zavřít
+  záložky vpravo zamčené záložky nechají otevřené; Znovu otevřít zavřenou záložku vrátí i zámek;
+  vysunutí disku nebo odpojení serveru jeho záložky odemkne.
+- Menu záložky (pravý klik na záložku) a menu Přejít mají nově Duplikovat záložku, Kopírovat záložku do
+  druhého panelu, Zavřít záložky vpravo a oba příkazy zamykání; menu záložky má i Znovu otevřít
+  zavřenou záložku.
 - Každé vydání na GitHubu popisuje změny anglicky i česky.
 
 ### Změněno
