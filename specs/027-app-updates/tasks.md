@@ -5,23 +5,23 @@
 
 ## Phase 1: Core (blocking)
 
-- [ ] T001 [P] `Sources/CommanderCore/Updates/ReleaseInfo.swift`: decode the API answer into `ReleaseInfo`
+- [X] T001 [P] `Sources/CommanderCore/Updates/ReleaseInfo.swift`: decode the API answer into `ReleaseInfo`
   (contract), the asset choice by name, HTTPS only; `Checksums.parse` (R1, R2).
-- [ ] T002 [P] `Sources/CommanderCore/Updates/UpdatePolicy.swift`: `UpdateState` keys and load/save on
+- [X] T002 [P] `Sources/CommanderCore/Updates/UpdatePolicy.swift`: `UpdateState` keys and load/save on
   `UserDefaults`; `isDue(now:)`, `offer(_:running:manual:now:)`, `remindLater(now:)`, `skip(_:)`;
   `UpdateNotes.notes(english:czech:running:offered:language:)` with `ReleaseNotes.localized` (R3).
-- [ ] T003 `Sources/CommanderCore/Updates/UpdateInstaller.swift`: `UpdateVerifier` protocol,
+- [X] T003 `Sources/CommanderCore/Updates/UpdateInstaller.swift`: `UpdateVerifier` protocol,
   `CodeSignatureVerifier`, `InstallCapability.check`, `UpdateInstaller.verify` (checksum, unpack, one app,
   identifier, version, signature) and `replace` (Trash, move, roll back), work folder cleanup (R4–R6).
-- [ ] T004 [P] `Tests/CommanderCoreTests/UpdateTests.swift`: answer parsing (complete, draft, pre-release,
+- [X] T004 [P] `Tests/CommanderCoreTests/UpdateTests.swift`: answer parsing (complete, draft, pre-release,
   bad tag, missing assets, http asset, malformed JSON), checksum parsing, `isDue` (never, 23 h/25 h after
   success, 59 min/61 min after failure, future time), offer rules (newer/equal/older, skipped, remind,
   manual), notes range and localization.
-- [ ] T005 `Tests/CommanderCoreTests/UpdateInstallerTests.swift`: fake bundles in a temporary folder with an
+- [X] T005 `Tests/CommanderCoreTests/UpdateInstallerTests.swift`: fake bundles in a temporary folder with an
   injected verifier — success (new in place, old in Trash-like folder), checksum mismatch, two apps in the
   archive, wrong identifier, wrong version, verifier refusal, move failure → roll back; the real verifier
   on copies of system apps (own requirement accepted, another app refused).
-- [ ] T006 `Sources/CommanderCore/Settings/AppSettingsCatalog.swift`: `updates.automatic` exported, the other
+- [X] T006 `Sources/CommanderCore/Settings/AppSettingsCatalog.swift`: `updates.automatic` exported, the other
   `updates.*` keys not exported.
 
 **Checkpoint**: `swift test` green, commit.
