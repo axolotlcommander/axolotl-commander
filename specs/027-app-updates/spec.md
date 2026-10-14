@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-14
 
-**Status**: Draft
+**Status**: Implemented
 
 **Input**: User description: "Updates: the app checks once a day whether a newer published release exists,
 offers it with its release notes, and on the user's consent downloads, verifies and installs it and
