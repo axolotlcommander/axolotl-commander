@@ -43,6 +43,8 @@ extension SettingsCatalog {
         PreferenceSpec("checksum.algorithm", .string(allowed: values(ChecksumAlgorithm.self)),
                        default: .string(ChecksumAlgorithm.sha256.rawValue)),
         PreferenceSpec("links.relativePath", .bool, default: .bool(false)),
+        PreferenceSpec("split.partSize", .number(1...9.0e18), default: .number(Double(PartSize.defaultSize))),
+        PreferenceSpec("split.writeChecksum", .bool, default: .bool(true)),
         PreferenceSpec("ssh.extraArguments", .stringArray),
         PreferenceSpec("comparison", .json(validate: decodes(ComparisonOptions.self))),
         PreferenceSpec("syncOptions", .json(validate: decodes(SyncOptions.self))),

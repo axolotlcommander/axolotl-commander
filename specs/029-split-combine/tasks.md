@@ -25,25 +25,25 @@
 
 ## Phase 2: US1 + US3 — Split (P1)
 
-- [ ] T004 [US1] `Sources/AxolotlCommander/DestinationMenuPopup.swift` (NEW): the destination menu from
+- [X] T004 [US1] `Sources/AxolotlCommander/DestinationMenuPopup.swift` (NEW): the destination menu from
   `TransferDialog.swift` (sections, items, choose callback); `TransferDialog` uses it.
-- [ ] T005 [US1] `Sources/AxolotlCommander/SplitCombine/SplitDialog.swift` (NEW): sheet (name and size, "To:"
+- [X] T005 [US1] `Sources/AxolotlCommander/SplitCombine/SplitDialog.swift` (NEW): sheet (name and size, "To:"
   + destinations button ⌥↓, size popup with the presets and "Custom…", custom field, live count / reason,
   "Create checksum file"); OK disabled when invalid; remembers `split.partSize` / `split.writeChecksum`.
-- [ ] T006 [US1] [US3] `Sources/AxolotlCommander/SplitCombine/SplitCombineOperations.swift` (NEW):
+- [X] T006 [US1] [US3] `Sources/AxolotlCommander/SplitCombine/SplitCombineOperations.swift` (NEW):
   `splitFile(from:)` — the one-file rule, target default, dialog, path resolution (missing folder created,
   archive / server refused), free space, the existing-names question (Replace / Cancel), `perform` with
   progress, refresh and cursor on the first part.
-- [ ] T007 [US1] `Sources/CommanderCore/Command.swift`: `splitFile` "Split File…", `combineFiles` "Combine
+- [X] T007 [US1] `Sources/CommanderCore/Command.swift`: `splitFile` "Split File…", `combineFiles` "Combine
   Files…" in the File menu after Test Archives, no keys; `PanelViewController` handled, disk only,
   `canPerform` (a local regular file or link under the cursor / marked; not "..", folders, packages),
   `perform`; `AppSettingsCatalog` keys.
 
 ## Phase 3: US2 — Combine (P1)
 
-- [ ] T008 [US2] `Sources/AxolotlCommander/SplitCombine/CombineDialog.swift` (NEW): part count, total size,
+- [X] T008 [US2] `Sources/AxolotlCommander/SplitCombine/CombineDialog.swift` (NEW): part count, total size,
   "To:" with folder and name + destinations, check line.
-- [ ] T009 [US2] `SplitCombineOperations.swift`: `combineFiles(from:)` — set from the cursor or marked files,
+- [X] T009 [US2] `SplitCombineOperations.swift`: `combineFiles(from:)` — set from the cursor or marked files,
   missing parts message, dialog, target resolution (an existing folder gets the default name), free space,
   `perform`, the move with `FileOperations.transfer` + `ConflictAsker`, staging removed, result message
   (passed / mismatch with values / not checked), refresh and cursor.

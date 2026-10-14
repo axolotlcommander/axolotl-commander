@@ -128,7 +128,7 @@ final class OperationsController {
     }
 
     /// The destination menu of the F5/F6 dialog: the other panel, the tabs, hot paths, recent.
-    private func destinationEntries(for panel: PanelViewController) -> [DestinationMenu.Entry] {
+    func destinationEntries(for panel: PanelViewController) -> [DestinationMenu.Entry] {
         let other = windowController.otherPanel(than: panel)
         func folders(_ panel: PanelViewController) -> [String] {
             panel.tabs.tabs.enumerated()
@@ -458,6 +458,7 @@ final class OperationsController {
 
     static func describe(_ error: any Error) -> String {
         if let error = error as? LinkError { return describe(error) }
+        if let error = error as? SplitCombineError { return describe(error) }
         return switch error as? OperationError {
         case .sameFile(let url)?: String(localized: "“\(url.lastPathComponent)” would be copied onto itself.")
         case .intoItself(let url)?: String(localized: "“\(url.lastPathComponent)” can’t be copied or moved into itself.")

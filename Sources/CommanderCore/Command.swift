@@ -30,6 +30,7 @@ public enum Command: String, CaseIterable, Hashable, Sendable {
     case goBack, goForward, goParent, goRoot, goHome, changeDirectory, editPath
     case folderHistory, commandLineHistory
     case copyAs, makeDirectoryInOtherPanel, viewCursorFile, packAndMove, testArchives
+    case splitFile, combineFiles
     case toggleSelectionInPlace, selectAllFiles, deselectAllFiles
     case quickView
     case hotPaths, workingDirectories
@@ -191,6 +192,8 @@ public enum CommandRegistry {
         add(.packAndMove, "Pack and Move…", .file, [f(5, [o, s])])
         add(.unpack, "Unpack…", .file, [f(6, o), f(6, [c, o]), f(9, o)])
         add(.testArchives, "Test Archives", .file, [f(9, [o, s])])
+        add(.splitFile, "Split File…", .file, sep: true)
+        add(.combineFiles, "Combine Files…", .file)
 
         add(.copyFiles, "Copy Files", .edit, [ch("c", m), K(.insert, c), ch("c", c)])
         add(.pasteFiles, "Paste Files", .edit, [ch("v", m), K(.insert, s), ch("v", c)])

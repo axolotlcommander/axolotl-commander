@@ -833,7 +833,7 @@ final class PanelViewController: NSViewController {
         .openInNewTab, .openInBackgroundTab, .reopenClosedTab, .closeOtherTabs, .tabList,
         .duplicateTab, .closeTabsToRight, .lockTab, .lockTabAllowingChanges,
         .quickFilter, .quickFilterLast, .folderHistory,
-        .copyAs, .makeDirectoryInOtherPanel, .viewCursorFile, .packAndMove, .testArchives,
+        .copyAs, .makeDirectoryInOtherPanel, .viewCursorFile, .packAndMove, .testArchives, .splitFile, .combineFiles,
         .toggleSelectionInPlace, .selectAllFiles, .deselectAllFiles,
         .find, .pack, .unpack, .connectToServer, .disconnect, .ejectVolume, .compareFiles,
         .changeCase, .batchRename, .calculateChecksums, .verifyChecksums, .occupiedSpace, .userMenu,
@@ -862,7 +862,7 @@ final class PanelViewController: NSViewController {
     private static let diskOnly: Set<Command> = [
         .changeCase, .batchRename, .calculateChecksums, .verifyChecksums, .occupiedSpace, .moveFilesHere, .volumeInfo,
         .viewWith, .editWith, .newSymbolicLink, .newHardLink, .editSymbolicLink, .pasteAsSymbolicLink,
-        .goToLinkTarget, .changeAttributes, .copyAs, .packAndMove, .testArchives,
+        .goToLinkTarget, .changeAttributes, .copyAs, .packAndMove, .testArchives, .splitFile, .combineFiles,
     ]
 
     func canPerform(_ command: Command) -> Bool {
@@ -903,6 +903,11 @@ final class PanelViewController: NSViewController {
         case .pack: return !targets().isEmpty
         case .unpack, .testArchives: return !archiveTargets().isEmpty
         case .packAndMove: return !targets().isEmpty
+        case .splitFile:
+            // Several marked files get the message that Split works on one file.
+            let files = targets()
+            return files.count > 1 || files.first.map { !$0.isDirectory && !$0.isPackage } == true
+        case .combineFiles: return !targets().isEmpty && targets().allSatisfy { !$0.isDirectory && !$0.isPackage }
         case .copyAs: return model.cursorItem.map { !$0.isParent } ?? false
         case .makeDirectoryInOtherPanel: return router.map { $0.otherPanel(than: self).canPerform(.makeDirectory) } ?? false
         case .viewCursorFile: return model.cursorItem.map { !$0.isParent && (!$0.isDirectory || $0.isPackage) } ?? false
@@ -1055,6 +1060,8 @@ final class PanelViewController: NSViewController {
         case .pack: router?.operations.pack(targets(), from: self)
         case .unpack: router?.operations.unpack(archiveTargets(), from: self)
         case .testArchives: router?.operations.testArchives(archiveTargets(), from: self)
+        case .splitFile: router?.operations.splitFile(from: self)
+        case .combineFiles: router?.operations.combineFiles(from: self)
         case .packAndMove: router?.operations.pack(targets(), from: self, moving: true)
         case .copyAs: Task { await askCopyAs() }
         case .makeDirectoryInOtherPanel: makeDirectoryInOtherPanel()
