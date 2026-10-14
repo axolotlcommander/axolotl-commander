@@ -31,7 +31,10 @@
     and no row selection by AppKit (FR-006).
   - **The icon or the name text without a modifier**: the press rule (FR-001, FR-002), then
     `super.mouseDown`, which runs AppKit's drag & drop and double-click handling as today. When it returns
-    and no drag session began (a flag set in `draggingSession(_:willBeginAt:)`), the release rule.
+    and no drag session began (a flag set in the table's `beginDraggingSession(with:event:source:)`, which AppKit calls while tracking
+    the press; `draggingSession(_:willBeginAt:)` only comes after `mouseDown` returns), the release rule.
+    The row writer is returned for marked rows too, otherwise no drag starts; the session then puts every
+    marked item on the pasteboard.
 - The name zone is the `FileCellView` icon frame plus the label's frame cut to the width of its text.
 - **Rationale**: Keeps the working drag & drop code (`pasteboardWriterForRow`, writing all marked items when
   the session begins) and the double-click action; only the cases that need new behavior get their own

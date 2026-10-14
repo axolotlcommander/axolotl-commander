@@ -40,7 +40,7 @@
   `Sources/AxolotlCommander/PanelViewController.swift` (research R3): make the table first responder;
   empty space → empty-space rule; name zone with modifiers → press rule only, no `super`; name zone plain →
   press rule, `super.mouseDown`, then the release rule when no drag session began (flag set in
-  `draggingSession(_:willBeginAt:)`); a row outside the name zone → press and release rules on that row
+  the table's `beginDraggingSession(with:event:source:)`); a row outside the name zone → press and release rules on that row
   (rubber band comes in T011), double click opens; `menu(for:)` returns nil for a left mouse down (⌃-click,
   research R5); call `marksChanged()` after each rule.
 - [X] T008 [US1] The same tree in `BriefGridView.mouseDown` / `mouseDragged` / `mouseUp` in

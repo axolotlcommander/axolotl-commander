@@ -46,8 +46,16 @@ final class PanelTableView: NSTableView, NSServicesMenuRequestor {
 
     /// The panel that runs mouse marking (spec 024).
     weak var panel: PanelViewController?
-    /// Set when a drag session begins from the table, so a press that became a drag is not a click.
+    /// Set when the press turns into a drag, so it is not also a click. AppKit starts the session only
+    /// after `mouseDown` returns (`draggingSession(_:willBeginAt:)` comes too late for the check there),
+    /// but it asks for the session synchronously while tracking the press.
     var dragBegan = false
+
+    override func beginDraggingSession(with items: [NSDraggingItem], event: NSEvent,
+                                       source: any NSDraggingSource) -> NSDraggingSession {
+        dragBegan = true
+        return super.beginDraggingSession(with: items, event: event, source: source)
+    }
 
     override func mouseDown(with event: NSEvent) {
         let point = convert(event.locationInWindow, from: nil)
@@ -1756,14 +1764,14 @@ extension PanelViewController: NSTableViewDataSource, NSTableViewDelegate {
     func tableView(_ tableView: NSTableView, pasteboardWriterForRow row: Int) -> (any NSPasteboardWriting)? {
         // Servers are not files, and dragging a whole network share is too easy a mistake.
         guard row < model.items.count, !model.items[row].isParent, !model.isNetwork else { return nil }
-        // Dragging a marked row drags the whole selection (written when the session begins).
-        if model.isSelected(model.items[row]) { return nil }
+        // Dragging a marked row drags the whole selection: the session begins with this row and the
+        // pasteboard is filled with every marked item in `draggingSession(_:willBeginAt:)`. A nil writer
+        // here would stop the drag from starting at all.
         return dragItem(for: model.items[row])
     }
 
     func tableView(_ tableView: NSTableView, draggingSession session: NSDraggingSession,
                    willBeginAt screenPoint: NSPoint, forRowIndexes rowIndexes: IndexSet) {
-        self.tableView.dragBegan = true
         guard let row = rowIndexes.first, row < model.items.count, model.isSelected(model.items[row]) else { return }
         session.draggingPasteboard.clearContents()
         session.draggingPasteboard.writeObjects(model.selectedItems.map(dragItem(for:)))
