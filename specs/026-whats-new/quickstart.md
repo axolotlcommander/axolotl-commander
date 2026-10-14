@@ -13,5 +13,5 @@ with `scripts/bundle.sh` (it contains `CHANGELOG.md`); both panels in scratch fo
 5. Help → What's New… opens the window with all versions; asking again keeps one window.
 6. Help → About: the About window shows the version and a "What's New…" button that opens the window.
 7. Settings → General → What's New… opens it.
-8. A link in the notes opens the browser (check only that the window stays and no page loads inside it).
+8. Links are not clicked in the GUI check (it would open another app); the link handling is reviewed in code.
 9. Return (Close) and ⌘W close it; resize, reopen → the size is kept; dark appearance looks right.
