@@ -45,6 +45,15 @@ public struct ReleaseInfo: Equatable, Sendable {
     }
 
     /// The `releases/latest` answer. Only HTTPS files count; unknown fields are ignored.
+    /// HTTPS only; plain HTTP just to this Mac itself (the local test server of the GUI check, R9).
+    static func isSafe(_ url: URL) -> Bool {
+        switch url.scheme?.lowercased() {
+        case "https": true
+        case "http": ["127.0.0.1", "localhost", "::1"].contains(url.host?.lowercased() ?? "")
+        default: false
+        }
+    }
+
     public static func parse(_ data: Data) throws -> ReleaseInfo {
         struct Answer: Decodable {
             struct Asset: Decodable {
@@ -59,11 +68,11 @@ public struct ReleaseInfo: Equatable, Sendable {
             let assets: [Asset]?
         }
         guard let answer = try? JSONDecoder().decode(Answer.self, from: data),
-              let page = URL(string: answer.html_url), page.scheme == "https" else { throw ParseError.malformed }
+              let page = URL(string: answer.html_url), isSafe(page) else { throw ParseError.malformed }
         guard let version = AppVersion(answer.tag_name) else { throw ParseError.notAVersion(answer.tag_name) }
         var files: [String: URL] = [:]
         for asset in answer.assets ?? [] {
-            if let url = URL(string: asset.browser_download_url), url.scheme == "https", files[asset.name] == nil {
+            if let url = URL(string: asset.browser_download_url), isSafe(url), files[asset.name] == nil {
                 files[asset.name] = url
             }
         }

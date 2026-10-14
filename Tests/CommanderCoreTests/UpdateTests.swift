@@ -48,6 +48,11 @@ import Testing
         // The zip of another version does not count.
         #expect(try !ReleaseInfo.parse(Self.answer(assets: ["Axolotl-Commander-0.6.9.zip", "SHA256SUMS.txt"])).isComplete)
         #expect(try !ReleaseInfo.parse(Self.answer(scheme: "http")).isComplete)
+        // Plain HTTP only to this Mac (the GUI check's local server).
+        #expect(ReleaseInfo.isSafe(URL(string: "http://127.0.0.1:8123/x.zip")!))
+        #expect(ReleaseInfo.isSafe(URL(string: "http://localhost/x.zip")!))
+        #expect(!ReleaseInfo.isSafe(URL(string: "http://127.0.0.1.example.org/x.zip")!))
+        #expect(!ReleaseInfo.isSafe(URL(string: "ftp://example.org/x.zip")!))
         #expect(throws: ReleaseInfo.ParseError.notAVersion("nightly")) { try ReleaseInfo.parse(Self.answer(tag: "nightly")) }
         #expect(throws: ReleaseInfo.ParseError.malformed) { try ReleaseInfo.parse(Data("{\"message\": \"Not Found\"}".utf8)) }
         #expect(throws: ReleaseInfo.ParseError.malformed) { try ReleaseInfo.parse(Data("<html>".utf8)) }

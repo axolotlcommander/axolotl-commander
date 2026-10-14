@@ -109,3 +109,6 @@
   The GUI check runs a small HTTP server from the session's scratchpad on 127.0.0.1 (not port 8765) serving
   a JSON answer and the assets. If App Transport Security refuses plain HTTP to 127.0.0.1, the bundle gets
   `NSAppTransportSecurity → NSAllowsLocalNetworking` (local addresses only).
+- **Addendum (implementation)**: the release parser accepts HTTPS addresses and plain HTTP only to this Mac
+  (`127.0.0.1`, `localhost`, `::1`), so the local server can serve the assets; any other HTTP address makes
+  the release incomplete.
