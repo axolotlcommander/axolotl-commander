@@ -76,8 +76,21 @@
 ## R7 — One running copy
 
 - **Decision**: Before a check the app writes `updates.lastCheck` (shared through the user defaults by all
-  copies), like spec 026 writes the last run version first; another copy finds the check not due. Only the
-  copy that checked shows the window; the others show the result in About/Settings.
+  copies), like spec 026 writes the last run version first; another copy finds the check not due. Every copy
+  shows the title-bar button from the remembered result (`updates.availableVersion`); a click on it in a copy
+  that has not fetched the release runs the manual check, which opens the window.
+
+## R10 — Showing a found update without a window (clarification 2026-10-14)
+
+- **Decision**: An `NSTitlebarAccessoryViewController` with `layoutAttribute = .trailing` on the main window
+  holds a small rounded button "↑ Version X.Y.Z" (accent tint). It is visible while `updates.availableVersion`
+  is newer than the running version, not skipped, and `updates.remindAfter` has passed; the controller posts
+  a notification on every change of the state and the button follows it. The menu item stays "Check for
+  Updates…"; with a fetched release it opens the window without a new request.
+- **Rationale**: The maintainer asked for no pop-up; the title bar is visible in every layout (the bottom
+  bars can be hidden) and the accessory takes no focus.
+- **Alternatives**: a text in the bottom bar (hidden together with it); only the menu and About (easy to
+  miss); a window (the original plan, rejected as intrusive).
 
 ## R8 — Release notes in both languages with every release
 
