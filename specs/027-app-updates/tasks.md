@@ -28,34 +28,34 @@
 
 ## Phase 2: US1 + US3 — check and update window (P1)
 
-- [ ] T007 [US1] `Sources/AxolotlCommander/Updates.swift`: `UpdateChecker` (ephemeral session, the request,
+- [X] T007 [US1] `Sources/AxolotlCommander/Updates.swift`: `UpdateChecker` (ephemeral session, the request,
   the start check 5 s after the main window, the 15-minute timer, writing `lastCheck` first, results
   saved), manual check with progress and Cancel, "latest" / "failed" messages with Try Again.
-- [ ] T008 [US1] `Sources/AxolotlCommander/WhatsNewWindow.swift`: `NotesWebView` factored out (the web view
+- [X] T008 [US1] `Sources/AxolotlCommander/WhatsNewWindow.swift`: `NotesWebView` factored out (the web view
   configuration and the link policy) and used by What's New.
-- [ ] T009 [US1] `Sources/AxolotlCommander/UpdateWindow.swift`: the window (title, versions, date, notes,
+- [X] T009 [US1] `Sources/AxolotlCommander/UpdateWindow.swift`: the window (title, versions, date, notes,
   buttons, checkbox, Esc = Remind Me Later), one window at a time, Download… with the reason when
   `InstallCapability` says manual.
-- [ ] T021 [US1] Title-bar button "↑ Version X.Y.Z" on the main window (R10, clarification 2026-10-14): shown
+- [X] T021 [US1] Title-bar button "↑ Version X.Y.Z" on the main window (R10, clarification 2026-10-14): shown
   from the remembered result, hidden by Remind Me Later (24 h) and Skip This Version; a click opens the update
   window; the automatic check opens no window.
-- [ ] T010 [US3] `Sources/CommanderCore/Command.swift` `checkForUpdates` in the app menu after About;
+- [X] T010 [US3] `Sources/CommanderCore/Command.swift` `checkForUpdates` in the app menu after About;
   `Sources/AxolotlCommander/AppDelegate.swift` canPerform/perform and the checker start.
 
 ## Phase 3: US2 — download, verify, install, relaunch (P1)
 
-- [ ] T011 [US2] `UpdateDownloader` in `Sources/AxolotlCommander/Updates.swift`: download of the checksum file,
+- [X] T011 [US2] `UpdateDownloader` in `Sources/AxolotlCommander/Updates.swift`: download of the checksum file,
   the changelogs and the zip with progress and Cancel; quit cancels and removes the work folder.
-- [ ] T012 [US2] `Sources/AxolotlCommander/UpdateWindow.swift`: Install and Relaunch → wait while file
+- [X] T012 [US2] `Sources/AxolotlCommander/UpdateWindow.swift`: Install and Relaunch → wait while file
   operations run (message, install when they finish or later) → download → `UpdateInstaller` → relaunch
   (R5); any failure → message and Download….
 
 ## Phase 4: US4 + US5 — later/skip, Settings and About (P2)
 
-- [ ] T013 [US4] Remind Me Later, Skip This Version and the checkbox wired to `UpdateState`.
-- [ ] T014 [US5] `Sources/AxolotlCommander/SettingsView.swift` General: "Check for updates automatically",
+- [X] T013 [US4] Remind Me Later, Skip This Version and the checkbox wired to `UpdateState`.
+- [X] T014 [US5] `Sources/AxolotlCommander/SettingsView.swift` General: "Check for updates automatically",
   the last result with its date, Check Now (the tab scrolls).
-- [ ] T015 [US5] `Sources/AxolotlCommander/AboutWindow.swift`: status line (available with Install… / up to
+- [X] T015 [US5] `Sources/AxolotlCommander/AboutWindow.swift`: status line (available with Install… / up to
   date with the date / never checked) and Check Now; no request on open.
 
 ## Phase 5: US6 — release notes with every release (P2)
