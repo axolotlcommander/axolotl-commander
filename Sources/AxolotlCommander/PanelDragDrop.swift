@@ -52,7 +52,7 @@ extension PanelViewController {
         // The panel the items came from keeps its marks only when the drop failed.
         let other = router.otherPanel(than: self)
         let source = info.draggingSource as? NSView
-        let from = source != nil && (source === other.tableView || source === other.briefView) ? other : self
+        let from = source != nil && (source === other.tableView || source === other.briefView || source === other.thumbnailView) ? other : self
         router.operations.transfer(op == .move ? .move : .copy, sources: urls, from: from, to: target)
         return true
     }

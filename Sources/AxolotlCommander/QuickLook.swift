@@ -79,9 +79,11 @@ extension PanelViewController: @preconcurrency QLPreviewPanelDataSource, @precon
         guard let url = item as? URL ?? (item as? NSURL) as URL?,
               let row = model.items.firstIndex(where: { $0.url == url }),
               let window = view.window else { return .zero }
-        let rect = viewMode == .brief
-            ? briefView.convert(briefView.frameForItem(at: row), to: nil)
-            : tableView.convert(tableView.frameOfCell(atColumn: 0, row: row), to: nil)
+        let rect = if let grid = gridView {
+            grid.convert(grid.frameForItem(at: row), to: nil)
+        } else {
+            tableView.convert(tableView.frameOfCell(atColumn: 0, row: row), to: nil)
+        }
         return window.convertToScreen(rect)
     }
 }

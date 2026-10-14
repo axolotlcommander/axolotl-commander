@@ -20,6 +20,7 @@ struct SettingsView: View {
     @AppStorage(PanelBehavior.typingKey) private var typingToCommandLine = PanelBehavior().typingToCommandLine
     @AppStorage(PanelBehavior.arrowsKey) private var arrowsTargetPointedPanel = PanelBehavior().arrowsTargetPointedPanel
     @AppStorage(PanelBehavior.volumesKey) private var volumeButtonsFollow = PanelBehavior().volumeButtonsFollow
+    @AppStorage(ThumbnailSize.key) private var thumbnailSize = ThumbnailSize.default.rawValue
 
     private func behavior(_ title: LocalizedStringKey, _ isOn: Binding<Bool>, _ caption: LocalizedStringKey) -> some View {
         VStack(alignment: .leading, spacing: 2) {
@@ -88,6 +89,12 @@ struct SettingsView: View {
                              "Off: a volume button always opens the volume root.")
                     behavior("Right mouse button marks (Norton Commander style)", $rightButtonMarks,
                              "A right click marks, a right drag marks the items passed over, holding the right button opens the context menu. Off: a right click opens the context menu.")
+                    Picker("Thumbnail size:", selection: $thumbnailSize) {
+                        Text("Small").tag(ThumbnailSize.small.rawValue)
+                        Text("Medium").tag(ThumbnailSize.medium.rawValue)
+                        Text("Large").tag(ThumbnailSize.large.rawValue)
+                    }
+                    .fixedSize()
                 }
                 Section {
                     HStack {
