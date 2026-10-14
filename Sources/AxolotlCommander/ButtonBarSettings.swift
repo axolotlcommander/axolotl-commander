@@ -154,7 +154,7 @@ private struct ButtonEditor: View {
                 }
             Button("Default") { item.icon = "" }.disabled(item.icon.isEmpty)
             if item.kind == .command, item.resolvedCommand == nil {
-                Text("This version does not know the command “\(item.command)”.").font(.caption).foregroundStyle(.orange)
+                Text("This version does not know the command “\(item.command)”.").font(.caption).foregroundStyle(.orange).fixedSize(horizontal: false, vertical: true)
             }
         }
     }
@@ -236,7 +236,7 @@ private struct IconPicker: View {
                 }
             }
             if !icon.isEmpty, icon != ButtonBarIcon.appIcon, NSImage(systemSymbolName: icon, accessibilityDescription: nil) == nil {
-                Text("No symbol has this name.").font(.caption).foregroundStyle(.orange)
+                Text("No symbol has this name.").font(.caption).foregroundStyle(.orange).fixedSize(horizontal: false, vertical: true)
             }
         }
         .padding()

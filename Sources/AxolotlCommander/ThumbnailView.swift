@@ -19,7 +19,8 @@ final class ThumbnailGridLayout: NSCollectionViewLayout {
     private var width: CGFloat = 0
 
     var cellSize: NSSize {
-        NSSize(width: CGFloat(size.points) + 16, height: CGFloat(size.points) + ThumbnailCellView.textHeight + 10)
+        // Small pictures get a wider cell, so short names still fit on a line.
+        NSSize(width: max(CGFloat(size.points) + 16, 100), height: CGFloat(size.points) + ThumbnailCellView.textHeight + 10)
     }
     private var rowStride: CGFloat { cellSize.height + Self.spacing }
     private var rows: Int { (count + columns - 1) / columns }
@@ -133,8 +134,12 @@ final class ThumbnailCellView: NSView {
         super.init(frame: frame)
         imageView.imageScaling = .scaleProportionallyUpOrDown
         imageView.imageAlignment = .alignCenter
+        // An image view takes drops for itself; the grid handles them (a drop onto a folder's picture).
+        imageView.unregisterDraggedTypes()
         label.alignment = .center
+        label.isSelectable = false   // a wrapping label is selectable and would keep the clicks
         label.maximumNumberOfLines = 2
+        // `show(name:font:)` makes the two lines; this only guards against a line that still does not fit.
         label.lineBreakMode = .byWordWrapping
         label.cell?.truncatesLastVisibleLine = true
         label.font = Self.font
@@ -144,6 +149,54 @@ final class ThumbnailCellView: NSView {
 
     @available(*, unavailable)
     required init?(coder: NSCoder) { fatalError() }
+
+    private var shown: (name: String, font: NSFont, width: CGFloat)?
+
+    /// Shows the name on at most two lines: words wrap, and a name longer than that loses the middle of its
+    /// second line, so the start and the extension stay visible (the full name is in the tooltip).
+    func show(name: String, font: NSFont, width: CGFloat) {
+        if let shown, shown.name == name, shown.font == font, shown.width == width { return }
+        shown = (name, font, width)
+        label.font = font
+        label.stringValue = Self.twoLines(name, font: font, width: width - 6)
+    }
+
+    static func twoLines(_ name: String, font: NSFont, width: CGFloat) -> String {
+        let text = wrappable(name)
+        let attributes: [NSAttributedString.Key: Any] = [.font: font]
+        let storage = NSTextStorage(string: text, attributes: attributes)
+        let container = NSTextContainer(size: NSSize(width: width, height: .greatestFiniteMagnitude))
+        container.lineFragmentPadding = 0
+        let manager = NSLayoutManager()
+        manager.addTextContainer(container)
+        storage.addLayoutManager(manager)
+        var lines: [NSRange] = []
+        manager.enumerateLineFragments(forGlyphRange: NSRange(location: 0, length: manager.numberOfGlyphs)) { _, _, _, range, _ in
+            lines.append(range)
+        }
+        guard lines.count > 2 else { return text }
+        let first = manager.characterRange(forGlyphRange: lines[0], actualGlyphRange: nil)
+        let all = text as NSString
+        let head = all.substring(with: first).trimmingCharacters(in: .whitespaces)
+        let rest = Array(all.substring(from: NSMaxRange(first)))
+        func fits(_ line: String) -> Bool { (line as NSString).size(withAttributes: attributes).width <= width }
+        // Keep `kept` characters around "…", a little more of the end (the extension).
+        func line(_ kept: Int) -> String { String(rest.prefix(kept / 2)) + "…" + String(rest.suffix(kept - kept / 2)) }
+        var low = 0, high = rest.count
+        while low < high {
+            let mid = (low + high + 1) / 2
+            if fits(line(mid)) { low = mid } else { high = mid - 1 }
+        }
+        return head + "\n" + line(low)
+    }
+
+    /// The name with break opportunities before the extension and after underscores, so "photo.jpeg" wraps
+    /// as "photo" / ".jpeg" rather than inside a word.
+    static func wrappable(_ name: String) -> String {
+        var text = name.replacingOccurrences(of: "_", with: "_\u{200B}")
+        if let dot = text.lastIndex(of: "."), dot != text.startIndex { text.insert("\u{200B}", at: dot) }
+        return text
+    }
 
     private var square: NSRect { NSRect(x: (bounds.width - side) / 2, y: 4, width: side, height: side) }
 
@@ -298,7 +351,8 @@ extension PanelViewController {
         let marked = model.isSelected(file)
         cell.marked = marked
         cell.cursorStyle = index == model.cursor ? (isActive ? .active : .inactive) : .none
-        cell.label.font = textFont(marked: marked)
+        cell.show(name: file.isParent ? ".." : model.branch != nil ? file.fileName : file.name,
+                  font: textFont(marked: marked), width: (thumbnailLayout?.cellSize.width ?? cell.bounds.width) - 8)
         cell.label.textColor = index == model.cursor && isActive && !marked
             ? .alternateSelectedControlTextColor : textColor(for: file, marked: marked)
     }
@@ -309,7 +363,6 @@ extension PanelViewController {
         let file = model.items[indexPath.item]
         let size = thumbnailLayout?.size ?? .default
         thumb.cell.side = CGFloat(size.points)
-        thumb.cell.label.stringValue = file.isParent ? ".." : model.branch != nil ? file.fileName : file.name
         thumb.cell.toolTip = file.isParent ? ".." : file.name
         styleThumbnailCell(thumb.cell, for: file, at: indexPath.item)
         thumb.key = thumbnailKey(for: file, size: size)
@@ -334,7 +387,8 @@ extension PanelViewController {
     }
 
     private func thumbnailKey(for file: FileItem, size: ThumbnailSize) -> ThumbnailKey? {
-        guard !file.isParent, panelAllowsThumbnails else { return nil }
+        // An empty file has nothing to show: it keeps its icon.
+        guard !file.isParent, panelAllowsThumbnails, file.isDirectory || file.size != 0 else { return nil }
         // Find results and branch view list items from several places.
         if model.results != nil || model.branch != nil, !ThumbnailPolicy.allowsPreview(of: file.url) { return nil }
         return ThumbnailKey(path: file.url.path, modified: file.modificationDate, size: size)

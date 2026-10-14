@@ -17,7 +17,7 @@
 - **UI** (`Sources/AxolotlCommander/`):
   - `PanelGridView.swift` (NEW): the Brief grid's mouse, drag and drop code moved into a shared base class;
     `BriefGridView` subclasses it unchanged in behavior (R1).
-  - `ThumbnailView.swift` (NEW): `ThumbnailGridView` (vertical flow layout, ⌘ + wheel, pinch),
+  - `ThumbnailView.swift` (NEW): `ThumbnailGridView` (a uniform vertical grid layout of its own, ⌘ + wheel, pinch),
     `ThumbnailCellView` and `ThumbnailItem`, the data source extension of `PanelViewController`, the
     reload/cursor bookkeeping like Brief's (R8).
   - `ThumbnailLoader.swift` (NEW): carries out `ThumbnailQueue` answers with `QLThumbnailGenerator`,
