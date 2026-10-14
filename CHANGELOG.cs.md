@@ -24,6 +24,14 @@ Formát vychází z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ve
 - Co je nového: po aktualizaci aplikace jednou ukáže, co se změnilo oproti verzi, která běžela dřív.
   Nápověda → Co je nového…, okno O aplikaci a Nastavení → Obecné otevřou poznámky ke všem verzím.
   Poznámky jsou česky, když aplikace běží česky.
+- Aktualizace: aplikace jednou denně zkontroluje, zda nevyšla novější verze (v Nastavení → Obecné se dá
+  vypnout a je tam Zkontrolovat; dále Axolotl Commander → Zkontrolovat aktualizace… a okno O aplikaci).
+  Nalezená verze se ukáže jako malé tlačítko „↑ Verze X.Y.Z“ v titulkovém pruhu, nic nevyskakuje. Okno
+  aktualizace ukáže, co nová verze přináší, česky, když aplikace běží česky; Nainstalovat a spustit znovu
+  ji stáhne, ověří kontrolní součet a podpis, dá ji na místo běžící aplikace (stará jde do Koše)
+  a spustí ji. Běžící operace se soubory se nikdy nepřeruší. Připomenout později a Přeskočit tuto verzi
+  tlačítko skryjí; když se aplikace nemůže aktualizovat sama, řekne proč a nabídne Stáhnout….
+- Každé vydání na GitHubu popisuje změny anglicky i česky.
 
 ### Změněno
 
