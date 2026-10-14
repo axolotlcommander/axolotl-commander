@@ -11,6 +11,7 @@ public struct PanelBehavior: Equatable, Sendable {
     public static let arrowsKey = "panel.arrowsTargetPointedPanel"
     public static let volumesKey = "panel.volumeButtonsFollow"
     public static let rightButtonKey = "panel.rightButtonMarks"
+    public static let alwaysShowTabsKey = "panel.alwaysShowTabs"
 
     /// Space marks the item and moves the cursor down (off: the cursor stays).
     public var spaceMovesDown = true
@@ -23,6 +24,8 @@ public struct PanelBehavior: Equatable, Sendable {
     /// The right mouse button marks items, a long right press opens the context menu
     /// (`specs/024-mouse-selection`).
     public var rightButtonMarks = false
+    /// The tab bar shows even for a single tab (`specs/028-tab-locking`); off: it hides with one tab.
+    public var alwaysShowTabs = false
 
     public var mouseSelectionMode: MouseSelectionMode { rightButtonMarks ? .rightButtonMarks : .standard }
 
@@ -37,6 +40,7 @@ public struct PanelBehavior: Equatable, Sendable {
         arrowsTargetPointedPanel = bool(Self.arrowsKey, false)
         volumeButtonsFollow = bool(Self.volumesKey, false)
         rightButtonMarks = bool(Self.rightButtonKey, false)
+        alwaysShowTabs = bool(Self.alwaysShowTabsKey, false)
     }
 }
 

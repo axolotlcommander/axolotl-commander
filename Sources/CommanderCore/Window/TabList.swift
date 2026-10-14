@@ -26,8 +26,11 @@ public struct TabList: Codable, Hashable, Sendable {
 
     public var current: PanelState { tabs[active] }
 
-    /// Stores the state of the active tab; call before every switch and before saving.
+    /// Stores the state of the active tab; call before every switch and before saving. The tab keeps its
+    /// lock: the panel's snapshots know nothing about locks.
     public mutating func updateCurrent(_ state: PanelState) {
+        var state = state
+        state.lock = tabs[active].lock
         tabs[active] = state
     }
 
@@ -69,6 +72,7 @@ public struct TabList: Codable, Hashable, Sendable {
     public mutating func redirect(where match: (URL) -> Bool, to location: URL) -> Int {
         var changed = 0
         for i in tabs.indices where i != active && match(tabs[i].location) {
+            tabs[i].lock = nil
             tabs[i].location = location
             tabs[i].cursorName = nil
             tabs[i].selectedNames = []
@@ -77,6 +81,88 @@ public struct TabList: Codable, Hashable, Sendable {
             changed += 1
         }
         return changed
+    }
+
+    // MARK: Locks (spec 028)
+
+    /// Locks the tab at `index` on the folder it shows now (nil unlocks).
+    public mutating func setLock(_ mode: TabLock.Mode?, at index: Int) {
+        guard tabs.indices.contains(index) else { return }
+        tabs[index].lock = mode.map { TabLock(mode: $0, state: tabs[index]) }
+    }
+
+    /// A folder change in the active locked tab: the tab gets `keeping` back (its lock stays) and `opened`
+    /// becomes a new unlocked tab right after it, active.
+    public mutating func split(keeping: PanelState, opened: PanelState) {
+        var kept = keeping
+        kept.lock = tabs[active].lock
+        tabs[active] = kept
+        var new = opened
+        new.lock = nil
+        open(new, activate: true)
+    }
+
+    /// The active tab, when locked with folder changes allowed, shows its locked folder again.
+    public mutating func returnCurrentToLock() {
+        guard let lock = tabs[active].lock, lock.mode == .allowsChanges else { return }
+        tabs[active] = lock.returning(tabs[active])
+    }
+
+    /// Every tab locked with folder changes allowed shows its locked folder (at start).
+    public mutating func returnAllToLocks() {
+        for i in tabs.indices {
+            if let lock = tabs[i].lock, lock.mode == .allowsChanges { tabs[i] = lock.returning(tabs[i]) }
+        }
+    }
+
+    /// Close Other Tabs: every unlocked tab except the one at `index` goes; returns the closed ones.
+    @discardableResult
+    public mutating func closeOthers(keeping index: Int) -> [PanelState] {
+        guard tabs.indices.contains(index) else { return [] }
+        return remove(fallback: index) { $0 != index && $1.lock == nil }
+    }
+
+    /// Close Tabs to the Right: every unlocked tab after the one at `index` goes; returns the closed ones.
+    @discardableResult
+    public mutating func closeToTheRight(of index: Int) -> [PanelState] {
+        guard tabs.indices.contains(index) else { return [] }
+        return remove(fallback: index) { $0 > index && $1.lock == nil }
+    }
+
+    /// Removes the matching tabs. The active tab stays active when kept; otherwise the tab at `fallback`
+    /// (which is always kept) becomes active.
+    private mutating func remove(fallback: Int, _ match: (Int, PanelState) -> Bool) -> [PanelState] {
+        let all = tabs
+        let doomed = Set(all.indices.filter { match($0, all[$0]) })
+        guard !doomed.isEmpty, !doomed.contains(fallback) else { return [] }
+        let target = doomed.contains(active) ? fallback : active
+        tabs = all.indices.filter { !doomed.contains($0) }.map { all[$0] }
+        active = all.indices.filter { $0 < target && !doomed.contains($0) }.count
+        return all.indices.filter(doomed.contains).map { all[$0] }
+    }
+
+    /// Duplicate Tab: an unlocked copy of the tab at `index` right after it, active.
+    public mutating func duplicate(at index: Int) {
+        guard tabs.indices.contains(index) else { return }
+        var copy = tabs[index]
+        copy.lock = nil
+        tabs.insert(copy, at: index + 1)
+        active = index + 1
+    }
+
+    /// Removes the locks of the tabs whose location or locked folder matches (an ejected volume, a
+    /// disconnected server).
+    public mutating func unlock(where match: (URL) -> Bool) {
+        for i in tabs.indices {
+            if match(tabs[i].location) || tabs[i].lock.map({ match($0.folder) }) == true { tabs[i].lock = nil }
+        }
+    }
+
+    /// The locked folder of the tab at `index` is gone: the lock moves to `folder`.
+    public mutating func relock(at index: Int, to folder: URL) {
+        guard tabs.indices.contains(index), tabs[index].lock != nil else { return }
+        tabs[index].lock?.folder = folder
+        tabs[index].lock?.cursorName = nil
     }
 
     /// Cycles to the next tab.

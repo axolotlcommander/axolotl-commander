@@ -35,6 +35,7 @@ public enum Command: String, CaseIterable, Hashable, Sendable {
     case hotPaths, workingDirectories
     case newTab, closeTab, nextTab, previousTab
     case openInNewTab, openInBackgroundTab, openInNewTabOtherPanel, reopenClosedTab, closeOtherTabs, tabList
+    case duplicateTab, copyTabToOtherPanel, closeTabsToRight, lockTab, lockTabAllowingChanges
     case swapPanelsWithTabs
     case quickFilter, quickFilterLast
 
@@ -254,6 +255,8 @@ public enum CommandRegistry {
         add(.leftVolumeMenu, "Left Volume…", .go, [f(1, o), f(1, [c, o])], sep: true)
         add(.rightVolumeMenu, "Right Volume…", .go, [f(2, o), f(2, [c, o])])
         add(.newTab, "New Tab", .go, [ch("t", [c, s])], sep: true)
+        add(.duplicateTab, "Duplicate Tab", .go)
+        add(.copyTabToOtherPanel, "Copy Tab to Other Panel", .go)
         add(.closeTab, "Close Tab", .go, [ch("w", [c, s])])
         add(.nextTab, "Next Tab", .go, [K(.pageDown, [c, s])])
         add(.previousTab, "Previous Tab", .go, [K(.pageUp, [c, s])])
@@ -262,7 +265,10 @@ public enum CommandRegistry {
         add(.openInNewTabOtherPanel, "Open in New Tab of Other Panel", .go, [K(.up, [c, s])])
         add(.reopenClosedTab, "Reopen Closed Tab", .go, [ch("t", [m, s])])
         add(.closeOtherTabs, "Close Other Tabs", .go, [ch("w", [m, o])])
-        add(.tabList, "Tab List…", .go, [ch("a", [c, s]), ch("\\", [m, s])])
+        add(.closeTabsToRight, "Close Tabs to the Right", .go)
+        add(.lockTab, "Lock Tab", .go, sep: true)
+        add(.lockTabAllowingChanges, "Lock Tab, Allow Folder Changes", .go)
+        add(.tabList, "Tab List…", .go, [ch("a", [c, s]), ch("\\", [m, s])], sep: true)
 
         add(.find, "Find Files…", .commands, [f(7, o), f(7, [c, o]), ch("f", m)])
         add(.occupiedSpace, "Disk Map…", .commands, [f(10, o), f(10, [c, o]), ch("d", [c, s])])

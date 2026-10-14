@@ -30,6 +30,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
   downloads it, checks its checksum and signature, puts it in place of the running app (the old one goes
   to the Trash) and starts it. Running file operations are never interrupted. Remind Me Later and Skip
   This Version hide the button; when the app cannot update itself it says why and offers Download….
+- Tab locking: Lock Tab keeps a tab on its folder, and every folder change in it opens a new tab right
+  after it; Lock Tab, Allow Folder Changes lets you browse in the tab and brings it back to its folder
+  whenever you return to it (and at start). A locked tab shows a lock at its left end (the × while the
+  pointer is over it) and its tooltip names the locked folder. Close Other Tabs and Close Tabs to
+  the Right leave locked tabs open; Reopen Closed Tab brings a lock back; ejecting a volume or
+  disconnecting a server unlocks its tabs.
+- The tab menu (right click on a tab) and the Go menu add Duplicate Tab, Copy Tab to Other Panel, Close
+  Tabs to the Right and the two lock commands; the tab menu also has Reopen Closed Tab.
+- The tab bar ends with "+" for a new tab. Tabs keep a readable width: those that do not fit are in the "»"
+  menu, and the active tab always stays visible. Settings → Panels → "Always show the tab bar" keeps the bar
+  (and "+") visible with a single tab.
 - Every release on GitHub describes its changes in English and Czech.
 
 ### Changed

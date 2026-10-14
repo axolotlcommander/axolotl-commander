@@ -946,6 +946,16 @@
         }
       }
     },
+    "Always show the tab bar": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vždy zobrazovat pruh záložek"
+          }
+        }
+      }
+    },
     "Anonymous": {
       "localizations": {
         "cs": {
@@ -1709,6 +1719,16 @@
         }
       }
     },
+    "Close Tabs to the Right": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zavřít záložky vpravo"
+          }
+        }
+      }
+    },
     "Close Viewer": {
       "extractionState": "manual",
       "localizations": {
@@ -2033,6 +2053,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kopírovat cestu jako text"
+          }
+        }
+      }
+    },
+    "Copy Tab to Other Panel": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopírovat záložku do druhého panelu"
           }
         }
       }
@@ -2717,6 +2747,16 @@
         }
       }
     },
+    "Duplicate Tab": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duplikovat záložku"
+          }
+        }
+      }
+    },
     "Eject": {
       "localizations": {
         "cs": {
@@ -2843,6 +2883,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Formátuji…"
+          }
+        }
+      }
+    },
+    "Hidden Tabs": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skryté záložky"
           }
         }
       }
@@ -2977,6 +3027,46 @@
         }
       }
     },
+    "Lock Tab": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zamknout záložku"
+          }
+        }
+      }
+    },
+    "Lock Tab, Allow Folder Changes": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zamknout s možností změny složky"
+          }
+        }
+      }
+    },
+    "Locked, folder changes allowed: %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zamčeno, lze měnit složku: %@"
+          }
+        }
+      }
+    },
+    "Locked: %@": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zamčeno: %@"
+          }
+        }
+      }
+    },
     "Mono": {
       "localizations": {
         "cs": {
@@ -3103,6 +3193,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Není co dělat"
+          }
+        }
+      }
+    },
+    "Off: the tab bar appears when a panel has more than one tab.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vypnuto: pruh záložek se ukáže, až má panel víc než jednu záložku."
           }
         }
       }

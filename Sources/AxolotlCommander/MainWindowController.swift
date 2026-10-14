@@ -42,7 +42,10 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
     var inactivePanel: PanelViewController { activeSide == .left ? right : left }
 
     init() {
-        let layout = Self.loadLayout()
+        var layout = Self.loadLayout()
+        // Tabs locked with folder changes allowed start on their locked folders (spec 028).
+        layout.left.returnAllToLocks()
+        layout.right.returnAllToLocks()
         left = PanelViewController(side: .left, tabs: layout.left)
         right = PanelViewController(side: .right, tabs: layout.right)
         left.viewMode = layout.leftMode
@@ -188,6 +191,15 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         otherPanel(than: panel).open(target, takeFocus: false)
     }
 
+    /// Copy Tab to Other Panel: an unlocked copy of the tab becomes the other panel's active tab; the focus
+    /// stays.
+    func copyTabToOtherPanel(at index: Int? = nil, from panel: PanelViewController) {
+        guard let copy = panel.stateForCopy(at: index) else { return }
+        closeQuickView()
+        if maximizedSide != nil { setMaximized(nil) }
+        otherPanel(than: panel).openTab(copy, activate: true)
+    }
+
     // MARK: Quick view panel
 
     /// ⌃Q: the panel opposite the active one shows the preview of the active cursor item.
@@ -290,7 +302,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
              .commandLineHistory: true
         case .openInLeftPanel, .openInRightPanel: openInPanel(command) != nil
         case .openInNewTabOtherPanel: activePanel.model.cursorItem != nil && !activePanel.model.isNetwork
-        case .swapPanelsWithTabs, .quickView: true
+        case .swapPanelsWithTabs, .quickView, .copyTabToOtherPanel: true
         case .synchronizeFolders: isLocalFolder(left) && isLocalFolder(right)
         default: false
         }
@@ -328,13 +340,13 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
             // ⌃U: the panels exchange their current tab (folder, cursor, selection, sort, history).
             let (leftState, rightState) = (left.model.snapshot(), right.model.snapshot())
             Task {
-                await left.restoreTab(rightState)
-                await right.restoreTab(leftState)
+                await left.show(rightState)
+                await right.show(leftState)
             }
         case .sameFolderAsOther:
             let other = activeSide == .left ? right : left
             if other.isFlatListing {
-                Task { await activePanel.restoreTab(other.model.snapshot()) }
+                Task { await activePanel.show(other.model.snapshot()) }
             } else {
                 activePanel.go(to: other.model.location, focusing: other.model.cursorItem.flatMap { $0.isParent ? nil : $0.name })
             }
@@ -353,6 +365,8 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
                 guard let state = await source.stateForNewTab() else { return }
                 other.openTab(state, activate: true)
             }
+        case .copyTabToOtherPanel:
+            copyTabToOtherPanel(from: activePanel)
         case .swapPanelsWithTabs:
             closeQuickView()
             // ⌃⇧U: the panels exchange their whole tab lists; ⌃U swaps only the current tabs.
@@ -683,6 +697,9 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         if let field = sortFields[command] { menuItem.state = activePanel.model.sort.field == field ? .on : .off }
         if command == .maximizePanel { menuItem.title = maximizedSide == nil ? CommandRegistry.spec(.maximizePanel).localizedTitle
                                                   : String(localized: "Restore Panels") }
+        let lock = activePanel.tabs.current.lock?.mode
+        if command == .lockTab { menuItem.state = lock == .locked ? .on : .off }
+        if command == .lockTabAllowingChanges { menuItem.state = lock == .allowsChanges ? .on : .off }
         if command == .ejectVolume { menuItem.title = EjectTarget.title(for: activePanel.ejectTarget) }
         return canPerform(command)
     }

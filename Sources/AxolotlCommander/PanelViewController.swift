@@ -515,7 +515,9 @@ final class PanelViewController: NSViewController {
     func leave(volume root: URL) {
         let home = FileManager.default.homeDirectoryForCurrentUser
         let isOn = { (url: URL) in VolumeUse.isOnVolume(url, root: root) }
-        if tabs.redirect(where: isOn, to: home) > 0 { tabStrip.show(titles: tabs.tabs.map(\.title), active: tabs.active) }
+        tabs.unlock(where: isOn)
+        tabs.redirect(where: isOn, to: home)
+        showTabs()
         guard isOn(model.location) || isOn(watchedURL ?? home) else { return }
         watcher?.cancel()
         watcher = nil
@@ -829,6 +831,7 @@ final class PanelViewController: NSViewController {
         .newTab, .closeTab, .nextTab, .previousTab, .hotPaths, .viewModeDetailed, .viewModeBrief,
         .viewModeThumbnails, .thumbnailsLarger, .thumbnailsSmaller,
         .openInNewTab, .openInBackgroundTab, .reopenClosedTab, .closeOtherTabs, .tabList,
+        .duplicateTab, .closeTabsToRight, .lockTab, .lockTabAllowingChanges,
         .quickFilter, .quickFilterLast, .folderHistory,
         .copyAs, .makeDirectoryInOtherPanel, .viewCursorFile, .packAndMove, .testArchives,
         .toggleSelectionInPlace, .selectAllFiles, .deselectAllFiles,
@@ -851,6 +854,7 @@ final class PanelViewController: NSViewController {
         .viewModeThumbnails, .thumbnailsLarger, .thumbnailsSmaller,
         .leftVolumeMenu, .rightVolumeMenu, .newTab, .closeTab, .nextTab, .previousTab, .hotPaths,
         .reopenClosedTab, .closeOtherTabs, .tabList, .folderHistory,
+        .duplicateTab, .closeTabsToRight, .lockTab, .lockTabAllowingChanges,
         .connectToServer, .disconnect, .contextMenu,
     ]
 
@@ -876,6 +880,7 @@ final class PanelViewController: NSViewController {
         case .closeTab, .nextTab, .previousTab, .closeOtherTabs: return tabs.tabs.count > 1
         case .openInNewTab, .openInBackgroundTab: return model.cursorItem != nil
         case .reopenClosedTab: return !closedTabs.isEmpty
+        case .closeTabsToRight: return tabs.active < tabs.tabs.count - 1
         // Find results and branch view have no folder of their own to create or paste into.
         case .makeDirectory, .newFile: return !isFlatListing
         case .pasteFiles: return !isFlatListing && Self.pasteboardHasFilesOrPath
@@ -967,7 +972,11 @@ final class PanelViewController: NSViewController {
         case .openInNewTab: openCursorInNewTab(activate: true)
         case .openInBackgroundTab: openCursorInNewTab(activate: false)
         case .reopenClosedTab: reopenClosedTab()
-        case .closeOtherTabs: closeOtherTabs(keeping: tabs.active)
+        case .closeOtherTabs: closeOtherTabs()
+        case .closeTabsToRight: closeTabsToTheRight()
+        case .duplicateTab: duplicateTab()
+        case .lockTab: toggleLock(.locked)
+        case .lockTabAllowingChanges: toggleLock(.allowsChanges)
         case .tabList: showTabList()
         case .folderHistory: showFolderHistory()
         case .nextTab: switchTab { $0.next() }
