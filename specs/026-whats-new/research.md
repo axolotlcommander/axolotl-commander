@@ -56,3 +56,17 @@
   date, Unreleased dropped, preamble dropped, body kept), page Markdown, start decision (update, skipped
   versions, same, downgrade, first start, garbage).
 - GUI (test copy): see quickstart.md.
+
+## R8 — Czech release notes (added 2026-10-14)
+
+- **Decision**: `CHANGELOG.cs.md` next to `CHANGELOG.md`, with the same `## [X.Y.Z] - date` headings and
+  translated section names. The bundle gets it as `cs.lproj/CHANGELOG.md`; the app reads the English file
+  from `Resources/` by path (not by the localized lookup, which would prefer nothing predictable) and the
+  translation from `<preferred localization>.lproj/` when the app runs in a language other than English.
+  The English changelog decides the versions and dates; a translated body replaces the English one only
+  when it is not empty.
+- **Rationale**: Contributors edit the two files side by side; the bump script keeps their headings in step;
+  a missing translation never hides notes.
+- **Alternatives**: notes in the String Catalog (one key per entry: hard to edit and review); both languages
+  on one page (twice as long); Markdown inside `Resources/cs.lproj` in the repository (hidden from the
+  people who write the changelog).

@@ -12,9 +12,10 @@ Private instructions for your own machine belong in `CLAUDE.local.md` (listed in
 ## Language (binding)
 
 - **Everything committed to git is in English**: code, comments, documentation, specs, plans,
-  tasks, commit messages, PR descriptions and issue templates. The only exception is
+  tasks, commit messages, PR descriptions and issue templates. The exceptions are
   localized UI text in the String Catalogs `Resources/Localizable.xcstrings` and
-  `Resources/InfoPlist.xcstrings` (English source + translations).
+  `Resources/InfoPlist.xcstrings` (English source + translations) and the Czech release notes
+  `CHANGELOG.cs.md` (a translation of `CHANGELOG.md` for the What's New window).
 - **Talk to each contributor in their own language.** Discussion, questions, summaries and
   reports go in the language the contributor writes in; whatever ends up in git is written
   in English.
@@ -39,10 +40,12 @@ commit are enough.
   source is the `VERSION` file: `scripts/bundle.sh` and the release workflow read it.
 - Every pull request that changes the app raises the version in the same pull request with
   `scripts/bump-version.sh minor|patch` (it also moves the "Unreleased" items of `CHANGELOG.md`
-  under the new version with today's date):
+  and `CHANGELOG.cs.md` under the new version with today's date):
   - **minor**: a new feature (a merged spec) or a change in behavior or settings;
   - **patch**: a bug fix, a layout tweak, a new shortcut, a translation fix;
   - **no change**: documentation, specs, CI and scripts only.
+- Every `CHANGELOG.md` entry gets its Czech translation in `CHANGELOG.cs.md` in the same pull request
+  (same version headings, app's Czech UI wording). A version missing there is shown in English.
 - Pull requests from forks do not have to raise the version; the maintainer does it before merging.
 - After the merge into `main`, tag the merge commit `vX.Y.Z` (the version in `VERSION`) and push the
   tag; the release workflow builds a draft release (see [docs/RELEASING.md](docs/RELEASING.md)).

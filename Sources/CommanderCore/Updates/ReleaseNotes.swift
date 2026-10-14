@@ -85,6 +85,17 @@ public enum ReleaseNotes {
         return (version, date.isEmpty ? nil : date)
     }
 
+    /// The notes in the user's language: each version of `base` (the English changelog) with the body of the
+    /// same version in `translated` when it has one; a version without a translation stays in English, and a
+    /// version that is only in the translation is left out.
+    public static func localized(_ base: [ReleaseNote], translated: [ReleaseNote]) -> [ReleaseNote] {
+        var bodies: [AppVersion: String] = [:]
+        for note in translated where !note.body.isEmpty && bodies[note.version] == nil { bodies[note.version] = note.body }
+        return base.map { note in
+            bodies[note.version].map { ReleaseNote(version: note.version, date: note.date, body: $0) } ?? note
+        }
+    }
+
     /// One Markdown page: a heading with the version and date above each version's notes.
     public static func markdown(_ notes: [ReleaseNote]) -> String {
         notes.map { note in

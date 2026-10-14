@@ -9,6 +9,8 @@
   - `ReleaseNotes.parse(_:)`: the Keep a Changelog text → `[ReleaseNote]` (version, date, body), the
     "Unreleased" section dropped, newest first (R2).
   - `ReleaseNotes.markdown(_:)`: the notes → one Markdown page with a heading per version (R3).
+  - `ReleaseNotes.localized(_:translated:)`: each English version with the body of the same version from
+    the translation when it has one (R8).
   - `WhatsNewStart.decide(lastRun:running:notes:)`: what to show at a start and the version to remember
     (FR-002, FR-003) (R4).
 - **UI** (`Sources/AxolotlCommander/`):
@@ -21,7 +23,9 @@
     opens the new About window, calls `showAfterStart()` after the main window appears.
   - `SettingsView.swift`: a "What's New…" button in General; `AppSettingsCatalog.swift`: the last run version
     is local, not exported.
-  - `scripts/bundle.sh`: copies `CHANGELOG.md` into `Contents/Resources` (FR-011).
+  - `scripts/bundle.sh`: copies `CHANGELOG.md` into `Contents/Resources` and `CHANGELOG.cs.md` into
+    `Contents/Resources/cs.lproj/CHANGELOG.md` (FR-011); `scripts/bump-version.sh` adds the version heading
+    to both files (R8).
   - Czech strings; `CHANGELOG.md` entry under 0.6.0.
 
 ## Technical Context
@@ -43,7 +47,7 @@
 | IV Testable core | ✅ Parsing, comparison and the start decision in the core with unit tests. |
 | V Clean-room | ✅ Behavior from the reference help and common macOS practice. |
 | VI Incremental | ✅ US1 (after an update) → US2 (on demand) → US3 (formatting, mostly given by the renderer). |
-| VII Language | ✅ Notes in English, the window localized. |
+| VII Language | ✅ The window localized; the Czech notes `CHANGELOG.cs.md` are allowed by constitution 1.2.0 (amended for this spec). |
 
 ## Project Structure
 
@@ -58,7 +62,10 @@ Sources/CommanderCore/Command.swift                     whatsNew
 Sources/CommanderCore/Settings/AppSettingsCatalog.swift lastRunVersion not exported
 Sources/AxolotlCommander/AppDelegate.swift              about, whatsNew, start
 Sources/AxolotlCommander/SettingsView.swift             button
-scripts/bundle.sh                                       CHANGELOG.md into Resources
+scripts/bundle.sh                                       CHANGELOG.md (+ cs.lproj) into Resources
+scripts/bump-version.sh                                 heading in CHANGELOG.cs.md too
+CHANGELOG.cs.md                                         NEW: Czech translation
+CLAUDE.md, .specify/memory/constitution.md              the translation allowed (VII)
 Resources/Localizable.xcstrings                         Czech strings
 ```
 

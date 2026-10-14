@@ -66,6 +66,37 @@ import Foundation
         #expect(ReleaseNotes.parse("# Changelog\n\n## [Unreleased]\n- x").isEmpty)
     }
 
+    @Test func localized() {
+        let english = ReleaseNotes.parse(Self.changelog)
+        let czech = ReleaseNotes.parse("""
+            # Změny
+
+            ## [Unreleased]
+
+            - Ještě nevydáno.
+
+            ## [0.7.0] - 2026-10-20
+
+            - Jen v překladu.
+
+            ## [0.6.0] - 2026-10-15
+
+            ### Přidáno
+
+            - Náhledy.
+
+            ## [0.4.3]
+
+            """)
+        let notes = ReleaseNotes.localized(english, translated: czech)
+        #expect(notes.map(\.version.description) == ["0.6.0", "0.5.0", "0.4.3", "0.4.2"])
+        #expect(notes[0].body == "### Přidáno\n\n- Náhledy.")
+        #expect(notes[0].date == "2026-10-14")             // the date of the English changelog
+        #expect(notes[1].body == english[1].body)           // no translation: English
+        #expect(notes[2].body == english[2].body)           // an empty translation does not hide the notes
+        #expect(ReleaseNotes.localized(english, translated: []) == english)
+    }
+
     @Test func page() {
         let notes = ReleaseNotes.parse(Self.changelog)
         let page = ReleaseNotes.markdown(Array(notes.prefix(3)))
