@@ -5,14 +5,14 @@
 
 ## Phase 1: Foundational (core)
 
-- [ ] T001 Tests first in `Tests/CommanderCoreTests/ReleaseNotesTests.swift` (NEW, SPDX header): `AppVersion`
+- [X] T001 Tests first in `Tests/CommanderCoreTests/ReleaseNotesTests.swift` (NEW, SPDX header): `AppVersion`
   parse (`0.6.0`, `v0.6.0`, `[0.6.0]`, garbage → nil) and compare (0.10.0 > 0.9.9); `ReleaseNotes.parse`
   (headings with and without brackets or date, Unreleased and the preamble dropped, body kept, newest
   first, a repeated version keeps the first); `ReleaseNotes.markdown`; `WhatsNewStart.decide` (update,
   versions skipped, same version, downgrade, first start, garbage remembered value, empty range).
-- [ ] T002 `AppVersion`, `ReleaseNote`, `ReleaseNotes`, `WhatsNewStart` in
+- [X] T002 `AppVersion`, `ReleaseNote`, `ReleaseNotes`, `WhatsNewStart` in
   `Sources/CommanderCore/Updates/ReleaseNotes.swift` (NEW, SPDX header) until T001 passes (research R1–R4).
-- [ ] T003 [P] `app.lastRunVersion` listed in `SettingsCatalog.notExported` in
+- [X] T003 [P] `app.lastRunVersion` listed in `SettingsCatalog.notExported` in
   `Sources/CommanderCore/Settings/AppSettingsCatalog.swift`; command `whatsNew` ("What's New…", Help menu,
   app scope) in `Sources/CommanderCore/Command.swift`.
 
