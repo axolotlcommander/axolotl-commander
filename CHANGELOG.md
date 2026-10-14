@@ -17,6 +17,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 - Settings → Panels → "Right mouse button marks (Norton Commander style)": a right click marks, a right
   drag marks the items passed over, holding the right button opens the context menu.
 
+### Fixed
+
+- Dragging marked items in Detailed view: a drag from a marked row did not start; now it carries all
+  marked items.
+
 ## [0.5.0] - 2026-10-13
 
 ### Added

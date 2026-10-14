@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-14
 
-**Status**: Draft
+**Status**: Implemented
 
 **Input**: User description: "Mouse selection in the file panels: standard Windows-style marking with
 modifier clicks and a rubber band, plus an optional Norton-style 'right button marks' setting." (Proposal

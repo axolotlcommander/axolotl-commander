@@ -49,7 +49,7 @@
 - [X] T009 [US1] Right click in the default mode unchanged (FR-008): check `contextMenu(at:)` in
   `Sources/AxolotlCommander/PanelContextMenu.swift` still clears marks on an unmarked item and keeps them
   on a marked one after T007/T008.
-- [ ] T010 [US1] GUI check on the test copy (quickstart steps 1–4, 6–8 in a scratch folder only); if a
+- [X] T010 [US1] GUI check on the test copy (quickstart steps 1–4, 6–8 in a scratch folder only); if a
   ⌃-click still opens a menu, apply the `CommanderApplication.sendEvent` fallback (research R5) in
   `Sources/AxolotlCommander/main.swift`.
 
@@ -73,7 +73,7 @@
 - [X] T014 [US2] Wire the band into `PanelTableView.mouseDown` (empty space and a row outside the name zone,
   more than 3 points of movement) and `BriefGridView.mouseDown` (outside an item's name zone and after the
   last item); a click without movement keeps the US1 rules (FR-013).
-- [ ] T015 [US2] GUI check: quickstart step 5 and step 8 for the band, including past the bottom edge and in
+- [X] T015 [US2] GUI check: quickstart step 5 and step 8 for the band, including past the bottom edge and in
   a 2 000-file scratch folder for smoothness.
 
 **Checkpoint**: build, tests, commit.
@@ -99,7 +99,7 @@ click keeps the marks.
   today's path.
 - [X] T020 [US3] Settings toggle "Right mouse button marks (Norton Commander style)" with a caption in the
   Panels section of `Sources/AxolotlCommander/SettingsView.swift` (`@AppStorage(PanelBehavior.rightButtonKey)`).
-- [ ] T021 [US3] GUI check: quickstart step 9 (on and off, restart keeps it).
+- [X] T021 [US3] GUI check: quickstart step 9 (on and off, restart keeps it).
 
 **Checkpoint**: build, tests, commit.
 
@@ -108,8 +108,28 @@ click keeps the marks.
 - [X] T022 Czech translations for the new strings in `Resources/Localizable.xcstrings`.
 - [X] T023 `CHANGELOG.md` "Unreleased" entry (Added: mouse marking, rubber band, right-button setting) and
   `scripts/bump-version.sh minor` in the pull request.
-- [ ] T024 Full quickstart run on the test copy in both views; spec Status → Implemented; `docs/STATE.md`
+- [X] T024 Full quickstart run on the test copy in both views; spec Status → Implemented; `docs/STATE.md`
   updated.
+
+## GUI check record (2026-10-14, test copy, scratch folders only)
+
+- Detailed view: ⌃/⌘ click toggles without a menu, ⇧ click starts a new range, ⌃⇧ click adds one, a plain
+  click clears, a plain click on a marked item leaves only it, Edit → Restore Selection brings the marks back.
+- Rubber band in the Size column: plain 5, ⇧ adds (8), ⌃ toggles (8); a vertical band now covers its rows;
+  past the bottom edge the list scrolls and marks on.
+- Found and fixed: a drag from a marked row did not start at all (no pasteboard writer), and the release
+  rule ran before AppKit began the session, so only the pressed item stayed marked. Now a drag cancelled
+  with Esc keeps all marks and a drop onto a folder in the scratch folder moved all three marked files.
+- Right click on a marked item opens the menu and keeps the marks; on an unmarked one it clears them.
+- Norton mode (switched with the `panel.rightButtonMarks` key the Settings toggle writes): right click
+  toggles, right drag marks and unmarks from a marked start, holding opens the menu with marks kept,
+  ⌃+right click opens the menu at once, a plain left click keeps the marks; off again: a plain click
+  clears. The Settings toggle itself was not clicked in this run.
+- Brief view: all of the above, a band from the gap between columns marks only the columns it covers,
+  a click right of the columns clears, a drop of three marked files moved all three.
+- 2 000-file folder: bands in both views with autoscroll stay smooth.
+- ⌃W did not restore from the keyboard in the test copy because it uses the Classic Commander scheme,
+  where ⌃W closes the tab; Restore Selection from the menu works.
 
 ## Dependencies
 
