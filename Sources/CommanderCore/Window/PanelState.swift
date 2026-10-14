@@ -41,9 +41,11 @@ public struct PanelState: Codable, Hashable, Sendable {
     public var branch: BranchListing?
     /// Names of the selected items (in memory only: a tab keeps its selection while switching).
     public var selectedNames: [String]
+    /// The tab's lock (spec 028); nil for a normal tab.
+    public var lock: TabLock?
 
     private enum CodingKeys: String, CodingKey {
-        case location, cursorName, sort, showHidden, filterPattern, back, forward
+        case location, cursorName, sort, showHidden, filterPattern, back, forward, lock
     }
 
     public init(
@@ -56,7 +58,8 @@ public struct PanelState: Codable, Hashable, Sendable {
         forward: [Place] = [],
         results: ResultsListing? = nil,
         branch: BranchListing? = nil,
-        selectedNames: [String] = []
+        selectedNames: [String] = [],
+        lock: TabLock? = nil
     ) {
         self.location = location
         self.cursorName = cursorName
@@ -68,6 +71,7 @@ public struct PanelState: Codable, Hashable, Sendable {
         self.results = results
         self.branch = branch
         self.selectedNames = selectedNames
+        self.lock = lock
     }
 
     /// Missing keys fall back to defaults; only `location` is required.
@@ -81,6 +85,7 @@ public struct PanelState: Codable, Hashable, Sendable {
         back = try c.decodeIfPresent([Place].self, forKey: .back) ?? []
         forward = try c.decodeIfPresent([Place].self, forKey: .forward) ?? []
         selectedNames = []
+        lock = try c.decodeIfPresent(TabLock.self, forKey: .lock)
     }
 
     /// Short tab title: the last path component, "/" for the root.
