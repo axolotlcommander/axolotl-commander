@@ -64,7 +64,8 @@ on, so its pull request adds only changelog entries.
 - Q: How are the notes in both languages made for a release? → A: Automatically by the release workflow
   from the two changelogs (the release description and the attached changelog files); the workflow stops
   before creating the release when either changelog has no notes for the version. Each pull request adds its
-  entries to both changelogs (project rule in `CLAUDE.md`).
+  entries to both changelogs: the agent writes the Czech translation automatically while it prepares the pull
+  request (a project skill), and the pull request checks fail without it (project rule in `CLAUDE.md`).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -330,8 +331,9 @@ the workflow stops with a message before creating the release.
 
 - Releases stay on the project's GitHub page and keep the archive and checksum names of the current release
   workflow; the newest published release is the one offered.
-- The release notes are written into both changelogs in each pull request (project rule); the workflow only
-  publishes and checks them. Machine translation during the release is not done.
+- The release notes are written into both changelogs in each pull request, the Czech part by the agent
+  automatically (project rule and skill); the workflow only publishes and checks them. The release workflow
+  itself does not translate.
 - Installing over the app is allowed because it is the app's own bundle, not user data; it happens only
   after the user's consent in the update window.
 - A future change of the signing certificate (e.g. a Developer ID) makes self-install refuse that one release;

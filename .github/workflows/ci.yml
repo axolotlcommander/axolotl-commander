@@ -25,6 +25,14 @@ jobs:
       - name: Toolchain
         run: swift --version
 
+      - name: Czech release notes
+        # Every entry of CHANGELOG.md has its translation in CHANGELOG.cs.md (CLAUDE.md, Versioning).
+        run: |
+          if ! MISSING="$(scripts/changelog-cs-missing.sh)"; then
+            echo "::error::CHANGELOG.cs.md has no Czech notes for: $(echo $MISSING)"
+            exit 1
+          fi
+
       - name: Build (no warnings in our code)
         run: |
           set -o pipefail

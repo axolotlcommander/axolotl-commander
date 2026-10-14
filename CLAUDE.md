@@ -45,7 +45,8 @@ commit are enough.
   - **patch**: a bug fix, a layout tweak, a new shortcut, a translation fix;
   - **no change**: documentation, specs, CI and scripts only.
 - Every `CHANGELOG.md` entry gets its Czech translation in `CHANGELOG.cs.md` in the same pull request
-  (same version headings, app's Czech UI wording). A version missing there is shown in English.
+  (same version headings, app's Czech UI wording). The agent writes it automatically when it prepares the
+  pull request (skill `changelog-cs`); CI fails when a section lacks it (`scripts/changelog-cs-missing.sh`).
 - Pull requests from forks do not have to raise the version; the maintainer does it before merging.
 - After the merge into `main`, tag the merge commit `vX.Y.Z` (the version in `VERSION`) and push the
   tag; the release workflow builds a draft release (see [docs/RELEASING.md](docs/RELEASING.md)).
