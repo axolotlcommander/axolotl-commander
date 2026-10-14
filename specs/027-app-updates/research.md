@@ -82,8 +82,11 @@
 
 ## R10 — Showing a found update without a window (clarification 2026-10-14)
 
-- **Decision**: An `NSTitlebarAccessoryViewController` with `layoutAttribute = .trailing` on the main window
-  holds a small rounded button "↑ Version X.Y.Z" (accent tint). It is visible while `updates.availableVersion`
+- **Decision**: A toolbar item at the end of the main window's compact toolbar (which shares the title bar
+  row), "↑ Version X.Y.Z", inserted only while an update waits and removed afterwards. (First built as an
+  `NSTitlebarAccessoryViewController` with `.trailing`; next to the toolbar it added a row of its own, an empty
+  strip under the toolbar even while hidden, found by the maintainer on 2026-10-14. A custom-view toolbar item
+  left the compact title untruncated over the other buttons, so it is a plain item with image and title.) It is visible while `updates.availableVersion`
   is newer than the running version, not skipped, and `updates.remindAfter` has passed; the controller posts
   a notification on every change of the state and the button follows it. The menu item stays "Check for
   Updates…"; with a fetched release it opens the window without a new request.

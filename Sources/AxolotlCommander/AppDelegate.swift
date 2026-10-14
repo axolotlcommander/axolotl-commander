@@ -26,7 +26,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
             DispatchQueue.main.async { FunctionKeys.showNoticeIfNeeded(in: window) }
         }
         WhatsNew.showAfterStart()
-        if let window = controller.window { UpdateTitlebarButton.attach(to: window) }
+        if let window = controller.window { UpdateToolbarItem.attach(to: window) }
         UpdateController.shared.start()
         Task { await ArchiveEdits.shared.offerPendingFromLastTime() }
     }

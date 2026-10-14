@@ -63,6 +63,7 @@ extension MainWindowController: NSToolbarDelegate, NSToolbarItemValidation {
 
     func toolbar(_ toolbar: NSToolbar, itemForItemIdentifier itemIdentifier: NSToolbarItem.Identifier,
                  willBeInsertedIntoToolbar flag: Bool) -> NSToolbarItem? {
+        if itemIdentifier == UpdateToolbarItem.identifier { return UpdateToolbarItem.make() }
         guard let command = MainToolbar.command(itemIdentifier) else { return nil }
         let spec = CommandRegistry.spec(command)
         let item = NSToolbarItem(itemIdentifier: itemIdentifier)
@@ -86,7 +87,11 @@ extension MainWindowController: NSToolbarDelegate, NSToolbarItemValidation {
         perform(command)
     }
 
+    /// The "↑ Version X.Y.Z" button of a waiting update.
+    @objc func showFoundUpdate(_ sender: Any?) { UpdateController.shared.showFound() }
+
     func validateToolbarItem(_ item: NSToolbarItem) -> Bool {
+        if item.itemIdentifier == UpdateToolbarItem.identifier { return true }
         guard let command = MainToolbar.command(item.itemIdentifier) else { return false }
         if command == .maximizePanel {
             item.image = NSImage(systemSymbolName: maximizedSide == nil ? "arrow.up.left.and.arrow.down.right"

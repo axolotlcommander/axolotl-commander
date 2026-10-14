@@ -355,50 +355,48 @@ final class CheckProgressWindow: NSWindowController {
 }
 
 /// "↑ Version X.Y.Z" at the right end of the main window's title bar while an update is waiting (R10): takes no
-/// focus and opens nothing by itself; a click opens the update window.
-final class UpdateTitlebarButton: NSTitlebarAccessoryViewController {
-    private let button = NSButton(title: "", target: nil, action: nil)
-    private var observer: (any NSObjectProtocol)?
+/// focus and opens nothing by itself; a click opens the update window. It is a toolbar item (the compact
+/// toolbar shares the title bar row) put in only while there is a version to show: a title bar accessory next to
+/// a toolbar adds a row of its own, an empty strip under the toolbar even while hidden.
+enum UpdateToolbarItem {
+    static let identifier = NSToolbarItem.Identifier("update.available")
 
+    /// Puts the item at the end of the toolbar or takes it out, as the update state says; it follows the state.
     static func attach(to window: NSWindow) {
-        window.addTitlebarAccessoryViewController(UpdateTitlebarButton())
-    }
-
-    override func loadView() {
-        button.bezelStyle = .accessoryBarAction
-        button.controlSize = .small
-        button.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
-        button.contentTintColor = .controlAccentColor
-        button.image = NSImage(systemSymbolName: "arrow.up.circle.fill", accessibilityDescription: nil)
-        button.imagePosition = .imageLeading
-        button.refusesFirstResponder = true
-        button.target = self
-        button.action = #selector(open)
-        button.setAccessibilityIdentifier("update.titlebar")
-        let container = NSView()
-        button.translatesAutoresizingMaskIntoConstraints = false
-        container.addSubview(button)
-        NSLayoutConstraint.activate([
-            button.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 6),
-            button.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -8),
-            button.centerYAnchor.constraint(equalTo: container.centerYAnchor),
-        ])
-        view = container
-        layoutAttribute = .trailing
-        observer = NotificationCenter.default.addObserver(forName: UpdateController.stateChanged, object: nil,
-                                                          queue: .main) { [weak self] _ in
-            MainActor.assumeIsolated { self?.refresh() }
+        refresh(window)
+        NotificationCenter.default.addObserver(forName: UpdateController.stateChanged, object: nil, queue: .main) {
+            [weak window] _ in
+            MainActor.assumeIsolated { if let window { refresh(window) } }
         }
-        refresh()
     }
 
-    private func refresh() {
-        let version = UpdateController.shared.buttonVersion
-        button.title = version.map { String(localized: "Version \($0.description)") } ?? ""
-        button.toolTip = String(localized: "A new version of Axolotl Commander is available")
-        isHidden = version == nil
-        view.frame.size = NSSize(width: version == nil ? 0 : button.fittingSize.width + 14, height: 28)
+    private static func refresh(_ window: NSWindow) {
+        guard let toolbar = window.toolbar else { return }
+        let index = toolbar.items.firstIndex { $0.itemIdentifier == identifier }
+        switch (UpdateController.shared.buttonVersion, index) {
+        case (nil, let index?): toolbar.removeItem(at: index)
+        case (let version?, let index?): configure(toolbar.items[index], version)
+        case (_?, nil): toolbar.insertItem(withItemIdentifier: identifier, at: toolbar.items.count)
+        case (nil, nil): break
+        }
     }
 
-    @objc private func open() { UpdateController.shared.showFound() }
+    /// The item for the toolbar delegate; nil while no update waits (so an autosaved toolbar drops it). A plain
+    /// item, not one with a custom view: next to a view item the compact title is not truncated and covers the
+    /// other buttons.
+    static func make() -> NSToolbarItem? {
+        guard let version = UpdateController.shared.buttonVersion else { return nil }
+        let item = NSToolbarItem(itemIdentifier: identifier)
+        item.image = NSImage(systemSymbolName: "arrow.up.circle.fill", accessibilityDescription: nil)
+        item.label = String(localized: "Software Update")
+        item.isBordered = true
+        item.action = #selector(MainWindowController.showFoundUpdate(_:))
+        configure(item, version)
+        return item
+    }
+
+    private static func configure(_ item: NSToolbarItem, _ version: AppVersion) {
+        item.title = String(localized: "Version \(version.description)")
+        item.toolTip = String(localized: "A new version of Axolotl Commander is available")
+    }
 }
