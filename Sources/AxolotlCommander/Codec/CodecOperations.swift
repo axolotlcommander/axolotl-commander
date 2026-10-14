@@ -13,6 +13,19 @@ extension OperationsController {
         return (files, items.count - files.count)
     }
 
+    /// The sizes of `files`, or nil after reporting the first one that is not a regular file.
+    private func fileSizes(_ files: [FileItem]) -> [Int64]? {
+        var sizes: [Int64] = []
+        for file in files {
+            guard let size = Self.regularFileSize(file.url) else {
+                report(SplitCombineError.notRegularFile(file.name))
+                return nil
+            }
+            sizes.append(size)
+        }
+        return sizes
+    }
+
     private static func foldersLeftOut(_ count: Int) -> String {
         String(localized: "Folders are left out (\(count)).")
     }
@@ -41,14 +54,7 @@ extension OperationsController {
         guard !isBusy, let window else { return }
         let (files, folders) = codecSources(panel)
         guard !files.isEmpty else { return }
-        var sizes: [Int64] = []
-        for file in files {
-            guard let size = Self.regularFileSize(file.url) else {
-                report(SplitCombineError.notRegularFile(file.name))
-                return
-            }
-            sizes.append(size)
-        }
+        guard let sizes = fileSizes(files) else { return }
         let heading = files.count == 1
             ? String(localized: "Encode “\(files[0].name)” as text")
             : String(localized: "Encode \(files.count) files as text")
@@ -115,17 +121,10 @@ extension OperationsController {
 
     func decodeFiles(from panel: PanelViewController) {
         guard !isBusy, let window else { return }
-        var (files, folders) = codecSources(panel)
+        let (marked, folders) = codecSources(panel)
+        let files = marked.sorted { NameRules(caseSensitive: false).order($0.name, $1.name) == .orderedAscending }
         guard !files.isEmpty else { return }
-        files.sort { NameRules(caseSensitive: false).order($0.name, $1.name) == .orderedAscending }
-        var sizes: [Int64] = []
-        for file in files {
-            guard let size = Self.regularFileSize(file.url) else {
-                report(SplitCombineError.notRegularFile(file.name))
-                return
-            }
-            sizes.append(size)
-        }
+        guard let sizes = fileSizes(files) else { return }
         let heading = files.count == 1
             ? String(localized: "Decode “\(files[0].name)”")
             : String(localized: "Decode \(files.count) files")
