@@ -34,15 +34,21 @@ public struct TabList: Codable, Hashable, Sendable {
         tabs[active] = state
     }
 
-    /// Inserts `state` right after the active tab and activates it.
+    /// Adds `state` as the last tab and activates it.
     public mutating func open(_ state: PanelState) {
         open(state, activate: true)
     }
 
-    /// Inserts `state` right after the active tab; a background tab leaves the active one active.
+    /// Adds `state` as the last tab; a background tab leaves the active one active.
     public mutating func open(_ state: PanelState, activate: Bool) {
+        tabs.append(state)
+        if activate { active = tabs.count - 1 }
+    }
+
+    /// Inserts `state` right after the active tab and activates it (a folder opened from a locked tab).
+    public mutating func openAfterActive(_ state: PanelState) {
         tabs.insert(state, at: active + 1)
-        if activate { active += 1 }
+        active += 1
     }
 
     /// Closes the active tab; returns false (changing nothing) for the only tab.
@@ -99,7 +105,7 @@ public struct TabList: Codable, Hashable, Sendable {
         tabs[active] = kept
         var new = opened
         new.lock = nil
-        open(new, activate: true)
+        openAfterActive(new)
     }
 
     /// The active tab, when locked with folder changes allowed, shows its locked folder again.

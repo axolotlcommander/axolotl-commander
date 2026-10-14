@@ -69,7 +69,7 @@ extension PanelViewController {
         if tabs.current.lock?.mode == .locked, Self.place(of: state) != Self.place(of: tabs.current) {
             var opened = state
             opened.lock = nil
-            tabs.open(opened, activate: true)
+            tabs.openAfterActive(opened)
         }
         await restoreTab(state)
     }

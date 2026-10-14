@@ -16,6 +16,11 @@ Formát vychází z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ve
   Obojí zapisuje ve výchozím stavu do složky druhého panelu, předem zkontroluje volné místo a po zrušení
   nic nenechá.
 
+### Změněno
+
+- Nová záložka se přidá za poslední záložku, ne za aktivní. Složka otevřená ze zamčené záložky se dál
+  otevře hned za ní.
+
 ## [0.6.0] - 2026-10-14
 
 ### Přidáno

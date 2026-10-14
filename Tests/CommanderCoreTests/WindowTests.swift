@@ -219,12 +219,12 @@ private func dir(_ name: String) -> FileItem {
 // MARK: TabList
 
 @Suite struct TabListTests {
-    @Test func openInsertsAfterActive() {
+    @Test func openAddsAtTheEnd() {
         var t = tabs("a", "b", "c", active: 0)       // opened in order, then select(0)
         #expect(titles(t) == ["a", "b", "c"])
         t.open(state("/n"))
-        #expect(titles(t) == ["a", "n", "b", "c"])
-        #expect(t.active == 1)
+        #expect(titles(t) == ["a", "b", "c", "n"])
+        #expect(t.active == 3)
         #expect(t.current.title == "n")
     }
 
@@ -666,11 +666,11 @@ private func dir(_ name: String) -> FileItem {
         list.open(state("/b"))
         list.select(0)
         list.open(state("/c"), activate: false)
-        #expect(list.tabs.map(\.location.path) == ["/a", "/c", "/b"])
+        #expect(list.tabs.map(\.location.path) == ["/a", "/b", "/c"])
         #expect(list.active == 0)
         list.open(state("/d"), activate: true)
-        #expect(list.tabs.map(\.location.path) == ["/a", "/d", "/c", "/b"])
-        #expect(list.active == 1)
+        #expect(list.tabs.map(\.location.path) == ["/a", "/b", "/c", "/d"])
+        #expect(list.active == 3)
     }
 
     @Test func closedTabsAreNewestFirstAndLimited() {

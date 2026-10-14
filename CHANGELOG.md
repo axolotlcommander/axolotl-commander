@@ -15,6 +15,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
   file or the marked files — and checks the result against the checksum file. Both write into the other
   panel's folder by default, check the free space first and leave nothing behind when cancelled.
 
+### Changed
+
+- A new tab is added after the last tab instead of after the active one. A folder opened from a locked
+  tab still opens right after it.
+
 ## [0.6.0] - 2026-10-14
 
 ### Added
