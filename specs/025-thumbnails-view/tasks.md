@@ -30,24 +30,24 @@
 **Goal**: ⌃⌥3 shows a grid of cells with icons and names that the keyboard drives like Brief.
 **Independent test**: quickstart steps 1–3, 6, 9 (icons are enough at this point).
 
-- [ ] T006 [US1] Move the Brief grid's mouse, drag source and drop target code into a base class
+- [X] T006 [US1] Move the Brief grid's mouse, drag source and drop target code into a base class
   `PanelGridView` in `Sources/AxolotlCommander/PanelGridView.swift` (NEW): `items(in:)` and the name-zone
   test become overridable, Brief's arithmetic moves to `GridGeometry` (T002); `BriefGridView` in
   `Sources/AxolotlCommander/BriefView.swift` subclasses it with no change in behavior.
-- [ ] T007 [US1] `ThumbnailGridView` (vertical `NSCollectionViewFlowLayout`), `ThumbnailCellView` (image in
+- [X] T007 [US1] `ThumbnailGridView` (vertical `NSCollectionViewFlowLayout`), `ThumbnailCellView` (image in
   a square, label of at most two centered lines cut with "…", tooltip, cursor and marked drawing like Brief,
   research R8) and `ThumbnailItem` in `Sources/AxolotlCommander/ThumbnailView.swift` (NEW, SPDX header), with
   a `PanelViewController` data source extension showing the type icon at the cell size.
-- [ ] T008 [US1] `PanelViewController.swift`: the third scroll view in `lists`, `listView`,
+- [X] T008 [US1] `PanelViewController.swift`: the third scroll view in `lists`, `listView`,
   `viewModeChanged()` for three views keeping cursor, marks and focus, `modelChanged()` / `marksChanged()`
   / `updateActiveAppearance()` for the new view (reload bookkeeping like Brief's, cursor moves redraw only
   visible cells), `viewModeThumbnails` in the handled commands and `perform`.
-- [ ] T009 [US1] `handleMovement` through `PanelGrid` for all three views (each view gives its
+- [X] T009 [US1] `handleMovement` through `PanelGrid` for all three views (each view gives its
   arrangement: table page rows, Brief rows and columns, thumbnail columns and visible rows); the ⇧ marking
   path unchanged.
-- [ ] T010 [US1] The View → Thumbnails checkmark in `Sources/AxolotlCommander/MainWindowController.swift`;
+- [X] T010 [US1] The View → Thumbnails checkmark in `Sources/AxolotlCommander/MainWindowController.swift`;
   the layout saves and restores the new mode.
-- [ ] T011 [US1] GUI check: quickstart steps 1–3, 6, 9 on the test copy in a scratch folder.
+- [X] T011 [US1] GUI check: quickstart steps 1–3, 6, 9 on the test copy in a scratch folder.
 
 **Checkpoint**: build, tests, commit.
 
@@ -62,14 +62,14 @@
   the next).
 - [X] T013 [US2] `ThumbnailCache` and `ThumbnailQueue` in `Sources/CommanderCore/Thumbnails.swift` until T012
   passes.
-- [ ] T014 [US2] `ThumbnailLoader` in `Sources/AxolotlCommander/ThumbnailLoader.swift` (NEW): requests with
+- [X] T014 [US2] `ThumbnailLoader` in `Sources/AxolotlCommander/ThumbnailLoader.swift` (NEW): requests with
   `QLThumbnailGenerator` (`.icon` and `.thumbnail`, the cell size and the backing scale), cancels by the
   queue's answers, stores images in `ThumbnailCache<NSImage>` (256 MB, cost = pixels × 4), updates the cell
   of a finished key if it is visible; errors leave the icon.
-- [ ] T015 [US2] Wire the loader into the thumbnail view: the wanted keys (visible cells plus one screen of
+- [X] T015 [US2] Wire the loader into the thumbnail view: the wanted keys (visible cells plus one screen of
   margin) after reloads, scrolling (bounds change of the clip view), resizing and size changes; previews only
   when `ThumbnailPolicy` allows them for the panel and the item (FR-015).
-- [ ] T016 [US2] GUI check: quickstart steps 1, 7 and 8; `ls -la` of the scratch folders before and after.
+- [X] T016 [US2] GUI check: quickstart steps 1, 7 and 8; `ls -la` of the scratch folders before and after.
 
 **Checkpoint**: build, tests, commit.
 
@@ -78,14 +78,14 @@
 **Goal**: three sizes from Settings, ⌘+ / ⌘−, ⌘ + wheel and pinch.
 **Independent test**: quickstart step 4.
 
-- [ ] T017 [US3] `thumbnailsLarger` / `thumbnailsSmaller` in `PanelViewController.swift`: enabled only in a
+- [X] T017 [US3] `thumbnailsLarger` / `thumbnailsSmaller` in `PanelViewController.swift`: enabled only in a
   focused Thumbnails view, write the setting; every panel re-lays out its Thumbnails view on the
   `UserDefaults` change and keeps the cursor visible.
-- [ ] T018 [US3] ⌘ + scroll wheel (accumulated delta) and `magnify(with:)` (a step per 0.25) in
+- [X] T018 [US3] ⌘ + scroll wheel (accumulated delta) and `magnify(with:)` (a step per 0.25) in
   `ThumbnailGridView`.
-- [ ] T019 [US3] "Thumbnail size" picker (Small, Medium, Large) in the Panels section of
+- [X] T019 [US3] "Thumbnail size" picker (Small, Medium, Large) in the Panels section of
   `Sources/AxolotlCommander/SettingsView.swift`.
-- [ ] T020 [US3] GUI check: quickstart step 4 and the size after a restart (step 10).
+- [X] T020 [US3] GUI check: quickstart step 4 and the size after a restart (step 10).
 
 **Checkpoint**: build, tests, commit.
 
@@ -94,26 +94,26 @@
 **Goal**: spec 024 rules in the new view.
 **Independent test**: quickstart step 5.
 
-- [ ] T021 [US4] Name zone of `ThumbnailCellView` (the image's drawn aspect-fit rectangle, at least 4 points,
+- [X] T021 [US4] Name zone of `ThumbnailCellView` (the image's drawn aspect-fit rectangle, at least 4 points,
   plus the label's text lines) and `items(in:)` from `GridGeometry` (`.rowsFirst`) in `ThumbnailGridView`;
   the rubber band overlay and autoscroll from spec 024 in the vertical direction.
-- [ ] T022 [US4] GUI check: quickstart step 5 (scratch folder only, the drop into its subfolder).
+- [X] T022 [US4] GUI check: quickstart step 5 (scratch folder only, the drop into its subfolder).
 
 **Checkpoint**: build, tests, commit.
 
 ## Phase 6: User Story 5 — places without previews (P2)
 
-- [ ] T023 [US5] Check archives, server connections, Network, branch view and search results in the
+- [X] T023 [US5] Check archives, server connections, Network, branch view and search results in the
   Thumbnails view (type icons, no request made outside `ThumbnailPolicy`); a test that the policy refuses
   archive member URLs in `ThumbnailTests.swift`.
 
 ## Phase 7: Polish
 
-- [ ] T024 Czech strings in `Resources/Localizable.xcstrings` (Thumbnails, Larger/Smaller Thumbnails,
+- [X] T024 Czech strings in `Resources/Localizable.xcstrings` (Thumbnails, Larger/Smaller Thumbnails,
   Thumbnail size, Small/Medium/Large).
-- [ ] T025 `CHANGELOG.md` entry under 0.6.0 (Added: Thumbnails view, sizes); no version bump (release 0.6.0
+- [X] T025 `CHANGELOG.md` entry under 0.6.0 (Added: Thumbnails view, sizes); no version bump (release 0.6.0
   collects specs).
-- [ ] T026 Full quickstart run on the test copy; spec Status → Implemented; `docs/STATE.md` updated.
+- [X] T026 Full quickstart run on the test copy; spec Status → Implemented; `docs/STATE.md` updated.
 
 ## Dependencies
 
@@ -130,3 +130,21 @@
 
 MVP = Phase 1 + US1: the view with icons and the keyboard. Then previews, sizes, the mouse, the sources
 without previews. One pull request on top of spec 024; release 0.6.0 when the maintainer says so.
+
+## GUI check record (2026-10-14, test copy, scratch folders only)
+
+- Switching: View → Thumbnails and back to Brief/Detailed keep the cursor and the marks; the mode and the
+  size survive a restart; the checkmark follows the active panel.
+- Previews: PNG/JPEG of extreme shapes (panorama, 1-pixel line, 8 × 8), a PDF and a text file get previews;
+  an empty file and the 2 000 empty files keep their type icons; inside a ZIP only type icons.
+- Keyboard: ↓ by a row, ← → by one, Home, End, Page Up (a screen = rows × columns), Space, ⇧← ⇧↑ marking
+  in grid order; ⌘+ / ⌘− step small ↔ medium ↔ large (on the Czech layout ⌘+ is the 1 key).
+- Mouse: plain, ⌃, ⌘, ⇧ and ⌃⇧ clicks on pictures and names; rubber bands from empty space (also the empty
+  part of a cell) and with ⌃; drag of marked items cancelled with Esc keeps them; a drop onto a folder's
+  picture moves all marked items (fixed: image views took the drop for themselves — also in Brief and
+  Detailed, where a drop onto a folder's icon failed); the context menu on a right click.
+- Names: two lines, words wrap with a break before the extension, longer names lose the middle of the
+  second line; small cells are at least 100 points wide.
+- Settings: the size picker; captions in Settings wrap instead of being cut.
+- Not checked in the GUI: ⌘ + scroll wheel and pinch (no tool to send them), servers and Network (no real
+  servers in tests; covered by `ThumbnailPolicy` tests).

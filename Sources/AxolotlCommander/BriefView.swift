@@ -36,6 +36,8 @@ final class BriefCellView: NSView {
     override init(frame: NSRect) {
         super.init(frame: frame)
         label.lineBreakMode = .byTruncatingMiddle
+        // An image view takes drops for itself; the grid handles them (a drop onto a folder's icon).
+        icon.unregisterDraggedTypes()
         for view in [icon, label] as [NSView] {
             view.translatesAutoresizingMaskIntoConstraints = false
             addSubview(view)

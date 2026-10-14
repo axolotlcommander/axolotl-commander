@@ -37,7 +37,7 @@ struct KeyboardSettings: View {
                 .fixedSize()
                 // The scheme changes keys only; the behavior options are separate (spec 011).
                 Text("Space, typing into the command line, ⌃← / ⌃→ and the volume buttons are set in General → Panels.")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             }
             HStack {
                 Picker("", selection: $context) {
@@ -179,9 +179,9 @@ struct KeyboardSettings: View {
             }
         }
         Text("Shortcuts with ⌘, ⌃, ⌥ or function keys also appear in the menus. Some ⌃ and F-key shortcuts may be taken by macOS (System Settings → Keyboard → Keyboard Shortcuts).")
-            .font(.caption).foregroundStyle(.secondary)
+            .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
         Text("⌃←, ⌃→, ⌃↑ and ⌃↓ reach the app only when the Mission Control shortcuts for them are turned off in System Settings → Keyboard → Keyboard Shortcuts.")
-            .font(.caption).foregroundStyle(.secondary)
+            .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
     }
 
     // MARK: Changes

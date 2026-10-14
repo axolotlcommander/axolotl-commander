@@ -87,7 +87,10 @@
   square of the chosen size, and a label below on at most two lines, centered, cutting the end of the
   second line with "…" (`maximumNumberOfLines = 2`, `truncatesLastVisibleLine`), the full name as tooltip
   (FR-006). Cell width = size + 16 points, height = size + two text lines + 10 points; line spacing 4,
-  item spacing 4 (the flow layout spreads the cells over the width). The cursor and marked drawing reuse
+  item spacing 4. Implementation note: a small layout of our own (`ThumbnailGridLayout`) replaces the flow
+  layout: every row has the same column positions (the free width spread evenly over the columns, also in
+  a short last row), only the rows in the asked rectangle are built, and `GridGeometry` comes straight
+  from it. The cursor and marked drawing reuse
   the Brief colors: the cursor cell gets the active or inactive cursor background/frame, marked cells the
   marked name color and font plus a light marked background (FR-008).
 - Name zone for clicks and drags (FR-022): the image's drawn rectangle (aspect-fit inside the square, at

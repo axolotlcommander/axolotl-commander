@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-14
 
-**Status**: Draft
+**Status**: Implemented
 
 **Input**: User description: "Thumbnails view: a third panel view mode that shows a grid of file previews
 (thumbnails) with the name below, next to the existing Detailed and Brief views." (Proposal written in chat

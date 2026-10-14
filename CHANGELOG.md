@@ -16,11 +16,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
   drag & drop starts from the icon or the name.
 - Settings → Panels → "Right mouse button marks (Norton Commander style)": a right click marks, a right
   drag marks the items passed over, holding the right button opens the context menu.
+- View → Thumbnails (⌃⌥3; Classic Commander scheme also ⌃⇧F1): a grid of previews with the names below,
+  made by macOS for pictures, PDFs, videos, documents and more, loaded in the background for the
+  visible cells and kept in memory only. Three sizes in Settings → Panels; ⌘+ / ⌘−, ⌘ + scroll wheel
+  or a pinch change it while the view is shown. Archives, servers and Network show icons only.
 
 ### Fixed
 
 - Dragging marked items in Detailed view: a drag from a marked row did not start; now it carries all
   marked items.
+- A drop onto a folder's icon (in Detailed and Brief view) was refused; it now goes into the folder like
+  a drop onto its name.
+- Long descriptions in Settings wrap instead of ending in "…".
 
 ## [0.5.0] - 2026-10-13
 

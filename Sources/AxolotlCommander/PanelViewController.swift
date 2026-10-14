@@ -1985,6 +1985,7 @@ final class FileCellView: NSTableCellView {
         ]
         if withIcon {
             let image = NSImageView()
+            image.unregisterDraggedTypes()   // the table takes drops, also onto a folder's icon
             image.translatesAutoresizingMaskIntoConstraints = false
             addSubview(image)
             imageView = image
