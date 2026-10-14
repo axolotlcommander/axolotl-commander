@@ -62,6 +62,18 @@ extension PanelViewController {
         router?.layoutChanged()
     }
 
+    /// Shows a state from elsewhere (Swap Panels, Same Folder as Other of a flat listing); a locked tab keeps
+    /// its folder and the state opens in a new tab after it.
+    func show(_ state: PanelState) async {
+        tabs.updateCurrent(model.snapshot())
+        if tabs.current.lock?.mode == .locked, Self.place(of: state) != Self.place(of: tabs.current) {
+            var opened = state
+            opened.lock = nil
+            tabs.open(opened, activate: true)
+        }
+        await restoreTab(state)
+    }
+
     /// What a locked tab must keep: its folder and whether it shows search results or a branch.
     private static func place(of state: PanelState) -> [AnyHashable] {
         [state.location, state.results?.title, state.results?.root, state.branch]

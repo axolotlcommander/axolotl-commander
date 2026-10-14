@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-14
 
-**Status**: Draft
+**Status**: Implemented
 
 **Input**: User description: "Tab locking and a fuller tab menu: a panel tab can be locked in one of two
 ways, and the tab's context menu gets the usual tab actions." Asked for by a user and passed on by the

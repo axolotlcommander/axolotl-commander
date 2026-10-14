@@ -340,13 +340,13 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
             // ⌃U: the panels exchange their current tab (folder, cursor, selection, sort, history).
             let (leftState, rightState) = (left.model.snapshot(), right.model.snapshot())
             Task {
-                await left.restoreTab(rightState)
-                await right.restoreTab(leftState)
+                await left.show(rightState)
+                await right.show(leftState)
             }
         case .sameFolderAsOther:
             let other = activeSide == .left ? right : left
             if other.isFlatListing {
-                Task { await activePanel.restoreTab(other.model.snapshot()) }
+                Task { await activePanel.show(other.model.snapshot()) }
             } else {
                 activePanel.go(to: other.model.location, focusing: other.model.cursorItem.flatMap { $0.isParent ? nil : $0.name })
             }

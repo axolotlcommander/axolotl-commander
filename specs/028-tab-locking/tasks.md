@@ -49,7 +49,7 @@
 
 - [X] T012 Czech strings in `Resources/Localizable.xcstrings`; no menu item or tooltip cut.
 - [X] T013 `CHANGELOG.md` and `CHANGELOG.cs.md` entries under 0.6.0.
-- [ ] T014 GUI check: quickstart steps 1–10 on the test copy; spec Status → Implemented; `docs/STATE.md`.
+- [X] T014 GUI check: quickstart steps 1–10 on the test copy; spec Status → Implemented; `docs/STATE.md`.
 
 ## Dependencies
 
