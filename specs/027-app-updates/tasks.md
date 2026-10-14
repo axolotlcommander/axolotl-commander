@@ -60,9 +60,9 @@
 
 ## Phase 5: US6 — release notes with every release (P2)
 
-- [ ] T016 [US6] `scripts/release-notes.sh` (NEW): the version's sections of both changelogs as the release
+- [X] T016 [US6] `scripts/release-notes.sh` (NEW): the version's sections of both changelogs as the release
   description (R8).
-- [ ] T017 [US6] `.github/workflows/release.yml`: the Czech check before the build, the description from
+- [X] T017 [US6] `.github/workflows/release.yml`: the Czech check before the build, the description from
   `scripts/release-notes.sh` (after the install steps when not notarized) instead of generated notes,
   `CHANGELOG.md` and `CHANGELOG.cs.md` as assets; `docs/RELEASING.md` updated.
 
