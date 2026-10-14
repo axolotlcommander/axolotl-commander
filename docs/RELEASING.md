@@ -16,11 +16,16 @@ only marks the version with a tag and publishes the draft release.
    git push origin "v$(cat VERSION)"
    ```
 
-4. The workflow checks that the tag has the form `vX.Y.Z`, matches `VERSION`, is on `main` and that the signing secrets
-   are set (see below), runs the tests, builds a universal app (Apple silicon + Intel) with the
-   version from the tag, signs it (and notarizes it with a Developer ID), packages `Axolotl-Commander-X.Y.Z.zip` and `.dmg`
-   with `SHA256SUMS.txt`, and creates a **draft** release with automatic notes from pull requests.
-5. On GitHub, under *Releases*, review the draft, add notes, and click *Publish release*.
+4. The workflow checks that the tag has the form `vX.Y.Z`, matches `VERSION`, is on `main`, that the signing secrets
+   are set (see below) and that both `CHANGELOG.md` and `CHANGELOG.cs.md` have notes for the version; it runs the
+   tests, builds a universal app (Apple silicon + Intel) with the version from the tag, signs it (and notarizes it
+   with a Developer ID), packages `Axolotl-Commander-X.Y.Z.zip` and `.dmg` with `SHA256SUMS.txt`, and creates a
+   **draft** release. Its description is the version's notes in English and Czech
+   (`scripts/release-notes.sh X.Y.Z`), and `CHANGELOG.md` and `CHANGELOG.cs.md` are attached.
+5. On GitHub, under *Releases*, review the draft and click *Publish release*. Only then do running copies of the
+   app offer the update (they ignore drafts and pre-releases): the update window reads the attached changelogs,
+   and the app downloads the `.zip`, checks it against `SHA256SUMS.txt` and the signing certificate, and replaces
+   itself. Keep these asset names; a release without the `.zip` or `SHA256SUMS.txt` is not offered.
 
 Versions follow [Semantic Versioning](https://semver.org/): before 1.0, `0.MINOR.PATCH`.
 
