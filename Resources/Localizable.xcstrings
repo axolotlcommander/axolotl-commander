@@ -753,6 +753,17 @@
         }
       }
     },
+    "A right click marks, a right drag marks the items passed over, holding the right button opens the context menu. Off: a right click opens the context menu.": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pravý klik označuje, tažení pravým tlačítkem označí položky, přes které přejedete, podržení pravého tlačítka otevře kontextové menu. Vypnuto: pravý klik otevře kontextové menu."
+          }
+        }
+      }
+    },
     "A variable is missing its closing ].": {
       "localizations": {
         "cs": {
@@ -3032,6 +3043,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Svazek vpravo…"
+          }
+        }
+      }
+    },
+    "Right mouse button marks (Norton Commander style)": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pravé tlačítko myši označuje (styl Norton Commanderu)"
           }
         }
       }

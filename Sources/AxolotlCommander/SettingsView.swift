@@ -16,6 +16,7 @@ struct SettingsView: View {
     @AppStorage(DriveRowSettings.freeSpaceElsewhereKey) private var freeSpaceElsewhere = DriveRowSettings().freeSpaceElsewhere
     @AppStorage(FunctionKeyChoice.key) private var hiddenFunctionKeys = ""
     @AppStorage(PanelBehavior.spaceKey) private var spaceMovesDown = PanelBehavior().spaceMovesDown
+    @AppStorage(PanelBehavior.rightButtonKey) private var rightButtonMarks = PanelBehavior().rightButtonMarks
     @AppStorage(PanelBehavior.typingKey) private var typingToCommandLine = PanelBehavior().typingToCommandLine
     @AppStorage(PanelBehavior.arrowsKey) private var arrowsTargetPointedPanel = PanelBehavior().arrowsTargetPointedPanel
     @AppStorage(PanelBehavior.volumesKey) private var volumeButtonsFollow = PanelBehavior().volumeButtonsFollow
@@ -85,6 +86,8 @@ struct SettingsView: View {
                              "Off: the item always goes to the other panel.")
                     behavior("Volume buttons open the other panel's folder or the last folder used there", $volumeButtonsFollow,
                              "Off: a volume button always opens the volume root.")
+                    behavior("Right mouse button marks (Norton Commander style)", $rightButtonMarks,
+                             "A right click marks, a right drag marks the items passed over, holding the right button opens the context menu. Off: a right click opens the context menu.")
                 }
                 Section {
                     HStack {

@@ -23,6 +23,12 @@ public struct NameRules: Sendable, Hashable {
 
     /// Canonical form: NFC, plus case folding on case-insensitive volumes.
     public func key(_ name: String) -> String {
+        // Most names are ASCII: NFC leaves them alone and case folding is lowercasing, so skip the
+        // Unicode work (marking 100 000 items at once, spec 024).
+        if name.utf8.allSatisfy({ $0 < 0x80 }) {
+            return caseSensitive ? name : String(decoding: name.utf8.map { (0x41...0x5A).contains($0) ? $0 + 0x20 : $0 },
+                                                 as: UTF8.self)
+        }
         if caseSensitive { return name.precomposedStringWithCanonicalMapping }
         return name.folding(options: .caseInsensitive, locale: nil).precomposedStringWithCanonicalMapping
     }

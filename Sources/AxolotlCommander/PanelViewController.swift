@@ -17,6 +17,8 @@ final class PanelTableView: NSTableView, NSServicesMenuRequestor {
     var serviceURLs: (() -> [URL])?
 
     override func menu(for event: NSEvent) -> NSMenu? {
+        // ⌃ + left click marks (spec 024); AppKit would show the context menu for it.
+        if event.type == .leftMouseDown { return nil }
         let row = row(at: convert(event.locationInWindow, from: nil))
         return onMenu?(row >= 0 ? row : nil)
     }
@@ -42,9 +44,47 @@ final class PanelTableView: NSTableView, NSServicesMenuRequestor {
     /// panel's root view, so the panel is told here.
     var onBackgroundClick: (() -> Void)?
 
+    /// The panel that runs mouse marking (spec 024).
+    weak var panel: PanelViewController?
+    /// Set when a drag session begins from the table, so a press that became a drag is not a click.
+    var dragBegan = false
+
     override func mouseDown(with event: NSEvent) {
-        if row(at: convert(event.locationInWindow, from: nil)) < 0 { onBackgroundClick?() }
+        let point = convert(event.locationInWindow, from: nil)
+        let row = row(at: point)
+        if row < 0 { onBackgroundClick?() }
+        guard let panel else { return super.mouseDown(with: event) }
+        window?.makeFirstResponder(self)
+        let hit = MouseHit(index: row >= 0 ? row : nil, onName: row >= 0 && isOnName(point, row: row))
+        let result = panel.mousePressed(event, hit: hit, in: self) { [unowned self] rect in
+            let rows = rows(in: rect)
+            return IndexSet(integersIn: rows.location..<rows.location + rows.length)
+        }
+        guard result == .dragOrClick else { return }
+        // AppKit runs drag & drop and the double click; it returns after the release or the drag.
+        dragBegan = false
         super.mouseDown(with: event)
+        if !dragBegan { panel.mouseReleasedAfterPlainPress(at: row) }
+    }
+
+    override func rightMouseDown(with event: NSEvent) {
+        let point = convert(event.locationInWindow, from: nil)
+        let row = row(at: point)
+        let handled = panel?.rightMousePressed(event, index: row >= 0 ? row : nil, in: self) { [unowned self] point in
+            let row = self.row(at: point)
+            if row >= 0 { return row }
+            // Above or below the list while it scrolls: the first or last row.
+            return numberOfRows == 0 ? nil : point.y < 0 ? 0 : point.y > bounds.maxY - 1 ? numberOfRows - 1 : nil
+        } ?? false
+        if !handled { super.rightMouseDown(with: event) }
+    }
+
+    /// Whether `point` is on the icon or the name text of the row (where drag & drop starts).
+    private func isOnName(_ point: NSPoint, row: Int) -> Bool {
+        let nameColumn = column(withIdentifier: NSUserInterfaceItemIdentifier("name"))
+        guard nameColumn >= 0, column(at: point) == nameColumn,
+              let cell = view(atColumn: nameColumn, row: row, makeIfNecessary: false) as? NSTableCellView else { return false }
+        return isOnIconOrText(cell.convert(point, from: self), in: cell, icon: cell.imageView, label: cell.textField)
     }
 
     override func becomeFirstResponder() -> Bool {
@@ -204,6 +244,7 @@ final class PanelViewController: NSViewController {
             router?.panelDidBecomeFirstResponder(self)
         }
         tableView.onBackgroundClick = { [weak self] in self?.activateFromClick() }
+        tableView.panel = self
 
         let scroll = tableScroll
         scroll.documentView = tableView
@@ -379,6 +420,30 @@ final class PanelViewController: NSViewController {
         updateStatus()
         watchLocation()
         tabsChanged()
+    }
+
+    /// After the mouse changed the marks or the cursor: redraws only the visible rows or items and the
+    /// info line, so dragging over a long list stays smooth (a full `modelChanged()` reloads everything).
+    func marksChanged() {
+        guard renaming == nil else { return }
+        if viewMode == .brief {
+            briefSelection = model.selection
+            updateBriefCursor()
+        } else {
+            let visible = tableView.rows(in: tableView.visibleRect)
+            syncingSelection = true
+            if visible.length > 0 {
+                tableView.reloadData(forRowIndexes: IndexSet(integersIn: visible.location..<visible.location + visible.length),
+                                     columnIndexes: IndexSet(integersIn: 0..<tableView.numberOfColumns))
+            }
+            if model.items.indices.contains(model.cursor), tableView.selectedRow != model.cursor {
+                tableView.selectRowIndexes([model.cursor], byExtendingSelection: false)
+            }
+            syncingSelection = false
+        }
+        updateStatus()
+        router?.panelCursorChanged(self)
+        updateQuickLook()
     }
 
     /// What ⌘E ejects or disconnects for this panel's location (spec 022).
@@ -1697,6 +1762,7 @@ extension PanelViewController: NSTableViewDataSource, NSTableViewDelegate {
 
     func tableView(_ tableView: NSTableView, draggingSession session: NSDraggingSession,
                    willBeginAt screenPoint: NSPoint, forRowIndexes rowIndexes: IndexSet) {
+        self.tableView.dragBegan = true
         guard let row = rowIndexes.first, row < model.items.count, model.isSelected(model.items[row]) else { return }
         session.draggingPasteboard.clearContents()
         session.draggingPasteboard.writeObjects(model.selectedItems.map(dragItem(for:)))

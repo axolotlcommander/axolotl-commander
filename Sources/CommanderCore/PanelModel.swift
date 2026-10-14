@@ -30,12 +30,12 @@ public final class PanelModel {
     public private(set) var items: [FileItem] = []
     public private(set) var cursor: Int = 0
     /// `rules.key(name)` of every selected item.
-    public private(set) var selection: Set<String> = [] {
+    public internal(set) var selection: Set<String> = [] {
         didSet { if selection.isEmpty, !oldValue.isEmpty { previousSelection = oldValue } }
     }
     /// The last non-empty selection before it was cleared (by an operation, navigation or a refresh
     /// after the items moved away); ⌃W brings it back. Keys as in `selection`.
-    public private(set) var previousSelection: Set<String> = []
+    public internal(set) var previousSelection: Set<String> = []
     public private(set) var rules: NameRules = .apfsDefault
     public private(set) var isLoading = false
     public private(set) var lastError: (any Error)?
@@ -473,13 +473,13 @@ public final class PanelModel {
 
     // MARK: Selection
 
-    private func selectable(_ item: FileItem) -> Bool { !item.isParent }
+    func selectable(_ item: FileItem) -> Bool { !item.isParent }
 
     public func isSelected(_ item: FileItem) -> Bool {
         selectable(item) && selection.contains(rules.key(item.name))
     }
 
-    private func set(_ item: FileItem, _ on: Bool) {
+    func set(_ item: FileItem, _ on: Bool) {
         guard selectable(item) else { return }
         let k = rules.key(item.name)
         if on { selection.insert(k) } else { selection.remove(k) }

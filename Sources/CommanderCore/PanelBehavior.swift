@@ -10,6 +10,7 @@ public struct PanelBehavior: Equatable, Sendable {
     public static let typingKey = "panel.typingToCommandLine"
     public static let arrowsKey = "panel.arrowsTargetPointedPanel"
     public static let volumesKey = "panel.volumeButtonsFollow"
+    public static let rightButtonKey = "panel.rightButtonMarks"
 
     /// Space marks the item and moves the cursor down (off: the cursor stays).
     public var spaceMovesDown = true
@@ -19,6 +20,11 @@ public struct PanelBehavior: Equatable, Sendable {
     public var arrowsTargetPointedPanel = false
     /// A volume button opens the other panel's folder or the last folder used on the volume.
     public var volumeButtonsFollow = false
+    /// The right mouse button marks items, a long right press opens the context menu
+    /// (`specs/024-mouse-selection`).
+    public var rightButtonMarks = false
+
+    public var mouseSelectionMode: MouseSelectionMode { rightButtonMarks ? .rightButtonMarks : .standard }
 
     public init() {}
 
@@ -30,6 +36,7 @@ public struct PanelBehavior: Equatable, Sendable {
         typingToCommandLine = bool(Self.typingKey, false)
         arrowsTargetPointedPanel = bool(Self.arrowsKey, false)
         volumeButtonsFollow = bool(Self.volumesKey, false)
+        rightButtonMarks = bool(Self.rightButtonKey, false)
     }
 }
 
