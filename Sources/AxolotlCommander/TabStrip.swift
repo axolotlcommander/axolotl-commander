@@ -4,10 +4,10 @@
 import AppKit
 import CommanderCore
 
-/// Tabs of one panel. Hidden while the panel has a single tab, like Finder and Safari.
-/// Click switches, middle click or the × closes, the context menu offers more. The left end of a tab shows
-/// the × while the pointer is over it, otherwise the lock of a locked tab, otherwise the × of the active tab
-/// (spec 028).
+/// Tabs of one panel. Hidden while the panel has a single tab, like Finder and Safari, unless Settings →
+/// Panels keeps it shown. Click switches, middle click or the × closes, the context menu offers more. The left
+/// end of a tab shows the × while the pointer is over it, otherwise the lock of a locked tab, otherwise the ×
+/// of the active tab. "+" opens a tab; tabs that do not fit are in the "»" menu (spec 028).
 final class TabStrip: NSView {
     struct Item: Equatable {
         var title: String
@@ -25,45 +25,123 @@ final class TabStrip: NSView {
     var onLock: ((Int, TabLock.Mode) -> Void)?
     var onReopen: (() -> Void)?
 
+    private static let minimumTabWidth: CGFloat = 90
+    private static let buttonWidth: CGFloat = 22
+    private static let spacing: CGFloat = 1
+
     private let stack = NSStackView()
+    private let newButton = TabStrip.button("plus", String(localized: "New Tab"))
+    private let moreButton = TabStrip.button("chevron.right.2", String(localized: "Hidden Tabs"))
     private var items: [Item] = []
     private var active = 0
     private var canReopen = false
+    /// The tabs shown now (indices into `items`).
+    private var shown: [Int] = []
 
     override init(frame: NSRect) {
         super.init(frame: frame)
         stack.orientation = .horizontal
-        stack.spacing = 1
+        stack.spacing = Self.spacing
         stack.distribution = .fillEqually
-        stack.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(stack)
+        newButton.target = self
+        newButton.action = #selector(newTab(_:))
+        moreButton.target = self
+        moreButton.action = #selector(showHiddenTabs(_:))
+        moreButton.isHidden = true
+        let buttons = NSStackView(views: [newButton, moreButton])
+        buttons.spacing = Self.spacing
+        // The tabs take the width; the buttons only what they need.
+        buttons.setHuggingPriority(.required, for: .horizontal)
+        stack.setHuggingPriority(.defaultLow, for: .horizontal)
+        for view in [stack, buttons] {
+            view.translatesAutoresizingMaskIntoConstraints = false
+            addSubview(view)
+        }
         NSLayoutConstraint.activate([
             stack.leadingAnchor.constraint(equalTo: leadingAnchor),
-            stack.trailingAnchor.constraint(equalTo: trailingAnchor),
+            stack.trailingAnchor.constraint(equalTo: buttons.leadingAnchor, constant: -Self.spacing),
             stack.topAnchor.constraint(equalTo: topAnchor),
             stack.bottomAnchor.constraint(equalTo: bottomAnchor),
+            buttons.trailingAnchor.constraint(equalTo: trailingAnchor),
+            buttons.centerYAnchor.constraint(equalTo: centerYAnchor),
             heightAnchor.constraint(equalToConstant: 22),
         ])
+        NotificationCenter.default.addObserver(self, selector: #selector(defaultsChanged),
+                                               name: UserDefaults.didChangeNotification, object: nil)
     }
 
     @available(*, unavailable)
     required init?(coder: NSCoder) { fatalError() }
 
+    private static func button(_ symbol: String, _ toolTip: String) -> NSButton {
+        let button = NSButton(image: NSImage(systemSymbolName: symbol, accessibilityDescription: toolTip)!,
+                              target: nil, action: nil)
+        button.isBordered = false
+        button.refusesFirstResponder = true
+        button.toolTip = toolTip
+        button.contentTintColor = .secondaryLabelColor
+        button.widthAnchor.constraint(equalToConstant: buttonWidth).isActive = true
+        return button
+    }
+
     func show(_ items: [Item], active: Int, canReopen: Bool) {
-        isHidden = items.count < 2
+        updateVisibility(count: items.count)
         guard items != self.items || active != self.active || canReopen != self.canReopen else { return }
         self.items = items
         self.active = active
         self.canReopen = canReopen
+        rebuild()
+    }
+
+    private func updateVisibility(count: Int) {
+        isHidden = count < 2 && !PanelBehavior(defaults: .standard).alwaysShowTabs
+    }
+
+    @objc private func defaultsChanged() {
+        updateVisibility(count: items.count)
+    }
+
+    override func setFrameSize(_ newSize: NSSize) {
+        super.setFrameSize(newSize)
+        if visibleTabs() != shown { rebuild() }
+    }
+
+    private func visibleTabs() -> [Int] {
+        let capacity = TabStripLayout.capacity(width: bounds.width, count: items.count, tabWidth: Self.minimumTabWidth,
+                                               spacing: Self.spacing, button: Self.buttonWidth)
+        return TabStripLayout.visible(count: items.count, active: active, capacity: capacity)
+    }
+
+    private func rebuild() {
+        shown = visibleTabs()
         stack.arrangedSubviews.forEach { $0.removeFromSuperview() }
-        for (index, item) in items.enumerated() {
-            let tab = TabButton(item, isActive: index == active, canClose: items.count > 1)
+        for index in shown {
+            let tab = TabButton(items[index], isActive: index == active, canClose: items.count > 1)
             tab.onClick = { [weak self] in self?.onSelect?(index) }
             tab.onClose = { [weak self] in self?.onClose?(index) }
             tab.menu = contextMenu(for: index)
             stack.addArrangedSubview(tab)
         }
+        moreButton.isHidden = shown.count == items.count
     }
+
+    /// "»": the tabs left out of the strip, in order.
+    @objc private func showHiddenTabs(_ sender: NSButton) {
+        let menu = NSMenu()
+        for index in items.indices where !shown.contains(index) {
+            let item = NSMenuItem(title: items[index].title, action: #selector(hiddenTabChosen(_:)), keyEquivalent: "")
+            item.target = self
+            item.tag = index
+            item.toolTip = items[index].toolTip
+            if items[index].lock != nil {
+                item.image = NSImage(systemSymbolName: "lock.fill", accessibilityDescription: String(localized: "Locked"))
+            }
+            menu.addItem(item)
+        }
+        menu.popUp(positioning: nil, at: NSPoint(x: 0, y: sender.isFlipped ? sender.bounds.height + 2 : -2), in: sender)
+    }
+
+    @objc private func hiddenTabChosen(_ sender: NSMenuItem) { onSelect?(sender.tag) }
 
     /// The menu of the tab at `index`; every item acts on that tab, not on the active one.
     private func contextMenu(for index: Int) -> NSMenu {
@@ -94,7 +172,7 @@ final class TabStrip: NSView {
         return menu
     }
 
-    @objc private func newTab(_ sender: NSMenuItem) { onNew?() }
+    @objc private func newTab(_ sender: Any?) { onNew?() }
     @objc private func duplicateTab(_ sender: NSMenuItem) { onDuplicate?(sender.tag) }
     @objc private func copyTabToOtherPanel(_ sender: NSMenuItem) { onCopyToOtherPanel?(sender.tag) }
     @objc private func lockTab(_ sender: NSMenuItem) { onLock?(sender.tag, .locked) }

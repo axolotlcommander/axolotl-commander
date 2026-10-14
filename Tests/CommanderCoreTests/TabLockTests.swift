@@ -141,6 +141,28 @@ import Testing
         #expect(list.current.lock?.folder.path == "/gone" && list.current.lock?.cursorName == nil)
     }
 
+    @Test func alwaysShowTabsSetting() {
+        #expect(PanelBehavior().alwaysShowTabs == false)
+        let suite = "TabLockTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        defaults.set(true, forKey: PanelBehavior.alwaysShowTabsKey)
+        #expect(PanelBehavior(defaults: defaults).alwaysShowTabs)
+        #expect(PanelBehavior.alwaysShowTabsKey == "panel.alwaysShowTabs")
+    }
+
+    /// Which tabs the strip shows when only `capacity` fit (spec 028, "»").
+    @Test func visibleTabsKeepTheActiveOne() {
+        #expect(TabStripLayout.visible(count: 3, active: 2, capacity: 5) == [0, 1, 2])
+        #expect(TabStripLayout.visible(count: 6, active: 1, capacity: 3) == [0, 1, 2])
+        #expect(TabStripLayout.visible(count: 6, active: 4, capacity: 3) == [0, 1, 4])
+        #expect(TabStripLayout.visible(count: 6, active: 5, capacity: 1) == [5])
+        #expect(TabStripLayout.capacity(width: 400, count: 3, tabWidth: 90, spacing: 1, button: 22) == 3)
+        // 4 tabs need 363 + "+"; they do not fit in 300, so "»" takes room as well.
+        #expect(TabStripLayout.capacity(width: 300, count: 4, tabWidth: 90, spacing: 1, button: 22) == 2)
+        #expect(TabStripLayout.capacity(width: 0, count: 4, tabWidth: 90, spacing: 1, button: 22) == 1)
+    }
+
     @Test func locksAreSavedAndOldLayoutsLoadUnlocked() throws {
         var list = Self.list(["/a", "/b"])
         list.setLock(.locked, at: 0)

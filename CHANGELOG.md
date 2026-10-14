@@ -38,6 +38,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
   disconnecting a server unlocks its tabs.
 - The tab menu (right click on a tab) and the Go menu add Duplicate Tab, Copy Tab to Other Panel, Close
   Tabs to the Right and the two lock commands; the tab menu also has Reopen Closed Tab.
+- The tab bar ends with "+" for a new tab. Tabs keep a readable width: those that do not fit are in the "»"
+  menu, and the active tab always stays visible. Settings → Panels → "Always show the tab bar" keeps the bar
+  (and "+") visible with a single tab.
 - Every release on GitHub describes its changes in English and Czech.
 
 ### Changed

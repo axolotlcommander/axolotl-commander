@@ -42,3 +42,11 @@ Steps 1–10 passed, browsing only the scratchpad test folder:
 
 Found and fixed: Swap Panels and Same Folder as Other of a flat listing changed a locked tab's folder in
 place; they now open a new tab like every other folder change.
+
+## "+" and "»" check (2026-10-14, clarification of the same day)
+
+- With one tab the strip is hidden; Settings → Panels → "Always show the tab bar" showed it at once with "+"
+  (the Czech caption is not cut); turning the option off hid it again for the panel with one tab.
+- "+" opened tabs; with nine tabs in a half-width panel six were shown, the active one among them, and "»"
+  listed the other three; choosing one made it active and it took the last visible place.
+- Found and fixed: the "+"/"»" group took the strip's spare width and squeezed a single tab.

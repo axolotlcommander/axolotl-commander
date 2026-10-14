@@ -40,6 +40,9 @@ Formát vychází z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ve
 - Menu záložky (pravý klik na záložku) a menu Přejít mají nově Duplikovat záložku, Kopírovat záložku do
   druhého panelu, Zavřít záložky vpravo a oba příkazy zamykání; menu záložky má i Znovu otevřít
   zavřenou záložku.
+- Pruh záložek končí tlačítkem „+“ pro novou záložku. Záložky si drží čitelnou šířku: ty, které se
+  nevejdou, jsou v menu „»“ a aktivní záložka zůstává vždy vidět. Nastavení → Panely → „Vždy zobrazovat pruh
+  záložek“ nechá pruh (i „+“) zobrazený i s jedinou záložkou.
 - Každé vydání na GitHubu popisuje změny anglicky i česky.
 
 ### Změněno

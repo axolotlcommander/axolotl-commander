@@ -45,6 +45,16 @@
   operations, pushes the removed ones to the closed tabs); eject and disconnect unlock first (R6);
   `MainWindowController.loadLayout` → `returnAllToLocks()`.
 
+## Phase 4b: "+" and "»" (clarification 2026-10-14)
+
+- [X] T015 [US5] `Sources/CommanderCore/PanelBehavior.swift` + `Settings/AppSettingsCatalog.swift`:
+  `alwaysShowTabs` (key `panel.alwaysShowTabs`, default off); test of the default and the key.
+- [X] T016 [US5] `TabStrip.swift`: "+" button (New Tab); minimum tab width, capacity from the strip width,
+  the visible tabs (active always included), "»" menu of the others with lock images; recomputed on resize;
+  hidden with one tab unless `alwaysShowTabs` (observed live).
+- [X] T017 [US5] `SettingsView.swift` Panels: the "Always show the tab bar" toggle with its caption; Czech
+  texts ("+"/"»" tooltips too), CHANGELOG entries; GUI check of "+", "»" and the option.
+
 ## Phase 5: Polish
 
 - [X] T012 Czech strings in `Resources/Localizable.xcstrings`; no menu item or tooltip cut.

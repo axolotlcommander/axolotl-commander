@@ -946,6 +946,16 @@
         }
       }
     },
+    "Always show the tab bar": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vždy zobrazovat pruh záložek"
+          }
+        }
+      }
+    },
     "Anonymous": {
       "localizations": {
         "cs": {
@@ -2877,6 +2887,16 @@
         }
       }
     },
+    "Hidden Tabs": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skryté záložky"
+          }
+        }
+      }
+    },
     "Ignore a difference of exactly one hour": {
       "localizations": {
         "cs": {
@@ -3173,6 +3193,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Není co dělat"
+          }
+        }
+      }
+    },
+    "Off: the tab bar appears when a panel has more than one tab.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vypnuto: pruh záložek se ukáže, až má panel víc než jednu záložku."
           }
         }
       }

@@ -45,6 +45,12 @@ strip, and "close other / all tabs" keeps locked tabs.
   active unlocked tab shows the close button as today. The name stays centered and does not move.
 - Q: Right click on the empty part of the strip? (planning, 2026-10-14) → A: The tabs share the strip's whole
   width, so it has no empty part; New Tab and Reopen Closed Tab are in every tab's menu instead.
+- Q: A "+" to add a tab with the mouse and "»" when the tabs do not fit, as in the maintainer's second
+  screenshot? (implementation, 2026-10-14) → A: Yes. A "+" button at the right end of the strip opens a new
+  tab. The strip still hides with a single tab by default; a new option in Settings → Panels, "Always show
+  the tab bar", keeps it (and the "+") visible with one tab. Tabs no longer shrink without limit: each keeps
+  a minimum width, the tabs that do not fit are left out of the strip and listed in a menu under a "»" button
+  (with their lock marks); the active tab is always among the visible ones.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -254,6 +260,11 @@ that tab, not on the active one.
   in the main menu, without default keys and assignable in Settings → Keyboard.
 - **FR-017**: All new texts (menu items, tooltips) MUST be localized (English and Czech) and fit without
   being cut.
+- **FR-018**: The strip MUST end with a "+" button that opens a new tab like New Tab.
+- **FR-019**: Settings → Panels MUST offer "Always show the tab bar" (off by default); when on, the strip is
+  shown even for a single tab, when off it hides with a single tab as before. The change applies at once.
+- **FR-020**: Tabs MUST keep a minimum width; tabs that do not fit MUST be reachable from a "»" menu at the
+  end of the strip, which lists them in order with their lock marks; the active tab MUST always be visible.
 
 ### Key Entities
 

@@ -77,3 +77,15 @@ modes, a mark in the strip, "close all / other tabs" keeping locked tabs, an opt
   Other Tabs need two tabs, Close Tabs to the Right a following tab, Reopen Closed Tab a closed tab). The
   strip's tabs fill its whole width, so there is no empty part to right-click (spec User Story 5, scenario 5
   does not occur; recorded in Clarifications).
+
+## R9 — "+" and "»" (clarification 2026-10-14)
+
+- **Decision**: the strip is the tab stack plus a trailing pair of borderless buttons, "+" (`plus`, New Tab)
+  and "»" (`chevron.right.2`, shown only when tabs are left out). Minimum tab width 90 pt; the capacity is
+  computed from the strip width (less the buttons) whenever the frame changes, and the tabs are rebuilt only
+  when the capacity or the items change. Visible tabs: the first ones that fit; when the active tab is not
+  among them it takes the last visible place. The "»" menu lists the rest in order (lock image for locked
+  tabs) and selects the chosen one. Visibility: hidden when there is one tab and `panel.alwaysShowTabs` is
+  off; the strip observes `UserDefaults.didChangeNotification` so the Settings toggle applies at once.
+- **Alternatives**: scrolling the strip like Safari (rejected in chat); a menu of all tabs under "»" (the tab
+  list already does that); several rows of tabs (takes panel height).

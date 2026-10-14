@@ -17,6 +17,7 @@ struct SettingsView: View {
     @AppStorage(FunctionKeyChoice.key) private var hiddenFunctionKeys = ""
     @AppStorage(PanelBehavior.spaceKey) private var spaceMovesDown = PanelBehavior().spaceMovesDown
     @AppStorage(PanelBehavior.rightButtonKey) private var rightButtonMarks = PanelBehavior().rightButtonMarks
+    @AppStorage(PanelBehavior.alwaysShowTabsKey) private var alwaysShowTabs = PanelBehavior().alwaysShowTabs
     @AppStorage(PanelBehavior.typingKey) private var typingToCommandLine = PanelBehavior().typingToCommandLine
     @AppStorage(PanelBehavior.arrowsKey) private var arrowsTargetPointedPanel = PanelBehavior().arrowsTargetPointedPanel
     @AppStorage(PanelBehavior.volumesKey) private var volumeButtonsFollow = PanelBehavior().volumeButtonsFollow
@@ -113,6 +114,8 @@ struct SettingsView: View {
                              "Off: a volume button always opens the volume root.")
                     behavior("Right mouse button marks (Norton Commander style)", $rightButtonMarks,
                              "A right click marks, a right drag marks the items passed over, holding the right button opens the context menu. Off: a right click opens the context menu.")
+                    behavior("Always show the tab bar", $alwaysShowTabs,
+                             "Off: the tab bar appears when a panel has more than one tab.")
                     // In the content column: a form label this long would push the labels out of the window.
                     HStack {
                         Text("Thumbnail size:")
