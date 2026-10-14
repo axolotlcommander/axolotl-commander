@@ -60,15 +60,42 @@ enum WhatsNew {
     }
 }
 
-final class WhatsNewWindowController: NSWindowController, WKNavigationDelegate {
-    private let webView: WKWebView
-
+/// Release notes rendered from Markdown: no scripts, nothing remote, links open in the browser (What's New and
+/// the update window, specs 026 and 027).
+final class NotesWebView: WKWebView, WKNavigationDelegate {
     init() {
         let configuration = WKWebViewConfiguration()
         configuration.websiteDataStore = .nonPersistent()
         configuration.defaultWebpagePreferences.allowsContentJavaScript = false
         configuration.preferences.javaScriptCanOpenWindowsAutomatically = false
-        webView = WKWebView(frame: .zero, configuration: configuration)
+        super.init(frame: .zero, configuration: configuration)
+        navigationDelegate = self
+        allowsBackForwardNavigationGestures = false
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { fatalError() }
+
+    func show(_ notes: [ReleaseNote], empty: String) {
+        let markdown = notes.isEmpty ? empty : ReleaseNotes.markdown(notes)
+        loadHTMLString(MarkdownRenderer.render(markdown).html, baseURL: nil)
+    }
+
+    func webView(_ webView: WKWebView, decidePolicyFor action: WKNavigationAction) async -> WKNavigationActionPolicy {
+        guard let url = action.request.url else { return .cancel }
+        // The page itself and jumps inside it; a link goes to the browser, nothing loads here.
+        if action.navigationType == .other || (url.scheme == "about" && url.fragment != nil) { return .allow }
+        if action.navigationType == .linkActivated, ["http", "https", "mailto"].contains(url.scheme?.lowercased() ?? "") {
+            NSWorkspace.shared.open(url)
+        }
+        return .cancel
+    }
+}
+
+final class WhatsNewWindowController: NSWindowController {
+    private let webView = NotesWebView()
+
+    init() {
         let window = WhatsNewPanelWindow(contentRect: NSRect(x: 0, y: 0, width: 620, height: 560),
                                          styleMask: [.titled, .closable, .resizable, .miniaturizable],
                                          backing: .buffered, defer: false)
@@ -76,8 +103,6 @@ final class WhatsNewWindowController: NSWindowController, WKNavigationDelegate {
         window.minSize = NSSize(width: 360, height: 260)
         window.isReleasedWhenClosed = false
         super.init(window: window)
-        webView.navigationDelegate = self
-        webView.allowsBackForwardNavigationGestures = false
 
         let close = NSButton(title: String(localized: "Close"), target: window, action: #selector(NSWindow.performClose(_:)))
         close.keyEquivalent = "\r"
@@ -104,21 +129,9 @@ final class WhatsNewWindowController: NSWindowController, WKNavigationDelegate {
     required init?(coder: NSCoder) { fatalError() }
 
     func show(_ notes: [ReleaseNote]) {
-        let markdown = notes.isEmpty
-            ? String(localized: "No release notes are available.") : ReleaseNotes.markdown(notes)
-        webView.loadHTMLString(MarkdownRenderer.render(markdown).html, baseURL: nil)
+        webView.show(notes, empty: String(localized: "No release notes are available."))
         showWindow(nil)
         window?.makeKeyAndOrderFront(nil)
-    }
-
-    func webView(_ webView: WKWebView, decidePolicyFor action: WKNavigationAction) async -> WKNavigationActionPolicy {
-        guard let url = action.request.url else { return .cancel }
-        // The page itself and jumps inside it; a link goes to the browser, nothing loads here.
-        if action.navigationType == .other || (url.scheme == "about" && url.fragment != nil) { return .allow }
-        if action.navigationType == .linkActivated, ["http", "https", "mailto"].contains(url.scheme?.lowercased() ?? "") {
-            NSWorkspace.shared.open(url)
-        }
-        return .cancel
     }
 }
 
