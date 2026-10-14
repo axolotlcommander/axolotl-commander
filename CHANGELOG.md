@@ -14,6 +14,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
   `name.crc` checksum file. File → Combine Files… joins such parts again — from any part, the `.crc`
   file or the marked files — and checks the result against the checksum file. Both write into the other
   panel's folder by default, check the free space first and leave nothing behind when cancelled.
+- File → Encode File… turns files into text (Base64 with the file name in a small MIME header, or UUE)
+  and File → Decode File… turns such text back into files: attachments of saved e-mails (`.eml`, also
+  nested and with encoded names), UUE, XXE, BinHex 4.0 and plain Base64, recognized from the content.
+  Marked pieces are joined in name order; names from the text never leave the target folder, and damaged
+  or incomplete data is reported.
 
 ### Changed
 

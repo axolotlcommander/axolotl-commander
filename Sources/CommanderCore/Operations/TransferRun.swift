@@ -29,6 +29,7 @@ final class TransferRun {
     private var copied = 0
     private var skipped: [URL] = []
     private var kept: [URL] = []
+    private var renamed: [URL: String] = [:]
 
     init(
         kind: TransferKind,
@@ -69,7 +70,7 @@ final class TransferRun {
                 }
             }
         }
-        return TransferReport(copied: copied, skipped: skipped, keptSources: kept)
+        return TransferReport(copied: copied, skipped: skipped, keptSources: kept, renamed: renamed)
     }
 
     // MARK: Copy
@@ -232,7 +233,10 @@ final class TransferRun {
             try NameCheck.validate(name)
             let candidate = FSPath.join(dir, name)
             try NameCheck.validate(path: candidate)
-            guard let existing = try lookup.existing(in: dir, named: name) else { return .create(candidate) }
+            guard let existing = try lookup.existing(in: dir, named: name) else {
+                if name != node.targetName { renamed[node.url] = name }
+                return .create(candidate)
+            }
             let existingStat: FileStat
             switch FileProbe.probe(existing, followingLinks: false) {
             case .missing: continue
@@ -276,6 +280,7 @@ final class TransferRun {
             }
             // A directory is never replaced by a file or vice versa.
             if node.kind == .directory || existingStat.isDirectory { return .skip }
+            if name != node.targetName { renamed[node.url] = name }
             return .replace(existing)
         }
     }

@@ -15,6 +15,11 @@ Formát vychází z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ve
   kterékoli části, od souboru `.crc` nebo z označených souborů — a výsledek ověří podle kontrolního součtu.
   Obojí zapisuje ve výchozím stavu do složky druhého panelu, předem zkontroluje volné místo a po zrušení
   nic nenechá.
+- Soubor → Zakódovat soubor… převede soubory na text (Base64 s názvem souboru v malé hlavičce MIME nebo
+  UUE) a Soubor → Dekódovat soubor… takový text převede zpět na soubory: přílohy uložených e-mailů (`.eml`,
+  i vnořené a s kódovanými názvy), UUE, XXE, BinHex 4.0 a čisté Base64, rozpoznané podle obsahu. Označené
+  kusy se spojí podle názvu; názvy z textu nikdy neopustí cílovou složku a poškozená nebo neúplná data se
+  nahlásí.
 
 ### Změněno
 

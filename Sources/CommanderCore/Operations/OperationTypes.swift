@@ -121,11 +121,14 @@ public struct TransferReport: Sendable, Equatable {
     /// Move sources that were not deleted (directory symlink inside, something
     /// skipped, incomplete traversal, or content left behind).
     public let keptSources: [URL]
+    /// The names given to items placed under another name than planned (conflict rename), by source.
+    public let renamed: [URL: String]
 
-    public init(copied: Int, skipped: [URL], keptSources: [URL]) {
+    public init(copied: Int, skipped: [URL], keptSources: [URL], renamed: [URL: String] = [:]) {
         self.copied = copied
         self.skipped = skipped
         self.keptSources = keptSources
+        self.renamed = renamed
     }
 }
 

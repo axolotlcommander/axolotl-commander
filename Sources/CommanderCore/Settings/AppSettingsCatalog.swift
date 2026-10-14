@@ -45,6 +45,7 @@ extension SettingsCatalog {
         PreferenceSpec("links.relativePath", .bool, default: .bool(false)),
         PreferenceSpec("split.partSize", .number(1...9.0e18), default: .number(Double(PartSize.defaultSize))),
         PreferenceSpec("split.writeChecksum", .bool, default: .bool(true)),
+        PreferenceSpec(EncodeFormat.key, .string(allowed: values(EncodeFormat.self)), default: .string(EncodeFormat.base64.rawValue)),
         PreferenceSpec("ssh.extraArguments", .stringArray),
         PreferenceSpec("comparison", .json(validate: decodes(ComparisonOptions.self))),
         PreferenceSpec("syncOptions", .json(validate: decodes(SyncOptions.self))),

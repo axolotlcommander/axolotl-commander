@@ -292,7 +292,23 @@ private func move(_ sources: [URL], to dest: URL, ops: FileOperations = FileOper
             #expect(read(dst.sub("c2.txt")) == "new c.txt")
             #expect(report.copied == 2)
             #expect(report.skipped == [src.sub("a.txt")])
+            #expect(report.renamed == [src.sub("c.txt"): "c2.txt"])
             #expect(names(dst) == ["a.txt", "b.txt", "c.txt", "c2.txt"])
+        }
+    }
+
+    @Test func moveReportsTheNameGivenOnConflict() async throws {
+        try await withSandbox { root in
+            let src = root.sub("src"), dst = root.sub("dst")
+            try mkdirs(src); try mkdirs(dst)
+            try write(src.sub("a.txt"), "new")
+            try write(dst.sub("a.txt"), "old")
+            try write(src.sub("b.txt"), "b")
+            let report = try await move([src.sub("a.txt"), src.sub("b.txt")], to: dst) { _ in .rename("a 2.txt") }
+            #expect(report.renamed == [src.sub("a.txt"): "a 2.txt"])
+            #expect(read(dst.sub("a 2.txt")) == "new")
+            #expect(read(dst.sub("a.txt")) == "old")
+            #expect(names(dst) == ["a 2.txt", "a.txt", "b.txt"])
         }
     }
 
