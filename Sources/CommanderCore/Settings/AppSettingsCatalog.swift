@@ -51,6 +51,8 @@ extension SettingsCatalog {
         PreferenceSpec(PanelBehavior.arrowsKey, .bool, default: .bool(PanelBehavior().arrowsTargetPointedPanel)),
         PreferenceSpec(PanelBehavior.volumesKey, .bool, default: .bool(PanelBehavior().volumeButtonsFollow)),
         PreferenceSpec(PanelBehavior.rightButtonKey, .bool, default: .bool(PanelBehavior().rightButtonMarks)),
+        PreferenceSpec(ThumbnailSize.key, .string(allowed: values(ThumbnailSize.self)),
+                       default: .string(ThumbnailSize.default.rawValue)),
     ], toolbarKey: toolbarKey)
 
     /// AppKit's autosave key of the main window toolbar ("MainToolbar").

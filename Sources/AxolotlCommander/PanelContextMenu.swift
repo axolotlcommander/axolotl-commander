@@ -62,6 +62,7 @@ extension PanelViewController {
         let rect: NSRect = switch viewMode {
         case .detailed: tableView.rect(ofRow: model.cursor)
         case .brief: briefView.frameForItem(at: model.cursor)
+        case .thumbnails: thumbnailView.frameForItem(at: model.cursor)
         }
         menu.popUp(positioning: nil, at: NSPoint(x: rect.minX + 24, y: rect.maxY), in: listView)
     }

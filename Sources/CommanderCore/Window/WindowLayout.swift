@@ -3,7 +3,15 @@
 
 public import Foundation
 
-public enum PanelViewMode: String, Codable, Sendable, CaseIterable { case detailed, brief }
+public enum PanelViewMode: String, Codable, Sendable, CaseIterable {
+    case detailed, brief, thumbnails
+
+    /// A mode this build does not know (written by a newer one) reads as Detailed, so the rest of the
+    /// layout is kept.
+    public init(from decoder: any Decoder) throws {
+        self = PanelViewMode(rawValue: try decoder.singleValueContainer().decode(String.self)) ?? .detailed
+    }
+}
 
 public enum Side: String, Codable, Sendable { case left, right }
 

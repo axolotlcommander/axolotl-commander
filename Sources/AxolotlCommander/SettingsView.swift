@@ -20,11 +20,13 @@ struct SettingsView: View {
     @AppStorage(PanelBehavior.typingKey) private var typingToCommandLine = PanelBehavior().typingToCommandLine
     @AppStorage(PanelBehavior.arrowsKey) private var arrowsTargetPointedPanel = PanelBehavior().arrowsTargetPointedPanel
     @AppStorage(PanelBehavior.volumesKey) private var volumeButtonsFollow = PanelBehavior().volumeButtonsFollow
+    @AppStorage(ThumbnailSize.key) private var thumbnailSize = ThumbnailSize.default.rawValue
 
     private func behavior(_ title: LocalizedStringKey, _ isOn: Binding<Bool>, _ caption: LocalizedStringKey) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Toggle(title, isOn: isOn)
-            Text(caption).font(.caption).foregroundStyle(.secondary)
+            // Long captions wrap instead of ending in "…" (Czech texts are longer).
+            Text(caption).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
         }
     }
 
@@ -49,7 +51,7 @@ struct SettingsView: View {
                     ForEach(Launcher.installedTerminals) { Text($0.name).tag($0.bundleID) }
                 }
                 Text("Used by Open Terminal Here (⌃/) and by commands typed in the command line.")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 // What the window shows, from the top down; the View menu has the same switches.
                 Section {
                     Toggle("Show volume bar", isOn: $showVolumeBar)
@@ -58,13 +60,13 @@ struct SettingsView: View {
                         Toggle("Show free space when the drive row is hidden", isOn: $freeSpaceElsewhere)
                             .disabled(showDriveRow)
                         Text("At the right end of the volume bar, or of the status line when the volume bar is hidden too.")
-                            .font(.caption).foregroundStyle(.secondary)
+                            .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                     }
                     .padding(.leading, 20)
                     Toggle("Show command line", isOn: $showCommandLine)
                     Toggle("Show function key bar", isOn: $showFunctionKeyBar)
                     Text("Also in the View menu. The bar shows what F1–F12 do; hold ⇧, ⌃, ⌥ or ⌘ to see the other commands.")
-                        .font(.caption).foregroundStyle(.secondary)
+                        .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Buttons on the bar:")
                         // Two rows of six, so the form keeps its width.
@@ -73,7 +75,7 @@ struct SettingsView: View {
                                 GridRow { ForEach(first..<first + 6, id: \.self) { functionKeyToggle($0) } }
                             }
                         }
-                        Text("A key whose button is off still works.").font(.caption).foregroundStyle(.secondary)
+                        Text("A key whose button is off still works.").font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                     }
                     .padding(.leading, 20)
                 }
@@ -88,6 +90,17 @@ struct SettingsView: View {
                              "Off: a volume button always opens the volume root.")
                     behavior("Right mouse button marks (Norton Commander style)", $rightButtonMarks,
                              "A right click marks, a right drag marks the items passed over, holding the right button opens the context menu. Off: a right click opens the context menu.")
+                    // In the content column: a form label this long would push the labels out of the window.
+                    HStack {
+                        Text("Thumbnail size:")
+                        Picker("Thumbnail size:", selection: $thumbnailSize) {
+                            Text("Small").tag(ThumbnailSize.small.rawValue)
+                            Text("Medium").tag(ThumbnailSize.medium.rawValue)
+                            Text("Large").tag(ThumbnailSize.large.rawValue)
+                        }
+                        .labelsHidden()
+                        .fixedSize()
+                    }
                 }
                 Section {
                     HStack {
@@ -95,7 +108,7 @@ struct SettingsView: View {
                         Button("Import Settings…") { SettingsTransfer.importSettings(from: NSApp.keyWindow) }
                     }
                     Text("One file with the keys, preferences, appearance, hot paths, user menu, saved servers and toolbar. Passwords are never included.")
-                        .font(.caption).foregroundStyle(.secondary)
+                        .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 }
             }
             .padding()
@@ -145,7 +158,7 @@ private struct ViewerSettings: View {
                     ForEach(TextEncoding.allCases, id: \.self) { Text($0.title).tag($0.rawValue) }
                 }
                 Text("A byte order mark or valid UTF-8 always wins; this encoding is used for other text.")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 Toggle("Wrap lines", isOn: $wrap)
                 Toggle("Highlight syntax in source code", isOn: $highlight)
                 Stepper(value: $fontSize, in: ViewerDefaults.fontSizes) {
@@ -313,7 +326,7 @@ private struct HotPathSettings: View {
                 Button("Move Up", systemImage: "chevron.up") { move(-1) }.disabled(selection == nil)
                 Button("Move Down", systemImage: "chevron.down") { move(1) }.disabled(selection == nil)
                 Spacer()
-                Text("⇧F9 lists hot paths and saves the current folder.").font(.caption).foregroundStyle(.secondary)
+                Text("⇧F9 lists hot paths and saves the current folder.").font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             }
             .labelStyle(.iconOnly)
         }
