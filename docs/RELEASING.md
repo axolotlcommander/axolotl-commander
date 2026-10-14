@@ -26,6 +26,8 @@ only marks the version with a tag and publishes the draft release.
    app offer the update (they ignore drafts and pre-releases): the update window reads the attached changelogs,
    and the app downloads the `.zip`, checks it against `SHA256SUMS.txt` and the signing certificate, and replaces
    itself. Keep these asset names; a release without the `.zip` or `SHA256SUMS.txt` is not offered.
+   Publishing also starts the website deploy (`.github/workflows/site.yml`, secret `SITE_DISPATCH_TOKEN`),
+   so the site's Download button shows the new version within a minute or two.
 
 Versions follow [Semantic Versioning](https://semver.org/): before 1.0, `0.MINOR.PATCH`.
 
