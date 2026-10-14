@@ -312,7 +312,7 @@ extension PanelViewController {
 
     @objc private func appearanceChanged() {
         tableView.reloadData()
-        if viewMode == .brief { reloadBrief() }
+        reloadGrid()
     }
 
     /// Marked items are bold unless Settings → Appearance turns it off.

@@ -672,6 +672,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         if command == .toggleHidden { menuItem.state = activePanel.showsHidden ? .on : .off }
         if command == .viewModeDetailed { menuItem.state = activePanel.viewMode == .detailed ? .on : .off }
         if command == .viewModeBrief { menuItem.state = activePanel.viewMode == .brief ? .on : .off }
+        if command == .viewModeThumbnails { menuItem.state = activePanel.viewMode == .thumbnails ? .on : .off }
         if command == .toggleCommandLine { menuItem.state = commandLine.isHidden ? .off : .on }
         if command == .quickView { menuItem.state = quickView == nil ? .off : .on }
         if command == .toggleFunctionKeyBar { menuItem.state = functionKeyBar.isHidden ? .off : .on }
