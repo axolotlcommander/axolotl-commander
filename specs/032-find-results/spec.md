@@ -164,7 +164,7 @@ their results.
 
 **Acceptance Scenarios**:
 
-1. **Given** the File menu (next to Find Files), **When** the user chooses "Find Files in New Window", **Then**
+1. **Given** the Commands menu (next to Find Files), **When** the user chooses "Find Files in New Window", **Then**
    a new, empty Find window opens, prefilled from the active panel, whatever windows exist.
 2. **Given** Settings → Keyboard, **When** the user looks for the command, **Then** it is there without a
    default key and can be given one.
@@ -222,7 +222,7 @@ their results.
   earlier one. Nothing MUST be kept across launches.
 - **FR-010**: With "Keep the Find window open", the actions and Esc MUST behave as today.
 - **FR-011**: "Find Files in New Window" MUST open a new, empty Find window prefilled from the active panel; it
-  MUST be in the File menu next to Find Files, without a default key, assignable in Settings → Keyboard.
+  MUST be in the menu next to Find Files, without a default key, assignable in Settings → Keyboard.
 - **FR-012**: All new texts MUST be localized (English and Czech) and fit in both languages at the Find window's
   smallest size.
 
