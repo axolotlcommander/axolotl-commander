@@ -214,7 +214,7 @@ public actor FileOperations {
             if Darwin.rename(source, target) != 0 {
                 throw OperationError.io(FSPath.errorText(errno, "Cannot rename", source))
             }
-        } else if renamex_np(source, target, UInt32(RENAME_EXCL)) != 0 {
+        } else if ExclusiveRename.rename(source, target) != 0 {
             let err = errno
             if err == EEXIST { throw OperationError.alreadyExists(FSPath.url(target)) }
             throw OperationError.io(FSPath.errorText(err, "Cannot rename", source))

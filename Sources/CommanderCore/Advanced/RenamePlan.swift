@@ -201,7 +201,7 @@ public enum RenameExecutor {
 
             func restore(_ i: Int) -> String? {
                 guard temporary[i] else { return nil }
-                if renamex_np(current[i].path, level[i].url.path, UInt32(RENAME_EXCL)) == 0 {
+                if ExclusiveRename.rename(current[i].path, level[i].url.path) == 0 {
                     current[i] = level[i].url
                     temporary[i] = false
                     return nil
@@ -221,7 +221,7 @@ public enum RenameExecutor {
                 if Task.isCancelled { restoreAll(); outcome.cancelled = true; return outcome }
                 let tempName = ".~icmd-ren-\(UUID().uuidString)"
                 let target = level[i].url.deletingLastPathComponent().appendingPathComponent(tempName)
-                if renamex_np(level[i].url.path, target.path, UInt32(RENAME_EXCL)) == 0 {
+                if ExclusiveRename.rename(level[i].url.path, target.path) == 0 {
                     current[i] = target
                     temporary[i] = true
                 } else {

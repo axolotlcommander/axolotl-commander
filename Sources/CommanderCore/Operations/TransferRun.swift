@@ -167,7 +167,7 @@ final class TransferRun {
                 return
             case .create(let path):
                 target = path
-                rc = renamex_np(node.path, path, UInt32(RENAME_EXCL))
+                rc = ExclusiveRename.rename(node.path, path)
             case .replace(let path):
                 target = path
                 rc = rename(node.path, path)

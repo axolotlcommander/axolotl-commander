@@ -100,7 +100,7 @@ enum FileCopy {
             unlink(temp)
             throw OperationError.cancelled
         }
-        let rc = replace ? rename(temp, target) : renamex_np(temp, target, UInt32(RENAME_EXCL))
+        let rc = replace ? rename(temp, target) : ExclusiveRename.rename(temp, target)
         if rc == 0 { return .placed }
         let err = errno
         unlink(temp)
