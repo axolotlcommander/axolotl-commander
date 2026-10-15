@@ -5,6 +5,14 @@ Formát vychází z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ve
 
 ## [Unreleased]
 
+## [0.7.3] - 2026-10-15
+
+### Opraveno
+
+- Dělítko mezi panely se samo posouvalo a po přetažení skákalo zpět: dlouhý název souboru pod kurzorem
+  nebo dlouhý název složky v záložce rozšířil svůj panel. Panely teď drží šířku nastavenou dělítkem,
+  i po dalším spuštění.
+
 ## [0.7.2] - 2026-10-15
 
 ### Opraveno

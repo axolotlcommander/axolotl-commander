@@ -329,7 +329,9 @@ final class PanelViewController: NSViewController {
         }
         lists.setContentHuggingPriority(.defaultLow, for: .vertical)
 
-        statusField.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+        // Above the free space beside it (which gives way first), below the divider: a long name under
+        // the cursor is shortened, it never widens the panel.
+        statusField.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         let statusRow = NSStackView()
         statusRow.orientation = .horizontal
         statusRow.addView(statusField, in: .leading)

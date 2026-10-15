@@ -5,6 +5,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 
 ## [Unreleased]
 
+## [0.7.3] - 2026-10-15
+
+### Fixed
+
+- The divider between the panels moved by itself and jumped back after dragging: a long file name
+  under the cursor or a long folder name in a tab widened its panel. The panels now keep the width
+  set with the divider, also after the next start.
+
 ## [0.7.2] - 2026-10-15
 
 ### Fixed
