@@ -46,7 +46,7 @@
 
 - [X] T013 Czech strings in `Resources/Localizable.xcstrings`
 - [X] T014 `CHANGELOG.md` / `CHANGELOG.cs.md`, version 0.8.0 (`scripts/bump-version.sh minor`)
-- [ ] T015 GUI check per [quickstart.md](quickstart.md) on the test copy only
+- [X] T015 GUI check per [quickstart.md](quickstart.md) on the test copy only
 
 ## Dependencies
 

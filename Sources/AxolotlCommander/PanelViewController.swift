@@ -2095,7 +2095,8 @@ final class FileCellView: NSTableCellView {
     }
 
     private func fitText() {
-        guard let label = textField else { return }
+        // A name being renamed keeps what is typed (a column resized while editing must not shorten it).
+        guard let label = textField, label.currentEditor() == nil else { return }
         // The label's width follows from the constraints in init; its cell adds a little padding.
         let available = frame.width - (imageView == nil ? 4 : 24) - 4
         let font = label.font ?? .systemFont(ofSize: NSFont.systemFontSize)
