@@ -8763,17 +8763,6 @@
         }
       }
     },
-    "Show Results in Panel": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Výsledky do panelu"
-          }
-        }
-      }
-    },
     "Show in Finder": {
       "localizations": {
         "cs": {
@@ -13252,6 +13241,243 @@
           "stringUnit": {
             "state": "translated",
             "value": "Co je nového…"
+          }
+        }
+      }
+    },
+    "Fonts": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Písma"
+          }
+        }
+      }
+    },
+    "File list:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seznam souborů:"
+          }
+        }
+      }
+    },
+    "Change…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Změnit…"
+          }
+        }
+      }
+    },
+    "Restore Default Fonts": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obnovit výchozí písma"
+          }
+        }
+      }
+    },
+    "System font": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Systémové písmo"
+          }
+        }
+      }
+    },
+    "%@, %@ pt": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, %2$@ pt"
+          }
+        }
+      }
+    },
+    "Bigger File List Font": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Větší písmo seznamu souborů"
+          }
+        }
+      }
+    },
+    "Smaller File List Font": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menší písmo seznamu souborů"
+          }
+        }
+      }
+    },
+    "Default File List Font": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Výchozí písmo seznamu souborů"
+          }
+        }
+      }
+    },
+    "Main window:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hlavní okno:"
+          }
+        }
+      }
+    },
+    "Rows, column titles, the status line, the folder history and hot path menus": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Řádky, záhlaví sloupců, stavový řádek, historie složek a nabídka oblíbených cest"
+          }
+        }
+      }
+    },
+    "Volume bar, drive row, path, tabs, command line and function keys": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lišta svazků, řádek disku, cesta, záložky, příkazová řádka a funkční klávesy"
+          }
+        }
+      }
+    },
+    "Go to File": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přejít na soubor"
+          }
+        }
+      }
+    },
+    "New Search": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nové hledání"
+          }
+        }
+      }
+    },
+    "Results to Panel": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Výsledky do panelu"
+          }
+        }
+      }
+    },
+    "Find Files in New Window…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hledat soubory v novém okně…"
+          }
+        }
+      }
+    },
+    "F3 View": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "F3 Zobrazit"
+          }
+        }
+      }
+    },
+    "F4 Edit": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "F4 Upravit"
+          }
+        }
+      }
+    },
+    "The folder “%@” no longer exists.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Složka „%@“ už neexistuje."
+          }
+        }
+      }
+    },
+    "After going to a file:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Po přechodu na soubor:"
+          }
+        }
+      }
+    },
+    "Hide the Find window": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schovat okno hledání"
+          }
+        }
+      }
+    },
+    "Keep the Find window open": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nechat okno hledání otevřené"
+          }
+        }
+      }
+    },
+    "A hidden Find window comes back with its results when you choose Find Files (⌃⌥F7) again.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schované okno hledání se i s výsledky vrátí, když znovu zvolíte Hledat soubory (⌃⌥F7)."
           }
         }
       }

@@ -41,11 +41,10 @@ final class PathBar: NSView {
     private var separatorOrigins: [NSPoint] = []
     private var iconCache: [String: NSImage] = [:]
 
-    private static let height: CGFloat = 20
-    private static let font = NSFont.systemFont(ofSize: NSFont.smallSystemFontSize)
-    private static let separator = NSAttributedString(string: "›", attributes: [
-        .font: NSFont.systemFont(ofSize: NSFont.smallSystemFontSize), .foregroundColor: NSColor.tertiaryLabelColor,
-    ])
+    private static var height: CGFloat { 20 + PanelFont.windowGrowth }
+    private static var separator: NSAttributedString {
+        NSAttributedString(string: "›", attributes: [.font: PanelFont.window, .foregroundColor: NSColor.tertiaryLabelColor])
+    }
     private static let separatorGap: CGFloat = 2
     private static var separatorWidth: CGFloat { ceil(separator.size().width) + 2 * separatorGap }
     private static let inset: CGFloat = 2
@@ -83,6 +82,14 @@ final class PathBar: NSView {
     /// A volume's icon was read in the background: shows it instead of the stand-in.
     func refreshIcons() {
         if showsIcons, trail.contains(where: { $0.kind == .volume }) { rebuildSegments() }
+    }
+
+    /// Takes the main window font chosen in Settings; the field keeps a monospaced face.
+    func applyFont() {
+        field.font = PanelFont.windowMonospaced()
+        invalidateIntrinsicContentSize()
+        ellipsis.needsDisplay = true
+        rebuildSegments()
     }
 
     func apply(style: Style, showsIcons: Bool) {
@@ -276,8 +283,7 @@ private final class PathSegmentView: NSView {
     private var title: NSAttributedString {
         let paragraph = NSMutableParagraphStyle()
         paragraph.lineBreakMode = .byTruncatingTail
-        let font = emphasized ? NSFont.systemFont(ofSize: NSFont.smallSystemFontSize, weight: .medium)
-            : NSFont.systemFont(ofSize: NSFont.smallSystemFontSize)
+        let font = PanelFont.window(weight: emphasized ? .medium : .regular)
         return NSAttributedString(string: name, attributes: [
             .font: font, .foregroundColor: clickable ? NSColor.labelColor : NSColor.secondaryLabelColor,
             .paragraphStyle: paragraph,

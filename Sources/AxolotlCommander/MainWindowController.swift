@@ -62,6 +62,9 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
             let item = NSSplitViewItem(viewController: panel)
             item.minimumThickness = 240
             item.canCollapse = true
+            // The panels keep the width the divider gives them: above what their contents ask for (equal
+            // tabs sized to the longest name, a long status line), below dragging the divider.
+            item.holdingPriority = .init(NSLayoutConstraint.Priority.dragThatCannotResizeWindow.rawValue - 10)
             split.addSplitViewItem(item)
         }
         window.contentViewController = container()

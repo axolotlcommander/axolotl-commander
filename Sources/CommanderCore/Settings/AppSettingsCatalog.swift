@@ -59,6 +59,8 @@ extension SettingsCatalog {
         PreferenceSpec(ThumbnailSize.key, .string(allowed: values(ThumbnailSize.self)),
                        default: .string(ThumbnailSize.default.rawValue)),
         PreferenceSpec(UpdateState.automaticKey, .bool, default: .bool(true)),
+        PreferenceSpec(FindWindowBehavior.key, .string(allowed: values(FindWindowBehavior.self)),
+                       default: .string(FindWindowBehavior.default.rawValue)),
     ], toolbarKey: toolbarKey)
 
     /// AppKit's autosave key of the main window toolbar ("MainToolbar").

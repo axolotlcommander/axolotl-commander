@@ -18,11 +18,21 @@ final class CommandLineBar: NSView, NSTextFieldDelegate {
 
     private static let historyKey = "commandLine.history"
 
+    /// Monospaced, a point larger than the main window font (spec 031); 12 pt by default.
+    private static var font: NSFont { PanelFont.windowMonospaced(defaultSize: NSFont.systemFontSize - 1) }
+
+    @objc private func appearanceChanged() {
+        guard prompt.font != Self.font else { return }
+        prompt.font = Self.font
+        field.font = Self.font
+        invalidateIntrinsicContentSize()
+    }
+
     override init(frame: NSRect) {
         history = CommandHistory(entries: UserDefaults.standard.stringArray(forKey: Self.historyKey) ?? [])
         super.init(frame: frame)
 
-        let font = NSFont.monospacedSystemFont(ofSize: NSFont.systemFontSize - 1, weight: .regular)
+        let font = Self.font
         prompt.font = font
         prompt.textColor = .secondaryLabelColor
         prompt.lineBreakMode = .byTruncatingHead
@@ -35,6 +45,8 @@ final class CommandLineBar: NSView, NSTextFieldDelegate {
         field.cell?.isScrollable = true
         field.cell?.wraps = false
         field.delegate = self
+        NotificationCenter.default.addObserver(self, selector: #selector(appearanceChanged),
+                                               name: .appearanceChanged, object: nil)
 
         let stack = NSStackView(views: [prompt, field])
         stack.orientation = .horizontal

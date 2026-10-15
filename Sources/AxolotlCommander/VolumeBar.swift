@@ -124,6 +124,12 @@ final class VolumeBar: NSView {
         reload()
     }
 
+    /// Takes the main window font chosen in Settings.
+    func applyFont() {
+        freeSpace.applyFont()
+        reload()
+    }
+
     private func reload() {
         items = VolumeBarModel.items(volumes: VolumeList.shared.current, home: FileManager.default.homeDirectoryForCurrentUser,
                                      iCloud: Self.iCloudDrive, servers: ServerConnectionsUI.shared.opened,
@@ -210,8 +216,8 @@ final class VolumeBar: NSView {
         button.action = #selector(clicked(_:))
         button.bezelStyle = .accessoryBarAction
         button.setButtonType(.pushOnPushOff)
-        button.controlSize = .small
-        button.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
+        button.controlSize = PanelFont.buttonControlSize
+        button.font = PanelFont.window
         button.image = image
         button.imagePosition = .imageLeading
         button.refusesFirstResponder = true
@@ -222,7 +228,7 @@ final class VolumeBar: NSView {
 
     private static func symbol(_ name: String) -> NSImage? {
         NSImage(systemSymbolName: name, accessibilityDescription: nil)?
-            .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: 11, weight: .regular))
+            .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: PanelFont.window.pointSize, weight: .regular))
     }
 
     /// Volumes being ejected show a spinner in place of the ⏏.

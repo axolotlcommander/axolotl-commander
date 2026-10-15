@@ -64,7 +64,7 @@ final class HistoryListSheet: NSObject, NSSearchFieldDelegate, NSTableViewDataSo
         column.resizingMask = .autoresizingMask
         tableView.addTableColumn(column)
         tableView.headerView = nil
-        tableView.rowHeight = 22
+        tableView.rowHeight = PanelFont.rowHeight + 4
         tableView.style = .plain
         tableView.columnAutoresizingStyle = .firstColumnOnlyAutoresizingStyle
         tableView.dataSource = self
@@ -187,8 +187,8 @@ final class HistoryListSheet: NSObject, NSSearchFieldDelegate, NSTableViewDataSo
         let cell = tableView.makeView(withIdentifier: id, owner: nil) as? NSTableCellView ?? makeCell(id)
         let entry = rows[shown[row]]
         cell.textField?.stringValue = entry.text
-        cell.textField?.font = entry.isCurrent ? .boldSystemFont(ofSize: NSFont.systemFontSize)
-                                               : .systemFont(ofSize: NSFont.systemFontSize)
+        // The file list font, as the history window of the classic commander (spec 031).
+        cell.textField?.font = entry.isCurrent ? PanelFont.faces(.fileList).bold : PanelFont.list
         cell.textField?.toolTip = entry.text
         cell.imageView?.image = NSImage(systemSymbolName: entry.symbol, accessibilityDescription: nil)
         return cell

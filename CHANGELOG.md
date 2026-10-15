@@ -5,6 +5,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-10-15
+
+### Added
+
+- Fonts: Settings → Appearance → Fonts chooses the font (family, style
+  and size) of the file lists and of the main window, each separately, in the standard Fonts panel,
+  with the result shown at once. The file list font is used for the rows, the column titles, the
+  status line under the panel, Folder History and the hot path menu; the main window font for the
+  volume bar, the drive row, the path, the tabs, the command line and the function keys. Rows and
+  bars grow with the font; "Default" and "Restore Default Fonts" bring back the usual look. View →
+  Bigger, Smaller and Default File List Font change the size from the keyboard (keys can be assigned
+  in Settings → Keyboard).
+- Find Files: a double click or Return on a result goes to the
+  file in the panel, and the buttons F3 View, F4 Edit, New Search, Go to File and Results to Panel
+  sit under the results. After going to a file the Find window steps aside and Find Files brings it
+  back with its results and the search text selected, ready to be typed over (Settings → General → After going to a file; "Keep the Find window open"
+  keeps the old behavior). Find Files in New Window… runs another search next to it; Open stays on
+  ⌘O.
+
+### Fixed
+
+- The divider between the panels moved by itself and jumped back after dragging: a long file name
+  under the cursor or a long folder name in a tab widened its panel. The panels now keep the width
+  set with the divider, also after the next start.
+- Find Files: the form was cut off at both sides when the window was narrow, and More Options
+  pushed the Find button out of sight. The window no longer gets narrower than the form, in any
+  language.
+
 ## [0.7.2] - 2026-10-15
 
 ### Fixed

@@ -5,6 +5,31 @@ Formát vychází z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ve
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-10-15
+
+### Přidáno
+
+- Písma: Nastavení → Vzhled → Písma vybírá písmo (rodinu, řez
+  a velikost) seznamu souborů a hlavního okna, každé zvlášť, ve standardním panelu Písma a výsledek je
+  vidět hned. Písmo seznamu souborů platí pro řádky, záhlaví sloupců, stavový řádek pod panelem,
+  Historii složek a nabídku oblíbených cest; písmo hlavního okna pro lištu svazků, řádek disku, cestu,
+  záložky, příkazovou řádku a funkční klávesy. Řádky i lišty rostou s písmem; „Výchozí“ a „Obnovit
+  výchozí písma“ vrátí obvyklý vzhled. Zobrazit → Větší, Menší a Výchozí písmo seznamu souborů mění
+  velikost z klávesnice (klávesy lze přiřadit v Nastavení → Klávesnice).
+- Hledat soubory: dvojklik nebo Return na výsledku přejde na
+  soubor v panelu a pod výsledky jsou tlačítka F3 Zobrazit, F4 Upravit, Nové hledání, Přejít na
+  soubor a Výsledky do panelu. Po přechodu na soubor se okno hledání schová a Hledat soubory ho vrátí
+  i s výsledky a s označeným hledaným textem, který stačí přepsat (Nastavení → Obecné → Po přechodu na soubor; „Nechat okno hledání otevřené“ zachová
+  dosavadní chování). Hledat soubory v novém okně… spustí další hledání vedle; Otevřít zůstává na ⌘O.
+
+### Opraveno
+
+- Dělítko mezi panely se samo posouvalo a po přetažení skákalo zpět: dlouhý název souboru pod kurzorem
+  nebo dlouhý název složky v záložce rozšířil svůj panel. Panely teď drží šířku nastavenou dělítkem,
+  i po dalším spuštění.
+- Hledat soubory: v úzkém okně byl formulář po obou stranách oříznutý a Další volby vytlačily
+  tlačítko Hledat z dohledu. Okno už nejde zúžit pod šířku formuláře, v žádném jazyce.
+
 ## [0.7.2] - 2026-10-15
 
 ### Opraveno

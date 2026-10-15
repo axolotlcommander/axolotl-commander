@@ -35,8 +35,24 @@ final class FindTableView: NSTableView, NSMenuItemValidation {
 final class FindWindowController: NSWindowController, NSWindowDelegate, NSMenuItemValidation,
     NSTableViewDataSource, NSTableViewDelegate {
     private static var open: [FindWindowController] = []
+    /// The window that stepped aside after Go to File (spec 032); Find Files brings it back.
+    private static var hidden: FindWindowController?
 
+    private static var behavior: FindWindowBehavior { FindWindowBehavior(defaults: .standard) }
+
+    /// Find Files: the hidden window with its results, otherwise a new one.
     static func show(from main: MainWindowController) {
+        guard let controller = hidden else { return showNew(from: main) }
+        hidden = nil
+        if controller.main == nil { controller.main = main }
+        controller.showWindow(nil)
+        // The name field takes the focus with its text selected, so typing starts the next search.
+        controller.form.nameFocusRequest += 1
+        controller.showPendingAlert()
+    }
+
+    /// Find Files in New Window, and Find Files without a hidden window.
+    static func showNew(from main: MainWindowController) {
         let panel = main.activePanel
         let controller = FindWindowController(main: main, directory: panel.diskFolder, showHidden: panel.showsHidden)
         open.append(controller)
@@ -66,6 +82,14 @@ final class FindWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
     private let statusField = NSTextField(labelWithString: "")
     private let spinner = NSProgressIndicator()
     private let problemsButton = NSButton(title: "", target: nil, action: nil)
+    /// The buttons under the results, as in the classic commander (spec 032).
+    private var actionButtons: [(button: NSButton, command: Command)] = []
+    /// A button acts on the selection, never on a row clicked earlier.
+    private var ignoresClickedRow = false
+    /// A message for a window that is hidden; shown when it comes back.
+    private var pendingAlert: String?
+    /// Results of an older search arriving after New Search are dropped.
+    private var generation = 0
 
     private var items: [FileItem] = []
     /// Duplicate group of each result (duplicate searches only).
@@ -106,6 +130,17 @@ final class FindWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
             window.setFrameTopLeftPoint(window.cascadeTopLeft(from: NSPoint(x: last.frame.minX, y: last.frame.maxY)))
         } else if !window.setFrameUsingName("Find") {
             window.center()
+        }
+        // The form never gets narrower than its controls, whatever the language. A narrow proposal
+        // wraps the labels and shrinks the measure, so a modest one returns what the form needs.
+        let formWidth = NSHostingController(rootView: FindFormView(form: form))
+            .sizeThatFits(in: NSSize(width: 400, height: 2000)).width
+        let minWidth = window.frameRect(forContentRect: NSRect(x: 0, y: 0, width: formWidth, height: 1)).width
+        window.minSize.width = max(window.minSize.width, ceil(minWidth))
+        if window.frame.width < window.minSize.width {
+            var frame = window.frame
+            frame.size.width = window.minSize.width
+            window.setFrame(frame, display: false)
         }
         window.setFrameAutosaveName("Find")
         // Quick Look looks for its controller along the responder chain.
@@ -172,18 +207,59 @@ final class FindWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         status.spacing = 6
         status.edgeInsets = NSEdgeInsets(top: 4, left: 10, bottom: 4, right: 10)
 
+        let buttons = NSStackView(views: actionButtonViews())
+        buttons.spacing = 8
+        buttons.distribution = .fillEqually
+        buttons.edgeInsets = NSEdgeInsets(top: 2, left: 10, bottom: 10, right: 10)
+
         let separator = NSBox()
         separator.boxType = .separator
-        let stack = NSStackView(views: [formView, separator, scroll, status])
+        let stack = NSStackView(views: [formView, separator, scroll, status, buttons])
         stack.orientation = .vertical
         stack.spacing = 0
         stack.alignment = .leading
-        for view in [formView, separator, scroll, status] {
+        for view in [formView, separator, scroll, status, buttons] {
             view.widthAnchor.constraint(equalTo: stack.widthAnchor).isActive = true
         }
         formView.setContentHuggingPriority(.required, for: .vertical)
         scroll.setContentHuggingPriority(.defaultLow, for: .vertical)
         window.contentView = stack
+    }
+
+    /// F3 View, F4 Edit, New Search, Go to File, Results to Panel: the commands of their keys.
+    /// Return in the results runs Go to File; the form's Find button stays the window's default button.
+    private func actionButtonViews() -> [NSButton] {
+        let commands: [(Command, String)] = [
+            (.findView, String(localized: "F3 View")), (.findEdit, String(localized: "F4 Edit")),
+            (.findNewSearch, String(localized: "New Search")), (.findShowInPanel, String(localized: "Go to File")),
+            (.findToPanel, String(localized: "Results to Panel")),
+        ]
+        actionButtons = commands.map { command, title in
+            let button = NSButton(title: title, target: self, action: #selector(actionButtonClicked(_:)))
+            button.refusesFirstResponder = true
+            button.lineBreakMode = .byTruncatingTail
+            button.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+            button.toolTip = CommandRegistry.spec(command).localizedTitle
+            return (button, command)
+        }
+        return actionButtons.map(\.button)
+    }
+
+    @objc private func actionButtonClicked(_ sender: NSButton) {
+        guard let command = actionButtons.first(where: { $0.button === sender })?.command else { return }
+        ignoresClickedRow = true
+        defer { ignoresClickedRow = false }
+        guard canPerform(command) else { NSSound.beep(); return }
+        perform(command)
+    }
+
+    private func updateButtons() {
+        ignoresClickedRow = true
+        defer { ignoresClickedRow = false }
+        for (button, command) in actionButtons {
+            let enabled = canPerform(command) && (command != .findEdit || cursorItem.map { !$0.isDirectory || $0.isPackage } == true)
+            if button.isEnabled != enabled { button.isEnabled = enabled }
+        }
     }
 
     private func contextMenu() -> NSMenu {
@@ -227,11 +303,13 @@ final class FindWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         let started = Date()
         let encoding = ViewerDefaults.encoding
         searchRoots = criteria.roots.map { URL(filePath: $0, directoryHint: .isDirectory) }
+        generation += 1
+        let current = generation
         searchTask = Task { [weak self] in
             var found: [FileItem] = []
             do {
                 for try await event in FileSearch.run(criteria, legacyEncoding: encoding) {
-                    guard let self else { return }
+                    guard let self, self.generation == current else { return }
                     switch event {
                     case .found(let batch):
                         if duplicates == nil { self.append(batch) } else { found += batch }
@@ -242,16 +320,18 @@ final class FindWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
                         self.problems.append((path, message))
                     }
                 }
+                guard self?.generation == current else { return }
                 if let duplicates, !Task.isCancelled {
                     self?.statusField.stringValue = String(localized: "Comparing \(found.count) files…")
                     let result = try await DuplicateFinder.groups(found, by: duplicates)
                     self?.show(groups: result)
                 }
+                guard self?.generation == current else { return }
                 self?.finish(Task.isCancelled ? .stopped : .finished(Date().timeIntervalSince(started)))
             } catch is CancellationError {
-                self?.finish(.stopped)
+                if self?.generation == current { self?.finish(.stopped) }
             } catch {
-                self?.finish(.failed(Self.describe(error)))
+                if self?.generation == current { self?.finish(.failed(Self.describe(error))) }
             }
         }
         form.isSearching = true
@@ -260,6 +340,26 @@ final class FindWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
 
     private func stopSearch() {
         searchTask?.cancel()
+    }
+
+    /// New Search: the search stops, the results go, the form stays and the name field takes the focus.
+    private func newSearch() {
+        generation += 1
+        searchTask?.cancel()
+        searchTask = nil
+        form.isSearching = false
+        items = []
+        groups = [:]
+        problems = []
+        outcome = nil
+        pendingAlert = nil
+        progress = SearchProgress(currentDirectory: "", directories: 0, files: 0, matches: 0)
+        table.usesAlternatingRowBackgroundColors = true
+        table.reloadData()
+        window?.title = String(localized: "Find Files")
+        if isQuickLooking { QLPreviewPanel.shared()?.orderOut(nil) }
+        updateStatus()
+        form.nameFocusRequest += 1
     }
 
     private func finish(_ result: Outcome) {
@@ -327,6 +427,7 @@ final class FindWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         }
         problemsButton.isHidden = problems.isEmpty
         problemsButton.title = String(localized: "\(problems.count) not readable…")
+        updateButtons()
     }
 
     @objc private func showProblems() {
@@ -346,9 +447,16 @@ final class FindWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
     }
 
     private func alert(_ text: String) {
+        guard let window, window.isVisible else { pendingAlert = text; return }
         let alert = NSAlert()
         alert.messageText = text
-        if let window { alert.beginSheetModal(for: window) }
+        alert.beginSheetModal(for: window)
+    }
+
+    fileprivate func showPendingAlert() {
+        guard let text = pendingAlert else { return }
+        pendingAlert = nil
+        alert(text)
     }
 
     private func chooseFolder() {
@@ -433,6 +541,7 @@ final class FindWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
 
     func tableViewSelectionDidChange(_ notification: Notification) {
         updateQuickLook()
+        updateButtons()
     }
 
     func tableView(_ tableView: NSTableView, pasteboardWriterForRow row: Int) -> (any NSPasteboardWriting)? {
@@ -470,20 +579,20 @@ final class FindWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
 
     @objc private func doubleClicked() {
         guard table.clickedRow >= 0 else { return }
-        perform(.findOpen)
+        perform(.findShowInPanel)
     }
 
     // MARK: Targets
 
     /// Selected results; the clicked row when the context menu opened outside the selection.
     private var targets: [FileItem] {
-        let clicked = table.clickedRow
+        let clicked = ignoresClickedRow ? -1 : table.clickedRow
         if clicked >= 0, !table.selectedRowIndexes.contains(clicked) { return [items[clicked]] }
         return table.selectedRowIndexes.map { items[$0] }
     }
 
     private var cursorItem: FileItem? {
-        let clicked = table.clickedRow
+        let clicked = ignoresClickedRow ? -1 : table.clickedRow
         if clicked >= 0 { return items[clicked] }
         let row = table.selectedRow
         return row >= 0 ? items[row] : nil
@@ -511,7 +620,7 @@ final class FindWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         switch command {
         case .findStart: return !isSearching
         case .findStop: return isSearching
-        case .findClose: return true
+        case .findClose, .findNewSearch: return true
         case .findToPanel: return !items.isEmpty && main != nil
         case .findOpen, .findShowInPanel, .findView, .findEdit, .findQuickLook, .findProperties,
              .findCopyFiles, .findCopyPaths, .findCopyNames, .findRemove:
@@ -528,7 +637,8 @@ final class FindWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         case .findStart: startSearch()
         case .findStop: stopSearch()
         case .findClose:
-            if isSearching { stopSearch() } else { window?.performClose(nil) }
+            if isSearching { stopSearch() } else if Self.behavior == .hide { stepAside() } else { window?.performClose(nil) }
+        case .findNewSearch: newSearch()
         case .findOpen: openTargets()
         case .findShowInPanel: if let item = cursorItem { showInPanel(item) }
         case .findView: view()
@@ -583,13 +693,49 @@ final class FindWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         let title = query.isEmpty ? String(localized: "Find Results") : String(localized: "Find Results: \(query)")
         let listing = ResultsListing(title: title, urls: items.map(\.url))
         main.activePanel.showResults(listing, focusing: cursorItem.map { listing.relativeName(of: $0.url) })
-        main.window?.makeKeyAndOrderFront(nil)
+        bringForward(main)
+        stepAside()
     }
 
+    /// Go to File: the active panel shows the item's folder with the cursor on it (a folder result: its
+    /// parent); a result deleted meanwhile shows its folder with a beep; a missing folder only a message.
     private func showInPanel(_ item: FileItem) {
-        guard let main else { return }
-        main.activePanel.go(to: item.url.deletingLastPathComponent(), focusing: item.name)
+        guard let main = resolvedMain else { return }
+        switch FindGoToTarget.resolve(item.url, exists: { FileManager.default.fileExists(atPath: $0.path) }) {
+        case .focus(let folder, let name):
+            main.activePanel.go(to: folder, focusing: name)
+        case .folderOnly(let folder):
+            main.activePanel.go(to: folder)
+            NSSound.beep()
+        case .gone(let folder):
+            alert(String(localized: "The folder “\(folder.displayPath)” no longer exists."))
+            return
+        }
+        bringForward(main)
+        stepAside()
+    }
+
+    /// The main window Find was opened from, or the frontmost one when that was closed.
+    private var resolvedMain: MainWindowController? {
+        if let main { return main }
+        main = NSApp.orderedWindows.lazy.compactMap { $0.windowController as? MainWindowController }.first
+        return main
+    }
+
+    /// The main window comes to the front with the focus in its active panel.
+    private func bringForward(_ main: MainWindowController) {
         main.window?.makeKeyAndOrderFront(nil)
+        main.activate(main.activeSide)
+    }
+
+    /// With "Hide the Find window" the window steps aside, keeping everything; Find Files brings it back.
+    /// Only the last hidden window is kept.
+    private func stepAside() {
+        guard Self.behavior == .hide, let window else { return }
+        if let earlier = Self.hidden, earlier !== self { earlier.close() }
+        Self.hidden = self
+        if isQuickLooking { QLPreviewPanel.shared()?.orderOut(nil) }
+        window.orderOut(nil)
     }
 
     /// F3: the viewer walks through the found files; media goes to Quick Look.
@@ -640,6 +786,7 @@ final class FindWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         searchTask?.cancel()
         if isQuickLooking { QLPreviewPanel.shared()?.orderOut(nil) }
         Self.open.removeAll { $0 === self }
+        if Self.hidden === self { Self.hidden = nil }
     }
 }
 

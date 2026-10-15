@@ -20,12 +20,14 @@ final class FreeSpaceLabel: NSView {
 
     private let label = NSTextField(labelWithString: "")
     private var variants: [String] = []
-    private static let font = NSFont.systemFont(ofSize: NSFont.smallSystemFontSize)
+    /// In the status line it takes the status line's font (the file list's), elsewhere the main window's.
+    var inStatusLine = false { didSet { applyFont() } }
+    private var font: NSFont { inStatusLine ? PanelFont.listSmall : PanelFont.window }
     private static let padding: CGFloat = 4
 
     override init(frame: NSRect) {
         super.init(frame: frame)
-        label.font = Self.font
+        label.font = font
         label.textColor = .secondaryLabelColor
         label.lineBreakMode = .byClipping
         label.alignment = .right
@@ -37,19 +39,26 @@ final class FreeSpaceLabel: NSView {
     @available(*, unavailable)
     required init?(coder: NSCoder) { fatalError() }
 
+    /// Takes the font of its role chosen in Settings.
+    func applyFont() {
+        label.font = font
+        invalidateIntrinsicContentSize()
+        needsLayout = true
+    }
+
     /// The width of the full text.
     override var intrinsicContentSize: NSSize {
-        NSSize(width: variants.first.map(Self.width) ?? 0, height: label.intrinsicContentSize.height)
+        NSSize(width: variants.first.map(width) ?? 0, height: label.intrinsicContentSize.height)
     }
 
     /// The width the label takes in `available` points (0 when no text fits).
     func width(fitting available: CGFloat) -> CGFloat {
-        FreeSpaceText.fitting(variants, available: available) { Self.width($0) }.map(Self.width) ?? 0
+        FreeSpaceText.fitting(variants, available: available) { self.width($0) }.map(width) ?? 0
     }
 
     override func layout() {
         super.layout()
-        let text = FreeSpaceText.fitting(variants, available: bounds.width) { Self.width($0) } ?? ""
+        let text = FreeSpaceText.fitting(variants, available: bounds.width) { self.width($0) } ?? ""
         if label.stringValue != text { label.stringValue = text }
         let height = label.intrinsicContentSize.height
         label.frame = NSRect(x: 0, y: ((bounds.height - height) / 2).rounded(), width: bounds.width, height: height)
@@ -64,8 +73,8 @@ final class FreeSpaceLabel: NSView {
         if !label.stringValue.isEmpty { addCursorRect(bounds, cursor: .pointingHand) }
     }
 
-    private static func width(_ text: String) -> CGFloat {
-        ((text as NSString).size(withAttributes: [.font: font]).width + padding).rounded(.up)
+    private func width(_ text: String) -> CGFloat {
+        ((text as NSString).size(withAttributes: [.font: font]).width + Self.padding).rounded(.up)
     }
 }
 
@@ -75,12 +84,13 @@ final class DriveRowView: NSView {
     var onOpenMenu: ((NSView) -> Void)?
     let freeSpace = FreeSpaceLabel()
     private let combo = NSButton()
+    private var shown: (title: String, icon: NSImage?)?
 
     override init(frame: NSRect) {
         super.init(frame: frame)
         combo.bezelStyle = .accessoryBarAction
-        combo.controlSize = .small
-        combo.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
+        combo.controlSize = PanelFont.buttonControlSize
+        combo.font = PanelFont.window
         combo.imagePosition = .imageLeading
         combo.refusesFirstResponder = true
         combo.lineBreakMode = .byTruncatingTail
@@ -104,10 +114,22 @@ final class DriveRowView: NSView {
     @available(*, unavailable)
     required init?(coder: NSCoder) { fatalError() }
 
-    override var intrinsicContentSize: NSSize { NSSize(width: NSView.noIntrinsicMetric, height: 20) }
+    override var intrinsicContentSize: NSSize {
+        NSSize(width: NSView.noIntrinsicMetric, height: 20 + PanelFont.windowGrowth)
+    }
+
+    /// Takes the main window font chosen in Settings.
+    func applyFont() {
+        combo.controlSize = PanelFont.buttonControlSize
+        combo.font = PanelFont.window
+        if let shown { show(title: shown.title, icon: shown.icon) }
+        freeSpace.applyFont()
+        invalidateIntrinsicContentSize()
+    }
 
     /// Shows `title` and `icon` in the combo, with a chevron after the title.
     func show(title: String, icon: NSImage?) {
+        shown = (title, icon)
         let text = NSMutableAttributedString(string: title + " ", attributes: [.font: combo.font ?? .systemFont(ofSize: 11)])
         if let chevron = NSImage(systemSymbolName: "chevron.down", accessibilityDescription: nil)?
             .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: 8, weight: .semibold)) {

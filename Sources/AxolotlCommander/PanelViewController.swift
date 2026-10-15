@@ -133,6 +133,12 @@ final class PanelViewController: NSViewController {
     let driveRow = DriveRowView()
     /// The free space at the right end of the status line, when both bars above are hidden.
     let statusSpace = FreeSpaceLabel()
+    /// The fonts the panel shows (spec 031); a change in Settings re-lays the lists and bars.
+    private var shownFonts = PanelViewController.currentFonts
+
+    private static var currentFonts: [FontRole: FontChoice] {
+        Dictionary(uniqueKeysWithValues: FontRole.allCases.compactMap { role in PanelFont.choice(role).map { (role, $0) } })
+    }
     let diskSpace = DiskSpaceMonitor()
     let tabStrip = TabStrip()
     let briefView = BriefGridView()
@@ -213,7 +219,7 @@ final class PanelViewController: NSViewController {
         let root = PanelRootView()
         root.onClick = { [weak self] in self?.activateFromClick() }
 
-        pathField.font = .monospacedSystemFont(ofSize: NSFont.smallSystemFontSize, weight: .regular)
+        pathField.font = PanelFont.windowMonospaced()
         pathField.isBordered = false
         pathField.drawsBackground = true
         pathField.focusRingType = .none
@@ -238,9 +244,11 @@ final class PanelViewController: NSViewController {
             if column.isNumeric { tc.headerCell.alignment = .right }
             tableView.addTableColumn(tc)
         }
-        tableView.headerView = PanelHeaderView(frame: tableView.headerView?.frame ?? .zero)
+        let header = PanelHeaderView(frame: tableView.headerView?.frame ?? .zero)
+        tableView.headerView = header
+        header.applyFont()
         tableView.style = .plain
-        tableView.rowHeight = 18
+        tableView.rowHeight = PanelFont.rowHeight
         tableView.intercellSpacing = NSSize(width: 6, height: 0)
         tableView.usesAlternatingRowBackgroundColors = true
         tableView.allowsMultipleSelection = false
@@ -271,7 +279,7 @@ final class PanelViewController: NSViewController {
         scroll.hasVerticalScroller = true
         scroll.autohidesScrollers = true
 
-        statusField.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
+        statusField.font = PanelFont.listSmall
         statusField.textColor = .secondaryLabelColor
         statusField.lineBreakMode = .byTruncatingMiddle
 
@@ -329,10 +337,13 @@ final class PanelViewController: NSViewController {
         }
         lists.setContentHuggingPriority(.defaultLow, for: .vertical)
 
-        statusField.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+        // Above the free space beside it (which gives way first), below the divider: a long name under
+        // the cursor is shortened, it never widens the panel.
+        statusField.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         let statusRow = NSStackView()
         statusRow.orientation = .horizontal
         statusRow.addView(statusField, in: .leading)
+        statusSpace.inStatusLine = true
         statusRow.addView(statusSpace, in: .trailing)
         statusRow.spacing = 8
         configureDriveRow()
@@ -391,6 +402,65 @@ final class PanelViewController: NSViewController {
     }
 
     /// Reloads the grid of the current mode and scrolls it to the cursor.
+    /// Re-lays the lists and bars when Settings changed a font; false when the fonts are unchanged.
+    func applyFonts() -> Bool {
+        let fonts = Self.currentFonts
+        guard fonts != shownFonts else { return false }
+        let changed = { (role: FontRole) in fonts[role] != self.shownFonts[role] }
+        let oldFaces = PanelFont.faces(.fileList, choice: shownFonts[.fileList])
+        let oldBold = oldFaces.bold
+        let oldHeader = PanelFont.listSmall(oldFaces)
+        let listChanged = changed(.fileList)
+        if changed(.mainWindow) {
+            pathBar.applyFont()
+            tabStrip.applyFont()
+            driveRow.applyFont()
+            volumeBar.applyFont()
+        }
+        if changed(.fileList) {
+            statusField.font = PanelFont.listSmall
+            statusSpace.applyFont()
+            (tableView.headerView as? PanelHeaderView)?.applyFont()
+        }
+        shownFonts = fonts
+        guard listChanged else { return true }
+        // Size and Date keep their share of the space the values need in the new font.
+        for column in [Column.size, .date] {
+            guard let tc = tableView.tableColumn(withIdentifier: column.identifier) else { continue }
+            let old = column.fitWidth(oldBold), new = column.fitWidth
+            tc.width = max(column.minWidth, (tc.width * new / max(old, 1)).rounded())
+        }
+        // Extension keeps its share of its title's width in the header font, so the title still fits and
+        // going back to the default font gives back the width it had.
+        if let tc = tableView.tableColumn(withIdentifier: Column.ext.identifier) {
+            let width = { (font: NSFont) in NSAttributedString(string: tc.title, attributes: [.font: font]).size().width }
+            let old = width(oldHeader), new = width(PanelFont.listSmall)
+            tc.width = max(Column.ext.minWidth, (tc.width * new / max(old, 1)).rounded())
+        }
+        // The reload must not move the cursor: the table would select its first row meanwhile.
+        syncingSelection = true
+        defer { syncingSelection = false }
+        tableView.rowHeight = PanelFont.rowHeight
+        if let (row, _) = renaming, row < tableView.numberOfRows {
+            // The name being typed stays: its row keeps the field, which takes the new font.
+            let column = tableView.column(withIdentifier: Column.name.identifier)
+            (tableView.view(atColumn: column, row: row, makeIfNecessary: false) as? NSTableCellView)?
+                .textField?.font = PanelFont.list
+            var others = IndexSet(0..<tableView.numberOfRows)
+            others.remove(row)
+            tableView.reloadData(forRowIndexes: others, columnIndexes: IndexSet(0..<tableView.numberOfColumns))
+        } else {
+            tableView.reloadData()
+        }
+        if model.items.indices.contains(model.cursor) {
+            tableView.selectRowIndexes([model.cursor], byExtendingSelection: false)
+            if viewMode == .detailed { tableView.scrollRowToVisible(model.cursor) }
+        }
+        briefView.collectionViewLayout?.invalidateLayout()
+        thumbnailView.collectionViewLayout?.invalidateLayout()
+        return true
+    }
+
     func reloadGrid() {
         switch viewMode {
         case .detailed: break
@@ -843,7 +913,7 @@ final class PanelViewController: NSViewController {
         .quickFilter, .quickFilterLast, .folderHistory,
         .copyAs, .makeDirectoryInOtherPanel, .viewCursorFile, .packAndMove, .testArchives, .splitFile, .combineFiles, .encodeFile, .decodeFile,
         .toggleSelectionInPlace, .selectAllFiles, .deselectAllFiles,
-        .find, .pack, .unpack, .connectToServer, .disconnect, .ejectVolume, .compareFiles,
+        .find, .findInNewWindow, .pack, .unpack, .connectToServer, .disconnect, .ejectVolume, .compareFiles,
         .changeCase, .batchRename, .calculateChecksums, .verifyChecksums, .occupiedSpace, .userMenu,
         .contextMenu, .moveFilesHere, .invertAll, .restoreSelection, .saveSelection, .loadSelection, .volumeInfo,
         .newSymbolicLink, .newHardLink, .editSymbolicLink, .pasteAsSymbolicLink, .goToLinkTarget, .changeAttributes,
@@ -948,7 +1018,7 @@ final class PanelViewController: NSViewController {
     private func canPerformOnServer(_ command: Command) -> Bool? {
         switch command {
         case .newFile, .pasteFiles, .copyFiles, .quickLook, .properties, .pack, .unpack,
-             .openTerminal, .revealInFinder, .find:
+             .openTerminal, .revealInFinder, .find, .findInNewWindow:
             return false
         case .edit, .view: return model.cursorItem.map { !$0.isParent && !$0.isDirectory } ?? false
         default: return nil
@@ -1050,6 +1120,7 @@ final class PanelViewController: NSViewController {
         case .contextMenu: showContextMenu()
         case .view: openViewer()
         case .find: if let router { FindWindowController.show(from: router) }
+        case .findInNewWindow: if let router { FindWindowController.showNew(from: router) }
         case .compareFiles: Task { await CompareFiles.ask(from: self) }
         case .changeCase: ChangeCaseSheet.show(for: self)
         case .batchRename: BatchRenameSheet.show(for: self)
@@ -1787,30 +1858,41 @@ private enum Column: String, CaseIterable {
 
     /// The width that fits every value in full, also in bold (marked rows): the initial width of
     /// Size and Date.
-    var fitWidth: CGFloat {
+    var fitWidth: CGFloat { fitWidth(PanelFont.faces(.fileList).bold) }
+
+    func fitWidth(_ font: NSFont) -> CGFloat {
         switch self {
-        case .date: Self.dateWidth
-        case .size: Self.sizeWidth
+        case .date: Self.dateWidth(font)
+        case .size: Self.sizeWidth(font)
         default: minWidth
         }
     }
 
+    private static var measured: [String: CGFloat] = [:]
+
+    /// A width measured once per font.
+    private static func cached(_ key: String, _ font: NSFont, _ measure: (NSFont) -> CGFloat) -> CGFloat {
+        let key = "\(key) \(font.fontName) \(font.pointSize)"
+        if let width = measured[key] { return width }
+        let width = measure(font)
+        measured[key] = width
+        return width
+    }
+
     /// The Size column's width for the mode chosen in Settings.
-    private static var sizeWidth: CGFloat {
-        SizeSettings.saved.display == .bytes ? bytesWidth : finderWidth
+    private static func sizeWidth(_ font: NSFont) -> CGFloat {
+        SizeSettings.saved.display == .bytes ? cached("bytes", font, bytesWidth) : cached("finder", font, finderWidth)
     }
 
     /// Sizes up to 999 GB in bytes with grouping, measured in the bold font, plus the cell's insets.
-    private static let bytesWidth: CGFloat = {
-        let font = NSFont.boldSystemFont(ofSize: NSFont.systemFontSize)
+    private static func bytesWidth(_ font: NSFont) -> CGFloat {
         let widest = (Format.grouped(999_999_999_999) as NSString).size(withAttributes: [.font: font]).width
         return ceil(widest) + 12
-    }()
+    }
 
     /// The widest rounded size up to the terabytes in either base ("1 023 bajtů", "999,9 MB"),
     /// measured in the bold font, plus the cell's insets.
-    private static let finderWidth: CGFloat = {
-        let font = NSFont.boldSystemFont(ofSize: NSFont.systemFontSize)
+    private static func finderWidth(_ font: NSFont) -> CGFloat {
         var samples: [Int64] = [999, 1_023]
         for base in [1000.0, 1024.0] {
             for power in 1...4 {
@@ -1820,11 +1902,12 @@ private enum Column: String, CaseIterable {
         let widest = samples.flatMap { bytes in SizeUnits.allCases.map { SizeFormat.rounded(bytes, units: $0) } }
             .map { ($0 as NSString).size(withAttributes: [.font: font]).width }.max() ?? 0
         return ceil(widest) + 12
-    }()
+    }
+
+    private static func dateWidth(_ font: NSFont) -> CGFloat { cached("date", font, measureDate) }
 
     /// The widest date the current locale writes, measured in the bold font, plus the cell's insets.
-    private static let dateWidth: CGFloat = {
-        let font = NSFont.boldSystemFont(ofSize: NSFont.systemFontSize)
+    private static func measureDate(_ font: NSFont) -> CGFloat {
         var widest: CGFloat = 0
         let calendar = Calendar.current
         // Two-digit months, days, hours and minutes with various digits; morning and afternoon.
@@ -1840,7 +1923,7 @@ private enum Column: String, CaseIterable {
             }
         }
         return ceil(widest) + 12
-    }()
+    }
 
     var isNumeric: Bool { self == .size || self == .date }
     var sortField: SortField {
@@ -1956,6 +2039,40 @@ extension PanelViewController: NSTableViewDataSource, NSTableViewDelegate {
 /// (the right edge stays at the panel's edge), and Name makes up the difference.
 final class PanelHeaderView: NSTableHeaderView {
     private static let grip: CGFloat = 8
+    private var standard: (font: NSFont?, height: CGFloat)?
+
+    /// Column titles in the file list font two points smaller (spec 031); the default keeps the standard look.
+    func applyFont() {
+        guard let table = tableView else { return }
+        if standard == nil { standard = (table.tableColumns.first?.headerCell.font, frame.height) }
+        guard let standard else { return }
+        let custom = PanelFont.choice(.fileList) != nil
+        let font = custom ? PanelFont.listSmall : standard.font
+        // The header cell draws its plain title in the standard font whatever `font` says; an attributed
+        // title keeps the chosen font, the column's alignment and the header text color.
+        for column in table.tableColumns {
+            let cell = column.headerCell
+            let title = cell.stringValue
+            if custom, let font {
+                let paragraph = NSMutableParagraphStyle()
+                paragraph.alignment = cell.alignment
+                paragraph.lineBreakMode = .byTruncatingTail
+                cell.attributedStringValue = NSAttributedString(string: title, attributes: [
+                    .font: font, .foregroundColor: NSColor.headerTextColor, .paragraphStyle: paragraph,
+                ])
+            } else {
+                cell.font = font
+                cell.stringValue = title
+            }
+        }
+        let base = PanelFont.lineHeight(of: standard.font ?? .systemFont(ofSize: NSFont.smallSystemFontSize))
+        let growth = custom ? max(0, (PanelFont.lineHeight(of: PanelFont.listSmall) - base).rounded(.up)) : 0
+        if frame.height != standard.height + growth {
+            setFrameSize(NSSize(width: frame.width, height: standard.height + growth))
+            table.enclosingScrollView?.tile()
+        }
+        needsDisplay = true
+    }
 
     private var lastEdge: NSRect? {
         guard let table = tableView, let last = table.tableColumns.indices.last else { return nil }
@@ -2031,7 +2148,8 @@ final class FileCellView: NSTableCellView {
     }
 
     private func fitText() {
-        guard let label = textField else { return }
+        // A name being renamed keeps what is typed (a column resized while editing must not shorten it).
+        guard let label = textField, label.currentEditor() == nil else { return }
         // The label's width follows from the constraints in init; its cell adds a little padding.
         let available = frame.width - (imageView == nil ? 4 : 24) - 4
         let font = label.font ?? .systemFont(ofSize: NSFont.systemFontSize)

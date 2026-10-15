@@ -326,6 +326,8 @@ extension PanelViewController {
     /// ⇧F9: defined hot paths, plus saving the current folder.
     func showHotPathsMenu() {
         let menu = NSMenu()
+        // In the file list font, as the folder lists of the classic commander (spec 031).
+        if let font = PanelFont.menuFont { menu.font = font }
         let hotPaths = AppSettings.shared.hotPaths
         for (slot, hotPath) in hotPaths.defined {
             let item = NSMenuItem(title: hotPath.name, action: #selector(hotPathChosen(_:)), keyEquivalent: "")
@@ -427,14 +429,13 @@ extension PanelViewController {
     }
 
     @objc private func appearanceChanged() {
-        tableView.reloadData()
+        if !applyFonts() { tableView.reloadData() }
         reloadGrid()
     }
 
-    /// Marked items are bold unless Settings → Appearance turns it off.
+    /// The file list font chosen in Settings; marked items are bold unless Settings → Appearance turns it off.
     func textFont(marked: Bool) -> NSFont {
-        marked && AppSettings.shared.appearance.markBold
-            ? .boldSystemFont(ofSize: NSFont.systemFontSize) : .systemFont(ofSize: NSFont.systemFontSize)
+        PanelFont.list(marked: marked)
     }
 
     /// Marked items use the mark color; others the first matching highlight rule.

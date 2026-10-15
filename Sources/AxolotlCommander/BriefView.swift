@@ -77,7 +77,7 @@ final class BriefItem: NSCollectionViewItem {
 }
 
 extension PanelViewController: NSCollectionViewDataSource {
-    static let briefRowHeight: CGFloat = 18
+    static var briefRowHeight: CGFloat { PanelFont.rowHeight }
 
     func configureBriefView() {
         let layout = NSCollectionViewFlowLayout()
@@ -108,11 +108,13 @@ extension PanelViewController: NSCollectionViewDataSource {
 
     func reloadBrief() {
         if let layout = briefView.collectionViewLayout as? NSCollectionViewFlowLayout {
-            let font = NSFont.systemFont(ofSize: NSFont.systemFontSize)
+            let font = PanelFont.list
             let ownNames = model.branch != nil
             let widest = model.items.prefix(2000).map { ((ownNames ? $0.fileName : $0.name) as NSString).size(withAttributes: [.font: font]).width }.max() ?? 0
-            let width = min(max(widest + 30, 110), 300).rounded()
-            if layout.itemSize.width != width { layout.itemSize = NSSize(width: width, height: Self.briefRowHeight) }
+            let scale = PanelFont.listScale
+            let width = min(max(widest + 30, 110 * scale), 300 * scale).rounded()
+            let size = NSSize(width: width, height: Self.briefRowHeight)
+            if layout.itemSize != size { layout.itemSize = size }
         }
         briefView.reloadData()
         scrollBriefToCursor()

@@ -24,7 +24,7 @@ final class FunctionKeyBarView: NSView {
     private var buttons: [FunctionKeyButton] = []
     private(set) var slots: [Command?] = Array(repeating: nil, count: FunctionKeyBar.count)
     private(set) var modifiers: KeyChord.Modifiers = []
-    private static let height: CGFloat = 24
+    private static var height: CGFloat { 24 + PanelFont.windowGrowth }
     static let gap: CGFloat = 1
     /// Room at both ends, so F1 does not sit in the window's rounded corner; the first key cap
     /// lines up with the command line field above.
@@ -44,6 +44,19 @@ final class FunctionKeyBarView: NSView {
         setAccessibilityElement(true)
         setAccessibilityRole(.group)
         setAccessibilityLabel(String(localized: "Function Key Bar"))
+        NotificationCenter.default.addObserver(self, selector: #selector(appearanceChanged),
+                                               name: .appearanceChanged, object: nil)
+    }
+
+    private var shownFont = PanelFont.choice(.mainWindow)
+
+    /// The main window font changed in Settings: taller or lower keys, labels in the new font.
+    @objc private func appearanceChanged() {
+        guard PanelFont.choice(.mainWindow) != shownFont else { return }
+        shownFont = PanelFont.choice(.mainWindow)
+        for button in buttons { button.applyFont() }
+        invalidateIntrinsicContentSize()
+        reload()
     }
 
     @available(*, unavailable)
@@ -135,7 +148,7 @@ private final class FunctionKeyButton: NSButton {
         bezelStyle = .recessed
         showsBorderOnlyWhileMouseInside = true
         controlSize = .small
-        font = .systemFont(ofSize: NSFont.smallSystemFontSize)
+        font = KeyCap.nameFont
         alignment = .left
         imagePosition = .noImage
         refusesFirstResponder = true
@@ -172,6 +185,11 @@ private final class FunctionKeyButton: NSButton {
         isEnabled = command != nil && isEnabled
         fitted = nil
         fitTitle()
+    }
+
+    func applyFont() {
+        font = KeyCap.nameFont
+        fitted = nil
     }
 
     func setAvailable(_ enabled: Bool) {
@@ -226,22 +244,26 @@ private final class FunctionKeyButton: NSButton {
 
 /// Sizes of the label: the key in a cap of one width for F1…F12, the name right after the cap.
 private enum KeyCap {
-    static let nameFont = NSFont.systemFont(ofSize: NSFont.smallSystemFontSize)
-    static let font = NSFont.monospacedDigitSystemFont(ofSize: NSFont.smallSystemFontSize - 1, weight: .medium)
+    /// The main window font (spec 031); the key in digits of one width, a point smaller.
+    static var nameFont: NSFont { PanelFont.window(defaultSize: NSFont.smallSystemFontSize) }
+    static var font: NSFont {
+        .monospacedDigitSystemFont(ofSize: PanelFont.window(defaultSize: NSFont.smallSystemFontSize - 1).pointSize,
+                                   weight: .medium)
+    }
     static let padding: CGFloat = 3
     static let gap: CGFloat = 4
-    static let width: CGFloat = {
+    static var width: CGFloat {
         let widest = NSAttributedString(string: "F12", attributes: [.font: font]).size().width
         return (widest + 2 * padding).rounded(.up)
-    }()
+    }
     /// Where every name starts, so names line up in every button whatever the held modifiers show.
-    static let nameOffset = width + gap
+    static var nameOffset: CGFloat { width + gap }
 }
 
 /// The recessed bezel with narrower side margins than the system's, so longer names fit.
 private final class FunctionKeyButtonCell: NSButtonCell {
     private static let margin: CGFloat = 3
-    private static let lineHeight = NSLayoutManager().defaultLineHeight(for: KeyCap.nameFont).rounded(.up)
+    private static var lineHeight: CGFloat { PanelFont.lineHeight(of: KeyCap.nameFont).rounded(.up) }
 
     override var cellSize: NSSize {
         NSSize(width: attributedTitle.size().width.rounded(.up) + 2 * Self.margin, height: super.cellSize.height)

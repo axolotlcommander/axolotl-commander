@@ -84,12 +84,34 @@ public struct PanelAppearance: Codable, Hashable, Sendable {
     public var markBold: Bool
     /// The first enabled matching rule from the top wins.
     public var highlights: [HighlightRule]
+    /// Font of the file lists; nil = the system font at the default size.
+    public var listFont: FontChoice?
+    /// Font of the rest of the main window (bars, tabs, command line, function keys); nil = the default.
+    public var windowFont: FontChoice?
 
     public init(markColor: SystemColor = .red, markBold: Bool = true,
-                highlights: [HighlightRule] = PanelAppearance.defaultHighlights) {
+                highlights: [HighlightRule] = PanelAppearance.defaultHighlights,
+                listFont: FontChoice? = nil, windowFont: FontChoice? = nil) {
         self.markColor = markColor
         self.markBold = markBold
         self.highlights = highlights
+        self.listFont = listFont
+        self.windowFont = windowFont
+    }
+
+    /// The stored font of a role; nil = its default.
+    public func font(_ role: FontRole) -> FontChoice? {
+        switch role {
+        case .fileList: listFont
+        case .mainWindow: windowFont
+        }
+    }
+
+    public mutating func setFont(_ choice: FontChoice?, for role: FontRole) {
+        switch role {
+        case .fileList: listFont = choice
+        case .mainWindow: windowFont = choice
+        }
     }
 
     /// Missing keys fall back to defaults.
@@ -98,7 +120,9 @@ public struct PanelAppearance: Codable, Hashable, Sendable {
         self.init(
             markColor: try c.decodeIfPresent(SystemColor.self, forKey: .markColor) ?? .red,
             markBold: try c.decodeIfPresent(Bool.self, forKey: .markBold) ?? true,
-            highlights: try c.decodeIfPresent([HighlightRule].self, forKey: .highlights) ?? Self.defaultHighlights
+            highlights: try c.decodeIfPresent([HighlightRule].self, forKey: .highlights) ?? Self.defaultHighlights,
+            listFont: try c.decodeIfPresent(FontChoice.self, forKey: .listFont),
+            windowFont: try c.decodeIfPresent(FontChoice.self, forKey: .windowFont)
         )
     }
 

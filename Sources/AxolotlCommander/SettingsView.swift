@@ -23,6 +23,7 @@ struct SettingsView: View {
     @AppStorage(PanelBehavior.arrowsKey) private var arrowsTargetPointedPanel = PanelBehavior().arrowsTargetPointedPanel
     @AppStorage(PanelBehavior.volumesKey) private var volumeButtonsFollow = PanelBehavior().volumeButtonsFollow
     @AppStorage(ThumbnailSize.key) private var thumbnailSize = ThumbnailSize.default.rawValue
+    @AppStorage(FindWindowBehavior.key) private var findBehavior = FindWindowBehavior.default.rawValue
 
     private func behavior(_ title: LocalizedStringKey, _ isOn: Binding<Bool>, _ caption: LocalizedStringKey) -> some View {
         VStack(alignment: .leading, spacing: 2) {
@@ -86,6 +87,15 @@ struct SettingsView: View {
                         Text("A key whose button is off still works.").font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                     }
                     .padding(.leading, 20)
+                }
+                // What the Find window does after Go to File and Results to Panel (spec 032).
+                Section {
+                    Picker("After going to a file:", selection: $findBehavior) {
+                        Text("Hide the Find window").tag(FindWindowBehavior.hide.rawValue)
+                        Text("Keep the Find window open").tag(FindWindowBehavior.keepOpen.rawValue)
+                    }
+                    Text("A hidden Find window comes back with its results when you choose Find Files (⌃⌥F7) again.")
+                        .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 }
                 UpdateSettingsSection()
                 Section {
@@ -251,6 +261,7 @@ private struct AppearanceSettings: View {
                 Toggle("Server connections", isOn: $volumeBarServers)
             }
             .disabled(!showVolumeBar)
+            FontSettings(appearance: settings.appearance)
             Text("Highlighting — the first matching rule from the top wins:").font(.headline)
             Table($settings.appearance.highlights, selection: $selection) {
                 TableColumn("On") { $rule in Toggle("", isOn: $rule.isEnabled).labelsHidden() }.width(28)
@@ -279,7 +290,11 @@ private struct AppearanceSettings: View {
                 Button("Move Up", systemImage: "chevron.up") { move(-1) }.disabled(selection == nil)
                 Button("Move Down", systemImage: "chevron.down") { move(1) }.disabled(selection == nil)
                 Spacer()
-                Button("Restore Defaults") { settings.appearance = PanelAppearance() }
+                // The fonts have their own restore button.
+                Button("Restore Defaults") {
+                    let fonts = settings.appearance
+                    settings.appearance = PanelAppearance(listFont: fonts.listFont, windowFont: fonts.windowFont)
+                }
             }
             .labelStyle(.iconOnly)
         }
@@ -292,6 +307,55 @@ private struct AppearanceSettings: View {
               rules.indices.contains(index + delta) else { return }
         rules.swapAt(index, index + delta)
         settings.appearance.highlights = rules
+    }
+}
+
+/// The fonts of the file lists and the bars (spec 031): each row shows its font and opens the Fonts panel.
+private struct FontSettings: View {
+    /// Read so the rows redraw when a font changes.
+    let appearance: PanelAppearance
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Fonts").font(.headline)
+            Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 6) {
+                row("File list:", .fileList,
+                    "Rows, column titles, the status line, the folder history and hot path menus")
+                row("Main window:", .mainWindow,
+                    "Volume bar, drive row, path, tabs, command line and function keys")
+            }
+            Button("Restore Default Fonts") {
+                FontChooser.shared.stop()
+                for role in FontRole.allCases { PanelFont.store(nil, for: role) }
+            }
+            .disabled(FontRole.allCases.allSatisfy { PanelFont.choice($0) == nil })
+        }
+    }
+
+    private func row(_ title: LocalizedStringKey, _ role: FontRole, _ caption: LocalizedStringKey) -> some View {
+        _ = appearance
+        let choice = PanelFont.choice(role)
+        let font = PanelFont.faces(role).regular
+        // In the font itself, but no taller than the row.
+        let sample = NSFont(descriptor: font.fontDescriptor, size: min(font.pointSize, 16)) ?? font
+        return GridRow {
+            Text(title)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(PanelFont.description(role))
+                    .font(Font(sample as CTFont))
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                // What the font is used for (as in the classic commander: the lists, and the rest of the window).
+                Text(caption).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            }
+            .frame(width: 330, alignment: .leading)
+            Button("Change…") { FontChooser.shared.choose(role) }
+            Button("Default") {
+                if FontChooser.shared.role == role { FontChooser.shared.stop() }
+                PanelFont.store(nil, for: role)
+            }
+            .disabled(choice == nil)
+        }
     }
 }
 
