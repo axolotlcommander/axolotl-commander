@@ -1,4 +1,4 @@
-# Research: Panel and Bar Fonts
+# Research: File List and Main Window Fonts
 
 ## R1 Where the choice is stored
 
@@ -35,8 +35,8 @@
 
 ## R5 Bars
 
-- **Decision**: each bar computes its height from the bar font's line height (today's heights at 11 pt as
-  the minimum); the bordered volume buttons (their own font role since the clarification of 2026-10-15) use `.small` up to 11.5 pt, `.regular` up to 14 pt and `.large`
+- **Decision**: each bar computes its height from the main window font's line height (today's heights at
+  11 pt as the minimum); the bordered volume buttons use `.small` up to 11.5 pt, `.regular` up to 14 pt and `.large`
   above, with the font set explicitly. Bar content keeps compression resistance below the split items'
   holding priority, so a panel never widens (FR-007).
 - **Rationale**: the accessory bar bezel has a fixed height per control size; switching the size keeps the

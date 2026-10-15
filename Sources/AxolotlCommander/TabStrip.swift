@@ -31,7 +31,7 @@ final class TabStrip: NSView {
 
     private let stack = NSStackView()
     private lazy var height = heightAnchor.constraint(equalToConstant: Self.height)
-    private static var height: CGFloat { 22 + PanelFont.barGrowth }
+    private static var height: CGFloat { 22 + PanelFont.windowGrowth }
     private let newButton = TabStrip.button("plus", String(localized: "New Tab"))
     private let moreButton = TabStrip.button("chevron.right.2", String(localized: "Hidden Tabs"))
     private var items: [Item] = []
@@ -99,7 +99,7 @@ final class TabStrip: NSView {
         isHidden = count < 2 && !PanelBehavior(defaults: .standard).alwaysShowTabs
     }
 
-    /// Takes the bar font chosen in Settings.
+    /// Takes the main window font chosen in Settings.
     func applyFont() {
         height.constant = Self.height
         rebuild()
@@ -215,7 +215,7 @@ private final class TabButton: NSView {
         layer?.cornerRadius = 4
         toolTip = item.toolTip
         let label = NSTextField(labelWithString: item.title)
-        label.font = PanelFont.bar(weight: isActive ? .semibold : .regular)
+        label.font = PanelFont.window(weight: isActive ? .semibold : .regular)
         label.textColor = isActive ? .labelColor : .secondaryLabelColor
         label.lineBreakMode = .byTruncatingMiddle
         label.alignment = .center

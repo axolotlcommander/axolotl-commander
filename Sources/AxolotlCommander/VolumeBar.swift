@@ -124,7 +124,7 @@ final class VolumeBar: NSView {
         reload()
     }
 
-    /// Takes the volume button font chosen in Settings.
+    /// Takes the main window font chosen in Settings.
     func applyFont() {
         freeSpace.applyFont()
         reload()
@@ -217,7 +217,7 @@ final class VolumeBar: NSView {
         button.bezelStyle = .accessoryBarAction
         button.setButtonType(.pushOnPushOff)
         button.controlSize = PanelFont.buttonControlSize
-        button.font = PanelFont.button
+        button.font = PanelFont.window
         button.image = image
         button.imagePosition = .imageLeading
         button.refusesFirstResponder = true
@@ -228,7 +228,7 @@ final class VolumeBar: NSView {
 
     private static func symbol(_ name: String) -> NSImage? {
         NSImage(systemSymbolName: name, accessibilityDescription: nil)?
-            .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: PanelFont.button.pointSize, weight: .regular))
+            .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: PanelFont.window.pointSize, weight: .regular))
     }
 
     /// Volumes being ejected show a spinner in place of the ⏏.

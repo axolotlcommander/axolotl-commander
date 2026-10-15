@@ -86,36 +86,31 @@ public struct PanelAppearance: Codable, Hashable, Sendable {
     public var highlights: [HighlightRule]
     /// Font of the file lists; nil = the system font at the default size.
     public var listFont: FontChoice?
-    /// Font of the path bar, the tabs and the status line; nil = the small system font.
-    public var barFont: FontChoice?
-    /// Font of the volume bar and the drive row; nil = the small system font.
-    public var buttonFont: FontChoice?
+    /// Font of the rest of the main window (bars, tabs, command line, function keys); nil = the default.
+    public var windowFont: FontChoice?
 
     public init(markColor: SystemColor = .red, markBold: Bool = true,
                 highlights: [HighlightRule] = PanelAppearance.defaultHighlights,
-                listFont: FontChoice? = nil, barFont: FontChoice? = nil, buttonFont: FontChoice? = nil) {
+                listFont: FontChoice? = nil, windowFont: FontChoice? = nil) {
         self.markColor = markColor
         self.markBold = markBold
         self.highlights = highlights
         self.listFont = listFont
-        self.barFont = barFont
-        self.buttonFont = buttonFont
+        self.windowFont = windowFont
     }
 
     /// The stored font of a role; nil = its default.
     public func font(_ role: FontRole) -> FontChoice? {
         switch role {
         case .fileList: listFont
-        case .bars: barFont
-        case .volumeButtons: buttonFont
+        case .mainWindow: windowFont
         }
     }
 
     public mutating func setFont(_ choice: FontChoice?, for role: FontRole) {
         switch role {
         case .fileList: listFont = choice
-        case .bars: barFont = choice
-        case .volumeButtons: buttonFont = choice
+        case .mainWindow: windowFont = choice
         }
     }
 
@@ -127,8 +122,7 @@ public struct PanelAppearance: Codable, Hashable, Sendable {
             markBold: try c.decodeIfPresent(Bool.self, forKey: .markBold) ?? true,
             highlights: try c.decodeIfPresent([HighlightRule].self, forKey: .highlights) ?? Self.defaultHighlights,
             listFont: try c.decodeIfPresent(FontChoice.self, forKey: .listFont),
-            barFont: try c.decodeIfPresent(FontChoice.self, forKey: .barFont),
-            buttonFont: try c.decodeIfPresent(FontChoice.self, forKey: .buttonFont)
+            windowFont: try c.decodeIfPresent(FontChoice.self, forKey: .windowFont)
         )
     }
 

@@ -5,15 +5,17 @@ Formát vychází z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ve
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-10-15
+
 ### Přidáno
 
-- Písma panelů: Nastavení → Vzhled → Písma vybírá písmo (rodinu, řez a velikost) seznamů souborů,
-  lišty cesty se záložkami a stavovým řádkem a tlačítek svazků (lišta svazků a řádek disku), každé
-  zvlášť, ve standardním panelu Písma a výsledek je vidět hned. Řádky i lišty rostou s písmem;
-  „Výchozí“ a „Obnovit výchozí písma“ vrátí obvyklý vzhled. Zobrazit → Větší, Menší a Výchozí písmo
-  seznamu souborů mění velikost z klávesnice (klávesy lze přiřadit v Nastavení → Klávesnice).
-
-## [0.7.3] - 2026-10-15
+- Písma: Nastavení → Vzhled → Písma vybírá písmo (rodinu, řez
+  a velikost) seznamu souborů a hlavního okna, každé zvlášť, ve standardním panelu Písma a výsledek je
+  vidět hned. Písmo seznamu souborů platí pro řádky, záhlaví sloupců, stavový řádek pod panelem,
+  Historii složek a nabídku oblíbených cest; písmo hlavního okna pro lištu svazků, řádek disku, cestu,
+  záložky, příkazovou řádku a funkční klávesy. Řádky i lišty rostou s písmem; „Výchozí“ a „Obnovit
+  výchozí písma“ vrátí obvyklý vzhled. Zobrazit → Větší, Menší a Výchozí písmo seznamu souborů mění
+  velikost z klávesnice (klávesy lze přiřadit v Nastavení → Klávesnice).
 
 ### Opraveno
 

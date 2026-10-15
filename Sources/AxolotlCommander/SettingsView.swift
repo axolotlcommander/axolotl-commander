@@ -283,8 +283,7 @@ private struct AppearanceSettings: View {
                 // The fonts have their own restore button.
                 Button("Restore Defaults") {
                     let fonts = settings.appearance
-                    settings.appearance = PanelAppearance(listFont: fonts.listFont, barFont: fonts.barFont,
-                                                          buttonFont: fonts.buttonFont)
+                    settings.appearance = PanelAppearance(listFont: fonts.listFont, windowFont: fonts.windowFont)
                 }
             }
             .labelStyle(.iconOnly)
@@ -310,9 +309,10 @@ private struct FontSettings: View {
         VStack(alignment: .leading, spacing: 6) {
             Text("Fonts").font(.headline)
             Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 6) {
-                row("File list:", .fileList)
-                row("Path, tabs and status:", .bars)
-                row("Volume buttons:", .volumeButtons)
+                row("File list:", .fileList,
+                    "Rows, column titles, the status line, the folder history and hot path menus")
+                row("Main window:", .mainWindow,
+                    "Volume bar, drive row, path, tabs, command line and function keys")
             }
             Button("Restore Default Fonts") {
                 FontChooser.shared.stop()
@@ -322,7 +322,7 @@ private struct FontSettings: View {
         }
     }
 
-    private func row(_ title: LocalizedStringKey, _ role: FontRole) -> some View {
+    private func row(_ title: LocalizedStringKey, _ role: FontRole, _ caption: LocalizedStringKey) -> some View {
         _ = appearance
         let choice = PanelFont.choice(role)
         let font = PanelFont.faces(role).regular
@@ -330,11 +330,15 @@ private struct FontSettings: View {
         let sample = NSFont(descriptor: font.fontDescriptor, size: min(font.pointSize, 16)) ?? font
         return GridRow {
             Text(title)
-            Text(PanelFont.description(role))
-                .font(Font(sample as CTFont))
-                .lineLimit(1)
-                .truncationMode(.tail)
-                .frame(width: 280, alignment: .leading)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(PanelFont.description(role))
+                    .font(Font(sample as CTFont))
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                // What the font is used for (as in the classic commander: the lists, and the rest of the window).
+                Text(caption).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            }
+            .frame(width: 330, alignment: .leading)
             Button("Change…") { FontChooser.shared.choose(role) }
             Button("Default") {
                 if FontChooser.shared.role == role { FontChooser.shared.stop() }

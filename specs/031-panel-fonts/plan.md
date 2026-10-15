@@ -1,4 +1,4 @@
-# Implementation Plan: Panel and Bar Fonts
+# Implementation Plan: File List and Main Window Fonts
 
 **Branch**: `031-panel-fonts` | **Date**: 2026-10-15 | **Spec**: [spec.md](spec.md)
 
@@ -6,9 +6,9 @@
 
 - **Core** (`Sources/CommanderCore/Window/`, unit tested, no AppKit):
   - `PanelFonts.swift` (NEW): `FontChoice` (PostScript name + size, or nil for the system font),
-    `FontRole` (file list 13 pt, 8–32; bars and volume buttons 11 pt, 8–20) with `clamped`, `bigger` / `smaller` steps and
+    `FontRole` (file list 13 pt, 8–32; main window 11 pt, 8–20) with `clamped`, `bigger` / `smaller` steps and
     `rowHeight(lineHeight:)` (R3).
-  - `Highlighting.swift`: `PanelAppearance` gets `listFont` / `barFont` / `buttonFont` (`FontChoice?`, nil = default),
+  - `Highlighting.swift`: `PanelAppearance` gets `listFont` / `windowFont` (`FontChoice?`, nil = default),
     decoded with defaults, so the settings export and import carry them (R1).
 - **UI** (`Sources/AxolotlCommander/`):
   - `PanelFontsUI.swift` (NEW): `PanelFont` resolves a role to `NSFont` (regular, bold, monospaced; falls
@@ -17,9 +17,12 @@
     `changeFont(_:)`; Settings closing clears the target (R2).
   - File list: `textFont(marked:)`, the detailed row height, the brief view's item size and column width,
     the thumbnail labels follow `PanelFont.list` (R4).
-  - Bars: `TabStrip`, `PathBar` (and its field), the status line and its free space follow `PanelFont.bar`;
-    `VolumeBar`, `DriveRowView` and its `FreeSpaceLabel` follow `PanelFont.button` (clarification
-    2026-10-15); heights from the font, the button control size from the font size (R5).
+  - File list role also: the column header and the status line with its free space (`PanelFont.listSmall`,
+    2 pt smaller), `HistoryListSheet` rows and the hot path menu (`PanelFont.menuFont`).
+  - Main window role (clarification 2026-10-15, the classic commander's model): `VolumeBar`, `DriveRowView`
+    and its `FreeSpaceLabel`, `TabStrip`, `PathBar` (and its field), `CommandLineBar`, `FunctionKeyBarView`
+    follow `PanelFont.window` / `window(defaultSize:)` / `windowMonospaced`; heights from the font, the
+    button control size from the font size (R5).
   - All of them re-read the fonts on `.appearanceChanged` (already posted by `AppSettings`).
   - `SettingsView.swift`: the "Fonts" section in Appearance.
   - `Command.swift`: `fileListFontBigger`, `fileListFontSmaller`, `fileListFontDefault` in the View menu,
@@ -51,7 +54,7 @@
 specs/031-panel-fonts/{plan,research,data-model,quickstart,tasks}.md
 
 Sources/CommanderCore/Window/PanelFonts.swift       NEW FontChoice, FontRole
-Sources/CommanderCore/Window/Highlighting.swift     listFont / barFont in PanelAppearance
+Sources/CommanderCore/Window/Highlighting.swift     listFont / windowFont in PanelAppearance
 Tests/CommanderCoreTests/PanelFontsTests.swift      NEW
 Sources/AxolotlCommander/PanelFontsUI.swift         NEW PanelFont, FontChooser
 Sources/AxolotlCommander/PanelTabs.swift            textFont(marked:)

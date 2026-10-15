@@ -219,7 +219,7 @@ final class PanelViewController: NSViewController {
         let root = PanelRootView()
         root.onClick = { [weak self] in self?.activateFromClick() }
 
-        pathField.font = PanelFont.barMonospaced
+        pathField.font = PanelFont.windowMonospaced()
         pathField.isBordered = false
         pathField.drawsBackground = true
         pathField.focusRingType = .none
@@ -244,7 +244,9 @@ final class PanelViewController: NSViewController {
             if column.isNumeric { tc.headerCell.alignment = .right }
             tableView.addTableColumn(tc)
         }
-        tableView.headerView = PanelHeaderView(frame: tableView.headerView?.frame ?? .zero)
+        let header = PanelHeaderView(frame: tableView.headerView?.frame ?? .zero)
+        tableView.headerView = header
+        header.applyFont()
         tableView.style = .plain
         tableView.rowHeight = PanelFont.rowHeight
         tableView.intercellSpacing = NSSize(width: 6, height: 0)
@@ -277,7 +279,7 @@ final class PanelViewController: NSViewController {
         scroll.hasVerticalScroller = true
         scroll.autohidesScrollers = true
 
-        statusField.font = PanelFont.bar
+        statusField.font = PanelFont.listSmall
         statusField.textColor = .secondaryLabelColor
         statusField.lineBreakMode = .byTruncatingMiddle
 
@@ -341,7 +343,7 @@ final class PanelViewController: NSViewController {
         let statusRow = NSStackView()
         statusRow.orientation = .horizontal
         statusRow.addView(statusField, in: .leading)
-        statusSpace.fontRole = .bars
+        statusSpace.inStatusLine = true
         statusRow.addView(statusSpace, in: .trailing)
         statusRow.spacing = 8
         configureDriveRow()
@@ -407,15 +409,16 @@ final class PanelViewController: NSViewController {
         let changed = { (role: FontRole) in fonts[role] != self.shownFonts[role] }
         let oldBold = PanelFont.faces(.fileList, choice: shownFonts[.fileList]).bold
         let listChanged = changed(.fileList)
-        if changed(.bars) {
+        if changed(.mainWindow) {
             pathBar.applyFont()
-            statusField.font = PanelFont.bar
-            statusSpace.applyFont()
             tabStrip.applyFont()
-        }
-        if changed(.volumeButtons) {
             driveRow.applyFont()
             volumeBar.applyFont()
+        }
+        if changed(.fileList) {
+            statusField.font = PanelFont.listSmall
+            statusSpace.applyFont()
+            (tableView.headerView as? PanelHeaderView)?.applyFont()
         }
         shownFonts = fonts
         guard listChanged else { return true }
@@ -2020,6 +2023,24 @@ extension PanelViewController: NSTableViewDataSource, NSTableViewDelegate {
 /// (the right edge stays at the panel's edge), and Name makes up the difference.
 final class PanelHeaderView: NSTableHeaderView {
     private static let grip: CGFloat = 8
+    private var standard: (font: NSFont?, height: CGFloat)?
+
+    /// Column titles in the file list font two points smaller (spec 031); the default keeps the standard look.
+    func applyFont() {
+        guard let table = tableView else { return }
+        if standard == nil { standard = (table.tableColumns.first?.headerCell.font, frame.height) }
+        guard let standard else { return }
+        let custom = PanelFont.choice(.fileList) != nil
+        let font = custom ? PanelFont.listSmall : standard.font
+        for column in table.tableColumns { column.headerCell.font = font }
+        let base = PanelFont.lineHeight(of: standard.font ?? .systemFont(ofSize: NSFont.smallSystemFontSize))
+        let growth = custom ? max(0, (PanelFont.lineHeight(of: PanelFont.listSmall) - base).rounded(.up)) : 0
+        if frame.height != standard.height + growth {
+            setFrameSize(NSSize(width: frame.width, height: standard.height + growth))
+            table.enclosingScrollView?.tile()
+        }
+        needsDisplay = true
+    }
 
     private var lastEdge: NSRect? {
         guard let table = tableView, let last = table.tableColumns.indices.last else { return nil }

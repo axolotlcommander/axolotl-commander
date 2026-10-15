@@ -13349,22 +13349,32 @@
         }
       }
     },
-    "Path, tabs and status:": {
+    "Main window:": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cesta, záložky a stav:"
+            "value": "Hlavní okno:"
           }
         }
       }
     },
-    "Volume buttons:": {
+    "Rows, column titles, the status line, the folder history and hot path menus": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tlačítka svazků:"
+            "value": "Řádky, záhlaví sloupců, stavový řádek, historie složek a nabídka oblíbených cest"
+          }
+        }
+      }
+    },
+    "Volume bar, drive row, path, tabs, command line and function keys": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lišta svazků, řádek disku, cesta, záložky, příkazová řádka a funkční klávesy"
           }
         }
       }

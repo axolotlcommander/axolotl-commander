@@ -17,24 +17,22 @@ public struct FontChoice: Codable, Hashable, Sendable {
 
 /// Where a font is used, with its default size and limits.
 public enum FontRole: Sendable, CaseIterable {
-    /// The file lists of the panels.
+    /// The file lists of the panels with their column headers and status lines, and the folder menus.
     case fileList
-    /// The path bar, the tabs and the status line.
-    case bars
-    /// The volume bar and the drive row with its free space.
-    case volumeButtons
+    /// The rest of the main window: volume bar, drive row, path bar, tabs, command line, function keys.
+    case mainWindow
 
     public var defaultSize: Double {
         switch self {
         case .fileList: 13
-        case .bars, .volumeButtons: 11
+        case .mainWindow: 11
         }
     }
 
     public var limits: ClosedRange<Double> {
         switch self {
         case .fileList: 8...32
-        case .bars, .volumeButtons: 8...20
+        case .mainWindow: 8...20
         }
     }
 

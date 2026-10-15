@@ -83,22 +83,46 @@ enum PanelFont {
         max(1, list.pointSize / CGFloat(FontRole.fileList.defaultSize))
     }
 
-    // MARK: Bars
-
-    /// The path bar, tabs and status line.
-    static var bar: NSFont { faces(.bars).regular }
-
-    /// The bar font emphasized: the system font in the given weight, a chosen font in its bold face.
-    static func bar(weight: NSFont.Weight) -> NSFont {
-        let faces = faces(.bars)
-        guard weight != .regular else { return faces.regular }
-        return faces.isSystem ? .systemFont(ofSize: faces.regular.pointSize, weight: weight) : faces.bold
+    /// The file list font two points smaller: the column headers and the status line under the panel
+    /// (11 pt with the default font, as today).
+    static var listSmall: NSFont {
+        resized(faces(.fileList).regular, by: -2, default: .systemFont(ofSize: NSFont.smallSystemFontSize))
     }
 
-    static var barMonospaced: NSFont { faces(.bars).monospaced }
+    /// The folder history and hot path menus in the file list font, as in the classic commander;
+    /// nil keeps the menu font (the default).
+    static var menuFont: NSFont? {
+        choice(.fileList) == nil ? nil : list
+    }
 
-    /// The volume bar and the drive row.
-    static var button: NSFont { faces(.volumeButtons).regular }
+    // MARK: Main window
+
+    /// The bars, tabs, command line and function keys; 11 pt with the default font.
+    static var window: NSFont { faces(.mainWindow).regular }
+
+    /// An element of the main window drawn at `defaultSize` today follows the main window font at the same
+    /// distance from its default size (the command line is a point larger, the key names a point smaller).
+    static func window(defaultSize: CGFloat, weight: NSFont.Weight = .regular) -> NSFont {
+        let faces = faces(.mainWindow)
+        let size = max(6, defaultSize + faces.regular.pointSize - CGFloat(FontRole.mainWindow.defaultSize))
+        if faces.isSystem { return .systemFont(ofSize: size, weight: weight) }
+        let font = weight.rawValue > NSFont.Weight.regular.rawValue ? faces.bold : faces.regular
+        return NSFont(descriptor: font.fontDescriptor, size: size) ?? font
+    }
+
+    /// The main window font emphasized: the system font in the given weight, a chosen font in its bold face.
+    static func window(weight: NSFont.Weight) -> NSFont {
+        window(defaultSize: CGFloat(FontRole.mainWindow.defaultSize), weight: weight)
+    }
+
+    /// Typed text (the path field, the command line): a chosen fixed-pitch font itself, otherwise the
+    /// monospaced system font, at the main window size (offset as in `window(defaultSize:)`).
+    static func windowMonospaced(defaultSize: CGFloat = CGFloat(FontRole.mainWindow.defaultSize),
+                                 weight: NSFont.Weight = .regular) -> NSFont {
+        let font = window(defaultSize: defaultSize, weight: weight)
+        if !faces(.mainWindow).isSystem, font.isFixedPitch { return font }
+        return .monospacedSystemFont(ofSize: font.pointSize, weight: weight)
+    }
 
     /// How much taller a bar gets than with the default font (never lower than today).
     static func growth(_ role: FontRole) -> CGFloat {
@@ -106,15 +130,21 @@ enum PanelFont {
         return max(0, (faces(role).lineHeight - base).rounded(.up))
     }
 
-    static var barGrowth: CGFloat { growth(.bars) }
+    static var windowGrowth: CGFloat { growth(.mainWindow) }
 
-    /// The bordered volume buttons' size for their font, so the text stays inside the bezel.
+    /// The bordered volume buttons' size for the main window font, so the text stays inside the bezel.
     static var buttonControlSize: NSControl.ControlSize {
-        switch button.pointSize {
+        switch window.pointSize {
         case ..<11.5: .small
         case ..<14: .regular
         default: .large
         }
+    }
+
+    private static func resized(_ font: NSFont, by delta: CGFloat, default fallback: NSFont) -> NSFont {
+        if choice(.fileList) == nil { return fallback }
+        let size = max(6, font.pointSize + delta)
+        return NSFont(descriptor: font.fontDescriptor, size: size) ?? font
     }
 
     // MARK: Settings

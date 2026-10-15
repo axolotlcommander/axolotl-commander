@@ -20,9 +20,9 @@ final class FreeSpaceLabel: NSView {
 
     private let label = NSTextField(labelWithString: "")
     private var variants: [String] = []
-    /// The volume buttons' font next to them, the bar font in the status line.
-    var fontRole = FontRole.volumeButtons { didSet { applyFont() } }
-    private var font: NSFont { PanelFont.faces(fontRole).regular }
+    /// In the status line it takes the status line's font (the file list's), elsewhere the main window's.
+    var inStatusLine = false { didSet { applyFont() } }
+    private var font: NSFont { inStatusLine ? PanelFont.listSmall : PanelFont.window }
     private static let padding: CGFloat = 4
 
     override init(frame: NSRect) {
@@ -90,7 +90,7 @@ final class DriveRowView: NSView {
         super.init(frame: frame)
         combo.bezelStyle = .accessoryBarAction
         combo.controlSize = PanelFont.buttonControlSize
-        combo.font = PanelFont.button
+        combo.font = PanelFont.window
         combo.imagePosition = .imageLeading
         combo.refusesFirstResponder = true
         combo.lineBreakMode = .byTruncatingTail
@@ -115,13 +115,13 @@ final class DriveRowView: NSView {
     required init?(coder: NSCoder) { fatalError() }
 
     override var intrinsicContentSize: NSSize {
-        NSSize(width: NSView.noIntrinsicMetric, height: 20 + PanelFont.growth(.volumeButtons))
+        NSSize(width: NSView.noIntrinsicMetric, height: 20 + PanelFont.windowGrowth)
     }
 
-    /// Takes the volume button font chosen in Settings.
+    /// Takes the main window font chosen in Settings.
     func applyFont() {
         combo.controlSize = PanelFont.buttonControlSize
-        combo.font = PanelFont.button
+        combo.font = PanelFont.window
         if let shown { show(title: shown.title, icon: shown.icon) }
         freeSpace.applyFont()
         invalidateIntrinsicContentSize()

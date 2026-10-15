@@ -5,16 +5,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-10-15
+
 ### Added
 
-- Fonts of the panels: Settings → Appearance → Fonts chooses the font (family, style and size) of the
-  file lists, of the path bar, tabs and status line, and of the volume buttons (volume bar and drive
-  row), each separately, in the standard Fonts panel, with the result shown at once. Rows and bars
-  grow with the font; "Default" and "Restore Default Fonts" bring back the usual look. View → Bigger,
-  Smaller and Default File List Font change the size from the keyboard (keys can be assigned in
-  Settings → Keyboard).
-
-## [0.7.3] - 2026-10-15
+- Fonts: Settings → Appearance → Fonts chooses the font (family, style
+  and size) of the file lists and of the main window, each separately, in the standard Fonts panel,
+  with the result shown at once. The file list font is used for the rows, the column titles, the
+  status line under the panel, Folder History and the hot path menu; the main window font for the
+  volume bar, the drive row, the path, the tabs, the command line and the function keys. Rows and
+  bars grow with the font; "Default" and "Restore Default Fonts" bring back the usual look. View →
+  Bigger, Smaller and Default File List Font change the size from the keyboard (keys can be assigned
+  in Settings → Keyboard).
 
 ### Fixed
 

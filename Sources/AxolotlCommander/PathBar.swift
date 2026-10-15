@@ -41,9 +41,9 @@ final class PathBar: NSView {
     private var separatorOrigins: [NSPoint] = []
     private var iconCache: [String: NSImage] = [:]
 
-    private static var height: CGFloat { 20 + PanelFont.barGrowth }
+    private static var height: CGFloat { 20 + PanelFont.windowGrowth }
     private static var separator: NSAttributedString {
-        NSAttributedString(string: "›", attributes: [.font: PanelFont.bar, .foregroundColor: NSColor.tertiaryLabelColor])
+        NSAttributedString(string: "›", attributes: [.font: PanelFont.window, .foregroundColor: NSColor.tertiaryLabelColor])
     }
     private static let separatorGap: CGFloat = 2
     private static var separatorWidth: CGFloat { ceil(separator.size().width) + 2 * separatorGap }
@@ -84,9 +84,9 @@ final class PathBar: NSView {
         if showsIcons, trail.contains(where: { $0.kind == .volume }) { rebuildSegments() }
     }
 
-    /// Takes the bar font chosen in Settings; the field keeps a monospaced face.
+    /// Takes the main window font chosen in Settings; the field keeps a monospaced face.
     func applyFont() {
-        field.font = PanelFont.barMonospaced
+        field.font = PanelFont.windowMonospaced()
         invalidateIntrinsicContentSize()
         ellipsis.needsDisplay = true
         rebuildSegments()
@@ -283,7 +283,7 @@ private final class PathSegmentView: NSView {
     private var title: NSAttributedString {
         let paragraph = NSMutableParagraphStyle()
         paragraph.lineBreakMode = .byTruncatingTail
-        let font = PanelFont.bar(weight: emphasized ? .medium : .regular)
+        let font = PanelFont.window(weight: emphasized ? .medium : .regular)
         return NSAttributedString(string: name, attributes: [
             .font: font, .foregroundColor: clickable ? NSColor.labelColor : NSColor.secondaryLabelColor,
             .paragraphStyle: paragraph,
