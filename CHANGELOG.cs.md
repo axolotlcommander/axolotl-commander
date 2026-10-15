@@ -5,6 +5,18 @@ Formát vychází z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ve
 
 ## [Unreleased]
 
+## [0.7.2] - 2026-10-15
+
+### Opraveno
+
+- Aplikace mohla na sekundy i minuty přestat reagovat, když externí disk spal nebo byl zaneprázdněný
+  zálohou Time Machine, případně když síťový disk přestal odpovídat. Seznam svazků, svazek složky
+  v panelu, ikony svazků i sledování složky se teď čtou na pozadí, takže pohyb kurzoru ani nabídka
+  svazků na disk nikdy nečekají. Totéž platí pro ikony aplikací a balíčků na jiných discích, tlačítka
+  svazků, Informace o svazku…, nabídku Otevřít v aplikaci, nabídku cílů u kopírování a přesunu,
+  zadání nového názvu pro soubor, který už existuje, a obnovení panelu, jehož složka zmizela.
+- Informace o svazku… a nabídka svazků ukazovaly u síťových disků 0 kB volného místa.
+
 ## [0.7.1] - 2026-10-15
 
 ### Opraveno

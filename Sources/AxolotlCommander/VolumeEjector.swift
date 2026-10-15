@@ -37,7 +37,7 @@ enum VolumeEjector {
     /// Nil when the volume is gone (ejected or cancelled count as done); otherwise why it is still
     /// mounted.
     private static func eject(_ volume: VolumeInfo, window: NSWindow?, askingFor targets: [EjectTarget]) async -> String? {
-        let mounted = Volumes.mounted()
+        let mounted = await VolumeList.shared.fresh()
         // Gone meanwhile, or already being ejected: nothing to do.
         guard mounted.contains(where: { $0.url == volume.url }), !busy.contains(volume.url) else { return nil }
         guard Ejectability.canEject(volume) else { return String(localized: "This volume can’t be ejected.") }

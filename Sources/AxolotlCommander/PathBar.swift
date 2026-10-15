@@ -80,6 +80,11 @@ final class PathBar: NSView {
         rebuildSegments()
     }
 
+    /// A volume's icon was read in the background: shows it instead of the stand-in.
+    func refreshIcons() {
+        if showsIcons, trail.contains(where: { $0.kind == .volume }) { rebuildSegments() }
+    }
+
     func apply(style: Style, showsIcons: Bool) {
         let iconsChanged = showsIcons != self.showsIcons
         self.style = style
@@ -207,8 +212,17 @@ final class PathBar: NSView {
         if let cached = iconCache[key] { return cached }
         let image: NSImage
         switch segment.kind {
-        case .volume, .home, .folder, .archive:
-            image = NSWorkspace.shared.icon(forFile: segment.url.path(percentEncoded: false))
+        case .volume:
+            image = FileIcons.shared.icon(forVolume: segment.url)
+        case .home, .folder, .archive:
+            // Folders on other disks get the generic icon: asking a sleeping disk would wait for it.
+            if VolumeRoots.isOnStartupDisk(segment.url) {
+                image = NSWorkspace.shared.icon(forFile: segment.url.path(percentEncoded: false))
+            } else if segment.kind == .archive {
+                image = NSWorkspace.shared.icon(for: UTType(filenameExtension: segment.url.pathExtension) ?? .data)
+            } else {
+                image = NSImage(named: NSImage.folderName) ?? NSWorkspace.shared.icon(for: .folder)
+            }
         case .archiveFolder, .remoteFolder:
             image = NSImage(named: NSImage.folderName) ?? NSWorkspace.shared.icon(for: .folder)
         case .server, .network:
@@ -221,7 +235,8 @@ final class PathBar: NSView {
         let sized = image.copy() as? NSImage ?? image
         sized.size = NSSize(width: 16, height: 16)
         if iconCache.count > 256 { iconCache.removeAll() }
-        iconCache[key] = sized
+        // A volume's icon may still be the stand-in; `FileIcons` keeps the real one.
+        if segment.kind != .volume { iconCache[key] = sized }
         return sized
     }
 }

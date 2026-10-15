@@ -25,7 +25,7 @@ final class DisconnectSheet: NSObject, NSTableViewDataSource, NSTableViewDelegat
 
     static func show(for panel: PanelViewController) {
         guard let window = panel.view.window else { return }
-        let servers = ServerConnectionsUI.shared.opened, volumes = Volumes.mounted()
+        let servers = ServerConnectionsUI.shared.opened, volumes = VolumeList.shared.current
         guard DisconnectList.isEnabled(servers: servers, volumes: volumes) else {
             NSSound.beep()
             return
@@ -44,14 +44,10 @@ final class DisconnectSheet: NSObject, NSTableViewDataSource, NSTableViewDelegat
         super.init()
         build()
         sheet.onKey = { [weak self] event in self?.handleKey(event) ?? false }
-        let workspace = NSWorkspace.shared.notificationCenter
-        for name in [NSWorkspace.didMountNotification, NSWorkspace.didUnmountNotification,
-                     NSWorkspace.didRenameVolumeNotification] {
-            observers.append((workspace, workspace.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
-                MainActor.assumeIsolated { self?.reload() }
-            }))
-        }
         let center = NotificationCenter.default
+        observers.append((center, center.addObserver(forName: VolumeList.didChangeNotification, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.reload() }
+        }))
         observers.append((center, center.addObserver(forName: ServerConnectionsUI.didChange, object: nil, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated { self?.reload() }
         }))
@@ -119,7 +115,7 @@ final class DisconnectSheet: NSObject, NSTableViewDataSource, NSTableViewDelegat
     private func reload() {
         guard sheet.sheetParent != nil else { return }
         let selected = item(at: table.selectedRow)?.id
-        show(DisconnectList.sections(servers: ServerConnectionsUI.shared.opened, volumes: Volumes.mounted()))
+        show(DisconnectList.sections(servers: ServerConnectionsUI.shared.opened, volumes: VolumeList.shared.current))
         if let selected, let row = rows.firstIndex(where: { if case .item(let item) = $0 { item.id == selected } else { false } }) {
             table.selectRowIndexes([row], byExtendingSelection: false)
         }

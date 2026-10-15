@@ -180,12 +180,19 @@ final class ConflictSheet: NSObject {
     @objc private func renameByHand() {
         Task {
             // The first free automatic name; on a server the question comes back if it is taken.
-            var attempt = 2
-            var first = AutoName.name(for: conflict.destination.name, isDirectory: conflict.source.isDirectory, attempt: attempt)
-            while isTaken(first), attempt < 1000 {
-                attempt += 1
-                first = AutoName.name(for: conflict.destination.name, isDirectory: conflict.source.isDirectory, attempt: attempt)
-            }
+            let name = conflict.destination.name, isDirectory = conflict.source.isDirectory
+            let taken = takenCheck()
+            let first = await Task.detached {
+                var attempt = 2
+                var first = AutoName.name(for: name, isDirectory: isDirectory, attempt: attempt)
+                while taken(first), attempt < 1000 {
+                    attempt += 1
+                    first = AutoName.name(for: name, isDirectory: isDirectory, attempt: attempt)
+                }
+                return first
+            }.value
+            // Another button answered meanwhile.
+            guard continuation != nil else { return }
             if let name = await askName(initial: first) { finish(.rename(name)) }
         }
     }
@@ -212,7 +219,7 @@ final class ConflictSheet: NSObject {
             }
             guard await alert.beginSheetModal(for: sheet) == .alertFirstButtonReturn else { return nil }
             text = field.stringValue
-            guard let problem = problem(with: text) else { return text }
+            guard let problem = await problem(with: text) else { return text }
             let refusal = NSAlert()
             refusal.messageText = problem
             _ = await refusal.beginSheetModal(for: sheet)
@@ -221,19 +228,21 @@ final class ConflictSheet: NSObject {
 
     /// Why a typed name cannot be used; nil when it can. A taken name is checked on disk only; on a
     /// server the question comes back for it.
-    private func problem(with name: String) -> String? {
+    private func problem(with name: String) async -> String? {
         if name.trimmingCharacters(in: .whitespaces).isEmpty { return String(localized: "The name can’t be empty.") }
         if name.contains("/") { return String(localized: "The name can’t contain “/”.") }
-        if isTaken(name) { return String(localized: "“\(name)” already exists.") }
+        let taken = takenCheck()
+        if await Task.detached(operation: { taken(name) }).value { return String(localized: "“\(name)” already exists.") }
         return nil
     }
 
-    /// Whether `name` exists next to the destination; known for local destinations only.
-    private func isTaken(_ name: String) -> Bool {
+    /// Whether a name exists next to the destination; known for local destinations only. Asked off
+    /// the main thread: the destination may be a disk that is asleep.
+    private func takenCheck() -> @Sendable (String) -> Bool {
         let destination = conflict.destination.url
-        guard destination.isFileURL, !RemoteURL.isRemote(destination) else { return false }
-        let target = destination.deletingLastPathComponent().appending(path: name)
-        return FileManager.default.fileExists(atPath: target.path(percentEncoded: false))
+        guard destination.isFileURL, !RemoteURL.isRemote(destination) else { return { _ in false } }
+        let folder = destination.deletingLastPathComponent()
+        return { name in FileManager.default.fileExists(atPath: folder.appending(path: name).path(percentEncoded: false)) }
     }
 
     private func finish(_ choice: ConflictPolicy.Choice) {

@@ -497,7 +497,8 @@ import Foundation
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: dir) }
         let count = LockedCounter()
-        let watcher = try #require(DirectoryWatcher(url: dir) { count.increment() })
+        let watcher = DirectoryWatcher(url: dir) { count.increment() }
+        #expect(await watcher.isWatching())
         for i in 0..<5 { try Data().write(to: dir.appendingPathComponent("f\(i)")) }
         try await Task.sleep(for: .milliseconds(600))
         #expect(count.value >= 1 && count.value <= 2)
@@ -506,7 +507,8 @@ import Foundation
         let seen = count.value
         try await Task.sleep(for: .milliseconds(400))
         #expect(count.value == seen)
-        #expect(DirectoryWatcher(url: dir.appendingPathComponent("missing"), onChange: {}) == nil)
+        #expect(await !watcher.isWatching())
+        #expect(await !DirectoryWatcher(url: dir.appendingPathComponent("missing"), onChange: {}).isWatching())
     }
 }
 

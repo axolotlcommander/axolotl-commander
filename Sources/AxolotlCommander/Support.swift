@@ -53,10 +53,16 @@ enum IconCache {
             key = "#server"
             make = { NSImage(systemSymbolName: "server.rack", accessibilityDescription: String(localized: "Server"))! }
         } else if item.isDirectory, item.url.deletingLastPathComponent().path == "/Volumes" {
-            // Network volumes in the Network folder (and anything else listed from /Volumes).
-            key = item.url.path
-            make = { NSWorkspace.shared.icon(forFile: item.url.path) }
+            // Network volumes in the Network folder (and anything else listed from /Volumes). Read in
+            // the background: not cached here, `FileIcons` keeps it.
+            return sized(FileIcons.shared.icon(forVolume: item.url, network: NetworkPlaces.isNetwork(item.url)))
         } else if item.isPackage {
+            guard VolumeRoots.isOnStartupDisk(item.url) else {
+                // On another disk the icon is read in the background; the package's type stands in.
+                return sized(FileIcons.shared.icon(forFile: item.url) {
+                    NSWorkspace.shared.icon(for: UTType(filenameExtension: item.fileExtension) ?? .package)
+                })
+            }
             key = item.url.path
             make = { NSWorkspace.shared.icon(forFile: item.url.path) }
         } else if item.isDirectory {
@@ -68,9 +74,13 @@ enum IconCache {
             make = { NSWorkspace.shared.icon(for: UTType(filenameExtension: ext) ?? .data) }
         }
         if let cached = byKey[key] { return cached }
-        let image = make()
-        image.size = NSSize(width: 16, height: 16)
+        let image = sized(make())
         byKey[key] = image
+        return image
+    }
+
+    private static func sized(_ image: NSImage) -> NSImage {
+        image.size = NSSize(width: 16, height: 16)
         return image
     }
 }

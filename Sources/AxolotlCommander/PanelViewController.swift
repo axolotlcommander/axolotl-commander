@@ -177,7 +177,7 @@ final class PanelViewController: NSViewController {
     private var lastQuickFilter: String?
     /// The last folder this panel showed on each volume (in memory, for the volume buttons).
     private var volumePlaces = VolumePlaces()
-    private var lastVisitedFolder: URL?
+    private var lastVisitedFolder: (folder: URL, root: URL)?
     /// Mark state applied while Shift+movement drags the selection.
     private var shiftMarkState: Bool?
     /// Items shown by Quick Look (see QuickLook.swift).
@@ -462,10 +462,7 @@ final class PanelViewController: NSViewController {
         volumeBar.show(location: model.location)
         updateDriveRow()
         if let remote = model.remote { ServerConnectionsUI.shared.visit(remote, panel: self) }
-        if let folder = diskLocation, folder != lastVisitedFolder {
-            lastVisitedFolder = folder
-            volumePlaces.visit(folder, volume: Volumes.root(of: folder))
-        }
+        visitVolumePlace()
         router?.panelLocationChanged(self)
         router?.panelCursorChanged(self)
         ArchivePasswords.panel(self, showsArchive: model.archive?.archive)
@@ -502,7 +499,18 @@ final class PanelViewController: NSViewController {
     /// What ⌘E ejects or disconnects for this panel's location (spec 022).
     var ejectTarget: EjectTarget? {
         EjectTarget.resolve(location: model.location, archiveFile: model.archive?.archive, isNetwork: model.isNetwork,
-                            remoteEndpoint: model.remote?.endpoint, volumes: Volumes.mounted(), rootOf: Volumes.root(of:))
+                            remoteEndpoint: model.remote?.endpoint, volumes: VolumeList.shared.current,
+                            rootOf: VolumeRoots.shared.root(of:))
+    }
+
+    /// Remembers the folder for its volume (the volume buttons may return to it); again when the
+    /// volume read in the background is another one than the path suggested.
+    private func visitVolumePlace() {
+        guard let folder = diskLocation else { return }
+        let root = VolumeRoots.shared.root(of: folder)
+        guard lastVisitedFolder?.folder != folder || lastVisitedFolder?.root != root else { return }
+        lastVisitedFolder = (folder, root)
+        volumePlaces.visit(folder, volume: root)
     }
 
     /// Work of this panel that reads the disk (spec 022: an eject waits for it).
@@ -913,7 +921,7 @@ final class PanelViewController: NSViewController {
         case .makeDirectoryInOtherPanel: return router.map { $0.otherPanel(than: self).canPerform(.makeDirectory) } ?? false
         case .viewCursorFile: return model.cursorItem.map { !$0.isParent && (!$0.isDirectory || $0.isPackage) } ?? false
         case .disconnect:
-            return DisconnectList.isEnabled(servers: ServerConnectionsUI.shared.opened, volumes: Volumes.mounted())
+            return DisconnectList.isEnabled(servers: ServerConnectionsUI.shared.opened, volumes: VolumeList.shared.current)
         case .ejectVolume: return ejectTarget != nil
         case .thumbnailsLarger: return viewMode == .thumbnails && ThumbnailSize.saved().larger != nil
         case .thumbnailsSmaller: return viewMode == .thumbnails && ThumbnailSize.saved().smaller != nil
@@ -1235,16 +1243,27 @@ final class PanelViewController: NSViewController {
         router?.activate(side)
         guard PanelBehavior(defaults: .standard).volumeButtonsFollow, let router else { return go(to: volume) }
         let other = router.otherPanel(than: self)
-        let target = VolumeChoice.target(volume: volume, panelVolume: diskLocation.map(Volumes.root(of:)),
-                                         otherFolder: other.diskLocation, otherVolume: other.diskLocation.map(Volumes.root(of:)),
-                                         remembered: volumePlaces.folder(on: volume)) { url in
-            var isDirectory: ObjCBool = false
-            return FileManager.default.fileExists(atPath: url.path(percentEncoded: false), isDirectory: &isDirectory)
-                && isDirectory.boolValue
-        }
-        switch target {
-        case .refresh: refresh()
-        case .open(let folder): go(to: folder)
+        let panelVolume = diskLocation.map(VolumeRoots.shared.root(of:))
+        let otherFolder = other.diskLocation, otherVolume = other.diskLocation.map(VolumeRoots.shared.root(of:))
+        let remembered = volumePlaces.folder(on: volume)
+        let location = model.location
+        // Whether the remembered folder still exists is asked off the main thread: the volume may be
+        // a disk that is asleep.
+        Task {
+            let target = await Task.detached {
+                VolumeChoice.target(volume: volume, panelVolume: panelVolume, otherFolder: otherFolder,
+                                    otherVolume: otherVolume, remembered: remembered) { url in
+                    var isDirectory: ObjCBool = false
+                    return FileManager.default.fileExists(atPath: url.path(percentEncoded: false), isDirectory: &isDirectory)
+                        && isDirectory.boolValue
+                }
+            }.value
+            // The panel went elsewhere meanwhile.
+            guard model.location == location else { return }
+            switch target {
+            case .refresh: refresh()
+            case .open(let folder): go(to: folder)
+            }
         }
     }
 
@@ -1537,10 +1556,46 @@ final class PanelViewController: NSViewController {
         }
         networkObservers.append(NotificationCenter.default.addObserver(
             forName: NetworkDiscovery.didChangeNotification, object: nil, queue: .main, using: refresh))
-        let workspace = NSWorkspace.shared.notificationCenter
-        for name in [NSWorkspace.didMountNotification, NSWorkspace.didUnmountNotification] {
-            networkObservers.append(workspace.addObserver(forName: name, object: nil, queue: .main, using: refresh))
+        networkObservers.append(NotificationCenter.default.addObserver(
+            forName: VolumeList.didChangeNotification, object: nil, queue: .main, using: refresh))
+        // The volume of the location is read in the background (it may be a sleeping disk).
+        let volumesKnown: @Sendable (Notification) -> Void = { [weak self] _ in
+            MainActor.assumeIsolated { self?.volumesKnown() }
         }
+        for name in [VolumeList.didChangeNotification, VolumeRoots.didResolveNotification] {
+            networkObservers.append(NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main,
+                                                                           using: volumesKnown))
+        }
+        networkObservers.append(NotificationCenter.default.addObserver(
+            forName: FileIcons.didLoadNotification, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.iconsLoaded() }
+        })
+    }
+
+    /// Icons read in the background: the path bar, the drive row and the visible items show them.
+    private func iconsLoaded() {
+        pathBar.refreshIcons()
+        updateDriveRow()
+        guard renaming == nil else { return }
+        switch viewMode {
+        case .detailed:
+            let visible = tableView.rows(in: tableView.visibleRect)
+            guard visible.length > 0, let name = tableView.tableColumns.firstIndex(where: { $0.identifier == Column.name.identifier })
+            else { return }
+            syncingSelection = true
+            tableView.reloadData(forRowIndexes: IndexSet(integersIn: visible.location..<visible.location + visible.length),
+                                 columnIndexes: [name])
+            syncingSelection = false
+        case .brief: reloadBrief()
+        case .thumbnails: break
+        }
+    }
+
+    private func volumesKnown() {
+        trailSource = nil
+        updatePathBar()
+        updateDriveRow()
+        visitVolumePlace()
     }
 
     // MARK: Volume menu
@@ -1550,9 +1605,11 @@ final class PanelViewController: NSViewController {
     func showVolumeMenu(from anchor: NSView? = nil) {
         let menu = NSMenu()
         let pressed = volumeBar.pressedItem
-        for volume in Volumes.mounted() {
+        // The free space shown is from the last read; the next menu shows the new one.
+        VolumeList.shared.refresh()
+        for volume in VolumeList.shared.current {
             let title = volume.availableCapacity.map { String(localized: "\(volume.name)  —  \(Format.bytes($0)) free") } ?? volume.name
-            let item = placeItem(title, volume.url, icon: NSWorkspace.shared.icon(forFile: volume.url.path))
+            let item = placeItem(title, volume.url, icon: FileIcons.shared.icon(forVolume: volume.url, network: volume.isNetwork))
             item.action = #selector(volumeRootChosen(_:))
             if case .volume(let shown)? = pressed, shown.url == volume.url { item.state = .on }
             menu.addItem(item)
@@ -2054,17 +2111,13 @@ extension PanelViewController {
             branchTitle: isBranch ? BranchListing.title : nil))
     }
 
-    /// The volume a local location is on, named as the volume bar names it. A mount point that is
-    /// not part of the shown path (firmlinked system folders) counts as the boot volume.
+    /// The volume a local location is on, named as the volume bar names it: the mount point that the
+    /// shown path lies under (firmlinked system folders count as the boot volume). Read from the
+    /// volume list, so a sleeping disk is not asked.
     private static func volume(containing url: URL) -> (root: URL, name: String) {
-        var root = URL(filePath: "/", directoryHint: .isDirectory)
-        if !RemoteURL.isRemote(url) {
-            let mount = Volumes.root(of: url)
-            let path = url.path(percentEncoded: false), mountPath = mount.path(percentEncoded: false)
-            let prefix = mountPath.hasSuffix("/") ? mountPath : mountPath + "/"
-            if mountPath != "/", path == mountPath || (path + "/").hasPrefix(prefix) { root = mount }
-        }
-        let name = (try? root.resourceValues(forKeys: [.volumeNameKey]))?.volumeName
+        let volumes = VolumeList.shared.current
+        let root = RemoteURL.isRemote(url) ? URL(filePath: "/", directoryHint: .isDirectory) : VolumeList.root(of: url, in: volumes)
+        let name = volumes.first { $0.url.standardizedFileURL == root.standardizedFileURL }?.name
             ?? FileManager.default.displayName(atPath: root.path(percentEncoded: false))
         return (root, name)
     }

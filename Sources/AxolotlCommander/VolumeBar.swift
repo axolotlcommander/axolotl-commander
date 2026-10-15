@@ -43,7 +43,6 @@ final class VolumeBar: NSView {
     /// The panel shows the Network folder.
     private var network = false
     private var volumeRoot: URL?
-    private var workspaceObservers: [any NSObjectProtocol] = []
     private var observers: [any NSObjectProtocol] = []
 
     /// The iCloud Drive folder when iCloud Drive is set up on this Mac.
@@ -71,14 +70,16 @@ final class VolumeBar: NSView {
             stack.topAnchor.constraint(equalTo: topAnchor),
             stack.bottomAnchor.constraint(equalTo: bottomAnchor),
         ])
-        let workspace = NSWorkspace.shared.notificationCenter
-        for name in [NSWorkspace.didMountNotification, NSWorkspace.didUnmountNotification,
-                     NSWorkspace.didRenameVolumeNotification] {
-            workspaceObservers.append(workspace.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
-                MainActor.assumeIsolated { self?.reload() }
-            })
-        }
         let center = NotificationCenter.default
+        observers.append(center.addObserver(forName: VolumeList.didChangeNotification, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.reload() }
+        })
+        observers.append(center.addObserver(forName: FileIcons.didLoadNotification, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.reload() }
+        })
+        observers.append(center.addObserver(forName: VolumeRoots.didResolveNotification, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.locationVolumeKnown() }
+        })
         observers.append(center.addObserver(forName: ServerConnectionsUI.didChange, object: nil, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated { self?.reload() }
         })
@@ -95,7 +96,6 @@ final class VolumeBar: NSView {
     required init?(coder: NSCoder) { fatalError() }
 
     isolated deinit {
-        workspaceObservers.forEach(NSWorkspace.shared.notificationCenter.removeObserver)
         observers.forEach(NotificationCenter.default.removeObserver)
     }
 
@@ -105,7 +105,15 @@ final class VolumeBar: NSView {
         self.location = location
         remote = RemoteURL.parse(location)?.endpoint
         network = NetworkPlaces.isNetwork(location)
-        volumeRoot = remote == nil && !network ? Volumes.root(of: location) : nil
+        volumeRoot = remote == nil && !network ? VolumeRoots.shared.root(of: location) : nil
+        updateStates()
+    }
+
+    private func locationVolumeKnown() {
+        guard let location, remote == nil, !network else { return }
+        let root = VolumeRoots.shared.root(of: location)
+        guard root != volumeRoot else { return }
+        volumeRoot = root
         updateStates()
     }
 
@@ -117,11 +125,11 @@ final class VolumeBar: NSView {
     }
 
     private func reload() {
-        items = VolumeBarModel.items(volumes: Volumes.mounted(), home: FileManager.default.homeDirectoryForCurrentUser,
+        items = VolumeBarModel.items(volumes: VolumeList.shared.current, home: FileManager.default.homeDirectoryForCurrentUser,
                                      iCloud: Self.iCloudDrive, servers: ServerConnectionsUI.shared.opened,
                                      settings: settings)
         // A volume mounted or unmounted may change which one holds the location.
-        if let location, remote == nil { volumeRoot = Volumes.root(of: location) }
+        if let location, remote == nil, !network { volumeRoot = VolumeRoots.shared.root(of: location) }
         stack.arrangedSubviews.forEach { $0.removeFromSuperview() }
         for (index, item) in items.enumerated() {
             let button = makeButton(for: item)
@@ -159,7 +167,7 @@ final class VolumeBar: NSView {
     private func makeButton(for item: VolumeBarModel.Item) -> NSButton {
         switch item {
         case .volume(let volume):
-            let icon = NSWorkspace.shared.icon(forFile: volume.url.path)
+            let icon = FileIcons.shared.icon(forVolume: volume.url, network: volume.isNetwork)
             icon.size = NSSize(width: 14, height: 14)
             let ejectable = Ejectability.canEject(volume)
             let button: BarButton = ejectable ? EjectableButton(ejectTitle: EjectTarget.title(for: .volume(volume))) : BarButton()
@@ -257,9 +265,9 @@ final class VolumeBar: NSView {
     /// Network volumes mounted in macOS, the open connections, and Connect to Server…
     private func networkMenu() -> NSMenu? {
         let menu = NSMenu()
-        for volume in Volumes.mounted() where volume.isNetwork {
+        for volume in VolumeList.shared.current where volume.isNetwork {
             let item = actionItem(volume.name) { [weak self] in self?.chooseVolume(volume.url) }
-            let icon = NSWorkspace.shared.icon(forFile: volume.url.path)
+            let icon = FileIcons.shared.icon(forVolume: volume.url, network: true)
             icon.size = NSSize(width: 16, height: 16)
             item.image = icon
             menu.addItem(item)

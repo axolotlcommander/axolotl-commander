@@ -8,6 +8,20 @@ import SwiftUI
 final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
     private var mainWindow: MainWindowController?
     private var settingsWindow: NSWindow?
+    private var volumeObservers: [any NSObjectProtocol] = []
+
+    /// The volume list is read in the background (a sleeping or busy disk must not stop the app);
+    /// mounting, unmounting and renaming a volume read it again.
+    private func watchVolumes() {
+        VolumeList.shared.refresh()
+        let workspace = NSWorkspace.shared.notificationCenter
+        for name in [NSWorkspace.didMountNotification, NSWorkspace.didUnmountNotification,
+                     NSWorkspace.didRenameVolumeNotification] {
+            volumeObservers.append(workspace.addObserver(forName: name, object: nil, queue: .main) { _ in
+                VolumeList.shared.refresh()
+            })
+        }
+    }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // The commander has its own panel tabs; system window tabs would only confuse the Window menu.
@@ -18,6 +32,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         // Panels offer their files to Services (also in the context menu).
         NSApp.registerServicesMenuSendTypes([.fileURL], returnTypes: [])
         RemoteSetup.configure()
+        watchVolumes()
         let controller = MainWindowController()
         controller.showWindow(nil)
         mainWindow = controller

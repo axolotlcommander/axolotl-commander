@@ -46,7 +46,7 @@ extension PanelViewController {
         diskSpace.watch(spaceFolder)
         switch volumeBar.pressedItem {
         case .volume(let volume)?:
-            driveRow.show(title: volume.name, icon: NSWorkspace.shared.icon(forFile: volume.url.path))
+            driveRow.show(title: volume.name, icon: FileIcons.shared.icon(forVolume: volume.url, network: volume.isNetwork))
         case .home?:
             driveRow.show(title: String(localized: "Home"), icon: Self.symbol("house"))
         case .iCloud?:
@@ -61,9 +61,12 @@ extension PanelViewController {
             } else if model.isNetwork {
                 driveRow.show(title: String(localized: "Network"), icon: Self.symbol("network"))
             } else {
-                let root = Volumes.root(of: spaceFolder ?? model.location)
-                let name = (try? root.resourceValues(forKeys: [.volumeLocalizedNameKey]))?.volumeLocalizedName
-                driveRow.show(title: name ?? root.lastPathComponent, icon: NSWorkspace.shared.icon(forFile: root.path))
+                // Nothing here asks the disk: this runs on every cursor move.
+                let root = VolumeRoots.shared.root(of: spaceFolder ?? model.location)
+                let volume = VolumeList.shared.current.first { $0.url.standardizedFileURL == root.standardizedFileURL }
+                let name = volume?.name ?? (root.path(percentEncoded: false) == "/"
+                    ? FileManager.default.displayName(atPath: "/") : root.lastPathComponent)
+                driveRow.show(title: name, icon: FileIcons.shared.icon(forVolume: root, network: volume?.isNetwork ?? false))
             }
         }
     }

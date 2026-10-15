@@ -44,7 +44,7 @@ public enum Volumes {
     public static func mounted() -> [VolumeInfo] {
         let keys: [URLResourceKey] = [
             .volumeNameKey, .volumeIsRemovableKey, .volumeIsLocalKey, .volumeIsInternalKey,
-            .volumeTotalCapacityKey, .volumeAvailableCapacityForImportantUsageKey,
+            .volumeTotalCapacityKey, .volumeAvailableCapacityForImportantUsageKey, .volumeAvailableCapacityKey,
             .volumeIsEjectableKey, .volumeIsRootFileSystemKey,
         ]
         let urls = FileManager.default.mountedVolumeURLs(includingResourceValuesForKeys: keys, options: [.skipHiddenVolumes]) ?? []
@@ -58,7 +58,9 @@ public enum Volumes {
                 isNetwork: !(v?.volumeIsLocal ?? true),
                 isInternal: v?.volumeIsInternal ?? true,
                 totalCapacity: v?.volumeTotalCapacity.map(Int64.init),
-                availableCapacity: v?.volumeAvailableCapacityForImportantUsage,
+                // Network volumes answer 0 for the important-usage figure.
+                availableCapacity: v?.volumeAvailableCapacityForImportantUsage.flatMap { $0 > 0 ? $0 : nil }
+                    ?? v?.volumeAvailableCapacity.map(Int64.init),
                 isEjectable: v?.volumeIsEjectable ?? false,
                 isRootFileSystem: v?.volumeIsRootFileSystem ?? false,
                 wholeDisk: (v?.volumeIsLocal ?? true) ? wholeDiskName(of: url, session: session) : nil

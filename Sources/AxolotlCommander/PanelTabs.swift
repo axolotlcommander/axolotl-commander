@@ -220,12 +220,16 @@ extension PanelViewController {
         } catch {
             var fallback = state
             // A server that can't be reached (or a cancelled login) leaves the tab at home.
-            fallback.location = RemoteURL.isRemote(state.location) ? FileManager.default.homeDirectoryForCurrentUser
-                : PanelState.nearestExisting(state.location) { url in
-                var isDirectory: ObjCBool = false
-                return FileManager.default.fileExists(atPath: url.path(percentEncoded: false), isDirectory: &isDirectory)
-                    && isDirectory.boolValue
-            }
+            let location = state.location
+            // Off the main thread: the folder may be on a disk that is asleep.
+            fallback.location = RemoteURL.isRemote(location) ? FileManager.default.homeDirectoryForCurrentUser
+                : await Task.detached {
+                    PanelState.nearestExisting(location) { url in
+                        var isDirectory: ObjCBool = false
+                        return FileManager.default.fileExists(atPath: url.path(percentEncoded: false), isDirectory: &isDirectory)
+                            && isDirectory.boolValue
+                    }
+                }.value
             fallback.cursorName = nil
             do { try await model.restore(fallback) } catch { statusField.stringValue = Format.error(error) }
             // A locked folder that is gone: the lock moves to the parent the tab shows now.
