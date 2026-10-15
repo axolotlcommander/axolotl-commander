@@ -427,14 +427,13 @@ extension PanelViewController {
     }
 
     @objc private func appearanceChanged() {
-        tableView.reloadData()
+        if !applyFonts() { tableView.reloadData() }
         reloadGrid()
     }
 
-    /// Marked items are bold unless Settings → Appearance turns it off.
+    /// The file list font chosen in Settings; marked items are bold unless Settings → Appearance turns it off.
     func textFont(marked: Bool) -> NSFont {
-        marked && AppSettings.shared.appearance.markBold
-            ? .boldSystemFont(ofSize: NSFont.systemFontSize) : .systemFont(ofSize: NSFont.systemFontSize)
+        PanelFont.list(marked: marked)
     }
 
     /// Marked items use the mark color; others the first matching highlight rule.

@@ -20,7 +20,7 @@ final class FreeSpaceLabel: NSView {
 
     private let label = NSTextField(labelWithString: "")
     private var variants: [String] = []
-    private static let font = NSFont.systemFont(ofSize: NSFont.smallSystemFontSize)
+    private static var font: NSFont { PanelFont.bar }
     private static let padding: CGFloat = 4
 
     override init(frame: NSRect) {
@@ -36,6 +36,13 @@ final class FreeSpaceLabel: NSView {
 
     @available(*, unavailable)
     required init?(coder: NSCoder) { fatalError() }
+
+    /// Takes the bar font chosen in Settings.
+    func applyFont() {
+        label.font = Self.font
+        invalidateIntrinsicContentSize()
+        needsLayout = true
+    }
 
     /// The width of the full text.
     override var intrinsicContentSize: NSSize {
@@ -75,12 +82,13 @@ final class DriveRowView: NSView {
     var onOpenMenu: ((NSView) -> Void)?
     let freeSpace = FreeSpaceLabel()
     private let combo = NSButton()
+    private var shown: (title: String, icon: NSImage?)?
 
     override init(frame: NSRect) {
         super.init(frame: frame)
         combo.bezelStyle = .accessoryBarAction
-        combo.controlSize = .small
-        combo.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
+        combo.controlSize = PanelFont.barControlSize
+        combo.font = PanelFont.bar
         combo.imagePosition = .imageLeading
         combo.refusesFirstResponder = true
         combo.lineBreakMode = .byTruncatingTail
@@ -104,10 +112,22 @@ final class DriveRowView: NSView {
     @available(*, unavailable)
     required init?(coder: NSCoder) { fatalError() }
 
-    override var intrinsicContentSize: NSSize { NSSize(width: NSView.noIntrinsicMetric, height: 20) }
+    override var intrinsicContentSize: NSSize {
+        NSSize(width: NSView.noIntrinsicMetric, height: 20 + PanelFont.barGrowth)
+    }
+
+    /// Takes the bar font chosen in Settings.
+    func applyFont() {
+        combo.controlSize = PanelFont.barControlSize
+        combo.font = PanelFont.bar
+        if let shown { show(title: shown.title, icon: shown.icon) }
+        freeSpace.applyFont()
+        invalidateIntrinsicContentSize()
+    }
 
     /// Shows `title` and `icon` in the combo, with a chevron after the title.
     func show(title: String, icon: NSImage?) {
+        shown = (title, icon)
         let text = NSMutableAttributedString(string: title + " ", attributes: [.font: combo.font ?? .systemFont(ofSize: 11)])
         if let chevron = NSImage(systemSymbolName: "chevron.down", accessibilityDescription: nil)?
             .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: 8, weight: .semibold)) {

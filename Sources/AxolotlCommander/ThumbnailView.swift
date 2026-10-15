@@ -119,8 +119,8 @@ final class ThumbnailGridView: PanelGridView {
 }
 
 final class ThumbnailCellView: NSView {
-    static let font = NSFont.systemFont(ofSize: NSFont.systemFontSize)
-    static let textHeight: CGFloat = (2 * NSLayoutManager().defaultLineHeight(for: font)).rounded(.up) + 2
+    static var font: NSFont { PanelFont.list }
+    static var textHeight: CGFloat { (2 * PanelFont.faces(.fileList).lineHeight).rounded(.up) + 2 }
 
     let imageView = NSImageView()
     let label = NSTextField(wrappingLabelWithString: "")

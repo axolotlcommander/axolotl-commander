@@ -30,6 +30,8 @@ final class TabStrip: NSView {
     private static let spacing: CGFloat = 1
 
     private let stack = NSStackView()
+    private lazy var height = heightAnchor.constraint(equalToConstant: Self.height)
+    private static var height: CGFloat { 22 + PanelFont.barGrowth }
     private let newButton = TabStrip.button("plus", String(localized: "New Tab"))
     private let moreButton = TabStrip.button("chevron.right.2", String(localized: "Hidden Tabs"))
     private var items: [Item] = []
@@ -64,7 +66,7 @@ final class TabStrip: NSView {
             stack.bottomAnchor.constraint(equalTo: bottomAnchor),
             buttons.trailingAnchor.constraint(equalTo: trailingAnchor),
             buttons.centerYAnchor.constraint(equalTo: centerYAnchor),
-            heightAnchor.constraint(equalToConstant: 22),
+            height,
         ])
         NotificationCenter.default.addObserver(self, selector: #selector(defaultsChanged),
                                                name: UserDefaults.didChangeNotification, object: nil)
@@ -95,6 +97,12 @@ final class TabStrip: NSView {
 
     private func updateVisibility(count: Int) {
         isHidden = count < 2 && !PanelBehavior(defaults: .standard).alwaysShowTabs
+    }
+
+    /// Takes the bar font chosen in Settings.
+    func applyFont() {
+        height.constant = Self.height
+        rebuild()
     }
 
     @objc private func defaultsChanged() {
@@ -207,7 +215,7 @@ private final class TabButton: NSView {
         layer?.cornerRadius = 4
         toolTip = item.toolTip
         let label = NSTextField(labelWithString: item.title)
-        label.font = .systemFont(ofSize: NSFont.smallSystemFontSize, weight: isActive ? .semibold : .regular)
+        label.font = PanelFont.bar(weight: isActive ? .semibold : .regular)
         label.textColor = isActive ? .labelColor : .secondaryLabelColor
         label.lineBreakMode = .byTruncatingMiddle
         label.alignment = .center
