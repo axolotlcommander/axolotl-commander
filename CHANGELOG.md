@@ -5,6 +5,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 
 ## [Unreleased]
 
+### Added
+
+- Fonts of the panels: Settings → Appearance → Fonts chooses the font (family, style and size) of the
+  file lists and, separately, of the panel bars (volume bar, drive row, tabs, path bar and status
+  line) in the standard Fonts panel, with the result shown at once. Rows and bars grow with the font;
+  "Default" and "Restore Default Fonts" bring back the usual look. View → Bigger, Smaller and Default
+  File List Font change the size from the keyboard (keys can be assigned in Settings → Keyboard).
+
 ## [0.7.3] - 2026-10-15
 
 ### Fixed
