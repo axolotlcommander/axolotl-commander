@@ -74,7 +74,7 @@ final class VolumeBar: NSView {
         observers.append(center.addObserver(forName: VolumeList.didChangeNotification, object: nil, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated { self?.reload() }
         })
-        observers.append(center.addObserver(forName: VolumeIcons.didLoadNotification, object: nil, queue: .main) { [weak self] _ in
+        observers.append(center.addObserver(forName: FileIcons.didLoadNotification, object: nil, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated { self?.reload() }
         })
         observers.append(center.addObserver(forName: VolumeRoots.didResolveNotification, object: nil, queue: .main) { [weak self] _ in
@@ -167,7 +167,7 @@ final class VolumeBar: NSView {
     private func makeButton(for item: VolumeBarModel.Item) -> NSButton {
         switch item {
         case .volume(let volume):
-            let icon = VolumeIcons.shared.icon(for: volume.url, network: volume.isNetwork)
+            let icon = FileIcons.shared.icon(forVolume: volume.url, network: volume.isNetwork)
             icon.size = NSSize(width: 14, height: 14)
             let ejectable = Ejectability.canEject(volume)
             let button: BarButton = ejectable ? EjectableButton(ejectTitle: EjectTarget.title(for: .volume(volume))) : BarButton()
@@ -267,7 +267,7 @@ final class VolumeBar: NSView {
         let menu = NSMenu()
         for volume in VolumeList.shared.current where volume.isNetwork {
             let item = actionItem(volume.name) { [weak self] in self?.chooseVolume(volume.url) }
-            let icon = VolumeIcons.shared.icon(for: volume.url, network: true)
+            let icon = FileIcons.shared.icon(forVolume: volume.url, network: true)
             icon.size = NSSize(width: 16, height: 16)
             item.image = icon
             menu.addItem(item)

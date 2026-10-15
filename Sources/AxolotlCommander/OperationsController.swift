@@ -142,10 +142,16 @@ final class OperationsController {
             otherTabs: folders(other), ownTabs: folders(panel), source: panel.model.location.displayPath,
             hotPaths: settings.hotPaths.defined.map(\.hotPath), recent: settings.recentDestinations.paths,
             isExcluded: { path in
-                // Missing folders on disk are left out; servers are not checked.
+                // Missing folders on the startup disk are left out; servers are not checked. On other
+                // disks only the volume has to be mounted: asking a sleeping disk would wait for it.
                 guard path.hasPrefix("/") || path.hasPrefix("~") else { return false }
-                var isDirectory: ObjCBool = false
                 let expanded = (path as NSString).expandingTildeInPath
+                let url = URL(filePath: expanded, directoryHint: .isDirectory)
+                guard VolumeRoots.isOnStartupDisk(url) else {
+                    let volumes = VolumeList.shared.current
+                    return !volumes.isEmpty && VolumeList.root(of: url, in: volumes).path(percentEncoded: false) == "/"
+                }
+                var isDirectory: ObjCBool = false
                 return !(FileManager.default.fileExists(atPath: expanded, isDirectory: &isDirectory) && isDirectory.boolValue)
             })
     }

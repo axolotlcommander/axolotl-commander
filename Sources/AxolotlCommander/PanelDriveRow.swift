@@ -46,7 +46,7 @@ extension PanelViewController {
         diskSpace.watch(spaceFolder)
         switch volumeBar.pressedItem {
         case .volume(let volume)?:
-            driveRow.show(title: volume.name, icon: VolumeIcons.shared.icon(for: volume.url, network: volume.isNetwork))
+            driveRow.show(title: volume.name, icon: FileIcons.shared.icon(forVolume: volume.url, network: volume.isNetwork))
         case .home?:
             driveRow.show(title: String(localized: "Home"), icon: Self.symbol("house"))
         case .iCloud?:
@@ -66,7 +66,7 @@ extension PanelViewController {
                 let volume = VolumeList.shared.current.first { $0.url.standardizedFileURL == root.standardizedFileURL }
                 let name = volume?.name ?? (root.path(percentEncoded: false) == "/"
                     ? FileManager.default.displayName(atPath: "/") : root.lastPathComponent)
-                driveRow.show(title: name, icon: VolumeIcons.shared.icon(for: root, network: volume?.isNetwork ?? false))
+                driveRow.show(title: name, icon: FileIcons.shared.icon(forVolume: root, network: volume?.isNetwork ?? false))
             }
         }
     }

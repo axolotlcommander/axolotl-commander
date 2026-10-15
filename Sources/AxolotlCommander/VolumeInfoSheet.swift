@@ -7,15 +7,33 @@ import CommanderCore
 /// ⌃L: name, format, capacity and free space of the volume holding the panel's folder.
 enum VolumeInfoSheet {
     static func show(for folder: URL, in window: NSWindow?) {
+        // Read off the main thread: the volume may be a disk that is asleep or a server that stopped answering.
+        Task {
+            let values = await Task.detached { Values(read(folder)) }.value.values
+            guard let values else { return NSSound.beep() }
+            show(values, folder: folder, in: window)
+        }
+    }
+
+    /// Resource values are only read after they arrived.
+    private nonisolated struct Values: @unchecked Sendable {
+        let values: URLResourceValues?
+        init(_ values: URLResourceValues?) { self.values = values }
+    }
+
+    private nonisolated static func read(_ folder: URL) -> URLResourceValues? {
         let keys: Set<URLResourceKey> = [
             .volumeURLKey, .volumeLocalizedNameKey, .volumeLocalizedFormatDescriptionKey, .volumeTotalCapacityKey,
             .volumeAvailableCapacityForImportantUsageKey, .volumeAvailableCapacityKey, .volumeIsInternalKey,
             .volumeIsRemovableKey, .volumeIsReadOnlyKey, .volumeIsLocalKey, .volumeUUIDStringKey,
         ]
-        guard let values = try? folder.resourceValues(forKeys: keys) else { return NSSound.beep() }
+        return try? folder.resourceValues(forKeys: keys)
+    }
+
+    private static func show(_ values: URLResourceValues, folder: URL, in window: NSWindow?) {
         let alert = NSAlert()
         alert.messageText = values.volumeLocalizedName ?? folder.lastPathComponent
-        if let url = values.volume { alert.icon = NSWorkspace.shared.icon(forFile: url.path(percentEncoded: false)) }
+        if let url = values.volume { alert.icon = FileIcons.shared.icon(forVolume: url, network: values.volumeIsLocal == false) }
         var lines: [String] = []
         func add(_ title: String, _ value: String?) { if let value, !value.isEmpty { lines.append("\(title): \(value)") } }
         add(String(localized: "Mounted at"), values.volume?.displayPath)

@@ -213,7 +213,7 @@ final class PathBar: NSView {
         let image: NSImage
         switch segment.kind {
         case .volume:
-            image = VolumeIcons.shared.icon(for: segment.url)
+            image = FileIcons.shared.icon(forVolume: segment.url)
         case .home, .folder, .archive:
             // Folders on other disks get the generic icon: asking a sleeping disk would wait for it.
             if VolumeRoots.isOnStartupDisk(segment.url) {
@@ -235,7 +235,7 @@ final class PathBar: NSView {
         let sized = image.copy() as? NSImage ?? image
         sized.size = NSSize(width: 16, height: 16)
         if iconCache.count > 256 { iconCache.removeAll() }
-        // A volume's icon may still be the stand-in; `VolumeIcons` keeps the real one.
+        // A volume's icon may still be the stand-in; `FileIcons` keeps the real one.
         if segment.kind != .volume { iconCache[key] = sized }
         return sized
     }

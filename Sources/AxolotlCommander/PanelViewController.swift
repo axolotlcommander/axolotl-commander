@@ -1243,16 +1243,27 @@ final class PanelViewController: NSViewController {
         router?.activate(side)
         guard PanelBehavior(defaults: .standard).volumeButtonsFollow, let router else { return go(to: volume) }
         let other = router.otherPanel(than: self)
-        let target = VolumeChoice.target(volume: volume, panelVolume: diskLocation.map(VolumeRoots.shared.root(of:)),
-                                         otherFolder: other.diskLocation, otherVolume: other.diskLocation.map(VolumeRoots.shared.root(of:)),
-                                         remembered: volumePlaces.folder(on: volume)) { url in
-            var isDirectory: ObjCBool = false
-            return FileManager.default.fileExists(atPath: url.path(percentEncoded: false), isDirectory: &isDirectory)
-                && isDirectory.boolValue
-        }
-        switch target {
-        case .refresh: refresh()
-        case .open(let folder): go(to: folder)
+        let panelVolume = diskLocation.map(VolumeRoots.shared.root(of:))
+        let otherFolder = other.diskLocation, otherVolume = other.diskLocation.map(VolumeRoots.shared.root(of:))
+        let remembered = volumePlaces.folder(on: volume)
+        let location = model.location
+        // Whether the remembered folder still exists is asked off the main thread: the volume may be
+        // a disk that is asleep.
+        Task {
+            let target = await Task.detached {
+                VolumeChoice.target(volume: volume, panelVolume: panelVolume, otherFolder: otherFolder,
+                                    otherVolume: otherVolume, remembered: remembered) { url in
+                    var isDirectory: ObjCBool = false
+                    return FileManager.default.fileExists(atPath: url.path(percentEncoded: false), isDirectory: &isDirectory)
+                        && isDirectory.boolValue
+                }
+            }.value
+            // The panel went elsewhere meanwhile.
+            guard model.location == location else { return }
+            switch target {
+            case .refresh: refresh()
+            case .open(let folder): go(to: folder)
+            }
         }
     }
 
@@ -1556,12 +1567,28 @@ final class PanelViewController: NSViewController {
                                                                            using: volumesKnown))
         }
         networkObservers.append(NotificationCenter.default.addObserver(
-            forName: VolumeIcons.didLoadNotification, object: nil, queue: .main) { [weak self] _ in
-            MainActor.assumeIsolated {
-                self?.pathBar.refreshIcons()
-                self?.updateDriveRow()
-            }
+            forName: FileIcons.didLoadNotification, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.iconsLoaded() }
         })
+    }
+
+    /// Icons read in the background: the path bar, the drive row and the visible items show them.
+    private func iconsLoaded() {
+        pathBar.refreshIcons()
+        updateDriveRow()
+        guard renaming == nil else { return }
+        switch viewMode {
+        case .detailed:
+            let visible = tableView.rows(in: tableView.visibleRect)
+            guard visible.length > 0, let name = tableView.tableColumns.firstIndex(where: { $0.identifier == Column.name.identifier })
+            else { return }
+            syncingSelection = true
+            tableView.reloadData(forRowIndexes: IndexSet(integersIn: visible.location..<visible.location + visible.length),
+                                 columnIndexes: [name])
+            syncingSelection = false
+        case .brief: reloadBrief()
+        case .thumbnails: break
+        }
     }
 
     private func volumesKnown() {
@@ -1582,7 +1609,7 @@ final class PanelViewController: NSViewController {
         VolumeList.shared.refresh()
         for volume in VolumeList.shared.current {
             let title = volume.availableCapacity.map { String(localized: "\(volume.name)  —  \(Format.bytes($0)) free") } ?? volume.name
-            let item = placeItem(title, volume.url, icon: VolumeIcons.shared.icon(for: volume.url, network: volume.isNetwork))
+            let item = placeItem(title, volume.url, icon: FileIcons.shared.icon(forVolume: volume.url, network: volume.isNetwork))
             item.action = #selector(volumeRootChosen(_:))
             if case .volume(let shown)? = pressed, shown.url == volume.url { item.state = .on }
             menu.addItem(item)

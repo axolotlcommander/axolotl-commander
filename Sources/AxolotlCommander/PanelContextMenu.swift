@@ -142,8 +142,11 @@ extension PanelViewController {
     private func openWithEntries(_ urls: [URL]) -> [NSMenuItem] {
         var menu: [NSMenuItem] = []
         let workspace = NSWorkspace.shared
-        let preferred = urls.first.flatMap { workspace.urlForApplication(toOpen: $0) }
-        var apps = urls.first.map { workspace.urlsForApplications(toOpen: $0) } ?? []
+        // On another disk than the startup disk the apps are looked up by the file's type: reading the
+        // file would wait for a disk that is asleep.
+        let byType = urls.first.map { VolumeRoots.isOnStartupDisk($0) ? nil : UTType(filenameExtension: $0.pathExtension) ?? .data } ?? nil
+        let preferred = byType.map { workspace.urlForApplication(toOpen: $0) } ?? urls.first.flatMap { workspace.urlForApplication(toOpen: $0) }
+        var apps = byType.map { workspace.urlsForApplications(toOpen: $0) } ?? urls.first.map { workspace.urlsForApplications(toOpen: $0) } ?? []
         if let preferred {
             apps.removeAll { $0.standardizedFileURL == preferred.standardizedFileURL }
             apps.insert(preferred, at: 0)
@@ -154,7 +157,7 @@ extension PanelViewController {
             guard seen.insert(name).inserted else { continue }
             let title = app == preferred ? String(localized: "\(name) (default)") : name
             let entry = actionItem(title) { Self.open(urls, with: app) }
-            entry.image = workspace.icon(forFile: app.path(percentEncoded: false))
+            entry.image = FileIcons.shared.icon(forFile: app) { workspace.icon(for: .application) }
             entry.image?.size = NSSize(width: 16, height: 16)
             menu.append(entry)
             if app == preferred, apps.count > 1 { menu.append(.separator()) }

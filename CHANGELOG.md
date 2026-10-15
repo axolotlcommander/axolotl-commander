@@ -12,7 +12,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 - The app could stop responding for seconds or minutes while an external disk was asleep or busy
   with a Time Machine backup, or a network drive stopped answering. The list of volumes, the volume
   of the panel's folder, the volume icons and the folder watching are now read in the background, so
-  moving the cursor or opening the volume menu never waits for a disk.
+  moving the cursor or opening the volume menu never waits for a disk. The same goes for the icons
+  of apps and packages on other disks, the volume buttons, Volume Information…, the Open With menu,
+  the destination menu of Copy and Move, typing a new name for a file that already exists, and
+  restoring a tab whose folder is gone.
 
 ## [0.7.1] - 2026-10-15
 

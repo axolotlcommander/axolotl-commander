@@ -81,21 +81,21 @@ final class VolumeRoots {
     }
 }
 
-/// Finder's icons of the volumes, read in the background (asking a sleeping disk for its icon waits
-/// for it). Until then a generic volume icon stands in.
-final class VolumeIcons {
-    static let shared = VolumeIcons()
+/// Finder's icons of volumes and of files on other disks than the startup disk, read in the
+/// background (asking a sleeping disk for an icon waits for it). Until then a stand-in is shown.
+final class FileIcons {
+    static let shared = FileIcons()
 
-    /// Posted on the main queue when an icon was read.
-    static let didLoadNotification = Notification.Name("VolumeIcons.didLoad")
+    /// Posted on the main queue after icons were read (once for a batch).
+    static let didLoadNotification = Notification.Name("FileIcons.didLoad")
 
     private var icons: [String: NSImage] = [:]
     private var pending: Set<String> = []
-    private let queue = DispatchQueue(label: "VolumeIcons", qos: .userInitiated)
-
+    private var postScheduled = false
+    private let queue = DispatchQueue(label: "FileIcons", qos: .userInitiated)
     private var observer: (any NSObjectProtocol)?
 
-    private struct Icon: @unchecked Sendable { let image: NSImage }
+    private nonisolated struct Icon: @unchecked Sendable { let image: NSImage }
 
     private init() {
         // Another disk may be mounted at the same path.
@@ -105,26 +105,45 @@ final class VolumeIcons {
         }
     }
 
-    /// A copy the caller may resize.
-    func icon(for root: URL, network: Bool = false) -> NSImage {
-        let path = root.path(percentEncoded: false)
-        if path == "/" { return NSWorkspace.shared.icon(forFile: path) }
+    /// The icon of the volume mounted at `root`; a copy the caller may resize.
+    func icon(forVolume root: URL, network: Bool = false) -> NSImage {
+        if root.path(percentEncoded: false) == "/" { return NSWorkspace.shared.icon(forFile: "/") }
+        return icon(forFile: root) {
+            network ? NSImage(named: NSImage.networkName) ?? NSWorkspace.shared.icon(for: .volume)
+                : NSWorkspace.shared.icon(for: .volume)
+        }
+    }
+
+    /// Finder's icon of `url` (a package, an app, a volume); on another disk than the startup disk
+    /// `standIn` until it was read. A copy the caller may resize.
+    func icon(forFile url: URL, standIn: () -> NSImage) -> NSImage {
+        let path = url.path(percentEncoded: false)
+        if VolumeRoots.isOnStartupDisk(url) { return NSWorkspace.shared.icon(forFile: path) }
         if let icon = icons[path] { return icon.copy() as? NSImage ?? icon }
         if !pending.contains(path) {
             pending.insert(path)
             queue.async {
                 let icon = Icon(image: NSWorkspace.shared.icon(forFile: path))
                 DispatchQueue.main.async {
-                    MainActor.assumeIsolated {
-                        self.pending.remove(path)
-                        self.icons[path] = icon.image
-                        NotificationCenter.default.post(name: Self.didLoadNotification, object: nil)
-                    }
+                    MainActor.assumeIsolated { self.loaded(path, icon.image) }
                 }
             }
         }
-        let generic = network ? NSImage(named: NSImage.networkName) ?? NSWorkspace.shared.icon(for: .volume)
-            : NSWorkspace.shared.icon(for: .volume)
-        return generic.copy() as? NSImage ?? generic
+        let image = standIn()
+        return image.copy() as? NSImage ?? image
+    }
+
+    private func loaded(_ path: String, _ image: NSImage) {
+        pending.remove(path)
+        if icons.count > 2000 { icons.removeAll() }
+        icons[path] = image
+        guard !postScheduled else { return }
+        postScheduled = true
+        DispatchQueue.main.async {
+            MainActor.assumeIsolated {
+                self.postScheduled = false
+                NotificationCenter.default.post(name: Self.didLoadNotification, object: nil)
+            }
+        }
     }
 }
