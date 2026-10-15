@@ -39,7 +39,9 @@ enum VolumeInfoSheet {
         add(String(localized: "Mounted at"), values.volume?.displayPath)
         add(String(localized: "Format"), values.volumeLocalizedFormatDescription)
         let total = values.volumeTotalCapacity.map(Int64.init)
-        let free = values.volumeAvailableCapacityForImportantUsage ?? values.volumeAvailableCapacity.map(Int64.init)
+        // Network volumes answer 0 for the important-usage figure.
+        let free = values.volumeAvailableCapacityForImportantUsage.flatMap { $0 > 0 ? $0 : nil }
+            ?? values.volumeAvailableCapacity.map(Int64.init)
         add(String(localized: "Capacity"), total.map { "\(Format.bytes($0)) (\(Format.grouped($0)))" })
         add(String(localized: "Available"), free.map { "\(Format.bytes($0)) (\(Format.grouped($0)))" })
         if let total, let free, total > 0 {

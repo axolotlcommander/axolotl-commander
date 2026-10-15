@@ -15,6 +15,7 @@ Formát vychází z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ve
   svazků na disk nikdy nečekají. Totéž platí pro ikony aplikací a balíčků na jiných discích, tlačítka
   svazků, Informace o svazku…, nabídku Otevřít v aplikaci, nabídku cílů u kopírování a přesunu,
   zadání nového názvu pro soubor, který už existuje, a obnovení panelu, jehož složka zmizela.
+- Informace o svazku… a nabídka svazků ukazovaly u síťových disků 0 kB volného místa.
 
 ## [0.7.1] - 2026-10-15
 

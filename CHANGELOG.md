@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
   of apps and packages on other disks, the volume buttons, Volume Information…, the Open With menu,
   the destination menu of Copy and Move, typing a new name for a file that already exists, and
   restoring a tab whose folder is gone.
+- Volume Information… and the volume menu showed 0 kB free on network drives.
 
 ## [0.7.1] - 2026-10-15
 
