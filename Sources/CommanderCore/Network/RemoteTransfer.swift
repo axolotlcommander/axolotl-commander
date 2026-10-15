@@ -305,7 +305,7 @@ public struct RemoteTransfer: Sendable {
                 }
                 let placed = replace
                     ? Darwin.rename(temp, finalPath) == 0
-                    : renamex_np(temp, finalPath, UInt32(RENAME_EXCL)) == 0
+                    : ExclusiveRename.rename(temp, finalPath) == 0
                 guard placed else {
                     let err = errno
                     unlink(temp)

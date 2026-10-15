@@ -76,7 +76,7 @@ public enum ArchiveWriter {
             let copier = Copier(progress: progress)
             for item in items { try copier.write(item, to: writer, format: format) }
             try writer.close()
-            if renamex_np(temp, target, UInt32(RENAME_EXCL)) != 0 {
+            if ExclusiveRename.rename(temp, target) != 0 {
                 throw errno == EEXIST ? ArchiveError.alreadyExists(target) : ArchiveError.library(posixMessage())
             }
         } catch {

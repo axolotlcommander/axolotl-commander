@@ -22,7 +22,7 @@ public enum SafeFileWriter {
         if manager.fileExists(atPath: target.path) {
             // Swaps the files and keeps the old one's attributes (permissions, tags, creation date).
             _ = try manager.replaceItemAt(target, withItemAt: temp)
-        } else if renamex_np(temp.path, target.path, UInt32(RENAME_EXCL)) != 0 {
+        } else if ExclusiveRename.rename(temp.path, target.path) != 0 {
             if errno == EEXIST {
                 _ = try manager.replaceItemAt(target, withItemAt: temp)
             } else {

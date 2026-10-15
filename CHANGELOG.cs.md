@@ -5,6 +5,14 @@ Formát vychází z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ve
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-10-15
+
+### Opraveno
+
+- Kopírování, přesun a přejmenování na síťových discích (SMB) a discích exFAT selhávalo s hláškou
+  „Operation not supported“. Tyto svazky neumí přejmenovat bez přepsání, takže aplikace teď nejdřív
+  ověří, že je název volný, a pak přejmenuje běžným způsobem.
+
 ## [0.7.0] - 2026-10-14
 
 ### Přidáno

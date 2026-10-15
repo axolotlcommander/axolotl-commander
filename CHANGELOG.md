@@ -5,6 +5,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-10-15
+
+### Fixed
+
+- Copying, moving and renaming on network drives (SMB) and exFAT disks failed with “Operation
+  not supported”. These volumes cannot rename without replacing, so the app now checks that the
+  name is free and then renames as usual.
+
 ## [0.7.0] - 2026-10-14
 
 ### Added

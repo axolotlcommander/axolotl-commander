@@ -104,7 +104,7 @@ public enum FileSplitter {
                 if replacing.contains(name) {
                     guard rename(from, path(target)) == 0 else { throw SplitCombineError.cannotWrite(describe(path(target))) }
                 } else {
-                    guard renamex_np(from, path(target), UInt32(RENAME_EXCL)) == 0 else {
+                    guard ExclusiveRename.rename(from, path(target)) == 0 else {
                         if errno == EEXIST { throw SplitCombineError.alreadyExists(name) }
                         throw SplitCombineError.cannotWrite(describe(path(target)))
                     }
