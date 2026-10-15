@@ -134,7 +134,11 @@ final class PanelViewController: NSViewController {
     /// The free space at the right end of the status line, when both bars above are hidden.
     let statusSpace = FreeSpaceLabel()
     /// The fonts the panel shows (spec 031); a change in Settings re-lays the lists and bars.
-    private var shownFonts = (list: PanelFont.choice(.fileList), bar: PanelFont.choice(.bars))
+    private var shownFonts = PanelViewController.currentFonts
+
+    private static var currentFonts: [FontRole: FontChoice] {
+        Dictionary(uniqueKeysWithValues: FontRole.allCases.compactMap { role in PanelFont.choice(role).map { (role, $0) } })
+    }
     let diskSpace = DiskSpaceMonitor()
     let tabStrip = TabStrip()
     let briefView = BriefGridView()
@@ -337,6 +341,7 @@ final class PanelViewController: NSViewController {
         let statusRow = NSStackView()
         statusRow.orientation = .horizontal
         statusRow.addView(statusField, in: .leading)
+        statusSpace.fontRole = .bars
         statusRow.addView(statusSpace, in: .trailing)
         statusRow.spacing = 8
         configureDriveRow()
@@ -397,19 +402,22 @@ final class PanelViewController: NSViewController {
     /// Reloads the grid of the current mode and scrolls it to the cursor.
     /// Re-lays the lists and bars when Settings changed a font; false when the fonts are unchanged.
     func applyFonts() -> Bool {
-        let fonts = (list: PanelFont.choice(.fileList), bar: PanelFont.choice(.bars))
-        let listChanged = fonts.list != shownFonts.list, barChanged = fonts.bar != shownFonts.bar
-        guard listChanged || barChanged else { return false }
-        let oldBold = PanelFont.faces(.fileList).bold
-        shownFonts = fonts
-        if barChanged {
+        let fonts = Self.currentFonts
+        guard fonts != shownFonts else { return false }
+        let changed = { (role: FontRole) in fonts[role] != self.shownFonts[role] }
+        let oldBold = PanelFont.faces(.fileList, choice: shownFonts[.fileList]).bold
+        let listChanged = changed(.fileList)
+        if changed(.bars) {
             pathBar.applyFont()
             statusField.font = PanelFont.bar
             statusSpace.applyFont()
-            driveRow.applyFont()
-            volumeBar.applyFont()
             tabStrip.applyFont()
         }
+        if changed(.volumeButtons) {
+            driveRow.applyFont()
+            volumeBar.applyFont()
+        }
+        shownFonts = fonts
         guard listChanged else { return true }
         // Size and Date keep their share of the space the values need in the new font.
         for column in [Column.size, .date] {

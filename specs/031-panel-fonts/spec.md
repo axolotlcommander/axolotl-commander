@@ -30,13 +30,17 @@ macOS Fonts panel, and adds a way back to the defaults.
 - Q: Size only, or also the font family? → A: The whole font — family, style and size — as in the classic
   commander; the standard macOS Fonts panel is used to choose it.
 - Q: How many font settings? → A: Two: the file list, and the panel bars together (volume bar, drive row,
-  tab titles, path bar, status line).
-- Q: How does the user get back? → A: A "Default" button on each row and "Restore Default Fonts" for both.
+  tab titles, path bar, status line). *Superseded below: three rows.*
+- Q: How does the user get back? → A: A "Default" button on each row and "Restore Default Fonts" for all.
 - Q: Keys? → A: Commands for a bigger, smaller and default file list font without default keys, assignable
   in Settings → Keyboard.
 - Q: The command line and the function key bar? → A: Unchanged.
 - Q: Colors? → A: Left out for now (a later spec).
 - Q: The Fonts panel after Settings closes? → A: It stops changing the panels (planning, 2026-10-15).
+- Q: Do the volume buttons grow with the bar font? → A: No — they get their own row. Three rows: "File
+  list", "Path, tabs and status" (path bar, tab titles, status line with its free space) and "Volume
+  buttons" (volume bar, drive row with its free space), each set separately (implementation, 2026-10-15;
+  replaces the single "Bars" row).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -77,21 +81,24 @@ Menlo 16 pt with taller rows; after a restart they still do.
 
 ### User Story 2 - Choose the bar font (Priority: P1)
 
-A user wants the volume bar, the tab titles and the path easier to read. They click "Change…" next to
-"Bars" and pick a larger size; the bars grow in height, and nothing pushes the panels apart.
+A user wants the tab titles and the path easier to read, or the volume buttons larger. They click "Change…"
+next to "Path, tabs and status" or "Volume buttons" and pick a larger size; those bars grow in height, the
+others stay as they are, and nothing pushes the panels apart.
 
 **Why this priority**: The user asked for the bars separately from the file list.
 
-**Independent Test**: Choose 15 pt for the bars: the volume bar, the drive row with the free space, the tab
-titles, the path bar and the status line use it in both panels; the divider between the panels does not
-move.
+**Independent Test**: Choose 15 pt for "Path, tabs and status": the tab titles, the path bar and the status
+line use it in both panels while the volume bar and the drive row stay small; then 15 pt for "Volume
+buttons": the volume bar and the drive row with the free space grow; the divider does not move.
 
 **Acceptance Scenarios**:
 
-1. **Given** the row "Bars", **When** the user changes the font in the Fonts panel opened from it, **Then**
-   the volume bar, the drive row with the free space, the tab titles, the path bar (breadcrumbs, and the path
-   field while it is edited, which stays monospaced at the chosen size) and the status line under each panel
-   use it at once.
+1. **Given** the row "Path, tabs and status", **When** the user changes the font in the Fonts panel opened
+   from it, **Then** the tab titles, the path bar (breadcrumbs, and the path field while it is edited, which
+   stays monospaced at the chosen size) and the status line under each panel use it at once; the volume
+   buttons do not change.
+1a. **Given** the row "Volume buttons", **When** the user changes the font, **Then** the volume bar and the
+   drive row with its free space use it at once; the path, tabs and status line do not change.
 2. **Given** a larger bar font, **When** the bars are shown, **Then** each bar grows in height to fit the
    text; with a smaller font they shrink, never below the height of their icons.
 3. **Given** a panel too narrow for all items, **When** the bar font is larger, **Then** items are shortened
@@ -108,7 +115,7 @@ A user tried a font they do not like and wants the original look back without re
 
 **Why this priority**: Asked for explicitly; without it an experiment is hard to undo.
 
-**Independent Test**: After choosing custom fonts for both rows, "Restore Default Fonts" returns the panels and
+**Independent Test**: After choosing custom fonts for all rows, "Restore Default Fonts" returns the panels and
 the bars to exactly today's look.
 
 **Acceptance Scenarios**:
@@ -116,12 +123,12 @@ the bars to exactly today's look.
 1. **Given** a custom file list font, **When** the user clicks "Default" on the row "File list", **Then** the
    panels return to the system font at the regular size and the row shows "System font, 13 pt"; the bars are
    unchanged.
-2. **Given** a custom bar font, **When** the user clicks "Default" on the row "Bars", **Then** the bars return
-   to the small system font; the file list is unchanged.
-3. **Given** custom fonts on both rows, **When** the user clicks "Restore Default Fonts", **Then** both return
+2. **Given** a custom font on "Path, tabs and status" or "Volume buttons", **When** the user clicks "Default"
+   on that row, **Then** those bars return to the small system font; the other rows are unchanged.
+3. **Given** custom fonts on every row, **When** the user clicks "Restore Default Fonts", **Then** all return
    to the defaults.
 4. **Given** a row at its default, **When** Settings is shown, **Then** its "Default" button is disabled;
-   "Restore Default Fonts" is disabled when both rows are at their defaults.
+   "Restore Default Fonts" is disabled when every row is at its default.
 5. **Given** a chosen font that is no longer installed, **When** the app starts or the font is removed while
    it runs, **Then** that row silently uses its default and Settings shows the default.
 
@@ -166,14 +173,15 @@ the default.
 - A very large file list font in the narrowest panel (240 pt): the columns shorten their text; no panel
   widens.
 - The quick view pane and the internal viewer keep their own fonts.
-- Exporting the settings (one file with the preferences) includes both fonts; importing it on a Mac without
+- Exporting the settings (one file with the preferences) includes all three fonts; importing it on a Mac without
   the chosen font falls back to the default for that row.
 
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
 
-- **FR-001**: Settings → Appearance MUST have a "Fonts" section with two rows, "File list" and "Bars", each
+- **FR-001**: Settings → Appearance MUST have a "Fonts" section with three rows, "File list", "Path, tabs and
+  status" and "Volume buttons", each
   showing the current font as text (family and style, or "System font", and the size in points), drawn in
   that font where it fits, with the buttons "Change…" and "Default", and the button "Restore Default Fonts"
   below them.
@@ -186,17 +194,18 @@ the default.
   MUST stay 16 pt.
 - **FR-005**: Marked items MUST keep the mark color and, with "Bold" on, use the bold face of the chosen
   family when it has one, otherwise the regular face.
-- **FR-006**: The bar font MUST be used for the volume bar, the drive row with the free space, the tab
-  titles, the path bar (breadcrumbs; the path field while edited uses a monospaced font at the chosen size)
-  and the status line under each panel; the height of each bar MUST follow the font.
+- **FR-006**: The "Path, tabs and status" font MUST be used for the tab titles, the path bar (breadcrumbs;
+  the path field while edited uses a monospaced font at the chosen size) and the status line under each
+  panel with its free space; the "Volume buttons" font MUST be used for the volume bar and the drive row with
+  its free space; the height of each bar MUST follow its font.
 - **FR-007**: A larger bar or file list font MUST NOT widen a panel or move the divider; text that does not
   fit is shortened and bar items are hidden as today.
-- **FR-008**: File list sizes MUST be limited to 8–32 pt and bar sizes to 8–20 pt; a size outside is
+- **FR-008**: File list sizes MUST be limited to 8–32 pt and the other two rows to 8–20 pt; a size outside is
   replaced by the nearest limit.
 - **FR-009**: "Default" MUST return its row to the system font at that row's default size (file list 13 pt,
-  bars 11 pt); "Restore Default Fonts" MUST return both; each button MUST be disabled while what it would
+  the other rows 11 pt); "Restore Default Fonts" MUST return all three; each button MUST be disabled while what it would
   restore is already in use.
-- **FR-010**: Both fonts MUST be remembered across launches and included in the settings export and
+- **FR-010**: All three fonts MUST be remembered across launches and included in the settings export and
   import.
 - **FR-011**: A remembered font that is not installed MUST be replaced by that row's default without a
   message.
@@ -245,7 +254,7 @@ the default.
 
 ## Deviations from the reference
 
-- Two font settings (file list and panel bars) instead of the single panel font of the reference program;
+- Three font settings (file list; path, tabs and status; volume buttons) instead of the single panel font of the reference program;
   the main window and dialog fonts of the classic commander are left out (macOS controls keep the system
   font).
 - The standard macOS Fonts panel instead of a Windows font dialog, with the change shown while choosing.

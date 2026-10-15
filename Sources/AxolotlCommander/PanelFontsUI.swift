@@ -28,9 +28,14 @@ enum PanelFont {
         entry(role).faces
     }
 
+    /// The faces of a choice in effect earlier (not cached).
+    static func faces(_ role: FontRole, choice: FontChoice?) -> Faces {
+        let size = CGFloat(role.size(of: choice))
+        return resolve(role, choice?.name.flatMap { NSFont(name: $0, size: size) }, size: size)
+    }
+
     private static func entry(_ role: FontRole) -> (stored: FontChoice?, effective: FontChoice?, faces: Faces) {
-        let appearance = AppSettings.shared.appearance
-        let stored = role == .fileList ? appearance.listFont : appearance.barFont
+        let stored = AppSettings.shared.appearance.font(role)
         if let cached = cache[role], cached.stored == stored { return cached }
         let size = CGFloat(role.size(of: stored))
         let named = stored?.name.flatMap { NSFont(name: $0, size: size) }
@@ -80,26 +85,32 @@ enum PanelFont {
 
     // MARK: Bars
 
+    /// The path bar, tabs and status line.
     static var bar: NSFont { faces(.bars).regular }
 
     /// The bar font emphasized: the system font in the given weight, a chosen font in its bold face.
     static func bar(weight: NSFont.Weight) -> NSFont {
-        let set = faces(.bars)
-        guard weight != .regular else { return set.regular }
-        return set.isSystem ? .systemFont(ofSize: set.regular.pointSize, weight: weight) : set.bold
+        let faces = faces(.bars)
+        guard weight != .regular else { return faces.regular }
+        return faces.isSystem ? .systemFont(ofSize: faces.regular.pointSize, weight: weight) : faces.bold
     }
 
     static var barMonospaced: NSFont { faces(.bars).monospaced }
 
+    /// The volume bar and the drive row.
+    static var button: NSFont { faces(.volumeButtons).regular }
+
     /// How much taller a bar gets than with the default font (never lower than today).
-    static var barGrowth: CGFloat {
-        let base = lineHeight(of: .systemFont(ofSize: CGFloat(FontRole.bars.defaultSize)))
-        return max(0, (faces(.bars).lineHeight - base).rounded(.up))
+    static func growth(_ role: FontRole) -> CGFloat {
+        let base = lineHeight(of: .systemFont(ofSize: CGFloat(role.defaultSize)))
+        return max(0, (faces(role).lineHeight - base).rounded(.up))
     }
 
-    /// The bordered bar buttons' size for the bar font, so the text stays inside the bezel.
-    static var barControlSize: NSControl.ControlSize {
-        switch bar.pointSize {
+    static var barGrowth: CGFloat { growth(.bars) }
+
+    /// The bordered volume buttons' size for their font, so the text stays inside the bezel.
+    static var buttonControlSize: NSControl.ControlSize {
+        switch button.pointSize {
         case ..<11.5: .small
         case ..<14: .regular
         default: .large
@@ -123,10 +134,7 @@ extension PanelFont {
     static func store(_ choice: FontChoice?, for role: FontRole) {
         let choice = role.normalized(choice)
         let settings = AppSettings.shared
-        switch role {
-        case .fileList: if settings.appearance.listFont != choice { settings.appearance.listFont = choice }
-        case .bars: if settings.appearance.barFont != choice { settings.appearance.barFont = choice }
-        }
+        if settings.appearance.font(role) != choice { settings.appearance.setFont(choice, for: role) }
     }
 
     /// The choice that names `font`; the system font is stored without its private name.

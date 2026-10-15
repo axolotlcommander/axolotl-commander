@@ -8,9 +8,10 @@ import Testing
 @Suite struct PanelFontsTests {
     @Test func choiceRoundTripsInAppearance() throws {
         let a = PanelAppearance(listFont: FontChoice(name: "Menlo-Bold", size: 15),
-                                barFont: FontChoice(size: 12))
+                                barFont: FontChoice(size: 12), buttonFont: FontChoice(name: "Avenir-Book", size: 14))
         let b = try JSONDecoder().decode(PanelAppearance.self, from: JSONEncoder().encode(a))
         #expect(b == a)
+        #expect(b.font(.volumeButtons)?.name == "Avenir-Book")
         #expect(b.listFont?.name == "Menlo-Bold")
         #expect(b.barFont?.name == nil)
     }
@@ -20,6 +21,7 @@ import Testing
         let a = try JSONDecoder().decode(PanelAppearance.self, from: Data(json.utf8))
         #expect(a.listFont == nil)
         #expect(a.barFont == nil)
+        #expect(a.buttonFont == nil)
         #expect(a.markBold == false)
     }
 
@@ -30,6 +32,15 @@ import Testing
         #expect(FontRole.bars.clamped(12) == 12)
         #expect(FontRole.fileList.normalized(FontChoice(name: "Menlo-Regular", size: 64))?.size == 32)
         #expect(FontRole.bars.size(of: FontChoice(size: 2)) == 8)
+        #expect(FontRole.volumeButtons.clamped(21) == 20)
+    }
+
+    @Test func rolesAreSetSeparately() {
+        var a = PanelAppearance()
+        a.setFont(FontChoice(size: 16), for: .volumeButtons)
+        #expect(a.font(.volumeButtons) == FontChoice(size: 16))
+        #expect(a.font(.bars) == nil)
+        #expect(a.font(.fileList) == nil)
     }
 
     @Test func defaultIsDetected() {

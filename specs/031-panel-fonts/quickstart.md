@@ -6,8 +6,9 @@ folders of the session scratchpad.
 1. `swift test --filter PanelFonts` — choice round trip, limits, steps, row height, defaults.
 2. Settings → Appearance → Fonts: "File list" → Change… → Menlo 16 pt: both panels redraw in Menlo with
    taller rows while choosing; detailed, brief and thumbnails modes; marked items bold and red.
-3. "Bars" → Change… → 15 pt: volume bar, drive row, tabs (two tabs open), path bar, status line larger; the
-   divider does not move; narrowest panel keeps the first items.
+3. "Path, tabs and status" → Change… → 15 pt: tabs (two tabs open), path bar, status line larger, the volume
+   buttons unchanged; then "Volume buttons" → 15 pt: volume bar and drive row larger; the divider does not
+   move; the narrowest panel keeps the first items.
 4. ⌘L in a panel: the path field is monospaced at the bar size.
 5. "Default" on each row, then "Restore Default Fonts": the look of a fresh install; buttons disabled.
 6. Quit and start again: the chosen fonts are back.

@@ -20,12 +20,14 @@ final class FreeSpaceLabel: NSView {
 
     private let label = NSTextField(labelWithString: "")
     private var variants: [String] = []
-    private static var font: NSFont { PanelFont.bar }
+    /// The volume buttons' font next to them, the bar font in the status line.
+    var fontRole = FontRole.volumeButtons { didSet { applyFont() } }
+    private var font: NSFont { PanelFont.faces(fontRole).regular }
     private static let padding: CGFloat = 4
 
     override init(frame: NSRect) {
         super.init(frame: frame)
-        label.font = Self.font
+        label.font = font
         label.textColor = .secondaryLabelColor
         label.lineBreakMode = .byClipping
         label.alignment = .right
@@ -37,26 +39,26 @@ final class FreeSpaceLabel: NSView {
     @available(*, unavailable)
     required init?(coder: NSCoder) { fatalError() }
 
-    /// Takes the bar font chosen in Settings.
+    /// Takes the font of its role chosen in Settings.
     func applyFont() {
-        label.font = Self.font
+        label.font = font
         invalidateIntrinsicContentSize()
         needsLayout = true
     }
 
     /// The width of the full text.
     override var intrinsicContentSize: NSSize {
-        NSSize(width: variants.first.map(Self.width) ?? 0, height: label.intrinsicContentSize.height)
+        NSSize(width: variants.first.map(width) ?? 0, height: label.intrinsicContentSize.height)
     }
 
     /// The width the label takes in `available` points (0 when no text fits).
     func width(fitting available: CGFloat) -> CGFloat {
-        FreeSpaceText.fitting(variants, available: available) { Self.width($0) }.map(Self.width) ?? 0
+        FreeSpaceText.fitting(variants, available: available) { self.width($0) }.map(width) ?? 0
     }
 
     override func layout() {
         super.layout()
-        let text = FreeSpaceText.fitting(variants, available: bounds.width) { Self.width($0) } ?? ""
+        let text = FreeSpaceText.fitting(variants, available: bounds.width) { self.width($0) } ?? ""
         if label.stringValue != text { label.stringValue = text }
         let height = label.intrinsicContentSize.height
         label.frame = NSRect(x: 0, y: ((bounds.height - height) / 2).rounded(), width: bounds.width, height: height)
@@ -71,8 +73,8 @@ final class FreeSpaceLabel: NSView {
         if !label.stringValue.isEmpty { addCursorRect(bounds, cursor: .pointingHand) }
     }
 
-    private static func width(_ text: String) -> CGFloat {
-        ((text as NSString).size(withAttributes: [.font: font]).width + padding).rounded(.up)
+    private func width(_ text: String) -> CGFloat {
+        ((text as NSString).size(withAttributes: [.font: font]).width + Self.padding).rounded(.up)
     }
 }
 
@@ -87,8 +89,8 @@ final class DriveRowView: NSView {
     override init(frame: NSRect) {
         super.init(frame: frame)
         combo.bezelStyle = .accessoryBarAction
-        combo.controlSize = PanelFont.barControlSize
-        combo.font = PanelFont.bar
+        combo.controlSize = PanelFont.buttonControlSize
+        combo.font = PanelFont.button
         combo.imagePosition = .imageLeading
         combo.refusesFirstResponder = true
         combo.lineBreakMode = .byTruncatingTail
@@ -113,13 +115,13 @@ final class DriveRowView: NSView {
     required init?(coder: NSCoder) { fatalError() }
 
     override var intrinsicContentSize: NSSize {
-        NSSize(width: NSView.noIntrinsicMetric, height: 20 + PanelFont.barGrowth)
+        NSSize(width: NSView.noIntrinsicMetric, height: 20 + PanelFont.growth(.volumeButtons))
     }
 
-    /// Takes the bar font chosen in Settings.
+    /// Takes the volume button font chosen in Settings.
     func applyFont() {
-        combo.controlSize = PanelFont.barControlSize
-        combo.font = PanelFont.bar
+        combo.controlSize = PanelFont.buttonControlSize
+        combo.font = PanelFont.button
         if let shown { show(title: shown.title, icon: shown.icon) }
         freeSpace.applyFont()
         invalidateIntrinsicContentSize()

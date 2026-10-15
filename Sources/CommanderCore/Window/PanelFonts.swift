@@ -19,20 +19,22 @@ public struct FontChoice: Codable, Hashable, Sendable {
 public enum FontRole: Sendable, CaseIterable {
     /// The file lists of the panels.
     case fileList
-    /// The volume bar, drive row, tabs, path bar and status line.
+    /// The path bar, the tabs and the status line.
     case bars
+    /// The volume bar and the drive row with its free space.
+    case volumeButtons
 
     public var defaultSize: Double {
         switch self {
         case .fileList: 13
-        case .bars: 11
+        case .bars, .volumeButtons: 11
         }
     }
 
     public var limits: ClosedRange<Double> {
         switch self {
         case .fileList: 8...32
-        case .bars: 8...20
+        case .bars, .volumeButtons: 8...20
         }
     }
 

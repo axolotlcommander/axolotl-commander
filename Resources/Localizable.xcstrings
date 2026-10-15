@@ -13276,16 +13276,6 @@
         }
       }
     },
-    "Bars:": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lišty:"
-          }
-        }
-      }
-    },
     "Change…": {
       "localizations": {
         "cs": {
@@ -13355,6 +13345,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Výchozí písmo seznamu souborů"
+          }
+        }
+      }
+    },
+    "Path, tabs and status:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cesta, záložky a stav:"
+          }
+        }
+      }
+    },
+    "Volume buttons:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tlačítka svazků:"
           }
         }
       }

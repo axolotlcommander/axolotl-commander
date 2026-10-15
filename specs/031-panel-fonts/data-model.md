@@ -12,12 +12,14 @@
 | Role | Default size | Limits |
 |---|---|---|
 | `fileList` | 13 | 8–32 |
-| `bars` | 11 | 8–20 |
+| `bars` (path bar, tabs, status line) | 11 | 8–20 |
+| `volumeButtons` (volume bar, drive row) | 11 | 8–20 |
 
 Operations: `clamped(_ size:)`, `bigger(_ choice:)` / `smaller(_ choice:)` (±1 pt, nil when at the limit),
 `isDefault(_ choice:)` (nil, or the system font at the default size), `rowHeight(lineHeight:padding:)`.
 
 ## PanelAppearance (existing)
 
-New optional fields `listFont: FontChoice?`, `barFont: FontChoice?`; nil = default. Missing keys decode as
+New optional fields `listFont`, `barFont`, `buttonFont` (`FontChoice?`), read and written per role with
+`font(_:)` / `setFont(_:for:)`; nil = default. Missing keys decode as
 nil.

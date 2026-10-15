@@ -282,8 +282,9 @@ private struct AppearanceSettings: View {
                 Spacer()
                 // The fonts have their own restore button.
                 Button("Restore Defaults") {
-                    settings.appearance = PanelAppearance(listFont: settings.appearance.listFont,
-                                                          barFont: settings.appearance.barFont)
+                    let fonts = settings.appearance
+                    settings.appearance = PanelAppearance(listFont: fonts.listFont, barFont: fonts.barFont,
+                                                          buttonFont: fonts.buttonFont)
                 }
             }
             .labelStyle(.iconOnly)
@@ -310,14 +311,14 @@ private struct FontSettings: View {
             Text("Fonts").font(.headline)
             Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 6) {
                 row("File list:", .fileList)
-                row("Bars:", .bars)
+                row("Path, tabs and status:", .bars)
+                row("Volume buttons:", .volumeButtons)
             }
             Button("Restore Default Fonts") {
                 FontChooser.shared.stop()
-                PanelFont.store(nil, for: .fileList)
-                PanelFont.store(nil, for: .bars)
+                for role in FontRole.allCases { PanelFont.store(nil, for: role) }
             }
-            .disabled(PanelFont.choice(.fileList) == nil && PanelFont.choice(.bars) == nil)
+            .disabled(FontRole.allCases.allSatisfy { PanelFont.choice($0) == nil })
         }
     }
 
