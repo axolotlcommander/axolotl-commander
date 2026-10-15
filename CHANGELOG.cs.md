@@ -27,6 +27,8 @@ Formát vychází z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ve
 - Dělítko mezi panely se samo posouvalo a po přetažení skákalo zpět: dlouhý název souboru pod kurzorem
   nebo dlouhý název složky v záložce rozšířil svůj panel. Panely teď drží šířku nastavenou dělítkem,
   i po dalším spuštění.
+- Hledat soubory: v úzkém okně byl formulář po obou stranách oříznutý a Další volby vytlačily
+  tlačítko Hledat z dohledu. Okno už nejde zúžit pod šířku formuláře, v žádném jazyce.
 
 ## [0.7.2] - 2026-10-15
 

@@ -130,6 +130,17 @@ final class FindWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         } else if !window.setFrameUsingName("Find") {
             window.center()
         }
+        // The form never gets narrower than its controls, whatever the language. A narrow proposal
+        // wraps the labels and shrinks the measure, so a modest one returns what the form needs.
+        let formWidth = NSHostingController(rootView: FindFormView(form: form))
+            .sizeThatFits(in: NSSize(width: 400, height: 2000)).width
+        let minWidth = window.frameRect(forContentRect: NSRect(x: 0, y: 0, width: formWidth, height: 1)).width
+        window.minSize.width = max(window.minSize.width, ceil(minWidth))
+        if window.frame.width < window.minSize.width {
+            var frame = window.frame
+            frame.size.width = window.minSize.width
+            window.setFrame(frame, display: false)
+        }
         window.setFrameAutosaveName("Find")
         // Quick Look looks for its controller along the responder chain.
         window.nextResponder = self

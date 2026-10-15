@@ -75,6 +75,7 @@ struct FindFormView: View {
                     Toggle("at most", isOn: $form.useMaxSize)
                     sizeField($form.maxSize, unit: $form.maxUnit).disabled(!form.useMaxSize)
                 }
+                .fixedSize()
             }
             GridRow {
                 Text("Modified:")
@@ -84,6 +85,7 @@ struct FindFormView: View {
                     Toggle("to", isOn: $form.useTo)
                     DatePicker("", selection: $form.to).labelsHidden().disabled(!form.useTo)
                 }
+                .fixedSize()
             }
             GridRow {
                 Text("Kind:")
