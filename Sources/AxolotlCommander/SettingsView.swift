@@ -251,6 +251,7 @@ private struct AppearanceSettings: View {
                 Toggle("Server connections", isOn: $volumeBarServers)
             }
             .disabled(!showVolumeBar)
+            FontSettings(appearance: settings.appearance)
             Text("Highlighting — the first matching rule from the top wins:").font(.headline)
             Table($settings.appearance.highlights, selection: $selection) {
                 TableColumn("On") { $rule in Toggle("", isOn: $rule.isEnabled).labelsHidden() }.width(28)
@@ -279,7 +280,11 @@ private struct AppearanceSettings: View {
                 Button("Move Up", systemImage: "chevron.up") { move(-1) }.disabled(selection == nil)
                 Button("Move Down", systemImage: "chevron.down") { move(1) }.disabled(selection == nil)
                 Spacer()
-                Button("Restore Defaults") { settings.appearance = PanelAppearance() }
+                // The fonts have their own restore button.
+                Button("Restore Defaults") {
+                    settings.appearance = PanelAppearance(listFont: settings.appearance.listFont,
+                                                          barFont: settings.appearance.barFont)
+                }
             }
             .labelStyle(.iconOnly)
         }
@@ -292,6 +297,50 @@ private struct AppearanceSettings: View {
               rules.indices.contains(index + delta) else { return }
         rules.swapAt(index, index + delta)
         settings.appearance.highlights = rules
+    }
+}
+
+/// The fonts of the file lists and the bars (spec 031): each row shows its font and opens the Fonts panel.
+private struct FontSettings: View {
+    /// Read so the rows redraw when a font changes.
+    let appearance: PanelAppearance
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Fonts").font(.headline)
+            Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 6) {
+                row("File list:", .fileList)
+                row("Bars:", .bars)
+            }
+            Button("Restore Default Fonts") {
+                FontChooser.shared.stop()
+                PanelFont.store(nil, for: .fileList)
+                PanelFont.store(nil, for: .bars)
+            }
+            .disabled(PanelFont.choice(.fileList) == nil && PanelFont.choice(.bars) == nil)
+        }
+    }
+
+    private func row(_ title: LocalizedStringKey, _ role: FontRole) -> some View {
+        _ = appearance
+        let choice = PanelFont.choice(role)
+        let font = PanelFont.faces(role).regular
+        // In the font itself, but no taller than the row.
+        let sample = NSFont(descriptor: font.fontDescriptor, size: min(font.pointSize, 16)) ?? font
+        return GridRow {
+            Text(title)
+            Text(PanelFont.description(role))
+                .font(Font(sample as CTFont))
+                .lineLimit(1)
+                .truncationMode(.tail)
+                .frame(width: 280, alignment: .leading)
+            Button("Change…") { FontChooser.shared.choose(role) }
+            Button("Default") {
+                if FontChooser.shared.role == role { FontChooser.shared.stop() }
+                PanelFont.store(nil, for: role)
+            }
+            .disabled(choice == nil)
+        }
     }
 }
 

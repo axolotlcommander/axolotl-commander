@@ -24,6 +24,7 @@ public enum Command: String, CaseIterable, Hashable, Sendable {
     case filter, refresh, toggleHidden, branchView, branchViewSelected, maximizePanel, comparePanels, comparePanelsNow, calculateSizes
     case swapPanels, sameFolderAsOther
     case viewModeDetailed, viewModeBrief, viewModeThumbnails, thumbnailsLarger, thumbnailsSmaller
+    case fileListFontBigger, fileListFontSmaller, fileListFontDefault
     case toggleCommandLine, toggleFunctionKeyBar, toggleButtonBar, toggleVolumeBar, toggleDriveRow
 
     // Go (active panel)
@@ -227,6 +228,9 @@ public enum CommandRegistry {
         add(.viewModeThumbnails, "Thumbnails", .view, [ch("3", [c, o])])
         add(.thumbnailsLarger, "Larger Thumbnails", .view, [ch("+", m), ch("=", m)])
         add(.thumbnailsSmaller, "Smaller Thumbnails", .view, [ch("-", m)])
+        add(.fileListFontBigger, "Bigger File List Font", .view, scope: .app, sep: true)
+        add(.fileListFontSmaller, "Smaller File List Font", .view, scope: .app)
+        add(.fileListFontDefault, "Default File List Font", .view, scope: .app)
         add(.toggleHidden, "Show Hidden Files", .view, [ch(".", [m, s])], sep: true)
         add(.branchView, "Branch View (With Subfolders)", .view, [ch("b", c)])
         add(.branchViewSelected, "Branch View of Selected Items", .view, [ch("b", [c, s])])

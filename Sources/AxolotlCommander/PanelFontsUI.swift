@@ -17,38 +17,39 @@ enum PanelFont {
         let isSystem: Bool
     }
 
-    private static var cache: [FontRole: (choice: FontChoice?, set: Faces)] = [:]
+    private static var cache: [FontRole: (stored: FontChoice?, effective: FontChoice?, faces: Faces)] = [:]
 
+    /// The choice in effect: the stored one, or nil (the default) when its font is not installed.
     static func choice(_ role: FontRole) -> FontChoice? {
-        let appearance = AppSettings.shared.appearance
-        return role == .fileList ? appearance.listFont : appearance.barFont
+        entry(role).effective
     }
 
     static func faces(_ role: FontRole) -> Faces {
-        let choice = choice(role)
-        if let cached = cache[role], cached.choice == choice { return cached.set }
-        let set = resolve(role, choice)
-        cache[role] = (choice, set)
-        return set
+        entry(role).faces
     }
 
-    /// The font a choice names, nil when it is the system font or is not installed.
-    static func installed(_ choice: FontChoice?, size: CGFloat) -> NSFont? {
-        guard let name = choice?.name else { return nil }
-        return NSFont(name: name, size: size)
+    private static func entry(_ role: FontRole) -> (stored: FontChoice?, effective: FontChoice?, faces: Faces) {
+        let appearance = AppSettings.shared.appearance
+        let stored = role == .fileList ? appearance.listFont : appearance.barFont
+        if let cached = cache[role], cached.stored == stored { return cached }
+        let size = CGFloat(role.size(of: stored))
+        let named = stored?.name.flatMap { NSFont(name: $0, size: size) }
+        // A font removed after it was chosen: the row's default, without a message.
+        let effective = stored?.name != nil && named == nil ? nil : stored
+        let entry = (stored, effective, resolve(role, named, size: CGFloat(role.size(of: effective))))
+        cache[role] = entry
+        return entry
     }
 
-    private static func resolve(_ role: FontRole, _ choice: FontChoice?) -> Faces {
-        let size = CGFloat(role.size(of: choice))
-        let regular = installed(choice, size: size) ?? .systemFont(ofSize: size)
-        let isSystem = installed(choice, size: size) == nil
-        var bold = isSystem ? NSFont.boldSystemFont(ofSize: size)
+    private static func resolve(_ role: FontRole, _ named: NSFont?, size: CGFloat) -> Faces {
+        let regular = named ?? .systemFont(ofSize: size)
+        var bold = named == nil ? NSFont.boldSystemFont(ofSize: size)
             : NSFontManager.shared.convert(regular, toHaveTrait: .boldFontMask)
         // A font without a bold face: the regular one (the mark color still shows the mark).
         if !NSFontManager.shared.traits(of: bold).contains(.boldFontMask) { bold = regular }
         return Faces(regular: regular, bold: bold,
-                   monospaced: .monospacedSystemFont(ofSize: size, weight: .regular),
-                   lineHeight: lineHeight(of: regular), isSystem: isSystem)
+                     monospaced: .monospacedSystemFont(ofSize: size, weight: .regular),
+                     lineHeight: lineHeight(of: regular), isSystem: named == nil)
     }
 
     static func lineHeight(of font: NSFont) -> CGFloat {
@@ -109,10 +110,61 @@ enum PanelFont {
 
     /// "System font, 13 pt" or "Menlo Regular, 12 pt" for the Settings row.
     static func description(_ role: FontRole) -> String {
-        let choice = choice(role)
-        let size = role.size(of: choice)
+        let faces = faces(role)
+        let size = Double(faces.regular.pointSize)
         let sizeText = size == size.rounded() ? String(Int(size)) : String(format: "%.1f", size)
-        let name = installed(choice, size: CGFloat(size))?.displayName ?? String(localized: "System font")
+        let name = faces.isSystem ? String(localized: "System font") : faces.regular.displayName ?? faces.regular.fontName
         return String(localized: "\(name), \(sizeText) pt")
+    }
+}
+
+extension PanelFont {
+    /// Stores a choice for a role (normalized: within the limits, the default stored as nil).
+    static func store(_ choice: FontChoice?, for role: FontRole) {
+        let choice = role.normalized(choice)
+        let settings = AppSettings.shared
+        switch role {
+        case .fileList: if settings.appearance.listFont != choice { settings.appearance.listFont = choice }
+        case .bars: if settings.appearance.barFont != choice { settings.appearance.barFont = choice }
+        }
+    }
+
+    /// The choice that names `font`; the system font is stored without its private name.
+    static func choice(for font: NSFont, role: FontRole) -> FontChoice? {
+        let size = role.clamped(Double(font.pointSize))
+        let isSystem = font.fontName.hasPrefix(".") || font.familyName == NSFont.systemFont(ofSize: 13).familyName
+        return role.normalized(FontChoice(name: isSystem ? nil : font.fontName, size: size))
+    }
+}
+
+/// Connects the standard Fonts panel to one font role in Settings: every change in the panel applies at once.
+/// Closing Settings or restoring a default lets the Fonts panel go back to the text it normally changes.
+@MainActor
+final class FontChooser: NSObject, NSFontChanging {
+    static let shared = FontChooser()
+    private(set) var role: FontRole?
+
+    func choose(_ role: FontRole) {
+        self.role = role
+        let manager = NSFontManager.shared
+        manager.target = self
+        manager.setSelectedFont(PanelFont.faces(role).regular, isMultiple: false)
+        manager.orderFrontFontPanel(self)
+    }
+
+    func stop() {
+        role = nil
+        if NSFontManager.shared.target === self { NSFontManager.shared.target = nil }
+    }
+
+    func changeFont(_ sender: NSFontManager?) {
+        guard let role else { return }
+        let manager = sender ?? NSFontManager.shared
+        let font = manager.convert(PanelFont.faces(role).regular)
+        PanelFont.store(PanelFont.choice(for: font, role: role), for: role)
+    }
+
+    func validModesForFontPanel(_ fontPanel: NSFontPanel) -> NSFontPanel.ModeMask {
+        [.collection, .face, .size]
     }
 }

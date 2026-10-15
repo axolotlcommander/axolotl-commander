@@ -13255,6 +13255,109 @@
           }
         }
       }
+    },
+    "Fonts": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Písma"
+          }
+        }
+      }
+    },
+    "File list:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seznam souborů:"
+          }
+        }
+      }
+    },
+    "Bars:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lišty:"
+          }
+        }
+      }
+    },
+    "Change…": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Změnit…"
+          }
+        }
+      }
+    },
+    "Restore Default Fonts": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obnovit výchozí písma"
+          }
+        }
+      }
+    },
+    "System font": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Systémové písmo"
+          }
+        }
+      }
+    },
+    "%@, %@ pt": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, %2$@ pt"
+          }
+        }
+      }
+    },
+    "Bigger File List Font": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Větší písmo seznamu souborů"
+          }
+        }
+      }
+    },
+    "Smaller File List Font": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menší písmo seznamu souborů"
+          }
+        }
+      }
+    },
+    "Default File List Font": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Výchozí písmo seznamu souborů"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

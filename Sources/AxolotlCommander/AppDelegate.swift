@@ -111,6 +111,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         switch command {
         case .about, .checkForUpdates, .settings, .exportSettings, .quit, .configureKeys, .help, .whatsNew: true
         case .importSettings: SettingsTransfer.canImport
+        case .fileListFontBigger: FontRole.fileList.bigger(PanelFont.choice(.fileList)) != nil
+        case .fileListFontSmaller: FontRole.fileList.smaller(PanelFont.choice(.fileList)) != nil
+        case .fileListFontDefault: PanelFont.choice(.fileList) != nil
         default: false
         }
     }
@@ -125,9 +128,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         case .exportSettings: SettingsTransfer.export(from: NSApp.keyWindow)
         case .importSettings: SettingsTransfer.importSettings(from: NSApp.keyWindow)
         case .quit: NSApp.terminate(nil)
+        case .fileListFontBigger: stepFileListFont { FontRole.fileList.bigger($0) }
+        case .fileListFontSmaller: stepFileListFont { FontRole.fileList.smaller($0) }
+        case .fileListFontDefault: PanelFont.store(nil, for: .fileList)
         // There is no built-in help yet: the project page explains the app.
         case .help: NSWorkspace.shared.open(Self.helpURL)
         default: break
+        }
+    }
+
+    /// A step keeps the family and face; at a limit nothing changes.
+    private func stepFileListFont(_ step: (FontChoice?) -> FontChoice?) {
+        guard let next = step(PanelFont.choice(.fileList)) else { return NSSound.beep() }
+        PanelFont.store(next, for: .fileList)
+        // The Fonts panel, if open for the file list, shows the new size.
+        if FontChooser.shared.role == .fileList {
+            NSFontManager.shared.setSelectedFont(PanelFont.faces(.fileList).regular, isMultiple: false)
         }
     }
 
@@ -155,6 +171,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
 /// Esc closes Settings wherever the focus is: a focused checkbox or button keeps Esc from
 /// SwiftUI's exit command. A field that is composing text (an input method) keeps its own Esc.
 private final class SettingsWindow: NSWindow {
+    /// The Fonts panel may stay open; it no longer changes the panels.
+    override func close() {
+        FontChooser.shared.stop()
+        super.close()
+    }
+
     override func performKeyEquivalent(with event: NSEvent) -> Bool {
         if event.type == .keyDown, event.keyCode == 53,
            event.modifierFlags.intersection([.shift, .control, .option, .command]).isEmpty,
