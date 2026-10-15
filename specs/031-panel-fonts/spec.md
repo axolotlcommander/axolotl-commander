@@ -35,6 +35,8 @@ macOS Fonts panel, and adds a way back to the defaults.
 - Q: Keys? → A: Commands for a bigger, smaller and default file list font without default keys, assignable
   in Settings → Keyboard.
 - Q: The command line and the function key bar? → A: Unchanged.
+- Q: Colors? → A: Left out for now (a later spec).
+- Q: The Fonts panel after Settings closes? → A: It stops changing the panels (planning, 2026-10-15).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -156,8 +158,8 @@ the default.
 - A rename field open in a panel when the font changes: the field takes the new font; the typed text and
   the selection stay.
 - A long listing when the font changes: the cursor row stays visible.
-- The Fonts panel stays open after Settings is closed: further changes keep applying to the row that opened
-  it; nothing else in the app changes. Choosing "Change…" on the other row retargets the Fonts panel to it.
+- The Fonts panel stays open after Settings is closed: it no longer changes the panels; nothing else in the
+  app changes. Choosing "Change…" on the other row retargets the Fonts panel to it.
 - The Fonts panel is used for something else meanwhile (for example a text field in a dialog): the panels do
   not change.
 - Two windows open: both change.
