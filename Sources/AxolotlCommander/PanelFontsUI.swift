@@ -85,8 +85,15 @@ enum PanelFont {
 
     /// The file list font two points smaller: the column headers and the status line under the panel
     /// (11 pt with the default font, as today).
-    static var listSmall: NSFont {
-        resized(faces(.fileList).regular, by: -2, default: .systemFont(ofSize: NSFont.smallSystemFontSize))
+    static var listSmall: NSFont { listSmall(faces(.fileList)) }
+
+    /// The small font of given file list faces (the system small font for the default).
+    static func listSmall(_ faces: Faces) -> NSFont {
+        if faces.isSystem && faces.regular.pointSize == CGFloat(FontRole.fileList.defaultSize) {
+            return .systemFont(ofSize: NSFont.smallSystemFontSize)
+        }
+        let size = max(6, faces.regular.pointSize - 2)
+        return NSFont(descriptor: faces.regular.fontDescriptor, size: size) ?? faces.regular
     }
 
     /// The folder history and hot path menus in the file list font, as in the classic commander;
@@ -139,12 +146,6 @@ enum PanelFont {
         case ..<14: .regular
         default: .large
         }
-    }
-
-    private static func resized(_ font: NSFont, by delta: CGFloat, default fallback: NSFont) -> NSFont {
-        if choice(.fileList) == nil { return fallback }
-        let size = max(6, font.pointSize + delta)
-        return NSFont(descriptor: font.fontDescriptor, size: size) ?? font
     }
 
     // MARK: Settings

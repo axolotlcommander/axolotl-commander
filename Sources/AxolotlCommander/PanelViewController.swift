@@ -407,7 +407,9 @@ final class PanelViewController: NSViewController {
         let fonts = Self.currentFonts
         guard fonts != shownFonts else { return false }
         let changed = { (role: FontRole) in fonts[role] != self.shownFonts[role] }
-        let oldBold = PanelFont.faces(.fileList, choice: shownFonts[.fileList]).bold
+        let oldFaces = PanelFont.faces(.fileList, choice: shownFonts[.fileList])
+        let oldBold = oldFaces.bold
+        let oldHeader = PanelFont.listSmall(oldFaces)
         let listChanged = changed(.fileList)
         if changed(.mainWindow) {
             pathBar.applyFont()
@@ -428,6 +430,16 @@ final class PanelViewController: NSViewController {
             let old = column.fitWidth(oldBold), new = column.fitWidth
             tc.width = max(column.minWidth, (tc.width * new / max(old, 1)).rounded())
         }
+        // Extension keeps its share of its title's width in the header font, so the title still fits and
+        // going back to the default font gives back the width it had.
+        if let tc = tableView.tableColumn(withIdentifier: Column.ext.identifier) {
+            let width = { (font: NSFont) in NSAttributedString(string: tc.title, attributes: [.font: font]).size().width }
+            let old = width(oldHeader), new = width(PanelFont.listSmall)
+            tc.width = max(Column.ext.minWidth, (tc.width * new / max(old, 1)).rounded())
+        }
+        // The reload must not move the cursor: the table would select its first row meanwhile.
+        syncingSelection = true
+        defer { syncingSelection = false }
         tableView.rowHeight = PanelFont.rowHeight
         if let (row, _) = renaming, row < tableView.numberOfRows {
             // The name being typed stays: its row keeps the field, which takes the new font.
@@ -440,7 +452,10 @@ final class PanelViewController: NSViewController {
         } else {
             tableView.reloadData()
         }
-        if viewMode == .detailed, model.items.indices.contains(model.cursor) { tableView.scrollRowToVisible(model.cursor) }
+        if model.items.indices.contains(model.cursor) {
+            tableView.selectRowIndexes([model.cursor], byExtendingSelection: false)
+            if viewMode == .detailed { tableView.scrollRowToVisible(model.cursor) }
+        }
         briefView.collectionViewLayout?.invalidateLayout()
         thumbnailView.collectionViewLayout?.invalidateLayout()
         return true
@@ -2032,7 +2047,23 @@ final class PanelHeaderView: NSTableHeaderView {
         guard let standard else { return }
         let custom = PanelFont.choice(.fileList) != nil
         let font = custom ? PanelFont.listSmall : standard.font
-        for column in table.tableColumns { column.headerCell.font = font }
+        // The header cell draws its plain title in the standard font whatever `font` says; an attributed
+        // title keeps the chosen font, the column's alignment and the header text color.
+        for column in table.tableColumns {
+            let cell = column.headerCell
+            let title = cell.stringValue
+            if custom, let font {
+                let paragraph = NSMutableParagraphStyle()
+                paragraph.alignment = cell.alignment
+                paragraph.lineBreakMode = .byTruncatingTail
+                cell.attributedStringValue = NSAttributedString(string: title, attributes: [
+                    .font: font, .foregroundColor: NSColor.headerTextColor, .paragraphStyle: paragraph,
+                ])
+            } else {
+                cell.font = font
+                cell.stringValue = title
+            }
+        }
         let base = PanelFont.lineHeight(of: standard.font ?? .systemFont(ofSize: NSFont.smallSystemFontSize))
         let growth = custom ? max(0, (PanelFont.lineHeight(of: PanelFont.listSmall) - base).rounded(.up)) : 0
         if frame.height != standard.height + growth {
