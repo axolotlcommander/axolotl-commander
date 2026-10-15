@@ -84,12 +84,19 @@ public struct PanelAppearance: Codable, Hashable, Sendable {
     public var markBold: Bool
     /// The first enabled matching rule from the top wins.
     public var highlights: [HighlightRule]
+    /// Font of the file lists; nil = the system font at the default size.
+    public var listFont: FontChoice?
+    /// Font of the panel bars; nil = the small system font.
+    public var barFont: FontChoice?
 
     public init(markColor: SystemColor = .red, markBold: Bool = true,
-                highlights: [HighlightRule] = PanelAppearance.defaultHighlights) {
+                highlights: [HighlightRule] = PanelAppearance.defaultHighlights,
+                listFont: FontChoice? = nil, barFont: FontChoice? = nil) {
         self.markColor = markColor
         self.markBold = markBold
         self.highlights = highlights
+        self.listFont = listFont
+        self.barFont = barFont
     }
 
     /// Missing keys fall back to defaults.
@@ -98,7 +105,9 @@ public struct PanelAppearance: Codable, Hashable, Sendable {
         self.init(
             markColor: try c.decodeIfPresent(SystemColor.self, forKey: .markColor) ?? .red,
             markBold: try c.decodeIfPresent(Bool.self, forKey: .markBold) ?? true,
-            highlights: try c.decodeIfPresent([HighlightRule].self, forKey: .highlights) ?? Self.defaultHighlights
+            highlights: try c.decodeIfPresent([HighlightRule].self, forKey: .highlights) ?? Self.defaultHighlights,
+            listFont: try c.decodeIfPresent(FontChoice.self, forKey: .listFont),
+            barFont: try c.decodeIfPresent(FontChoice.self, forKey: .barFont)
         )
     }
 
