@@ -5,6 +5,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 
 ## [Unreleased]
 
+## [0.7.2] - 2026-10-15
+
+### Fixed
+
+- The app could stop responding for seconds or minutes while an external disk was asleep or busy
+  with a Time Machine backup, or a network drive stopped answering. The list of volumes, the volume
+  of the panel's folder, the volume icons and the folder watching are now read in the background, so
+  moving the cursor or opening the volume menu never waits for a disk.
+
 ## [0.7.1] - 2026-10-15
 
 ### Fixed

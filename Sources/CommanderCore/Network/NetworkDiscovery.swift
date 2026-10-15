@@ -33,7 +33,7 @@ public final class NetworkDiscovery: @unchecked Sendable {
 
     /// The rows of the Network folder right now.
     public func items() -> [FileItem] {
-        NetworkPlaces.items(services: services(), volumes: Volumes.mounted())
+        NetworkPlaces.items(services: services(), volumes: VolumeList.shared.current)
     }
 
     private func start() {

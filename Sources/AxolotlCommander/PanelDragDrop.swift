@@ -66,7 +66,13 @@ extension PanelViewController {
         // Archives and servers: copy unless Command asks for a move.
         if sources.contains(where: { RemoteURL.isRemote($0) || ArchivePath.split($0.deletingLastPathComponent()) != nil })
             || RemoteURL.isRemote(target) { return .copy }
-        let sameVolume = sources.allSatisfy { Volumes.root(of: $0) == Volumes.root(of: target) }
+        // Asked while hovering: the volumes come from `VolumeRoots`, which never waits for a disk. A
+        // dragged volume itself is never moved.
+        let volumes = VolumeList.shared.current.map { $0.url.standardizedFileURL }
+        if sources.contains(where: { volumes.contains($0.standardizedFileURL) }) { return .copy }
+        let roots = VolumeRoots.shared
+        let targetRoot = roots.root(of: target)
+        let sameVolume = Set(sources.map { $0.deletingLastPathComponent() }).allSatisfy { roots.root(of: $0) == targetRoot }
         return sameVolume ? .move : .copy
     }
 
