@@ -44,6 +44,9 @@ back, with its results, the next time Find Files is chosen.
   Files, which gives the same workflow without blocking the main window.
 - Q: Keep today's behavior available? → A: Yes, as a setting; the classic behavior is the default.
 - Q: Search within the found files (the classic commander's F2 option)? → A: Not now (postponed).
+- Q: Is "Go to File" drawn as the default button? → A: No — the form's "Find" button stays the window's
+  default button (Return in the form starts the search, as in the classic commander's "Start search");
+  Return in the results runs Go to File (implementation, 2026-10-15).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -85,8 +88,8 @@ disabled; the texts fit in Czech at the smallest window size.
 **Acceptance Scenarios**:
 
 1. **Given** the Find window, **When** it is shown, **Then** a row of buttons under the results reads, in this
-   order, "F3 View", "F4 Edit", "New Search", "Go to File" and "Results to Panel"; "Go to File" is drawn as
-   the default button.
+   order, "F3 View", "F4 Edit", "New Search", "Go to File" and "Results to Panel"; the form's "Find" button
+   stays the default button.
 2. **Given** a focused result, **When** the user clicks a button, **Then** it does exactly what its command
    does from the keyboard on the focused result (View, Edit, New Search, Go to File, Results to Panel).
 3. **Given** no results, **When** the window is shown, **Then** "F3 View", "F4 Edit", "Go to File" and
@@ -206,7 +209,7 @@ their results.
   result it MUST show the folder with the cursor on the first item and beep; when the folder is missing too it
   MUST show a message and leave the panel unchanged.
 - **FR-004**: The Find window MUST show, under the results, the buttons "F3 View", "F4 Edit", "New Search",
-  "Go to File" (default button) and "Results to Panel", each running the same command as its key on the focused
+  "Go to File" and "Results to Panel", each running the same command as its key on the focused
   result, disabled when that command is unavailable, never keeping the keyboard focus.
 - **FR-005**: The command now called "Show Results in Panel" MUST be called "Results to Panel" in every menu and
   in Settings → Keyboard.

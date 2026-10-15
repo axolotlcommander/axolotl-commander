@@ -17,6 +17,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
   bars grow with the font; "Default" and "Restore Default Fonts" bring back the usual look. View →
   Bigger, Smaller and Default File List Font change the size from the keyboard (keys can be assigned
   in Settings → Keyboard).
+- Find Files: a double click or Return on a result goes to the
+  file in the panel, and the buttons F3 View, F4 Edit, New Search, Go to File and Results to Panel
+  sit under the results. After going to a file the Find window steps aside and Find Files brings it
+  back with its results (Settings → General → After going to a file; "Keep the Find window open"
+  keeps the old behavior). Find Files in New Window… runs another search next to it; Open stays on
+  ⌘O.
 
 ### Fixed
 

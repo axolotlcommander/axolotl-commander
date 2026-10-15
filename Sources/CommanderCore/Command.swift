@@ -46,7 +46,7 @@ public enum Command: String, CaseIterable, Hashable, Sendable {
     case leftVolumeMenu, rightVolumeMenu
 
     // Commands
-    case find, occupiedSpace, openTerminal, revealInFinder, goToLinkTarget, userMenu, volumeInfo
+    case find, findInNewWindow, occupiedSpace, openTerminal, revealInFinder, goToLinkTarget, userMenu, volumeInfo
     case connectToServer, disconnect, ejectVolume, compareFiles, synchronizeFolders
     case calculateChecksums, verifyChecksums
 
@@ -79,7 +79,7 @@ public enum Command: String, CaseIterable, Hashable, Sendable {
     // Find window (⌃⌥F7)
     case findStart, findStop, findOpen, findShowInPanel, findView, findEdit, findQuickLook
     case findProperties, findTrash, findRemove, findCopyFiles, findCopyPaths, findCopyNames
-    case findSelectAll, findToPanel, findClose
+    case findSelectAll, findToPanel, findClose, findNewSearch
 
     // Compare files window
     case compareNextDifference, comparePreviousDifference, compareFirstDifference, compareLastDifference
@@ -281,6 +281,8 @@ public enum CommandRegistry {
         add(.tabList, "Tab List…", .go, [ch("a", [c, s]), ch("\\", [m, s])], sep: true)
 
         add(.find, "Find Files…", .commands, [f(7, o), f(7, [c, o]), ch("f", m)])
+        // A separate search next to the one Find Files brings back (spec 032).
+        add(.findInNewWindow, "Find Files in New Window…", .commands)
         add(.occupiedSpace, "Disk Map…", .commands, [f(10, o), f(10, [c, o]), ch("d", [c, s])])
         add(.volumeInfo, "Volume Information…", .commands, [ch("l", c)])
         add(.compareFiles, "Compare Files…", .commands)
@@ -365,8 +367,9 @@ public enum CommandRegistry {
         func find(_ cmd: Command, _ title: String, _ menu: MenuID?, _ chords: [K] = [], sep: Bool = false) {
             add(cmd, title, menu, chords, scope: .find, sep: sep)
         }
-        find(.findOpen, "Open", .file, [ch("o", m), K(.down, m), K(.enter), K(.numEnter)])
-        find(.findShowInPanel, "Show in Panel", .file, [ch("r", m), K(.space)])
+        // Return and double click go to the file, as in the classic commander (spec 032).
+        find(.findShowInPanel, "Go to File", .file, [K(.enter), K(.numEnter), ch("r", m), K(.space)])
+        find(.findOpen, "Open", .file, [ch("o", m), K(.down, m)])
         find(.findView, "View", .file, [f(3)], sep: true)
         find(.findEdit, "Edit", .file, [f(4)])
         find(.findQuickLook, "Quick Look", .file, [ch("y", m), f(3, o)])
@@ -379,7 +382,8 @@ public enum CommandRegistry {
         find(.findSelectAll, "Select All", .edit, [ch("a", m)], sep: true)
         find(.findStart, "Find Now", .commands, [K(.enter, m)])
         find(.findStop, "Stop", .commands, [ch(".", m)])
-        find(.findToPanel, "Show Results in Panel", .commands, [ch("p", [m, s])], sep: true)
+        find(.findNewSearch, "New Search", .commands, [ch("n", m)])
+        find(.findToPanel, "Results to Panel", .commands, [ch("p", [m, s])], sep: true)
         find(.findClose, "Close", nil, [K(.escape)])
 
         func compare(_ cmd: Command, _ title: String, _ menu: MenuID?, _ chords: [K] = [], sep: Bool = false) {

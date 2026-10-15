@@ -8763,17 +8763,6 @@
         }
       }
     },
-    "Show Results in Panel": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Výsledky do panelu"
-          }
-        }
-      }
-    },
     "Show in Finder": {
       "localizations": {
         "cs": {
@@ -13375,6 +13364,120 @@
           "stringUnit": {
             "state": "translated",
             "value": "Lišta svazků, řádek disku, cesta, záložky, příkazová řádka a funkční klávesy"
+          }
+        }
+      }
+    },
+    "Go to File": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přejít na soubor"
+          }
+        }
+      }
+    },
+    "New Search": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nové hledání"
+          }
+        }
+      }
+    },
+    "Results to Panel": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Výsledky do panelu"
+          }
+        }
+      }
+    },
+    "Find Files in New Window…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hledat soubory v novém okně…"
+          }
+        }
+      }
+    },
+    "F3 View": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "F3 Zobrazit"
+          }
+        }
+      }
+    },
+    "F4 Edit": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "F4 Upravit"
+          }
+        }
+      }
+    },
+    "The folder “%@” no longer exists.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Složka „%@“ už neexistuje."
+          }
+        }
+      }
+    },
+    "After going to a file:": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Po přechodu na soubor:"
+          }
+        }
+      }
+    },
+    "Hide the Find window": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schovat okno hledání"
+          }
+        }
+      }
+    },
+    "Keep the Find window open": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nechat okno hledání otevřené"
+          }
+        }
+      }
+    },
+    "A hidden Find window comes back with its results when you choose Find Files (⌃⌥F7) again.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schované okno hledání se i s výsledky vrátí, když znovu zvolíte Hledat soubory (⌃⌥F7)."
           }
         }
       }

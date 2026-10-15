@@ -16,6 +16,11 @@ Formát vychází z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ve
   záložky, příkazovou řádku a funkční klávesy. Řádky i lišty rostou s písmem; „Výchozí“ a „Obnovit
   výchozí písma“ vrátí obvyklý vzhled. Zobrazit → Větší, Menší a Výchozí písmo seznamu souborů mění
   velikost z klávesnice (klávesy lze přiřadit v Nastavení → Klávesnice).
+- Hledat soubory: dvojklik nebo Return na výsledku přejde na
+  soubor v panelu a pod výsledky jsou tlačítka F3 Zobrazit, F4 Upravit, Nové hledání, Přejít na
+  soubor a Výsledky do panelu. Po přechodu na soubor se okno hledání schová a Hledat soubory ho vrátí
+  i s výsledky (Nastavení → Obecné → Po přechodu na soubor; „Nechat okno hledání otevřené“ zachová
+  dosavadní chování). Hledat soubory v novém okně… spustí další hledání vedle; Otevřít zůstává na ⌘O.
 
 ### Opraveno
 

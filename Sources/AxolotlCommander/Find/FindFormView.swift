@@ -7,6 +7,7 @@ import SwiftUI
 /// Upper part of the find window: what to find and where.
 struct FindFormView: View {
     @Bindable var form: FindForm
+    @FocusState private var nameFocused: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -14,7 +15,8 @@ struct FindFormView: View {
                 GridRow {
                     Text("Named:").gridColumnAlignment(.trailing)
                     HistoryField(text: $form.name, history: form.nameHistory.entries,
-                                 prompt: String(localized: "All files (masks *.txt;*.md|tmp*)"), onSubmit: form.onFind)
+                                 prompt: String(localized: "All files (masks *.txt;*.md|tmp*)"), onSubmit: form.onFind,
+                                 focus: $nameFocused)
                     HStack {
                         Toggle("Subfolders", isOn: $form.subdirectories)
                         Toggle("Hidden Files", isOn: $form.includeHidden)
@@ -60,6 +62,7 @@ struct FindFormView: View {
         }
         .toggleStyle(.checkbox)
         .padding(14)
+        .onChange(of: form.nameFocusRequest) { nameFocused = true }
     }
 
     private var advanced: some View {
@@ -117,10 +120,11 @@ private struct HistoryField: View {
     let history: [String]
     let prompt: String
     let onSubmit: () -> Void
+    var focus: FocusState<Bool>.Binding?
 
     var body: some View {
         HStack(spacing: 2) {
-            TextField("", text: $text, prompt: Text(prompt))
+            field
                 .onSubmit(onSubmit)
                 .frame(minWidth: 220, maxWidth: .infinity)
             Menu {
@@ -135,6 +139,14 @@ private struct HistoryField: View {
             .fixedSize()
             .disabled(history.isEmpty)
             .help(String(localized: "Recent"))
+        }
+    }
+
+    @ViewBuilder private var field: some View {
+        if let focus {
+            TextField("", text: $text, prompt: Text(prompt)).focused(focus)
+        } else {
+            TextField("", text: $text, prompt: Text(prompt))
         }
     }
 }

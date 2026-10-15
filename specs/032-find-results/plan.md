@@ -16,11 +16,9 @@
   - double click → `.findShowInPanel`;
   - Go to File: the target from `FindGoToTarget`; the main window comes front, `activate(activeSide)` puts
     the focus in the panel (R3);
-  - a button row under the status line: F3 View, F4 Edit, New Search, Go to File (default button, key
-    equivalent Return only while the table has the focus — the table's own Return handling already runs the
-    command, so the button carries no key equivalent and is drawn as default with `bezelColor`/`keyEquivalent`
-    avoided; see R4), Results to Panel; `refusesFirstResponder`; enabled state refreshed with the selection
-    and the search state;
+  - a button row under the status line: F3 View, F4 Edit, New Search, Go to File, Results to Panel
+    (`refusesFirstResponder`, no key equivalents; the form's Find button stays the default button, R4);
+    enabled state refreshed with the selection and the search state;
   - New Search: stop, clear items, groups, problems, outcome, status; focus the name field (FindForm gets a
     `focusName` request) (R5);
   - hide instead of close (R6): `FindWindowController.hidden` (one, weak-safe strong ref), `stepAside()`
@@ -51,11 +49,9 @@ Swift 6, AppKit + SwiftUI (form), SwiftPM; tests with Swift Testing in `Tests/Co
 - **R2** Retitling keeps `Command` raw values; only titles and default chords change. Users who assigned keys
   keep them (key maps store command names).
 - **R3** `MainWindowController.activate(_:)` already makes the list the first responder.
-- **R4** A default button with Return as key equivalent would steal Return from the form's fields (Return
-  there starts the search). The button is drawn as default (`keyEquivalent = "\r"` only while the table is
-  first responder is fragile), so it is given `bezelColor = .controlAccentColor`-free default look via
-  `window.defaultButtonCell` set only while the table has the focus. Decision: set `keyEquivalent = "\r"`
-  while the table is first responder and clear it otherwise (window first-responder changes are observed).
+- **R4** A second default button would fight the form's Find button over Return (Return in the form starts
+  the search). Decision: Go to File is a plain button; Return in the results reaches it through the table's
+  key handling (clarification 2026-10-15).
 - **R5** The form is SwiftUI; a `FindForm.focusRequest` counter drives `@FocusState` on the name field and
   selects its text.
 - **R6** A hidden window keeps its controller alive in `open`; `windowWillClose` still cleans up.

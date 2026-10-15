@@ -58,6 +58,8 @@ final class FindForm {
 
     /// Set by the window: whether a search runs, and what the buttons do.
     var isSearching = false
+    /// Raised by New Search: the name field takes the focus (spec 032).
+    var nameFocusRequest = 0
     @ObservationIgnored var onFind: () -> Void = {}
     @ObservationIgnored var onStop: () -> Void = {}
     @ObservationIgnored var onChooseFolder: () -> Void = {}

@@ -23,6 +23,7 @@ struct SettingsView: View {
     @AppStorage(PanelBehavior.arrowsKey) private var arrowsTargetPointedPanel = PanelBehavior().arrowsTargetPointedPanel
     @AppStorage(PanelBehavior.volumesKey) private var volumeButtonsFollow = PanelBehavior().volumeButtonsFollow
     @AppStorage(ThumbnailSize.key) private var thumbnailSize = ThumbnailSize.default.rawValue
+    @AppStorage(FindWindowBehavior.key) private var findBehavior = FindWindowBehavior.default.rawValue
 
     private func behavior(_ title: LocalizedStringKey, _ isOn: Binding<Bool>, _ caption: LocalizedStringKey) -> some View {
         VStack(alignment: .leading, spacing: 2) {
@@ -86,6 +87,15 @@ struct SettingsView: View {
                         Text("A key whose button is off still works.").font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                     }
                     .padding(.leading, 20)
+                }
+                // What the Find window does after Go to File and Results to Panel (spec 032).
+                Section {
+                    Picker("After going to a file:", selection: $findBehavior) {
+                        Text("Hide the Find window").tag(FindWindowBehavior.hide.rawValue)
+                        Text("Keep the Find window open").tag(FindWindowBehavior.keepOpen.rawValue)
+                    }
+                    Text("A hidden Find window comes back with its results when you choose Find Files (⌃⌥F7) again.")
+                        .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 }
                 UpdateSettingsSection()
                 Section {

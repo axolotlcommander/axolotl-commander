@@ -913,7 +913,7 @@ final class PanelViewController: NSViewController {
         .quickFilter, .quickFilterLast, .folderHistory,
         .copyAs, .makeDirectoryInOtherPanel, .viewCursorFile, .packAndMove, .testArchives, .splitFile, .combineFiles, .encodeFile, .decodeFile,
         .toggleSelectionInPlace, .selectAllFiles, .deselectAllFiles,
-        .find, .pack, .unpack, .connectToServer, .disconnect, .ejectVolume, .compareFiles,
+        .find, .findInNewWindow, .pack, .unpack, .connectToServer, .disconnect, .ejectVolume, .compareFiles,
         .changeCase, .batchRename, .calculateChecksums, .verifyChecksums, .occupiedSpace, .userMenu,
         .contextMenu, .moveFilesHere, .invertAll, .restoreSelection, .saveSelection, .loadSelection, .volumeInfo,
         .newSymbolicLink, .newHardLink, .editSymbolicLink, .pasteAsSymbolicLink, .goToLinkTarget, .changeAttributes,
@@ -1018,7 +1018,7 @@ final class PanelViewController: NSViewController {
     private func canPerformOnServer(_ command: Command) -> Bool? {
         switch command {
         case .newFile, .pasteFiles, .copyFiles, .quickLook, .properties, .pack, .unpack,
-             .openTerminal, .revealInFinder, .find:
+             .openTerminal, .revealInFinder, .find, .findInNewWindow:
             return false
         case .edit, .view: return model.cursorItem.map { !$0.isParent && !$0.isDirectory } ?? false
         default: return nil
@@ -1120,6 +1120,7 @@ final class PanelViewController: NSViewController {
         case .contextMenu: showContextMenu()
         case .view: openViewer()
         case .find: if let router { FindWindowController.show(from: router) }
+        case .findInNewWindow: if let router { FindWindowController.showNew(from: router) }
         case .compareFiles: Task { await CompareFiles.ask(from: self) }
         case .changeCase: ChangeCaseSheet.show(for: self)
         case .batchRename: BatchRenameSheet.show(for: self)
