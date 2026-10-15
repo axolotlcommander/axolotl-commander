@@ -47,6 +47,9 @@ back, with its results, the next time Find Files is chosen.
 - Q: Is "Go to File" drawn as the default button? → A: No — the form's "Find" button stays the window's
   default button (Return in the form starts the search, as in the classic commander's "Start search");
   Return in the results runs Go to File (implementation, 2026-10-15).
+- Q: Where is the keyboard focus when Find Files brings the hidden window back? → A: In the name field with
+  its text selected, so typing replaces the last search text right away; the results stay and Tab or a click
+  reaches them (maintainer, 2026-10-15).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -144,7 +147,8 @@ same results, cursor and form. With "Keep the Find window open", the window stay
 3. **Given** a search running with "Hide the Find window", **When** the user presses Esc, **Then** the search
    stops (as today) and the window stays; a second Esc hides it.
 4. **Given** a hidden Find window, **When** the user chooses Find Files (⌃⌥F7, ⌘F or the menu), **Then** that
-   window comes back as it was left, with the progress of a search that is still running.
+   window comes back as it was left, with the progress of a search that is still running, and the name field
+   has the keyboard focus with its text selected.
 5. **Given** a Find window closed with its close button or ⌘W, **When** the user chooses Find Files, **Then** a
    new, empty window opens, prefilled from the active panel as today.
 6. **Given** "Keep the Find window open", **When** the user runs Go to File or Results to Panel, **Then** the
@@ -220,7 +224,8 @@ their results.
   "Keep the Find window open"; the choice MUST be remembered and included in the settings export and import.
 - **FR-008**: With "Hide the Find window", Go to File, Results to Panel and Esc (when no search runs) MUST hide
   the Find window, keeping its results, focused and marked results, scroll position, form and a running search.
-- **FR-009**: With a hidden Find window, Find Files MUST bring it back as it was left; otherwise it MUST open a
+- **FR-009**: With a hidden Find window, Find Files MUST bring it back as it was left, with the focus in the name
+  field and its text selected; otherwise it MUST open a
   new window as today. At most one hidden window MUST be kept (the last hidden); hiding another MUST close the
   earlier one. Nothing MUST be kept across launches.
 - **FR-010**: With "Keep the Find window open", the actions and Esc MUST behave as today.

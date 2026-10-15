@@ -46,7 +46,8 @@ final class FindWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         hidden = nil
         if controller.main == nil { controller.main = main }
         controller.showWindow(nil)
-        controller.window?.makeFirstResponder(controller.items.isEmpty ? nil : controller.table)
+        // The name field takes the focus with its text selected, so typing starts the next search.
+        controller.form.nameFocusRequest += 1
         controller.showPendingAlert()
     }
 

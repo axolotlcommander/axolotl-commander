@@ -19,7 +19,7 @@ Formát vychází z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ve
 - Hledat soubory: dvojklik nebo Return na výsledku přejde na
   soubor v panelu a pod výsledky jsou tlačítka F3 Zobrazit, F4 Upravit, Nové hledání, Přejít na
   soubor a Výsledky do panelu. Po přechodu na soubor se okno hledání schová a Hledat soubory ho vrátí
-  i s výsledky (Nastavení → Obecné → Po přechodu na soubor; „Nechat okno hledání otevřené“ zachová
+  i s výsledky a s označeným hledaným textem, který stačí přepsat (Nastavení → Obecné → Po přechodu na soubor; „Nechat okno hledání otevřené“ zachová
   dosavadní chování). Hledat soubory v novém okně… spustí další hledání vedle; Otevřít zůstává na ⌘O.
 
 ### Opraveno

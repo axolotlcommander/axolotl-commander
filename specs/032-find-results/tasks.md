@@ -31,6 +31,8 @@
 
 - [X] T007 [US4] Hide after Go to File / Results to Panel / Esc; Find Files brings the hidden window back;
   one hidden window; Keep open = today
+- [X] T013 [US4] Find Files brings the hidden window back with the name field focused and its text selected
+  (Clarification 2026-10-15) in `Sources/AxolotlCommander/Find/FindWindowController.swift`
 - [X] T008 [US4] Settings → General "After going to a file:" in `Sources/AxolotlCommander/SettingsView.swift`
 
 ## Phase 6: User Story 5 — New window (P2)

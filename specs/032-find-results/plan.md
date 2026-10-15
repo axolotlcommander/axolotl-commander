@@ -22,8 +22,8 @@
   - New Search: stop, clear items, groups, problems, outcome, status; focus the name field (FindForm gets a
     `focusName` request) (R5);
   - hide instead of close (R6): `FindWindowController.hidden` (one, weak-safe strong ref), `stepAside()`
-    orders the window out; Find Files (`show(from:)`) brings `hidden` back if there is one, else opens a new
-    one; `showNew(from:)` always opens a new one; hiding another closes the earlier hidden one; Esc with no
+    orders the window out; Find Files (`show(from:)`) brings `hidden` back if there is one (name field focused,
+    text selected, R5), else opens a new one; `showNew(from:)` always opens a new one; hiding another closes the earlier hidden one; Esc with no
     search hides (behavior `hide`) or closes (`keepOpen`).
 - **Settings → General**: picker "After going to a file:" with the two choices and a caption.
 - Czech strings; CHANGELOG entries under 0.8.0 (same PR as spec 031, one version).
