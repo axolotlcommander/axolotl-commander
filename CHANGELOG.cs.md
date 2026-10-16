@@ -5,6 +5,8 @@ Formát vychází z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ve
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-10-16
+
 ### Přidáno
 
 - Nastavení → Klávesnice zkratku před přiřazením zkontroluje. Klávesy, které si aplikace nebo macOS nechává
