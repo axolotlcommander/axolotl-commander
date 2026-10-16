@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-10-16
+
 ### Added
 
 - Cut Files (⌘X, also ⌃X) puts the marked files on the clipboard; they are dimmed until you paste them,

@@ -5,6 +5,8 @@ Formát vychází z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ve
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-10-16
+
 ### Přidáno
 
 - Vyjmout soubory (⌘X, také ⌃X) dá označené soubory do schránky; až do vložení jsou zašedlé a Vložit
