@@ -37,6 +37,6 @@
 
 - [X] T007 Czech strings in `Resources/Localizable.xcstrings`
 - [X] T008 `CHANGELOG.md` / `CHANGELOG.cs.md` under Unreleased
-- [ ] T009 GUI check on the test copy only, Settings → Keyboard and User Menu, no file operations, System
+- [X] T009 GUI check on the test copy only, Settings → Keyboard and User Menu, no file operations, System
   Settings never changed: ⌘W and ↓ refused; "q" with the typing setting on and off; ⌘D on Copy Files moves
   the chord; ⇧⌘4 warning if the key reaches the app; marks on ⌃↑ rows; recording hint
