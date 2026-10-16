@@ -41,6 +41,11 @@ on the clipboard after a paste.
 - Q: A cut set after the app is quit and started again? → A: It is no longer a cut set: Paste copies the
   files (moving files the user may have forgotten about is the riskier choice), and nothing is dimmed.
 - Q: Where is Cut available? → A: Where moving with F6 is available today; elsewhere it is disabled.
+- Q: ⌃X only in the classic scheme? → A: In both schemes, next to ⌘X, as ⌃C and ⌃V already are for Copy
+  and Paste (plan, 2026-10-16).
+- Q: Keys while the command line has the focus? → A: ⌘X cuts text there (it uses the standard Cut action, as
+  ⌘C and ⌘V do); ⌘D, ⌘T and the folder keys act on the panel, as F5 and every other panel command do today
+  (plan, 2026-10-16).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -83,7 +88,7 @@ two files are moved there.
 11. **Given** the active panel shows an archive, a server or another place where F6 is unavailable,
     **When** the user looks at Cut Files, **Then** it is disabled (grayed in the menus, a beep from its
     key).
-12. **Given** the classic key scheme, **When** the user presses ⌃X, **Then** the files are cut as with ⌘X.
+12. **Given** either key scheme, **When** the user presses ⌃X, **Then** the files are cut as with ⌘X.
 
 ---
 
@@ -178,8 +183,8 @@ Finder.
 - Duplicate when "copy", "copy 2", … up to any number are taken: keeps counting to the first free name.
 - Duplicate of a very long name: the name stays within the file system's limit by shortening the base name
   before the added word, never the extension.
-- The keyboard focus is in the command line or another text field: ⌘X, ⌘D, ⌘T and the folder keys act on
-  the text field (cut text, or nothing), never on files, as ⌘C does today.
+- The keyboard focus is in the command line or another text field: ⌘X cuts text there, as ⌘C copies text
+  today; ⌘D, ⌘T and the folder keys act on the panel, as F5 and the other panel commands do.
 - A standard folder that does not exist (for example Downloads removed): the panel stays where it was and
   the app shows the same message as when any folder cannot be opened.
 
@@ -188,7 +193,7 @@ Finder.
 ### Functional Requirements
 
 - **FR-001**: A command "Cut Files" MUST exist in the Edit menu and the panel's context menu, with ⌘X by
-  default (and ⌃X in the classic key scheme), acting on the marked items or, when none are marked, on the
+  default (and ⌃X, as ⌃C and ⌃V for Copy and Paste), acting on the marked items or, when none are marked, on the
   item under the cursor.
 - **FR-002**: Cut Files MUST put the items on the clipboard as an ordinary file list (other apps can paste it
   as copied files) and remember them as cut in this app; it MUST NOT move anything by itself.
@@ -262,8 +267,7 @@ Finder.
 
 ## Deviations from the reference
 
-- The Mac keys (⌘X, ⌘D, ⌘T, ⇧⌘] / ⇧⌘[, ⇧⌘D, ⇧⌘O, ⌥⌘L) are the defaults; the reference's ⌃X is in the
-  classic scheme.
+- The Mac keys (⌘X, ⌘D, ⌘T, ⇧⌘] / ⇧⌘[, ⇧⌘D, ⇧⌘O, ⌥⌘L) are the defaults; the reference's ⌃X works too.
 - Cut files pasted in Finder are copied, not moved, because macOS has no cut flag for files that Finder
   honors.
 - A cut does not survive quitting the app.
