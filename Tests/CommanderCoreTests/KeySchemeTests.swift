@@ -76,14 +76,15 @@ import Testing
         bindings.set([K(.character("t"), .control)], for: .goToLinkTarget)
         let map = KeyMap(context: .panel, bindings: bindings)
         #expect(map.command(for: K(.character("t"), .control)) == .goToLinkTarget)
-        #expect(map.chords(for: .newTab) == [K(.character("t"), [.control, .shift])])
+        #expect(map.chords(for: .newTab) == [K(.character("t"), [.control, .shift]), K(.character("t"), .command)])
         #expect(bindings.conflicts(K(.character("t"), .control), for: .newTab) == [.goToLinkTarget])
     }
 
     /// FR-011: a change equal to the scheme is not the user's.
     @Test func settingTheSchemeChordsStoresNoOverride() {
         var bindings = Self.classic
-        bindings.set([K(.character("t"), .control), K(.character("t"), [.control, .shift])], for: .newTab)
+        bindings.set([K(.character("t"), .control), K(.character("t"), [.control, .shift]), K(.character("t"), .command)],
+                     for: .newTab)
         #expect(bindings.overrides.isEmpty)
         #expect(bindings.source(for: .newTab) == .scheme)
         #expect(bindings.source(for: .copy) == .defaults)
@@ -95,7 +96,7 @@ import Testing
     /// FR-013: switching keeps the user's changes.
     @Test func switchingSchemesKeepsOverrides() {
         var bindings = KeyBindings()
-        let tabs = [K(.character("t"), .control), K(.character("t"), [.control, .shift])]
+        let tabs = [K(.character("t"), .control), K(.character("t"), [.control, .shift]), K(.character("t"), .command)]
         bindings.set(tabs, for: .newTab)
         bindings.set([K(.function(11), .shift)], for: .rename)
         #expect(bindings.source(for: .newTab) == .user)

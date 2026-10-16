@@ -680,6 +680,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
         perform(command)
     }
 
+    @objc func cut(_ sender: Any?) { perform(.cutFiles) }
     @objc func copy(_ sender: Any?) { perform(.copyFiles) }
     @objc func paste(_ sender: Any?) { perform(.pasteFiles) }
     @objc override func selectAll(_ sender: Any?) { perform(.selectAll) }

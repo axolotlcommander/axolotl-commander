@@ -158,6 +158,7 @@ extension PanelViewController: NSCollectionViewDataSource {
         brief.cell.label.font = textFont(marked: marked)
         brief.cell.label.textColor = briefTextColor(for: file, at: indexPath.item)
         brief.cell.icon.image = IconCache.icon(for: file)
+        brief.cell.icon.alphaValue = isCut(file) ? 0.5 : 1
         brief.cell.cursorStyle = indexPath.item == model.cursor ? (isActive ? .active : .inactive) : .none
         brief.cell.toolTip = file.name
         return brief

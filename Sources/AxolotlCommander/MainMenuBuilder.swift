@@ -14,6 +14,7 @@ extension NSMenuItem {
 enum MainMenuBuilder {
     /// Commands bound to standard AppKit selectors so text fields keep native behavior.
     static let standardSelectors: [Command: Selector] = [
+        .cutFiles: #selector(NSText.cut(_:)),
         .copyFiles: #selector(NSText.copy(_:)),
         .pasteFiles: #selector(NSText.paste(_:)),
         .selectAll: #selector(NSText.selectAll(_:)),
@@ -68,9 +69,11 @@ enum MainMenuBuilder {
             let redo = menu.addItem(withTitle: String(localized: "Redo"), action: Selector(("redo:")), keyEquivalent: "z")
             redo.keyEquivalentModifierMask = [.command, .shift]
             menu.addItem(.separator())
-            // ⌘X in text fields (command line, path field, find form); panels have no cut, so it is
-            // disabled there.
-            menu.addItem(withTitle: String(localized: "Cut"), action: #selector(NSText.cut(_:)), keyEquivalent: "x")
+            // ⌘X in text fields (find form, viewer); in the main window Cut Files sends the same action,
+            // so text fields there cut text and the panels cut files (spec 033).
+            if !CommandRegistry.items(in: .edit, context: context).contains(where: { $0.command == .cutFiles }) {
+                menu.addItem(withTitle: String(localized: "Cut"), action: #selector(NSText.cut(_:)), keyEquivalent: "x")
+            }
         }
         for spec in CommandRegistry.items(in: id, context: context) {
             if spec.separatorBefore, !menu.items.isEmpty { menu.addItem(.separator()) }

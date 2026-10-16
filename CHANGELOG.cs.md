@@ -5,6 +5,19 @@ Formát vychází z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ve
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-10-16
+
+### Přidáno
+
+- Vyjmout soubory (⌘X, také ⌃X) dá označené soubory do schránky; až do vložení jsou zašedlé a Vložit
+  soubory (⌘V) je pak přesune místo kopírování. Zkopírováním nebo vyjmutím něčeho jiného vyjmutí končí.
+  Finder vyjmuté soubory zkopíruje, protože macOS vyjímání souborů, kterému by Finder rozuměl, nemá.
+- Duplikovat (⌘D) vytvoří kopii vedle položky s názvem jako ve Finderu: „zpráva kopie.pdf“, „zpráva kopie
+  2.pdf“ a tak dál.
+- Přejít → Plocha (⇧⌘D), Dokumenty (⇧⌘O), Stažené soubory (⌥⌘L) a Aplikace.
+- Záložky mají i obvyklé zkratky Macu: ⌘T otevře novou záložku, ⇧⌘] a ⇧⌘[ přejdou na další a předchozí
+  záložku.
+
 ## [0.8.0] - 2026-10-15
 
 ### Přidáno

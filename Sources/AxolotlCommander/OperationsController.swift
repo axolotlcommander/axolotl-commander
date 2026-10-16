@@ -66,11 +66,13 @@ final class OperationsController {
 
     // MARK: Copy / move
 
-    func transfer(_ kind: TransferKind, sources: [URL], from panel: PanelViewController, to destination: URL? = nil) {
+    /// `onFinish` runs when the operation has ended, whatever its outcome.
+    func transfer(_ kind: TransferKind, sources: [URL], from panel: PanelViewController, to destination: URL? = nil,
+                  onFinish: (@MainActor () -> Void)? = nil) {
         guard !isBusy, !sources.isEmpty else { return }
         let names = Self.describe(sources)
         if let destination {
-            run(kind, sources: sources, destination: destination, mask: "*.*", panel: panel)
+            run(kind, sources: sources, destination: destination, mask: "*.*", panel: panel, onFinish: onFinish)
             return
         }
         guard let window else { return }
@@ -158,7 +160,7 @@ final class OperationsController {
 
     /// `targetName`: a new name for the one source (from the F5/F6 dialog).
     private func run(_ kind: TransferKind, sources: [URL], destination: URL, mask: String, panel: PanelViewController,
-                     targetName: String? = nil, isFolder: Bool = false) {
+                     targetName: String? = nil, isFolder: Bool = false, onFinish: (@MainActor () -> Void)? = nil) {
         guard !NetworkPlaces.isNetwork(destination), !sources.contains(where: NetworkPlaces.isNetwork) else {
             return report(OperationError.path(.notADirectory))
         }
@@ -181,7 +183,7 @@ final class OperationsController {
                                    urls: sources + [destination])
         let request = TransferRequest(kind: kind, sources: sources, destinationDirectory: destination, nameMask: mask,
                                       targetName: targetName)
-        perform(state) { [operations] in
+        perform(state, onFinish: onFinish) { [operations] in
             let report = try await operations.transfer(
                 request,
                 progress: { p in Task { @MainActor in state.progress = p } },
@@ -208,6 +210,37 @@ final class OperationsController {
                 conflict: { [asker = ConflictAsker(window: self.window)] conflict in await asker.ask(conflict) })
             await panel.model.refresh()
             panel.focusRenamed(source, to: name)
+        }
+    }
+
+    /// Duplicate (spec 033): each source is copied into its own folder under the first free Finder-style
+    /// name ("report copy.pdf"); the cursor goes to the first copy.
+    func duplicate(_ sources: [URL], panel: PanelViewController) {
+        guard !isBusy, !sources.isEmpty else { return }
+        let word = String(localized: "copy", comment: "Added to the name of a duplicated file: “report copy.pdf”.")
+        let state = OperationState(title: String(localized: "Copying…"), urls: sources)
+        let isFolder = { (url: URL) in panel.model.items.first { $0.url == url }?.isDirectory ?? url.hasDirectoryPath }
+        perform(state) { [operations] in
+            var chosen: [URL: Set<String>] = [:]
+            var first: (source: URL, name: String)?
+            for source in sources {
+                try Task.checkCancellation()
+                let folder = source.deletingLastPathComponent()
+                let taken = chosen[folder, default: []]
+                let name = DuplicateName.name(for: source.lastPathComponent, isDirectory: isFolder(source), word: word) {
+                    taken.contains($0)
+                        || (try? FileManager.default.attributesOfItem(atPath: folder.appending(path: $0).path(percentEncoded: false))) != nil
+                }
+                chosen[folder, default: []].insert(name)
+                let request = TransferRequest(kind: .copy, sources: [source], destinationDirectory: folder, targetName: name)
+                _ = try await operations.transfer(
+                    request,
+                    progress: { p in Task { @MainActor in state.progress = p } },
+                    conflict: { [asker = ConflictAsker(window: self.window)] conflict in await asker.ask(conflict) })
+                if first == nil { first = (source, name) }
+            }
+            await panel.model.refresh()
+            if let first { panel.focusRenamed(first.source, to: first.name) }
         }
     }
 
@@ -409,7 +442,8 @@ final class OperationsController {
     // MARK: Running
 
     /// `window`: where the progress sheet goes (the main window when nil).
-    func perform(_ state: OperationState, in window: NSWindow? = nil, _ body: @escaping () async throws -> Void) {
+    func perform(_ state: OperationState, in window: NSWindow? = nil, onFinish: (@MainActor () -> Void)? = nil,
+                 _ body: @escaping () async throws -> Void) {
         let window = window ?? self.window
         running.append(state)
         let host = NSWindow(contentViewController: NSHostingController(rootView: ProgressSheet(state: state)))
@@ -433,6 +467,7 @@ final class OperationsController {
             showTimer.cancel()
             if host.sheetParent != nil { window?.endSheet(host) }
             running.removeAll { $0 === state }
+            onFinish?()
             await windowController.refreshPanels()
         }
     }

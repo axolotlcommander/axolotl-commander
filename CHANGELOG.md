@@ -5,6 +5,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-10-16
+
+### Added
+
+- Cut Files (⌘X, also ⌃X) puts the marked files on the clipboard; they are dimmed until you paste them,
+  and Paste Files (⌘V) then moves them instead of copying. Copying or cutting something else ends the
+  cut. Finder copies files cut here, because macOS has no cut for files that Finder knows.
+- Duplicate (⌘D) makes a copy next to the item, named as Finder does: "report copy.pdf", "report copy
+  2.pdf", and so on.
+- Go → Desktop (⇧⌘D), Documents (⇧⌘O), Downloads (⌥⌘L) and Applications.
+- Tabs have the usual Mac keys too: ⌘T opens a new tab, ⇧⌘] and ⇧⌘[ move to the next and the previous
+  tab.
+
 ## [0.8.0] - 2026-10-15
 
 ### Added

@@ -12,9 +12,10 @@ public enum Command: String, CaseIterable, Hashable, Sendable {
     case delete, deletePermanently, rename, properties, pack, unpack
     case changeCase, batchRename
     case newSymbolicLink, newHardLink, editSymbolicLink, changeAttributes
+    case duplicate
 
     // Edit
-    case copyFiles, pasteFiles, moveFilesHere, pasteAsSymbolicLink, copyFullPath, copyName
+    case cutFiles, copyFiles, pasteFiles, moveFilesHere, pasteAsSymbolicLink, copyFullPath, copyName
     case selectByMask, deselectByMask, invertByMask
     case selectAll, deselectAll, selectSameExtension, deselectSameExtension
     case invertAll, restoreSelection, saveSelection, loadSelection
@@ -29,6 +30,7 @@ public enum Command: String, CaseIterable, Hashable, Sendable {
 
     // Go (active panel)
     case goBack, goForward, goParent, goRoot, goHome, changeDirectory, editPath
+    case goDesktop, goDocuments, goDownloads, goApplications
     case folderHistory, commandLineHistory
     case copyAs, makeDirectoryInOtherPanel, viewCursorFile, packAndMove, testArchives
     case splitFile, combineFiles
@@ -176,6 +178,7 @@ public enum CommandRegistry {
         add(.newFile, "New File…", .file, [f(4, s)])
         add(.copy, "Copy…", .file, [f(5)], sep: true)
         add(.copyAs, "Copy As…", .file, [f(5, s)])
+        add(.duplicate, "Duplicate", .file, [ch("d", m)])
         add(.move, "Move…", .file, [f(6)])
         add(.makeDirectory, "New Folder…", .file, [f(7), ch("n", [m, s])])
         add(.makeDirectoryInOtherPanel, "New Folder in Other Panel…", .file, [ch("n", [m, o])])
@@ -199,6 +202,7 @@ public enum CommandRegistry {
         add(.encodeFile, "Encode File…", .file)
         add(.decodeFile, "Decode File…", .file)
 
+        add(.cutFiles, "Cut Files", .edit, [ch("x", m), ch("x", c)])
         add(.copyFiles, "Copy Files", .edit, [ch("c", m), K(.insert, c), ch("c", c)])
         add(.pasteFiles, "Paste Files", .edit, [ch("v", m), K(.insert, s), ch("v", c)])
         add(.moveFilesHere, "Move Files Here", .edit, [ch("v", [m, o])])
@@ -258,18 +262,22 @@ public enum CommandRegistry {
         add(.goParent, "Enclosing Folder", .go, [K(.backspace), K(.up, m), K(.pageUp, c)])
         add(.goRoot, "Volume Root", .go, [ch("\\", c), K(.backspace, c)])
         add(.goHome, "Home", .go, [ch("h", [m, s])])
+        add(.goDesktop, "Desktop", .go, [ch("d", [m, s])])
+        add(.goDocuments, "Documents", .go, [ch("o", [m, s])])
+        add(.goDownloads, "Downloads", .go, [ch("l", [m, o])])
+        add(.goApplications, "Applications", .go)
         add(.changeDirectory, "Go to Folder…", .go, [f(7, s), ch("g", [m, s])], sep: true)
         add(.editPath, "Edit Path", .go, [ch("l", m)])
         add(.hotPaths, "Hot Paths…", .go, [f(9, s), ch("d", c)])
         add(.workingDirectories, "Working Directories…", .go, [f(12, o), f(12, [c, o])])
         add(.leftVolumeMenu, "Left Volume…", .go, [f(1, o), f(1, [c, o])], sep: true)
         add(.rightVolumeMenu, "Right Volume…", .go, [f(2, o), f(2, [c, o])])
-        add(.newTab, "New Tab", .go, [ch("t", [c, s])], sep: true)
+        add(.newTab, "New Tab", .go, [ch("t", m), ch("t", [c, s])], sep: true)
         add(.duplicateTab, "Duplicate Tab", .go)
         add(.copyTabToOtherPanel, "Copy Tab to Other Panel", .go)
         add(.closeTab, "Close Tab", .go, [ch("w", [c, s])])
-        add(.nextTab, "Next Tab", .go, [K(.pageDown, [c, s])])
-        add(.previousTab, "Previous Tab", .go, [K(.pageUp, [c, s])])
+        add(.nextTab, "Next Tab", .go, [ch("]", [m, s]), K(.pageDown, [c, s])])
+        add(.previousTab, "Previous Tab", .go, [ch("[", [m, s]), K(.pageUp, [c, s])])
         add(.openInNewTab, "Open in New Tab", .go, [K(.up, c), K(.down, [m, o])])
         add(.openInBackgroundTab, "Open in Background Tab", .go, [K(.down, [m, o, s])])
         add(.openInNewTabOtherPanel, "Open in New Tab of Other Panel", .go, [K(.up, [c, s])])

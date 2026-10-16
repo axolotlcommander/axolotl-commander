@@ -369,7 +369,7 @@ extension PanelViewController {
         let preview = thumb.key.flatMap { ThumbnailLoader.cached($0) }
         setThumbnailImage(preview ?? LargeIcons.icon(for: file, points: size.points), of: thumb.cell,
                           isSymbol: preview == nil && (file.isParent || NetworkPlaces.isNetwork(file.url)))
-        thumb.cell.imageView.alphaValue = file.isHidden ? 0.5 : 1
+        thumb.cell.imageView.alphaValue = iconAlpha(for: file)
         return thumb
     }
 

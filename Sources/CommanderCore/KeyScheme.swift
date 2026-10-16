@@ -30,7 +30,7 @@ public enum KeyScheme: String, CaseIterable, Hashable, Sendable {
         func f(_ n: Int, _ mods: K.Modifiers = []) -> K { K(.function(n), mods) }
         func ch(_ char: Character, _ mods: K.Modifiers) -> K { K(.character(char), mods) }
         return [
-            .newTab: [ch("t", c), ch("t", [c, s])],
+            .newTab: [ch("t", c), ch("t", [c, s]), ch("t", m)],
             .closeTab: [ch("w", c)],
             .closeOtherTabs: [ch("w", [c, s]), ch("w", [m, o])],
             .quickFilter: [ch("s", c), ch("f", [m, o])],
@@ -42,8 +42,8 @@ public enum KeyScheme: String, CaseIterable, Hashable, Sendable {
             .calculateSizes: [ch("l", c), f(10, [c, s]), K(.enter, [o, s])],
             .volumeInfo: [],
             .pasteAsSymbolicLink: [ch("v", [c, m])],
-            .nextTab: [K(.tab, c), K(.pageDown, [c, s])],
-            .previousTab: [K(.tab, [c, s]), K(.pageUp, [c, s])],
+            .nextTab: [K(.tab, c), K(.pageDown, [c, s]), ch("]", [m, s])],
+            .previousTab: [K(.tab, [c, s]), K(.pageUp, [c, s]), ch("[", [m, s])],
             .focusCommandLine: [K(.down, c)],
             .goToLinkTarget: [],
             .restoreSelection: [K(.numSlash)],
