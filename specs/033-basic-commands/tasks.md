@@ -27,7 +27,7 @@
 
 ## Phase 3: User Story 2 — Tab keys (P1)
 
-- [ ] T008 [US2] Verify the new tab keys reach the commands (menu key equivalents) and appear in Settings →
+- [X] T008 [US2] Verify the new tab keys reach the commands (menu key equivalents) and appear in Settings →
   Keyboard
 
 ## Phase 4: User Story 3 — Duplicate (P2)
@@ -44,6 +44,6 @@
 
 - [X] T011 Czech strings in `Resources/Localizable.xcstrings`
 - [X] T012 `CHANGELOG.md` / `CHANGELOG.cs.md` under Unreleased
-- [ ] T013 GUI check on the test copy only (scratchpad folders): cut → dim → paste moves → dimming ends;
+- [X] T013 GUI check on the test copy only (scratchpad folders): cut → dim → paste moves → dimming ends;
   same-folder paste beeps; Copy after Cut ends the dimming; Duplicate names and cursor; ⌘T, ⇧⌘], ⇧⌘[;
   ⇧⌘D / ⇧⌘O / ⌥⌘L browse only
