@@ -5,6 +5,15 @@ Formát vychází z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ve
 
 ## [Unreleased]
 
+### Přidáno
+
+- Nastavení → Klávesnice zkratku před přiřazením zkontroluje. Klávesy, které si aplikace nebo macOS nechává
+  pro sebe (⌘W, ⌘Tab, šipky v panelu), a samotná písmena, která panel píše, odmítne a řekne proč. U klávesy,
+  kterou používá jiný příkaz, položka uživatelského menu nebo zkratka macOS (snímky obrazovky, Mission
+  Control, Spotlight…), řekne, kdo ji používá, a nabídne Přesunout k tomuto příkazu nebo Přesto přiřadit.
+  Zkratky, které si bere macOS, jsou v seznamu označené a při záznamu nápověda vysvětlí, že klávesa zabraná
+  jinou aplikací nikdy nedorazí. Editor uživatelského menu ukazuje stejná varování.
+
 ## [0.9.0] - 2026-10-16
 
 ### Přidáno

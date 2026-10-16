@@ -25,8 +25,12 @@ struct KeyboardSettings: View {
     @State private var selection: Command?
     @State private var bindings = KeyMaps.bindings
     @State private var recorder = ChordRecorder()
-    @State private var conflict: (chord: KeyChord, others: [Command])?
+    /// A recorded chord waiting for the user's decision (spec 034).
+    @State private var pending: (chord: KeyChord, command: Command, reasons: [ShortcutCheck.Reason])?
+    /// Why the last recorded chord was not assigned.
+    @State private var refusal: String?
     @State private var standardFunctionKeys = FunctionKeys.areStandard
+    @State private var systemShortcuts = ShortcutCheckText.currentSystemShortcuts()
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -58,8 +62,16 @@ struct KeyboardSettings: View {
                 TableColumn("Menu") { row in Text(row.place).foregroundStyle(.secondary) }.width(110)
                 TableColumn("Shortcut") { row in
                     HStack(spacing: 0) {
-                        Text(row.chords.map(\.description).joined(separator: "   "))
-                            .foregroundStyle(row.customized ? Color.accentColor : .primary)
+                        ForEach(Array(row.chords.enumerated()), id: \.offset) { index, chord in
+                            Text((index == 0 ? "" : "   ") + chord.description)
+                                .foregroundStyle(row.customized ? Color.accentColor : .primary)
+                            // A chord that cannot run: macOS takes it, or it is a fixed or typed key.
+                            if let problem = ShortcutCheck.problem(chord, situation: situation) {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .foregroundStyle(.orange).imageScale(.small).padding(.leading, 2)
+                                    .help(ShortcutCheckText.message(problem, chord: chord))
+                            }
+                        }
                         if !row.lost.isEmpty {
                             Text((row.chords.isEmpty ? "" : "   ") + row.lost.map(\.description).joined(separator: "   "))
                                 .strikethrough().foregroundStyle(.secondary)
@@ -76,11 +88,15 @@ struct KeyboardSettings: View {
         .padding()
         .onDisappear { stopRecording() }
         // Re-read when coming back from System Settings.
-        .onAppear { standardFunctionKeys = FunctionKeys.areStandard }
+        .onAppear { readSystemSettings() }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
-            standardFunctionKeys = FunctionKeys.areStandard
+            readSystemSettings()
         }
-        .onChange(of: selection) { stopRecording() }
+        .onChange(of: selection) {
+            stopRecording()
+            clearMessages()
+        }
+        .onChange(of: context) { clearMessages() }
         // An import may change the bindings while the window is open.
         .onReceive(NotificationCenter.default.publisher(for: KeyMaps.didChange)) { _ in
             if bindings != KeyMaps.bindings { bindings = KeyMaps.bindings }
@@ -100,6 +116,18 @@ struct KeyboardSettings: View {
     }
 
     private var map: KeyMap { KeyMap(context: context, bindings: bindings) }
+
+    private var situation: ShortcutCheck.Situation {
+        ShortcutCheck.Situation(context: context,
+                                typingToCommandLine: PanelBehavior(defaults: .standard).typingToCommandLine,
+                                system: systemShortcuts, userMenu: UserMenuDefaults.items)
+    }
+
+    /// Re-read when coming back from System Settings.
+    private func readSystemSettings() {
+        standardFunctionKeys = FunctionKeys.areStandard
+        systemShortcuts = ShortcutCheckText.currentSystemShortcuts()
+    }
 
     private var rows: [Row] {
         let map = map
@@ -170,17 +198,33 @@ struct KeyboardSettings: View {
             Button("Reset All…") { resetAll() }.disabled(bindings.overrides.isEmpty)
         }
         .frame(minHeight: 26)
-        if let conflict, let command = selection {
-            HStack {
-                Image(systemName: "exclamationmark.triangle").foregroundStyle(.orange)
-                Text("\(conflict.chord.description) is used by \(conflict.others.map { CommandRegistry.spec($0).localizedTitle }.joined(separator: ", ")).")
-                Button("Use Anyway") { assign(conflict.chord, to: command, force: true) }
-                Button("Cancel") { self.conflict = nil }
+        if recorder.isRecording {
+            Text("Press the shortcut; Esc cancels. If nothing happens, macOS or another app (for example a display or window utility) has taken that shortcut, and the app cannot receive it.")
+                .font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+        }
+        if let refusal {
+            Label(refusal, systemImage: "nosign")
+                .font(.callout).foregroundStyle(.red).fixedSize(horizontal: false, vertical: true)
+        }
+        if let pending, pending.command == selection {
+            VStack(alignment: .leading, spacing: 4) {
+                ForEach(Array(pending.reasons.enumerated()), id: \.offset) { _, reason in
+                    Label(ShortcutCheckText.message(reason, chord: pending.chord), systemImage: "exclamationmark.triangle")
+                        .font(.callout).foregroundStyle(.orange).fixedSize(horizontal: false, vertical: true)
+                }
+                HStack {
+                    let moves = pending.reasons.contains { if case .commands = $0 { true } else { false } }
+                    Button(moves ? String(localized: "Move to This Command") : String(localized: "Assign Anyway")) {
+                        assign(pending.chord, to: pending.command, force: true)
+                    }
+                    if pending.reasons.contains(where: { if case .system = $0 { true } else { false } }) {
+                        Button("Open Keyboard Settings") { FunctionKeys.openKeyboardSettings() }
+                    }
+                    Button("Cancel") { self.pending = nil }
+                }
             }
         }
-        Text("Shortcuts with ⌘, ⌃, ⌥ or function keys also appear in the menus. Some ⌃ and F-key shortcuts may be taken by macOS (System Settings → Keyboard → Keyboard Shortcuts).")
-            .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-        Text("⌃←, ⌃→, ⌃↑ and ⌃↓ reach the app only when the Mission Control shortcuts for them are turned off in System Settings → Keyboard → Keyboard Shortcuts.")
+        Text("Shortcuts with ⌘, ⌃, ⌥ or function keys also appear in the menus.")
             .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
     }
 
@@ -198,12 +242,19 @@ struct KeyboardSettings: View {
     }
 
     private func assign(_ chord: KeyChord, to command: Command, force: Bool) {
-        let others = bindings.conflicts(chord, for: command)
-        if !others.isEmpty, !force {
-            conflict = (chord, others)
-            return
+        clearMessages()
+        if !force {
+            switch ShortcutCheck.check(chord, for: command, bindings: bindings, situation: situation) {
+            case .clean: break
+            case .refused(let reason):
+                refusal = ShortcutCheckText.message(reason, chord: chord)
+                return
+            case .warnings(let reasons):
+                pending = (chord, command, reasons)
+                return
+            }
         }
-        conflict = nil
+        let others = bindings.conflicts(chord, for: command)
         update { bindings in
             // The chord moves: other commands lose it (their remaining chords stay).
             for other in others {
@@ -227,8 +278,13 @@ struct KeyboardSettings: View {
 
     // MARK: Recording
 
+    private func clearMessages() {
+        pending = nil
+        refusal = nil
+    }
+
     private func startRecording(for command: Command) {
-        conflict = nil
+        clearMessages()
         recorder.start { assign($0, to: command, force: false) }
     }
 

@@ -5,6 +5,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 
 ## [Unreleased]
 
+### Added
+
+- Settings → Keyboard checks a shortcut before it is assigned. Keys the app or macOS keeps for itself (⌘W,
+  ⌘Tab, the arrows in the panel) and plain letters, which the panel types, are refused with the reason. For
+  a key that another command, a User Menu item or a macOS shortcut (screenshots, Mission Control,
+  Spotlight…) uses, it says who uses it and offers Move to This Command or Assign Anyway. Shortcuts that
+  macOS takes are marked in the list, and while recording a hint explains that a key taken by another app
+  never arrives. The User Menu editor shows the same warnings.
+
 ## [0.9.0] - 2026-10-16
 
 ### Added

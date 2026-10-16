@@ -17,26 +17,26 @@
 
 ## Phase 2: User Stories 1, 2 and 4 — Refusals, text keys, explicit choice (P1)
 
-- [ ] T003 [US1] [US2] [US4] Recorded chords go through `ShortcutCheck.check` in
+- [X] T003 [US1] [US2] [US4] Recorded chords go through `ShortcutCheck.check` in
   `Sources/AxolotlCommander/KeyboardSettings.swift`: refusal message, warnings with every reason, "Move to
   This Command" / "Assign Anyway" / "Cancel"; User Menu items from `UserMenuStore`; wording in
   `Sources/AxolotlCommander/ShortcutCheckText.swift`
 
 ## Phase 3: User Stories 3 and 5 — macOS shortcuts, recording hint (P2)
 
-- [ ] T004 [US3] macOS list read on appear and on app activation; "Open Keyboard Settings" in the warning;
+- [X] T004 [US3] macOS list read on appear and on app activation; "Open Keyboard Settings" in the warning;
   warning marks with tooltips next to chords that cannot run; the two captions removed
-- [ ] T005 [US5] Hint under the editor while recording
+- [X] T005 [US5] Hint under the editor while recording
 
 ## Phase 4: User Story 6 — User Menu editor (P3)
 
-- [ ] T006 [US6] `ShortcutCheck.reasons` added to the warnings in
+- [X] T006 [US6] `ShortcutCheck.reasons` added to the warnings in
   `Sources/AxolotlCommander/UserMenu/UserMenuSettings.swift`
 
 ## Phase 5: Polish
 
-- [ ] T007 Czech strings in `Resources/Localizable.xcstrings`
-- [ ] T008 `CHANGELOG.md` / `CHANGELOG.cs.md` under Unreleased
+- [X] T007 Czech strings in `Resources/Localizable.xcstrings`
+- [X] T008 `CHANGELOG.md` / `CHANGELOG.cs.md` under Unreleased
 - [ ] T009 GUI check on the test copy only, Settings → Keyboard and User Menu, no file operations, System
   Settings never changed: ⌘W and ↓ refused; "q" with the typing setting on and off; ⌘D on Copy Files moves
   the chord; ⇧⌘4 warning if the key reaches the app; marks on ⌃↑ rows; recording hint

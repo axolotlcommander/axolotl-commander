@@ -192,6 +192,14 @@ struct UserMenuItemEditor: View {
             let titles = others.map { "“\($0.title.isEmpty ? $0.program : $0.title)”" }.joined(separator: ", ")
             warnings.append(String(localized: "\(chord.description) is also used by \(titles) in the user menu; the first one in the menu runs."))
         }
+        // Fixed keys and macOS shortcuts (spec 034); characters are refused above already.
+        let situation = ShortcutCheck.Situation(context: .panel,
+                                                typingToCommandLine: PanelBehavior(defaults: .standard).typingToCommandLine,
+                                                system: ShortcutCheckText.currentSystemShortcuts())
+        for reason in ShortcutCheck.reasons(chord, situation: situation) {
+            if case .typedInPanel = reason { continue }
+            warnings.append(ShortcutCheckText.message(reason, chord: chord))
+        }
         return warnings
     }
 
