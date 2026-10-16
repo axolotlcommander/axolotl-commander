@@ -12,16 +12,23 @@ enum ShortcutCheckText {
         return SystemShortcuts.current(from: value as? [String: Any])
     }
 
-    static func message(_ reason: ShortcutCheck.Reason, chord: KeyChord) -> String {
+    /// `keptAnyway`: the User Menu editor keeps the key, so a fixed key is described as never running.
+    static func message(_ reason: ShortcutCheck.Reason, chord: KeyChord, keptAnyway: Bool = false) -> String {
         let key = chord.description
         switch reason {
         case .fixed(.menu(let item)):
             let (title, menu) = menuItem(item)
-            return String(localized: "\(key) is the shortcut of “\(title)” in the \(menu) menu and cannot be assigned.")
+            return keptAnyway
+                ? String(localized: "\(key) is the shortcut of “\(title)” in the \(menu) menu, so this item's shortcut never runs.")
+                : String(localized: "\(key) is the shortcut of “\(title)” in the \(menu) menu and cannot be assigned.")
         case .fixed(.system(let systemKey)):
-            return String(localized: "\(key) \(systemAction(systemKey)) in macOS and cannot be assigned.")
+            return keptAnyway
+                ? String(localized: "\(key) \(systemAction(systemKey)) in macOS, so this item's shortcut never runs.")
+                : String(localized: "\(key) \(systemAction(systemKey)) in macOS and cannot be assigned.")
         case .fixed(.panelMovement):
-            return String(localized: "\(key) moves the cursor in the panel and cannot be assigned.")
+            return keptAnyway
+                ? String(localized: "\(key) moves the cursor in the panel, so this item's shortcut never runs.")
+                : String(localized: "\(key) moves the cursor in the panel and cannot be assigned.")
         case .typedInPanel(let commandLine):
             return commandLine
                 ? String(localized: "“\(key)” is typed into the command line in the panel, so the shortcut would never run.")

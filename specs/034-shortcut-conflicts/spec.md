@@ -59,6 +59,8 @@ behavior follows usual Mac practice: show the conflict in words and let the user
   User Menu settings), and the warning says the item runs first in the panel.
 - Q: Which fixed keys exist beyond the ones named? → A: Minimize All ⌥⌘M (added to the Window menu by
   macOS) and Log Out ⇧⌘Q (Apple menu) are refused too (plan, 2026-10-16).
+- Q: Wording of a fixed key in the User Menu editor, which keeps the key? → A: "… so this item's shortcut never
+  runs." instead of "… cannot be assigned." (GUI check, 2026-10-16, agreed with the maintainer).
 - Q: Fixed keys of the Viewer, Find and Compare windows? → A: None: those windows look up their shortcuts
   first and use their own keys only as a fallback, so nothing is refused there (plan, 2026-10-16).
 - Q: Mission Control F3 and Launchpad F4? → A: They are media keys of the function row, already covered by
@@ -203,7 +205,8 @@ The User Menu shortcut field tells the user about fixed keys, text keys and macO
 
 1. **Given** a User Menu item is edited, **When** its shortcut is a key refused in story 1, a text key of
    story 2 or a macOS shortcut of story 3, **Then** the same wording appears as a warning next to the
-   existing warnings; the shortcut is kept (the User Menu editor never refuses, as today).
+   existing warnings (for a fixed key: "…, so this item's shortcut never runs."); the shortcut is kept (the
+   User Menu editor never refuses, as today).
 
 ---
 
@@ -267,7 +270,8 @@ The User Menu shortcut field tells the user about fixed keys, text keys and macO
 - **FR-014**: While recording, a hint MUST explain that Esc cancels and that a key that does nothing has been
   taken by macOS or another app.
 - **FR-015**: The User Menu shortcut field MUST show the reasons of FR-001 to FR-007 as warnings with the same
-  wording, without refusing the key.
+  wording, without refusing the key; for a fixed key it says that the item's shortcut never runs instead of
+  "cannot be assigned".
 - **FR-016**: Existing shortcuts MUST never be removed or changed by the checks; refused or marked keys in
   imported settings stay as they are.
 - **FR-017**: All new texts MUST be localized (English and Czech).

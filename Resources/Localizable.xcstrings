@@ -71,6 +71,16 @@
         }
       }
     },
+    "%@ %@ in macOS, so this item's shortcut never runs.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ v macOS %2$@, takže se zkratka této položky nikdy nespustí."
+          }
+        }
+      }
+    },
     "%@ (%@ bytes)": {
       "localizations": {
         "cs": {
@@ -161,6 +171,16 @@
         }
       }
     },
+    "%@ is the shortcut of “%@” in the %@ menu, so this item's shortcut never runs.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ je zkratka položky „%2$@“ v menu %3$@, takže se zkratka této položky nikdy nespustí."
+          }
+        }
+      }
+    },
     "%@ is used by %@.": {
       "localizations": {
         "cs": {
@@ -207,6 +227,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "%@ v panelu posouvá kurzor a nelze ji přiřadit."
+          }
+        }
+      }
+    },
+    "%@ moves the cursor in the panel, so this item's shortcut never runs.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ v panelu posouvá kurzor, takže se zkratka této položky nikdy nespustí."
           }
         }
       }

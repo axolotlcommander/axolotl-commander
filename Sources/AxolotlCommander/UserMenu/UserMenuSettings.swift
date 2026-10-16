@@ -198,7 +198,7 @@ struct UserMenuItemEditor: View {
                                                 system: ShortcutCheckText.currentSystemShortcuts())
         for reason in ShortcutCheck.reasons(chord, situation: situation) {
             if case .typedInPanel = reason { continue }
-            warnings.append(ShortcutCheckText.message(reason, chord: chord))
+            warnings.append(ShortcutCheckText.message(reason, chord: chord, keptAnyway: true))
         }
         return warnings
     }
