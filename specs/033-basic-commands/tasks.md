@@ -4,13 +4,13 @@
 
 ## Phase 1: Foundational (core)
 
-- [ ] T001 `CutSet` (items, change count, `contains`, `isActive`, `remaining(exists:)`, `pasteAction`) in
+- [X] T001 `CutSet` (items, change count, `contains`, `isActive`, `remaining(exists:)`, `pasteAction`) in
   `Sources/CommanderCore/Operations/CutSet.swift`
-- [ ] T002 `DuplicateName` and `StandardFolder` in `Sources/CommanderCore/Operations/DuplicateName.swift`
-- [ ] T003 Commands `cutFiles` (⌘X, ⌃X), `duplicate` (⌘D), `goDesktop` (⇧⌘D), `goDocuments` (⇧⌘O),
+- [X] T002 `DuplicateName` and `StandardFolder` in `Sources/CommanderCore/Operations/DuplicateName.swift`
+- [X] T003 Commands `cutFiles` (⌘X, ⌃X), `duplicate` (⌘D), `goDesktop` (⇧⌘D), `goDocuments` (⇧⌘O),
   `goDownloads` (⌥⌘L), `goApplications`; tab keys ⌘T, ⇧⌘], ⇧⌘[ in `Sources/CommanderCore/Command.swift` and
   `Sources/CommanderCore/KeyScheme.swift`
-- [ ] T004 [P] Unit tests in `Tests/CommanderCoreTests/CutSetTests.swift` and
+- [X] T004 [P] Unit tests in `Tests/CommanderCoreTests/CutSetTests.swift` and
   `Tests/CommanderCoreTests/DuplicateNameTests.swift` (paste decision, remaining items, names in English and
   Czech, extensions, dot files, folders, taken names, long names, folder targets, new chords without
   collisions in the panel scope, classic scheme keeps its keys)
