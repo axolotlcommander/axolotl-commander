@@ -32,4 +32,4 @@
 ## Notes
 
 - Keys and menu names are user-facing behavior, not implementation details. The keys the Viewer, Find and
-  Compare windows handle themselves (FR-003) are listed in the plan.
+  Compare windows handle themselves (FR-003): none, see the Clarifications.

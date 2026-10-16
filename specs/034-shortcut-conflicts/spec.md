@@ -54,6 +54,12 @@ behavior follows usual Mac practice: show the conflict in words and let the user
   never run; the message names the setting that makes letter keys usable.
 - Q: A conflict with a User Menu item? → A: Reported; the key is not taken from the item (it belongs to the
   User Menu settings), and the warning says the item runs first in the panel.
+- Q: Which fixed keys exist beyond the ones named? → A: Minimize All ⌥⌘M (added to the Window menu by
+  macOS) and Log Out ⇧⌘Q (Apple menu) are refused too (plan, 2026-10-16).
+- Q: Fixed keys of the Viewer, Find and Compare windows? → A: None: those windows look up their shortcuts
+  first and use their own keys only as a fallback, so nothing is refused there (plan, 2026-10-16).
+- Q: Mission Control F3 and Launchpad F4? → A: They are media keys of the function row, already covered by
+  the F1–F12 (fn) note, so they are not in the macOS list (plan, 2026-10-16).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -220,12 +226,13 @@ The User Menu shortcut field tells the user about fixed keys, text keys and macO
 ### Functional Requirements
 
 - **FR-001**: Recording MUST refuse, with a message that names the reason, a key that is a fixed menu item
-  outside the command list (Close Window ⌘W, Minimize ⌘M, Hide ⌘H, Undo ⌘Z, Redo ⇧⌘Z) in every context.
-- **FR-002**: Recording MUST refuse keys macOS never passes to apps (⌘Tab, ⇧⌘Tab, ⌥⌘Esc, ⌃⌘Q) with a
+  outside the command list (Close Window ⌘W, Minimize ⌘M, Minimize All ⌥⌘M, Hide ⌘H, Undo ⌘Z, Redo ⇧⌘Z) in
+  every context.
+- **FR-002**: Recording MUST refuse keys macOS never passes to apps (⌘Tab, ⇧⌘Tab, ⌥⌘Esc, ⌃⌘Q, ⇧⌘Q) with a
   message naming what macOS does with them.
 - **FR-003**: Recording MUST refuse, in the Panels context, the movement keys the panel handles itself
-  (arrows, Page Up, Page Down, Home, End, alone or with ⇧), and in the Viewer, Find and Compare contexts the
-  keys their windows handle themselves before commands, if any.
+  (arrows, Page Up, Page Down, Home, End, alone or with ⇧); the Viewer, Find and Compare contexts have no
+  such keys (clarification).
 - **FR-004**: In the Panels context, a character key without modifiers or with ⇧ only MUST produce a warning
   with "Assign Anyway" when "Typing goes to the command line" is on, and MUST be refused with a message that
   names the setting when it is off. Space, Return, Backspace, Tab and Esc are not text keys.
@@ -234,7 +241,7 @@ The User Menu shortcut field tells the user about fixed keys, text keys and macO
 - **FR-006**: The app MUST know the macOS default system shortcuts (Mission Control ⌃↑, Application windows
   ⌃↓, moving between spaces ⌃← / ⌃→, Spotlight ⌘Space, Finder search window ⌥⌘Space, input sources ⌃Space /
   ⌃⌥Space, screenshots ⇧⌘3 / ⇧⌘4 / ⇧⌘5 / ⌃⇧⌘3 / ⌃⇧⌘4, Show Desktop F11, Dock hiding ⌥⌘D, next window ⌘`,
-  Help menu search ⇧⌘/, keyboard navigation ⌃F1–⌃F8, Mission Control F3, Launchpad F4) and MUST apply the
+  Help menu search ⇧⌘/, keyboard navigation ⌃F1–⌃F8, accessibility controls ⌥⌘F5) and MUST apply the
   user's changes from the macOS keyboard shortcut settings (turned off, changed key), read only, never
   written.
 - **FR-007**: Recording a key taken by a macOS shortcut that is on MUST produce a warning that names the
