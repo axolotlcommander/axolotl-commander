@@ -4,11 +4,11 @@
 
 ## Phase 1: Foundational (core)
 
-- [ ] T001 `FixedKey` (menu items, macOS keys, panel movement keys), `SystemShortcut` with the macOS default
+- [X] T001 `FixedKey` (menu items, macOS keys, panel movement keys), `SystemShortcut` with the macOS default
   list and `SystemShortcuts.current(from:)` (merge of the `AppleSymbolicHotKeys` dictionary), `KeyChord` from
   the system parameters, `ShortcutCheck.check` / `problem` / `reasons` in
   `Sources/CommanderCore/ShortcutCheck.swift`
-- [ ] T002 [P] Unit tests in `Tests/CommanderCoreTests/ShortcutCheckTests.swift`: fixed keys per context,
+- [X] T002 [P] Unit tests in `Tests/CommanderCoreTests/ShortcutCheckTests.swift`: fixed keys per context,
   movement keys only in Panels (⌥↑ not refused), text-key rule for both settings (characters, ⇧ + character,
   ⌥ + character, Space / Return / Backspace / Tab / Esc not counted, other contexts not counted), macOS list
   merged with overrides (missing entries keep defaults, disabled, remapped, without key, malformed), conflict

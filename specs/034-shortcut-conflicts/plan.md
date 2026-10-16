@@ -16,8 +16,8 @@
     without a key are dropped (R3, R4).
   - `ShortcutCheck.check(_:for:context:bindings:userMenu:typingToCommandLine:system:)` → `.clean`,
     `.refused(Refusal)` or `.warnings([Warning])`. Refusals: fixed menu item, macOS key, panel movement key,
-    letter while quick search takes letters. Warnings: commands that lose the key, User Menu items, a macOS
-    shortcut that is on, a text key (typing to the command line), ⌥ + character (no quick search start).
+    plain character in the panel (typed into the command line or quick search). Warnings: commands that lose
+    the key, User Menu items, a macOS shortcut that is on, ⌥ + character (no quick search start).
   - `ShortcutCheck.problem(_:context:typingToCommandLine:system:)` → the reason an assigned chord cannot run
     (for the row marks): a refusal reason or a macOS shortcut that is on.
   - `ShortcutCheck.reasons(...)` for the User Menu editor: the same reasons, never refusing.
@@ -54,7 +54,9 @@ is not sandboxed; the system preference is read with `CFPreferencesCopyAppValue`
 - **R2** Keys handled before the key map: only the panel has them — `handleMovement` takes ↑ ↓ ← → Page Up,
   Page Down, Home, End without modifiers or with ⇧ only; ⌥↑ / ⌥↓ / ⌥Home / ⌥End yield to a bound command
   (not refused). With "Typing goes to the command line" off, `handleQuickSearch` takes every character
-  without ⌃ ⌘ ⌥ (⇧ included) before the key map; with it on, `PanelTyping.route` lets bound chords through.
+  without ⌃ ⌘ ⌥ (⇧ included) before the key map; with it on, `PanelTyping.route` appends such characters to
+  the command line whether bound or not, and lets only a bound ⌥ + character through. So plain characters
+  are refused with either setting (clarification).
   Viewer, Find and Compare look up their key map first; their own keys (hex/table/diff scrolling, media
   controls, Esc in the Find form) are fallbacks or depend on the focus, so nothing is refused there.
 - **R3** `AppleSymbolicHotKeys` stores only entries the user changed (others keep the macOS default), each as

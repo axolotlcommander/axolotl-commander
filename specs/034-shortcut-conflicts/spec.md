@@ -29,10 +29,10 @@ Not checked today:
    Undo ⌘Z, Redo ⇧⌘Z. Two menu items with the same key make it unclear which one runs.
 2. Keys a context handles itself before any command: in the panel the movement keys (arrows, Page Up / Page
    Down, Home / End, alone or with ⇧) never reach a command.
-3. Keys that type text in the panel. The recorder accepts a character without modifiers. With "Typing goes
-   to the command line" on, a character bound to a command runs it and can no longer be typed into the
-   command line, and ⌥ + character no longer starts quick search. With the setting off, quick search takes
-   plain characters before any shortcut, so such a shortcut never runs.
+3. Keys that type text in the panel. The recorder accepts a character without modifiers, but the panel
+   types such characters (and ⇧ + character) into the command line ("Typing goes to the command line" on)
+   or quick search (off) before any shortcut, so such a shortcut never runs. With the setting on, a bound
+   ⌥ + character runs its command and no longer starts quick search.
 4. macOS system shortcuts (Mission Control, Spotlight, screenshots, input sources and others): the app never
    receives them while they are on.
 5. Global shortcuts of other apps (on the maintainer's Mac ⌘D, and a display utility taking ⌃⇧ and ⌃⌥
@@ -50,8 +50,11 @@ behavior follows usual Mac practice: show the conflict in words and let the user
 - Q: Which points of the proposal go into this spec? → A: Refusing fixed keys (A), warning about text keys
   (B), naming macOS shortcuts (C), the recording hint (D) and explicit conflict buttons (F). Showing how other
   contexts use the key (E) comes later.
-- Q: A letter shortcut while typing goes to quick search (setting off)? → A: Refused, because it would
-  never run; the message names the setting that makes letter keys usable.
+- Q: A letter shortcut in the panel? → A: Refused with either setting: the panel types characters
+  without modifiers or with ⇧ only into the command line (setting on) or quick search (setting off) before
+  any shortcut, so it would never run; ⌥ + letter with the setting on only warns, because a bound ⌥ +
+  letter does run there (implementation, 2026-10-16, agreed with the maintainer; replaces the first answer
+  that a letter would warn with the setting on).
 - Q: A conflict with a User Menu item? → A: Reported; the key is not taken from the item (it belongs to the
   User Menu settings), and the warning says the item runs first in the panel.
 - Q: Which fixed keys exist beyond the ones named? → A: Minimize All ⌥⌘M (added to the Window menu by
@@ -90,29 +93,29 @@ a message explains why.
 
 ### User Story 2 - Keys that type text in the panel (Priority: P1)
 
-The user tries to give a panel command a plain letter (or digit, or punctuation) and learns what that costs:
-the letter will run the command instead of being typed, or, when letters start quick search, the shortcut
-would never run.
+The user tries to give a panel command a plain letter (or digit, or punctuation) and learns that the panel
+types such keys, so the shortcut would never run; ⌥ + letter is allowed with a note about what it replaces.
 
-**Why this priority**: A plain letter shortcut silently breaks typing into the command line or does nothing
-at all; users coming from other commanders try such keys.
+**Why this priority**: A plain letter shortcut is stored today and then never runs; users coming from other
+commanders try such keys.
 
-**Independent Test**: Panels context; record "q" with "Typing goes to the command line" on and off.
+**Independent Test**: Panels context; record "q", ⇧Q and ⌥Q with "Typing goes to the command line" on and
+off.
 
 **Acceptance Scenarios**:
 
-1. **Given** "Typing goes to the command line" is on, **When** the user records "q" for a panel command,
-   **Then** a warning says "Typing “q” in the panel will run this command instead of writing to the command
-   line." with "Assign Anyway" and "Cancel"; Assign Anyway adds the shortcut.
-2. **Given** the same setting is on, **When** the user records ⌥Q, **Then** the warning says that ⌥Q will run
-   the command instead of starting quick search, with the same buttons.
-3. **Given** the setting is off, **When** the user records "q" or ⇧Q, **Then** nothing is added and the
-   message says "“q” starts quick search in the panel, so the shortcut would never run. Turn on Typing goes
-   to the command line on the Panels tab to use letter keys."
+1. **Given** "Typing goes to the command line" is on, **When** the user records "q" or ⇧Q for a panel
+   command, **Then** nothing is added and the message says "“q” is typed into the command line in the panel,
+   so the shortcut would never run."
+2. **Given** the setting is off, **When** the user records "q" or ⇧Q, **Then** nothing is added and the
+   message says "“q” starts quick search in the panel, so the shortcut would never run."
+3. **Given** the setting is on, **When** the user records ⌥Q, **Then** a warning says "⌥Q will run this
+   command instead of starting quick search." with "Assign Anyway" and "Cancel"; with the setting off ⌥Q
+   gets no text-key warning.
 4. **Given** any setting, **When** the user records Space, Return, Backspace, Tab or Esc without modifiers,
-   **Then** no text-key warning appears (only the usual conflict check of story 4 applies).
+   **Then** no text-key message appears (only the usual conflict check of story 4 applies).
 5. **Given** the Viewer, Find or Compare context, **When** the user records a plain letter, **Then** no
-   text-key warning appears.
+   text-key message appears.
 
 ---
 
@@ -214,10 +217,9 @@ The User Menu shortcut field tells the user about fixed keys, text keys and macO
 - Classic Commander scheme defaults with ⌃⇧ chords get no mark: other apps' shortcuts are unknown.
 - Layouts where a character needs ⌥ (for example "@"): the key is checked as recorded.
 - An imported settings file or an existing shortcut that would now be refused is kept as it is; its row
-  shows the warning mark when it cannot run (macOS takes it, or a letter while quick search takes letters);
+  shows the warning mark when it cannot run (macOS takes it, a fixed key, or a plain letter in the panel);
   nothing is removed silently.
-- "Typing goes to the command line" is switched later: existing letter shortcuts stay; the mark follows the
-  current setting.
+- "Typing goes to the command line" is switched later: existing ⌥ + letter shortcuts stay.
 - Reset and Reset All are not affected by the checks.
 - Search by key in the table finds marked keys as before.
 
@@ -233,9 +235,9 @@ The User Menu shortcut field tells the user about fixed keys, text keys and macO
 - **FR-003**: Recording MUST refuse, in the Panels context, the movement keys the panel handles itself
   (arrows, Page Up, Page Down, Home, End, alone or with ⇧); the Viewer, Find and Compare contexts have no
   such keys (clarification).
-- **FR-004**: In the Panels context, a character key without modifiers or with ⇧ only MUST produce a warning
-  with "Assign Anyway" when "Typing goes to the command line" is on, and MUST be refused with a message that
-  names the setting when it is off. Space, Return, Backspace, Tab and Esc are not text keys.
+- **FR-004**: In the Panels context, a character key without modifiers or with ⇧ only MUST be refused with a
+  message saying where the panel types it (the command line or quick search, after the current setting).
+  Space, Return, Backspace, Tab and Esc are not text keys.
 - **FR-005**: In the Panels context with "Typing goes to the command line" on, ⌥ + character MUST produce a
   warning that it will no longer start quick search, with "Assign Anyway".
 - **FR-006**: The app MUST know the macOS default system shortcuts (Mission Control ⌃↑, Application windows
@@ -248,7 +250,7 @@ The User Menu shortcut field tells the user about fixed keys, text keys and macO
   system feature and its place in System Settings, with "Open Keyboard Settings", "Assign Anyway" and
   "Cancel".
 - **FR-008**: The command table MUST mark every shortcut of the current context that cannot run (taken by a
-  macOS shortcut that is on, or a text key while quick search takes letters), with a tooltip naming the
+  macOS shortcut that is on, a fixed key, or a plain character in the panel), with a tooltip naming the
   reason.
 - **FR-009**: The macOS shortcut information MUST be refreshed when the Keyboard tab appears and when the app
   becomes active.
@@ -261,7 +263,7 @@ The User Menu shortcut field tells the user about fixed keys, text keys and macO
   saying that it runs first in the panel; the button is "Assign Anyway" and the item keeps its key.
 - **FR-013**: When several reasons apply, one warning MUST list all of them with a single assign button
   ("Move to This Command" if another command would lose the key, otherwise "Assign Anyway") and "Cancel";
-  a refusal (FR-001 to FR-003, or FR-004 with the setting off) wins and only its message is shown.
+  a refusal (FR-001 to FR-004) wins and only its message is shown.
 - **FR-014**: While recording, a hint MUST explain that Esc cancels and that a key that does nothing has been
   taken by macOS or another app.
 - **FR-015**: The User Menu shortcut field MUST show the reasons of FR-001 to FR-007 as warnings with the same
@@ -281,8 +283,8 @@ The User Menu shortcut field tells the user about fixed keys, text keys and macO
 
 ### Measurable Outcomes
 
-- **SC-001**: No shortcut that can never run (fixed menu key, panel movement key, letter while quick search
-  takes letters) can be added in Settings → Keyboard.
+- **SC-001**: No shortcut that can never run (fixed menu key, panel movement key, plain letter in the
+  panel) can be added in Settings → Keyboard.
 - **SC-002**: Every warning names who or what uses the key in plain words; the user never has to search the
   list to find the other command.
 - **SC-003**: After turning a macOS shortcut off in System Settings and returning, the warning mark is gone
