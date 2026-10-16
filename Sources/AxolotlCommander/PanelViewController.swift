@@ -918,11 +918,13 @@ final class PanelViewController: NSViewController {
         .contextMenu, .moveFilesHere, .invertAll, .restoreSelection, .saveSelection, .loadSelection, .volumeInfo,
         .newSymbolicLink, .newHardLink, .editSymbolicLink, .pasteAsSymbolicLink, .goToLinkTarget, .changeAttributes,
         .branchView, .branchViewSelected,
+        .cutFiles, .duplicate, .goDesktop, .goDocuments, .goDownloads, .goApplications,
     ]
 
     private static let needTargets: Set<Command> = [
         .copy, .move, .delete, .deletePermanently, .rename, .copyFiles, .view, .quickLook, .viewWith, .editWith,
         .changeCase, .batchRename, .calculateChecksums, .newSymbolicLink, .newHardLink, .changeAttributes,
+        .cutFiles, .duplicate,
     ]
 
     /// What stays enabled while the panel shows the Network folder: moving around and looking.
@@ -934,6 +936,7 @@ final class PanelViewController: NSViewController {
         .reopenClosedTab, .closeOtherTabs, .tabList, .folderHistory,
         .duplicateTab, .closeTabsToRight, .lockTab, .lockTabAllowingChanges,
         .connectToServer, .disconnect, .contextMenu,
+        .goDesktop, .goDocuments, .goDownloads, .goApplications,
     ]
 
     /// Work on files on disk only: not inside archives, not on servers.
@@ -941,6 +944,7 @@ final class PanelViewController: NSViewController {
         .changeCase, .batchRename, .calculateChecksums, .verifyChecksums, .occupiedSpace, .moveFilesHere, .volumeInfo,
         .viewWith, .editWith, .newSymbolicLink, .newHardLink, .editSymbolicLink, .pasteAsSymbolicLink,
         .goToLinkTarget, .changeAttributes, .copyAs, .packAndMove, .testArchives, .splitFile, .combineFiles, .encodeFile, .decodeFile,
+        .cutFiles, .duplicate,
     ]
 
     func canPerform(_ command: Command) -> Bool {
@@ -960,7 +964,7 @@ final class PanelViewController: NSViewController {
         case .reopenClosedTab: return !closedTabs.isEmpty
         case .closeTabsToRight: return tabs.active < tabs.tabs.count - 1
         // Find results and branch view have no folder of their own to create or paste into.
-        case .makeDirectory, .newFile: return !isFlatListing
+        case .makeDirectory, .newFile, .duplicate: return !isFlatListing
         case .pasteFiles: return !isFlatListing && Self.pasteboardHasFilesOrPath
         case .moveFilesHere: return !isFlatListing && Self.pasteboardHasFiles
         case .newSymbolicLink, .newHardLink, .changeAttributes: return !isFlatListing
@@ -1040,6 +1044,10 @@ final class PanelViewController: NSViewController {
         case .goParent: Task { await navigate { try await model.goParent() } }
         case .goRoot: Task { await navigate { try await model.goRoot() } }
         case .goHome: go(to: FileManager.default.homeDirectoryForCurrentUser)
+        case .goDesktop: go(to: StandardFolder.desktop.url(home: FileManager.default.homeDirectoryForCurrentUser))
+        case .goDocuments: go(to: StandardFolder.documents.url(home: FileManager.default.homeDirectoryForCurrentUser))
+        case .goDownloads: go(to: StandardFolder.downloads.url(home: FileManager.default.homeDirectoryForCurrentUser))
+        case .goApplications: go(to: StandardFolder.applications.url(home: FileManager.default.homeDirectoryForCurrentUser))
         case .goBack: Task { await navigate { try await model.goBack() } }
         case .goForward: Task { await navigate { try await model.goForward() } }
         case .changeDirectory: Task { await askGoToFolder() }
@@ -1105,6 +1113,8 @@ final class PanelViewController: NSViewController {
             router?.operations.delete(targets().map(\.url), permanently: command == .deletePermanently)
         case .makeDirectory: router?.operations.makeDirectory(in: self)
         case .rename: if viewMode == .detailed { beginRename() } else { Task { await askRename() } }
+        case .cutFiles: CutClipboard.shared.cut(targets().map(\.url))
+        case .duplicate: router?.operations.duplicate(targets().map(\.url), panel: self)
         case .copyFiles: copyFilesToPasteboard()
         case .pasteFiles: pasteFromPasteboard()
         case .moveFilesHere: pasteFromPasteboard(move: true)
@@ -1587,13 +1597,23 @@ final class PanelViewController: NSViewController {
         let pb = NSPasteboard.general
         pb.clearContents()
         pb.writeObjects(targets().map { $0.url as NSURL })
+        CutClipboard.shared.check()
     }
 
-    /// Files on the pasteboard are copied here (moved with ⌘⌥V, as in Finder); a path as text navigates there.
+    /// Files on the pasteboard are copied here (moved with ⌘⌥V, as in Finder, and when they were cut); a path
+    /// as text navigates there.
     private func pasteFromPasteboard(move: Bool = false) {
         let pb = NSPasteboard.general
         if let urls = pb.readObjects(forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) as? [URL], !urls.isEmpty {
-            router?.operations.transfer(move ? .move : .copy, sources: urls, from: self, to: model.location)
+            // Cut files move (spec 033); Move Files Here moves whatever is there.
+            switch move ? .move : CutClipboard.shared.pasteAction(for: urls, destination: model.location) {
+            case .copy: router?.operations.transfer(.copy, sources: urls, from: self, to: model.location)
+            case .move:
+                router?.operations.transfer(.move, sources: urls, from: self, to: model.location) {
+                    CutClipboard.shared.settle()
+                }
+            case .sameFolder: NSSound.beep()
+            }
         } else if let text = pb.string(forType: .string)?.trimmingCharacters(in: .whitespacesAndNewlines),
                   let url = try? PathInput.resolve(text, relativeTo: model.location, absoluteIsLocal: true) {
             go(to: url)
@@ -1641,6 +1661,29 @@ final class PanelViewController: NSViewController {
             forName: FileIcons.didLoadNotification, object: nil, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated { self?.iconsLoaded() }
         })
+        networkObservers.append(NotificationCenter.default.addObserver(
+            forName: CutClipboard.didChangeNotification, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.cutItemsChanged() }
+        })
+    }
+
+    /// Cut items are dimmed (spec 033): the visible rows or items are drawn again.
+    private func cutItemsChanged() {
+        guard renaming == nil else { return }
+        switch viewMode {
+        case .detailed:
+            let visible = tableView.rows(in: tableView.visibleRect)
+            guard visible.length > 0 else { return }
+            syncingSelection = true
+            tableView.reloadData(forRowIndexes: IndexSet(integersIn: visible.location..<visible.location + visible.length),
+                                 columnIndexes: IndexSet(integersIn: 0..<tableView.numberOfColumns))
+            if model.items.indices.contains(model.cursor), tableView.selectedRow != model.cursor {
+                tableView.selectRowIndexes([model.cursor], byExtendingSelection: false)
+            }
+            syncingSelection = false
+        case .brief: reloadBrief()
+        case .thumbnails: reloadThumbnails()
+        }
     }
 
     /// Icons read in the background: the path bar, the drive row and the visible items show them.
@@ -1952,7 +1995,10 @@ extension PanelViewController: NSTableViewDataSource, NSTableViewDelegate {
         // Set before the text: the tooltip of a shortened size shows every byte.
         cell.exact = column == .size ? sizeBytes(of: item).map { SizeFormat.exact($0) } : nil
         cell.variants = texts(for: column, item: item)
-        if column == .name { cell.imageView?.image = IconCache.icon(for: item) }
+        if column == .name {
+            cell.imageView?.image = IconCache.icon(for: item)
+            cell.imageView?.alphaValue = isCut(item) ? 0.5 : 1
+        }
         return cell
     }
 

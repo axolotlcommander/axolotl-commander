@@ -81,9 +81,9 @@ extension PanelViewController {
         menu.addItem(.separator())
         for command: Command in [.view, .edit, .quickLook] { menu.addItem(MainMenuBuilder.commandItem(command)) }
         menu.addItem(.separator())
-        for command: Command in [.copy, .move, .rename, .delete] { menu.addItem(MainMenuBuilder.commandItem(command)) }
+        for command: Command in [.copy, .move, .duplicate, .rename, .delete] { menu.addItem(MainMenuBuilder.commandItem(command)) }
         menu.addItem(.separator())
-        for command: Command in [.properties, .changeAttributes, .pack, .copyFiles, .copyFullPath] {
+        for command: Command in [.properties, .changeAttributes, .pack, .cutFiles, .copyFiles, .copyFullPath] {
             menu.addItem(MainMenuBuilder.commandItem(command))
         }
         if local {

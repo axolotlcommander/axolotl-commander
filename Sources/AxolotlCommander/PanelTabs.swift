@@ -438,10 +438,21 @@ extension PanelViewController {
         PanelFont.list(marked: marked)
     }
 
-    /// Marked items use the mark color; others the first matching highlight rule.
+    func isCut(_ item: FileItem) -> Bool {
+        !item.isParent && CutClipboard.shared.isCut(item.url)
+    }
+
+    /// The icon opacity of an item: half for hidden and cut items.
+    func iconAlpha(for item: FileItem) -> CGFloat {
+        item.isHidden || isCut(item) ? 0.5 : 1
+    }
+
+    /// Marked items use the mark color; cut items are dimmed (spec 033); others the first matching
+    /// highlight rule.
     func textColor(for item: FileItem, marked: Bool) -> NSColor {
         let appearance = AppSettings.shared.appearance
         if marked { return appearance.markColor.nsColor }
+        if isCut(item) { return .secondaryLabelColor }
         if let color = appearance.color(for: item, rules: model.rules) { return color.nsColor }
         return item.isHidden ? .secondaryLabelColor : .labelColor
     }

@@ -14,6 +14,7 @@ extension NSMenuItem {
 enum MainMenuBuilder {
     /// Commands bound to standard AppKit selectors so text fields keep native behavior.
     static let standardSelectors: [Command: Selector] = [
+        .cutFiles: #selector(NSText.cut(_:)),
         .copyFiles: #selector(NSText.copy(_:)),
         .pasteFiles: #selector(NSText.paste(_:)),
         .selectAll: #selector(NSText.selectAll(_:)),

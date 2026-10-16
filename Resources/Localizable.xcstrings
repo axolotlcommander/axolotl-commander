@@ -2463,6 +2463,16 @@
         }
       }
     },
+    "Cut Files": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vyjmout soubory"
+          }
+        }
+      }
+    },
     "Cyan": {
       "localizations": {
         "cs": {
@@ -2737,6 +2747,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zrušit výběr…"
+          }
+        }
+      }
+    },
+    "Desktop": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plocha"
           }
         }
       }
@@ -3045,12 +3065,32 @@
         }
       }
     },
+    "Downloads": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stažené soubory"
+          }
+        }
+      }
+    },
     "Download…": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Stáhnout…"
+          }
+        }
+      }
+    },
+    "Duplicate": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duplikovat"
           }
         }
       }
