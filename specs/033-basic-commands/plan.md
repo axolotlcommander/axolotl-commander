@@ -68,8 +68,8 @@ Swift 6, AppKit, SwiftPM; tests with Swift Testing in `Tests/CommanderCoreTests`
 - **R5** Desktop, Documents, Downloads are `~/Desktop`, `~/Documents`, `~/Downloads`
   (`FileManager.homeDirectoryForCurrentUser`); Applications is `/Applications`.
 - **R6** Copy Files and Paste Files already use the standard `copy:` / `paste:` selectors so text fields get
-  them first; Cut Files does the same with `cut:`. The other new keys are menu commands like F5 and act on the
-  panel also when the command line has the focus, as every other panel command does today (clarification).
+  them first; Cut Files does the same with `cut:`. The other new keys are menu commands like F5 and, like every other
+  panel command, are disabled while the command line has the focus (clarification, corrected 2026-10-16).
 
 ## Project Structure
 

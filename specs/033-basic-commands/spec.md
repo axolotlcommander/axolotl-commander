@@ -44,8 +44,9 @@ on the clipboard after a paste.
 - Q: ⌃X only in the classic scheme? → A: In both schemes, next to ⌘X, as ⌃C and ⌃V already are for Copy
   and Paste (plan, 2026-10-16).
 - Q: Keys while the command line has the focus? → A: ⌘X cuts text there (it uses the standard Cut action, as
-  ⌘C and ⌘V do); ⌘D, ⌘T and the folder keys act on the panel, as F5 and every other panel command do today
-  (plan, 2026-10-16).
+  ⌘C and ⌘V do); ⌘D, ⌘T and the folder keys do nothing there, as F5 and every other panel command, which
+  are disabled while the command line has the focus (plan, 2026-10-16; corrected after the GUI check,
+  2026-10-16).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -184,7 +185,8 @@ Finder.
 - Duplicate of a very long name: the name stays within the file system's limit by shortening the base name
   before the added word, never the extension.
 - The keyboard focus is in the command line or another text field: ⌘X cuts text there, as ⌘C copies text
-  today; ⌘D, ⌘T and the folder keys act on the panel, as F5 and the other panel commands do.
+  today; ⌘D, ⌘T and the folder keys do nothing there, as F5 and the other panel commands; they never act
+  on files from the command line.
 - A standard folder that does not exist (for example Downloads removed): the panel stays where it was and
   the app shows the same message as when any folder cannot be opened.
 
