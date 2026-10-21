@@ -24,6 +24,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 - Settings → Panels → Tab look: Prominent separates the tabs clearly and fills the active panel's tab with
   the accent color, so it is easy to see which tab and which panel are active. Standard keeps today's look.
 
+### Fixed
+
+- Dragging several marked items in the Detailed view carried only the item under the pointer to Finder
+  and other apps. The drag now carries every marked item, with the count shown on the dragged image.
+
 ## [0.9.0] - 2026-10-16
 
 ### Added

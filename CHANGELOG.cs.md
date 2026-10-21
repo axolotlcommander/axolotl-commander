@@ -25,6 +25,11 @@ Formát vychází z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ve
   barvou zvýraznění, takže je hned vidět, která záložka a který panel jsou aktivní. Standardní ponechává
   dosavadní vzhled.
 
+### Opraveno
+
+- Přetažení několika označených položek v Podrobném pohledu přeneslo do Finderu a jiných aplikací jen
+  položku pod ukazatelem. Teď se přetáhnou všechny označené a u obrázku tažení je vidět jejich počet.
+
 ## [0.9.0] - 2026-10-16
 
 ### Přidáno

@@ -54,7 +54,8 @@ final class PanelTableView: NSTableView, NSServicesMenuRequestor {
     override func beginDraggingSession(with items: [NSDraggingItem], event: NSEvent,
                                        source: any NSDraggingSource) -> NSDraggingSession {
         dragBegan = true
-        return super.beginDraggingSession(with: items, event: event, source: source)
+        return super.beginDraggingSession(with: panel?.draggingItems(startingWith: items) ?? items, event: event,
+                                          source: source)
     }
 
     override func mouseDown(with event: NSEvent) {
@@ -2070,17 +2071,35 @@ extension PanelViewController: NSTableViewDataSource, NSTableViewDelegate {
     func tableView(_ tableView: NSTableView, pasteboardWriterForRow row: Int) -> (any NSPasteboardWriting)? {
         // Servers are not files, and dragging a whole network share is too easy a mistake.
         guard row < model.items.count, !model.items[row].isParent, !model.isNetwork else { return nil }
-        // Dragging a marked row drags the whole selection: the session begins with this row and the
-        // pasteboard is filled with every marked item in `draggingSession(_:willBeginAt:)`. A nil writer
-        // here would stop the drag from starting at all.
+        // Dragging a marked row drags the whole selection: `draggingItems(startingWith:)` adds the other
+        // marked items when the session begins. A nil writer here would stop the drag from starting at all.
         return dragItem(for: model.items[row])
     }
 
-    func tableView(_ tableView: NSTableView, draggingSession session: NSDraggingSession,
-                   willBeginAt screenPoint: NSPoint, forRowIndexes rowIndexes: IndexSet) {
-        guard let row = rowIndexes.first, row < model.items.count, model.isSelected(model.items[row]) else { return }
-        session.draggingPasteboard.clearContents()
-        session.draggingPasteboard.writeObjects(model.selectedItems.map(dragItem(for:)))
+    /// The table begins a drag with the row under the pointer only. A drag from a marked row carries every
+    /// marked item as its own dragging item (receivers such as Finder take the dragging items, and the
+    /// count badge shows them), drawn at its row while the row is on screen.
+    func draggingItems(startingWith items: [NSDraggingItem]) -> [NSDraggingItem] {
+        guard items.count == 1, let first = items.first else { return items }
+        let dragged = draggedItems(from: model.cursor)
+        guard dragged.count > 1 else { return items }
+        let rows = Dictionary(model.items.enumerated().map { ($1.url, $0) }, uniquingKeysWith: { first, _ in first })
+        let start = tableView.rect(ofRow: model.cursor)
+        let nameColumn = tableView.column(withIdentifier: Column.name.identifier)
+        return dragged.map { item in
+            let row = rows[item.url]
+            if row == model.cursor { return first }
+            let entry = NSDraggingItem(pasteboardWriter: dragItem(for: item))
+            let frame = first.draggingFrame.offsetBy(dx: 0, dy: tableView.rect(ofRow: row ?? model.cursor).minY - start.minY)
+            if let row, tableView.visibleRect.intersects(frame),
+               let cell = tableView.view(atColumn: nameColumn, row: row, makeIfNecessary: false) as? NSTableCellView {
+                entry.draggingFrame = frame
+                entry.imageComponentsProvider = { cell.draggingImageComponents }
+            } else {
+                entry.setDraggingFrame(first.draggingFrame, contents: nil)
+            }
+            return entry
+        }
     }
 
     func tableView(_ tableView: NSTableView, validateDrop info: any NSDraggingInfo, proposedRow row: Int,
