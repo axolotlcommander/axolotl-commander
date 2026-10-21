@@ -13,6 +13,7 @@ public struct PanelBehavior: Equatable, Sendable {
     public static let rightButtonKey = "panel.rightButtonMarks"
     public static let alwaysShowTabsKey = "panel.alwaysShowTabs"
     public static let tabsNextToCurrentKey = "panel.newTabsNextToCurrent"
+    public static let clickToRenameKey = "panel.clickToRename"
 
     /// Space marks the item and moves the cursor down (off: the cursor stays).
     public var spaceMovesDown = true
@@ -29,6 +30,8 @@ public struct PanelBehavior: Equatable, Sendable {
     public var alwaysShowTabs = false
     /// New tabs open right after the active tab; off: after the last tab.
     public var newTabsNextToCurrent = false
+    /// A slow click on the name of the cursor item renames it in place (`specs/035-click-rename`).
+    public var clickToRename = true
 
     public var mouseSelectionMode: MouseSelectionMode { rightButtonMarks ? .rightButtonMarks : .standard }
 
@@ -45,6 +48,7 @@ public struct PanelBehavior: Equatable, Sendable {
         rightButtonMarks = bool(Self.rightButtonKey, false)
         alwaysShowTabs = bool(Self.alwaysShowTabsKey, false)
         newTabsNextToCurrent = bool(Self.tabsNextToCurrentKey, false)
+        clickToRename = bool(Self.clickToRenameKey, true)
     }
 }
 
