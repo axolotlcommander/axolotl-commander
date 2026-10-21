@@ -51,6 +51,36 @@
         }
       }
     },
+    "%@ %@ in macOS (System Settings → Keyboard → Keyboard Shortcuts → %@). The app does not receive it while it is on.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ v macOS %2$@ (Nastavení systému → Klávesnice → Klávesové zkratky → %3$@). Aplikace ji nedostane, dokud je zapnutá."
+          }
+        }
+      }
+    },
+    "%@ %@ in macOS and cannot be assigned.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ v macOS %2$@ a nelze ji přiřadit."
+          }
+        }
+      }
+    },
+    "%@ %@ in macOS, so this item's shortcut never runs.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ v macOS %2$@, takže se zkratka této položky nikdy nespustí."
+          }
+        }
+      }
+    },
     "%@ (%@ bytes)": {
       "localizations": {
         "cs": {
@@ -131,6 +161,26 @@
         }
       }
     },
+    "%@ is the shortcut of “%@” in the %@ menu and cannot be assigned.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ je zkratka položky „%2$@“ v menu %3$@ a nelze ji přiřadit."
+          }
+        }
+      }
+    },
+    "%@ is the shortcut of “%@” in the %@ menu, so this item's shortcut never runs.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ je zkratka položky „%2$@“ v menu %3$@, takže se zkratka této položky nikdy nespustí."
+          }
+        }
+      }
+    },
     "%@ is used by %@.": {
       "localizations": {
         "cs": {
@@ -141,12 +191,72 @@
         }
       }
     },
+    "%@ is used by %@; moving it here removes it there.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ používá %2$@; přesunutím sem ji tam odeberete."
+          }
+        }
+      }
+    },
+    "%@ is used by the User Menu item %@; in the panel the User Menu item runs first.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ používá položka uživatelského menu %2$@; v panelu se spustí nejdřív ona."
+          }
+        }
+      }
+    },
+    "%@ is used by the User Menu items %@; in the panel the User Menu items run first.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ používají položky uživatelského menu %2$@; v panelu se spustí nejdřív ony."
+          }
+        }
+      }
+    },
+    "%@ moves the cursor in the panel and cannot be assigned.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ v panelu posouvá kurzor a nelze ji přiřadit."
+          }
+        }
+      }
+    },
+    "%@ moves the cursor in the panel, so this item's shortcut never runs.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ v panelu posouvá kurzor, takže se zkratka této položky nikdy nespustí."
+          }
+        }
+      }
+    },
     "%@ types into quick search. Use a shortcut with ⌘, ⌃ or ⌥, or a function key.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "%@ píše do rychlého hledání. Použijte zkratku s ⌘, ⌃ nebo ⌥, nebo funkční klávesu."
+          }
+        }
+      }
+    },
+    "%@ will run this command instead of starting quick search.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ spustí tento příkaz místo rychlého hledání."
           }
         }
       }
@@ -885,6 +995,16 @@
         }
       }
     },
+    "Accessibility": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zpřístupnění"
+          }
+        }
+      }
+    },
     "Actual Size": {
       "extractionState": "manual",
       "localizations": {
@@ -996,6 +1116,16 @@
         }
       }
     },
+    "All windows": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Všechna okna"
+          }
+        }
+      }
+    },
     "Also change items inside folders:": {
       "localizations": {
         "cs": {
@@ -1052,6 +1182,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ikona aplikace"
+          }
+        }
+      }
+    },
+    "App Shortcuts": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zkratky aplikací"
           }
         }
       }
@@ -1163,6 +1303,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zeptat se nebo použít Klíčenku"
+          }
+        }
+      }
+    },
+    "Assign Anyway": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přesto přiřadit"
           }
         }
       }
@@ -1628,6 +1778,16 @@
         }
       }
     },
+    "changes the way Tab moves the focus": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mění způsob, jakým Tab přesouvá fokus"
+          }
+        }
+      }
+    },
     "Changing case…": {
       "localizations": {
         "cs": {
@@ -1774,6 +1934,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vymazat"
+          }
+        }
+      }
+    },
+    "Click the name of the item under the cursor once more and wait: the name becomes editable, as in Finder. A double click still opens the item.": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klikněte ještě jednou na jméno položky pod kurzorem a chvíli počkejte: jméno půjde přepsat jako ve Finderu. Dvojklik položku dál otevírá."
           }
         }
       }
@@ -2119,6 +2290,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Obsah (pomalé)"
+          }
+        }
+      }
+    },
+    "copies a screenshot": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "kopíruje snímek obrazovky"
+          }
+        }
+      }
+    },
+    "copies a screenshot of an area": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "kopíruje snímek vybrané oblasti"
           }
         }
       }
@@ -3389,6 +3580,16 @@
         }
       }
     },
+    "hides or shows the Dock": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "skrývá a zobrazuje Dock"
+          }
+        }
+      }
+    },
     "Ignore a difference of exactly one hour": {
       "localizations": {
         "cs": {
@@ -3415,6 +3616,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Neúplné — data skončila před koncovou značkou:"
+          }
+        }
+      }
+    },
+    "Input Sources": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vstupní zdroje"
           }
         }
       }
@@ -3475,6 +3686,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "syntaxe JSON5 není podporovaná"
+          }
+        }
+      }
+    },
+    "Launchpad & Dock": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Launchpad a Dock"
           }
         }
       }
@@ -3569,12 +3790,52 @@
         }
       }
     },
+    "locks the screen": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "zamyká obrazovku"
+          }
+        }
+      }
+    },
+    "logs out": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "odhlašuje uživatele"
+          }
+        }
+      }
+    },
     "Mark one file, or put the cursor on it with nothing marked.": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Označte jeden soubor, nebo na něj dejte kurzor a nic neoznačujte."
+          }
+        }
+      }
+    },
+    "Minimize All": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minimalizovat vše"
+          }
+        }
+      }
+    },
+    "Mission Control": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mission Control"
           }
         }
       }
@@ -3619,6 +3880,28 @@
         }
       }
     },
+    "Move Tab Left": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přesunout záložku vlevo"
+          }
+        }
+      }
+    },
+    "Move Tab Right": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přesunout záložku vpravo"
+          }
+        }
+      }
+    },
     "Move to the Trash on the left": {
       "localizations": {
         "cs": {
@@ -3635,6 +3918,106 @@
           "stringUnit": {
             "state": "translated",
             "value": "Přesunout vpravo do Koše"
+          }
+        }
+      }
+    },
+    "Move to This Command": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přesunout k tomuto příkazu"
+          }
+        }
+      }
+    },
+    "moves one space to the left": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "přesouvá o plochu doleva"
+          }
+        }
+      }
+    },
+    "moves one space to the right": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "přesouvá o plochu doprava"
+          }
+        }
+      }
+    },
+    "moves the focus to the active window": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "přesouvá fokus do aktivního okna"
+          }
+        }
+      }
+    },
+    "moves the focus to the Dock": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "přesouvá fokus do Docku"
+          }
+        }
+      }
+    },
+    "moves the focus to the floating window": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "přesouvá fokus do plovoucího okna"
+          }
+        }
+      }
+    },
+    "moves the focus to the menu bar": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "přesouvá fokus na řádek nabídek"
+          }
+        }
+      }
+    },
+    "moves the focus to the next window": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "přesouvá fokus do dalšího okna"
+          }
+        }
+      }
+    },
+    "moves the focus to the status menus": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "přesouvá fokus na stavové nabídky"
+          }
+        }
+      }
+    },
+    "moves the focus to the window toolbar": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "přesouvá fokus na nástrojový panel okna"
           }
         }
       }
@@ -3819,6 +4202,66 @@
         }
       }
     },
+    "opens a Finder search window": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "otevírá okno hledání ve Finderu"
+          }
+        }
+      }
+    },
+    "opens Force Quit": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "otevírá Vynutit ukončení"
+          }
+        }
+      }
+    },
+    "opens Mission Control": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "otevírá Mission Control"
+          }
+        }
+      }
+    },
+    "opens Spotlight": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "otevírá Spotlight"
+          }
+        }
+      }
+    },
+    "opens the Help menu": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "otevírá nabídku Nápověda"
+          }
+        }
+      }
+    },
+    "opens the screenshot options": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "otevírá volby snímků obrazovky"
+          }
+        }
+      }
+    },
     "Other Panel": {
       "localizations": {
         "cs": {
@@ -3859,6 +4302,38 @@
         }
       }
     },
+    "Press the shortcut; Esc cancels. If nothing happens, macOS or another app (for example a display or window utility) has taken that shortcut, and the app cannot receive it.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stiskněte zkratku; Esc záznam zruší. Když se nic nestane, zkratku si vzal macOS nebo jiná aplikace (například nástroj pro monitor nebo okna) a aplikace ji nemůže dostat."
+          }
+        }
+      }
+    },
+    "Prominent": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Výrazný"
+          }
+        }
+      }
+    },
+    "Prominent separates the tabs and fills the active panel's tab with the accent color.": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Výrazný vzhled záložky od sebe oddělí a záložku aktivního panelu vyplní barvou zvýraznění."
+          }
+        }
+      }
+    },
     "Recent Destinations": {
       "localizations": {
         "cs": {
@@ -3895,6 +4370,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Přejmenovat automaticky"
+          }
+        }
+      }
+    },
+    "Rename by clicking the name of the item under the cursor": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přejmenovat kliknutím na jméno položky pod kurzorem"
           }
         }
       }
@@ -4010,6 +4496,26 @@
         }
       }
     },
+    "saves a screenshot": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ukládá snímek obrazovky"
+          }
+        }
+      }
+    },
+    "Screenshots": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Snímky obrazovky"
+          }
+        }
+      }
+    },
     "Selected %@, %@ — %@": {
       "localizations": {
         "cs": {
@@ -4020,12 +4526,72 @@
         }
       }
     },
+    "selects the next input source": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "vybírá další vstupní zdroj"
+          }
+        }
+      }
+    },
+    "selects the previous input source": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "vybírá předchozí vstupní zdroj"
+          }
+        }
+      }
+    },
+    "Shortcuts with ⌘, ⌃, ⌥ or function keys also appear in the menus.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zkratky s ⌘, ⌃, ⌥ nebo funkčními klávesami se zobrazují i v menu."
+          }
+        }
+      }
+    },
     "Show:": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "Zobrazit:"
+          }
+        }
+      }
+    },
+    "shows the accessibility controls": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "zobrazuje ovládací prvky zpřístupnění"
+          }
+        }
+      }
+    },
+    "shows the desktop": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "zobrazuje plochu"
+          }
+        }
+      }
+    },
+    "shows the windows of the app": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "zobrazuje okna aplikace"
           }
         }
       }
@@ -4096,6 +4662,68 @@
           "stringUnit": {
             "state": "translated",
             "value": "Rozdělit"
+          }
+        }
+      }
+    },
+    "Spotlight": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spotlight"
+          }
+        }
+      }
+    },
+    "Standard": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standardní"
+          }
+        }
+      }
+    },
+    "switches apps": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "přepíná aplikace"
+          }
+        }
+      }
+    },
+    "switches apps backwards": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "přepíná aplikace pozpátku"
+          }
+        }
+      }
+    },
+    "Tab look:": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vzhled záložek:"
+          }
+        }
+      }
+    },
+    "takes a screenshot of an area": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "pořizuje snímek vybrané oblasti"
           }
         }
       }
@@ -4596,6 +5224,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zkusit znovu"
+          }
+        }
+      }
+    },
+    "turns keyboard navigation on or off": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "zapíná a vypíná navigaci klávesnicí"
           }
         }
       }
@@ -8690,16 +9328,6 @@
         }
       }
     },
-    "Shortcuts with ⌘, ⌃, ⌥ or function keys also appear in the menus. Some ⌃ and F-key shortcuts may be taken by macOS (System Settings → Keyboard → Keyboard Shortcuts).": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zkratky s ⌘, ⌃, ⌥ nebo funkčními klávesami se zobrazují i v menu. Některé zkratky s ⌃ a klávesami F může používat macOS (Nastavení systému → Klávesnice → Klávesové zkratky)."
-          }
-        }
-      }
-    },
     "Show All": {
       "localizations": {
         "cs": {
@@ -9802,16 +10430,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nahrát ho na %@?"
-          }
-        }
-      }
-    },
-    "Use Anyway": {
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Přesto použít"
           }
         }
       }
@@ -10945,12 +11563,32 @@
         }
       }
     },
+    "“%@” is typed into the command line in the panel, so the shortcut would never run.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ se v panelu píše do příkazové řádky, takže by se zkratka nikdy nespustila."
+          }
+        }
+      }
+    },
     "“%@” on the same disk is in use: %@": {
       "localizations": {
         "cs": {
           "stringUnit": {
             "state": "translated",
             "value": "„%@“ na stejném disku se používá: %@"
+          }
+        }
+      }
+    },
+    "“%@” starts quick search in the panel, so the shortcut would never run.": {
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ v panelu spouští rychlé hledání, takže by se zkratka nikdy nespustila."
           }
         }
       }
@@ -12262,17 +12900,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Původ"
-          }
-        }
-      }
-    },
-    "⌃←, ⌃→, ⌃↑ and ⌃↓ reach the app only when the Mission Control shortcuts for them are turned off in System Settings → Keyboard → Keyboard Shortcuts.": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "⌃←, ⌃→, ⌃↑ a ⌃↓ se do aplikace dostanou, jen když jsou pro ně vypnuté zkratky Mission Control v Nastavení systému → Klávesnice → Klávesové zkratky."
           }
         }
       }

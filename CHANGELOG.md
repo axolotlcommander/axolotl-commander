@@ -5,6 +5,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-10-21
+
+### Added
+
+- Settings → Keyboard checks a shortcut before it is assigned. Keys the app or macOS keeps for itself (⌘W,
+  ⌘Tab, the arrows in the panel) and plain letters, which the panel types, are refused with the reason. For
+  a key that another command, a User Menu item or a macOS shortcut (screenshots, Mission Control,
+  Spotlight…) uses, it says who uses it and offers Move to This Command or Assign Anyway. Shortcuts that
+  macOS takes are marked in the list, and while recording a hint explains that a key taken by another app
+  never arrives. The User Menu editor shows the same warnings.
+- A second, slower click on the name of the item under the cursor renames it in place, as in Finder; a
+  double click still opens it. It works in every view, and F2 in Brief and Thumbnails now also edits the
+  name in place instead of opening a dialog. Settings → Panels can turn the click off.
+- Tabs can be dragged to another place in their panel (Esc cancels the drag), and Move Tab Left / Move Tab
+  Right in the Go menu and in the tab's context menu move them from the keyboard (assign a key in Settings →
+  Keyboard).
+- Settings → Panels → Tab look: Prominent separates the tabs clearly and fills the active panel's tab with
+  the accent color, so it is easy to see which tab and which panel are active. Standard keeps today's look.
+
+### Fixed
+
+- Dragging several marked items in the Detailed view carried only the item under the pointer to Finder
+  and other apps. The drag now carries every marked item, with the count shown on the dragged image.
+
 ## [0.9.0] - 2026-10-16
 
 ### Added

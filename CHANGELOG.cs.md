@@ -5,6 +5,31 @@ Formát vychází z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ve
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-10-21
+
+### Přidáno
+
+- Nastavení → Klávesnice zkratku před přiřazením zkontroluje. Klávesy, které si aplikace nebo macOS nechává
+  pro sebe (⌘W, ⌘Tab, šipky v panelu), a samotná písmena, která panel píše, odmítne a řekne proč. U klávesy,
+  kterou používá jiný příkaz, položka uživatelského menu nebo zkratka macOS (snímky obrazovky, Mission
+  Control, Spotlight…), řekne, kdo ji používá, a nabídne Přesunout k tomuto příkazu nebo Přesto přiřadit.
+  Zkratky, které si bere macOS, jsou v seznamu označené a při záznamu nápověda vysvětlí, že klávesa zabraná
+  jinou aplikací nikdy nedorazí. Editor uživatelského menu ukazuje stejná varování.
+- Druhé, pomalejší kliknutí na jméno položky pod kurzorem ji přejmenuje přímo v panelu jako ve Finderu;
+  dvojklik ji dál otevírá. Funguje ve všech pohledech a F2 ve Stručném pohledu a v Náhledech teď také
+  přepisuje jméno přímo v panelu místo dialogu. Kliknutí lze vypnout v Nastavení → Panely.
+- Záložky lze přetáhnout na jiné místo v jejich panelu (Esc tažení zruší) a Přesunout záložku vlevo /
+  Přesunout záložku vpravo v menu Přejít a v kontextovém menu záložky je posouvají z klávesnice (klávesu
+  přiřadíte v Nastavení → Klávesnice).
+- Nastavení → Panely → Vzhled záložek: Výrazný záložky zřetelně oddělí a záložku aktivního panelu vyplní
+  barvou zvýraznění, takže je hned vidět, která záložka a který panel jsou aktivní. Standardní ponechává
+  dosavadní vzhled.
+
+### Opraveno
+
+- Přetažení několika označených položek v Podrobném pohledu přeneslo do Finderu a jiných aplikací jen
+  položku pod ukazatelem. Teď se přetáhnou všechny označené a u obrázku tažení je vidět jejich počet.
+
 ## [0.9.0] - 2026-10-16
 
 ### Přidáno

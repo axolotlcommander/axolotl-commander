@@ -17,12 +17,14 @@ struct SettingsView: View {
     @AppStorage(FunctionKeyChoice.key) private var hiddenFunctionKeys = ""
     @AppStorage(PanelBehavior.spaceKey) private var spaceMovesDown = PanelBehavior().spaceMovesDown
     @AppStorage(PanelBehavior.rightButtonKey) private var rightButtonMarks = PanelBehavior().rightButtonMarks
+    @AppStorage(PanelBehavior.clickToRenameKey) private var clickToRename = PanelBehavior().clickToRename
     @AppStorage(PanelBehavior.alwaysShowTabsKey) private var alwaysShowTabs = PanelBehavior().alwaysShowTabs
     @AppStorage(PanelBehavior.tabsNextToCurrentKey) private var tabsNextToCurrent = PanelBehavior().newTabsNextToCurrent
     @AppStorage(PanelBehavior.typingKey) private var typingToCommandLine = PanelBehavior().typingToCommandLine
     @AppStorage(PanelBehavior.arrowsKey) private var arrowsTargetPointedPanel = PanelBehavior().arrowsTargetPointedPanel
     @AppStorage(PanelBehavior.volumesKey) private var volumeButtonsFollow = PanelBehavior().volumeButtonsFollow
     @AppStorage(ThumbnailSize.key) private var thumbnailSize = ThumbnailSize.default.rawValue
+    @AppStorage(PanelBehavior.tabLookKey) private var tabLook = TabLook.standard.rawValue
     @AppStorage(FindWindowBehavior.key) private var findBehavior = FindWindowBehavior.default.rawValue
 
     private func behavior(_ title: LocalizedStringKey, _ isOn: Binding<Bool>, _ caption: LocalizedStringKey) -> some View {
@@ -125,10 +127,25 @@ struct SettingsView: View {
                              "Off: a volume button always opens the volume root.")
                     behavior("Right mouse button marks (Norton Commander style)", $rightButtonMarks,
                              "A right click marks, a right drag marks the items passed over, holding the right button opens the context menu. Off: a right click opens the context menu.")
+                    behavior("Rename by clicking the name of the item under the cursor", $clickToRename,
+                             "Click the name of the item under the cursor once more and wait: the name becomes editable, as in Finder. A double click still opens the item.")
                     behavior("Always show the tab bar", $alwaysShowTabs,
                              "Off: the tab bar appears when a panel has more than one tab.")
                     behavior("Open new tabs next to the current tab", $tabsNextToCurrent,
                              "Off: a new tab is added after the last tab.")
+                    VStack(alignment: .leading, spacing: 2) {
+                        HStack {
+                            Text("Tab look:")
+                            Picker("Tab look:", selection: $tabLook) {
+                                Text("Standard").tag(TabLook.standard.rawValue)
+                                Text("Prominent").tag(TabLook.prominent.rawValue)
+                            }
+                            .labelsHidden()
+                            .fixedSize()
+                        }
+                        Text("Prominent separates the tabs and fills the active panel's tab with the accent color.")
+                            .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    }
                     // In the content column: a form label this long would push the labels out of the window.
                     HStack {
                         Text("Thumbnail size:")

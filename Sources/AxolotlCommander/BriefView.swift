@@ -13,6 +13,13 @@ final class BriefGridView: PanelGridView {
         return isOnIconOrText(cell.convert(point, from: self), in: cell, icon: cell.icon, label: cell.label)
     }
 
+    override func isOnText(_ point: NSPoint, index: Int) -> Bool {
+        guard let cell = item(at: index)?.view as? BriefCellView else { return false }
+        return isOnIconOrText(cell.convert(point, from: self), in: cell, icon: nil, label: cell.label)
+    }
+
+    override func nameLabel(at index: Int) -> NSTextField? { (item(at: index)?.view as? BriefCellView)?.label }
+
     /// Columns of equal height filled top to bottom, so a large rectangle costs one range per column.
     override func geometry() -> GridGeometry? {
         let count = itemCount
@@ -161,6 +168,7 @@ extension PanelViewController: NSCollectionViewDataSource {
         brief.cell.icon.alphaValue = isCut(file) ? 0.5 : 1
         brief.cell.cursorStyle = indexPath.item == model.cursor ? (isActive ? .active : .inactive) : .none
         brief.cell.toolTip = file.name
+        brief.cell.label.isHidden = gridRenameIndex == indexPath.item
         return brief
     }
 }
