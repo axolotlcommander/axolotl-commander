@@ -60,10 +60,12 @@ final class PanelTableView: NSTableView, NSServicesMenuRequestor {
     override func mouseDown(with event: NSEvent) {
         let point = convert(event.locationInWindow, from: nil)
         let row = row(at: point)
+        let wasActive = panel?.isActive ?? false
         if row < 0 { onBackgroundClick?() }
         guard let panel else { return super.mouseDown(with: event) }
         window?.makeFirstResponder(self)
-        let hit = MouseHit(index: row >= 0 ? row : nil, onName: row >= 0 && isOnName(point, row: row))
+        let hit = MouseHit(index: row >= 0 ? row : nil, onName: row >= 0 && isOnName(point, row: row),
+                           onText: row >= 0 && isOnName(point, row: row, textOnly: true), panelWasActive: wasActive)
         let result = panel.mousePressed(event, hit: hit, in: self) { [unowned self] rect in
             // Rows span the full width: a straight vertical drag (no width) still covers them.
             let rows = rows(in: NSRect(x: bounds.minX, y: rect.minY, width: bounds.width, height: max(rect.height, 1)))
@@ -89,11 +91,12 @@ final class PanelTableView: NSTableView, NSServicesMenuRequestor {
     }
 
     /// Whether `point` is on the icon or the name text of the row (where drag & drop starts).
-    private func isOnName(_ point: NSPoint, row: Int) -> Bool {
+    private func isOnName(_ point: NSPoint, row: Int, textOnly: Bool = false) -> Bool {
         let nameColumn = column(withIdentifier: NSUserInterfaceItemIdentifier("name"))
         guard nameColumn >= 0, column(at: point) == nameColumn,
               let cell = view(atColumn: nameColumn, row: row, makeIfNecessary: false) as? NSTableCellView else { return false }
-        return isOnIconOrText(cell.convert(point, from: self), in: cell, icon: cell.imageView, label: cell.textField)
+        return isOnIconOrText(cell.convert(point, from: self), in: cell, icon: textOnly ? nil : cell.imageView,
+                              label: cell.textField)
     }
 
     override func becomeFirstResponder() -> Bool {
@@ -1112,7 +1115,7 @@ final class PanelViewController: NSViewController {
         case .delete, .deletePermanently:
             router?.operations.delete(targets().map(\.url), permanently: command == .deletePermanently)
         case .makeDirectory: router?.operations.makeDirectory(in: self)
-        case .rename: if viewMode == .detailed { beginRename() } else { Task { await askRename() } }
+        case .rename: beginRename()
         case .cutFiles: CutClipboard.shared.cut(targets().map(\.url))
         case .duplicate: router?.operations.duplicate(targets().map(\.url), panel: self)
         case .copyFiles: copyFilesToPasteboard()
@@ -1512,8 +1515,17 @@ final class PanelViewController: NSViewController {
     // MARK: Rename in place (F2)
 
     private var renaming: (row: Int, item: FileItem)?
+    /// The field over the name in Brief and Thumbnails (spec 035); Detailed edits the table cell.
+    private var gridRenameField: GridRenameField?
+    /// Rename by clicking the name (spec 035): the item a plain press on its name may rename once released,
+    /// and the wait that follows the release.
+    var clickRenameCandidate: Int?
+    var clickRenameWait: ClickRenameWait?
 
-    /// Brief view has no editable cells: F2 asks for the name in a sheet.
+    var isRenaming: Bool { renaming != nil }
+    /// The item whose name is being edited in a grid; its label is hidden under the field.
+    var gridRenameIndex: Int? { gridRenameField == nil ? nil : renaming?.row }
+
     /// Copy As (⇧F5): a copy of the cursor item next to it, under a name the user confirms.
     private func askCopyAs() async {
         guard let item = model.cursorItem, !item.isParent else { return }
@@ -1538,43 +1550,65 @@ final class PanelViewController: NSViewController {
         router.operations.makeDirectory(in: router.otherPanel(than: self), initial: initial)
     }
 
-    private func askRename() async {
-        guard let item = model.cursorItem, !item.isParent else { return }
-        let name = isFlatListing ? item.url.lastPathComponent : item.name
-        guard let newName = await TextPrompt.ask(title: String(localized: "Rename"), message: String(localized: "New name:"),
-                                                 initial: name, in: view.window) else { return }
-        router?.operations.rename(item.url, to: newName, in: self)
-    }
-
     private func beginRename() {
-        guard let item = model.cursorItem, !item.isParent,
-              let column = tableView.tableColumn(withIdentifier: Column.name.identifier) else { return }
+        guard let item = model.cursorItem, !item.isParent else { return }
+        // Find results and branch view name items by their path below the root; only the last part
+        // is renamed.
+        let name = isFlatListing ? item.url.lastPathComponent : item.name
+        // Finder selects the base name only, so typing keeps the extension.
+        let selection = ClickRename.selection(of: name, isFolder: item.isDirectory && !item.isPackage)
+        if let grid = gridView {
+            beginGridRename(item, name: name, selection: selection, in: grid)
+            return
+        }
+        guard let column = tableView.tableColumn(withIdentifier: Column.name.identifier) else { return }
         let row = model.cursor
         let columnIndex = tableView.column(withIdentifier: column.identifier)
         guard let cell = tableView.view(atColumn: columnIndex, row: row, makeIfNecessary: true) as? NSTableCellView,
               let field = cell.textField else { return }
         renaming = (row, item)
-        // Find results and branch view name items by their path below the root; only the last part
-        // is renamed.
-        let name = isFlatListing ? item.url.lastPathComponent : item.name
         field.stringValue = name
         field.isEditable = true
         field.delegate = self
         tableView.editColumn(columnIndex, row: row, with: nil, select: false)
         if field.currentEditor() == nil { view.window?.makeFirstResponder(field) }
-        // Finder selects the base name only, so typing keeps the extension.
-        let base = item.isDirectory && !item.isPackage ? name
-            : isFlatListing ? (name as NSString).deletingPathExtension : item.baseName
-        field.currentEditor()?.selectedRange = NSRange(location: 0, length: (base as NSString).length)
+        field.currentEditor()?.selectedRange = selection
+    }
+
+    /// Brief and Thumbnails: a field over the item's name, in the grid so it scrolls with the items.
+    private func beginGridRename(_ item: FileItem, name: String, selection: NSRange, in grid: PanelGridView) {
+        let index = model.cursor
+        scrollGridToCursor()
+        grid.layoutSubtreeIfNeeded()
+        guard let label = grid.nameLabel(at: index) else { return }
+        renaming = (index, item)
+        let field = GridRenameField(name: name, font: PanelFont.list, wraps: grid.renameWraps,
+                                    anchor: label.convert(label.bounds, to: grid), limit: grid.visibleRect)
+        field.delegate = self
+        grid.addSubview(field)
+        gridRenameField = field
+        label.isHidden = true
+        view.window?.makeFirstResponder(field)
+        field.currentEditor()?.selectedRange = selection
+    }
+
+    private func endGridRename(index: Int) {
+        guard let field = gridRenameField else { return }
+        gridRenameField = nil
+        field.delegate = nil
+        // Not inside the end of editing: the field editor is still being torn down.
+        DispatchQueue.main.async { field.removeFromSuperview() }
+        gridView?.nameLabel(at: index)?.isHidden = false
     }
 
     /// `refocus` is false when editing ended because focus went elsewhere (a click on the other
     /// panel, a toolbar button…): the focus then stays where the user put it.
     private func endRename(commit: Bool, newName: String, refocus: Bool = true) {
-        guard let (_, item) = renaming else { return }
+        guard let (row, item) = renaming else { return }
+        endGridRename(index: row)
         renaming = nil
         if refocus {
-            view.window?.makeFirstResponder(tableView)
+            view.window?.makeFirstResponder(listView)
             modelChanged()
         } else {
             // Not while the field editor is still being torn down.
@@ -1837,6 +1871,10 @@ final class PanelViewController: NSViewController {
 }
 
 extension PanelViewController: NSTextFieldDelegate {
+    func controlTextDidChange(_ obj: Notification) {
+        (obj.object as? GridRenameField)?.fit()
+    }
+
     func controlTextDidEndEditing(_ obj: Notification) {
         guard let field = obj.object as? NSTextField else { return }
         if field === pathField {

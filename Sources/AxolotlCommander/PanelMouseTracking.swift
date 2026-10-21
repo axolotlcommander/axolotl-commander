@@ -23,6 +23,10 @@ struct MouseHit {
     let index: Int?
     /// The pointer is on the item's icon or name text (where drag & drop starts).
     let onName: Bool
+    /// The pointer is on the name text alone (a slow click there renames, spec 035).
+    let onText: Bool
+    /// The panel was the active panel before the press made the list the first responder.
+    let panelWasActive: Bool
 }
 
 enum MousePressResult {
@@ -31,6 +35,38 @@ enum MousePressResult {
     /// A plain press on a name: the view runs its usual drag & drop and double-click handling, then calls
     /// `mouseReleasedAfterPlainPress(at:)` when no drag began.
     case dragOrClick
+}
+
+/// The wait after a click on the cursor item's name (`specs/035-click-rename`): when the double-click interval
+/// ends, `fire` runs, unless a key, a click or a scroll came first.
+@MainActor
+final class ClickRenameWait {
+    let pending: ClickRename.Pending
+    private var timer: Timer?
+    private var monitor: Any?
+
+    init(_ pending: ClickRename.Pending, fire: @escaping @MainActor () -> Void) {
+        self.pending = pending
+        monitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .leftMouseDown, .rightMouseDown, .otherMouseDown,
+                                                              .scrollWheel]) { [weak self] event in
+            self?.cancel()
+            return event
+        }
+        timer = Timer.scheduledTimer(withTimeInterval: NSEvent.doubleClickInterval, repeats: false) { [weak self] _ in
+            MainActor.assumeIsolated {
+                guard let self, self.timer != nil else { return }
+                self.cancel()
+                fire()
+            }
+        }
+    }
+
+    func cancel() {
+        timer?.invalidate()
+        timer = nil
+        if let monitor { NSEvent.removeMonitor(monitor) }
+        monitor = nil
+    }
 }
 
 /// Whether `local` (in `cell`'s coordinates) is on the cell's icon or on the text of its label.
@@ -151,9 +187,22 @@ extension PanelViewController {
     func mousePressed(_ event: NSEvent, hit: MouseHit, in view: NSView, covered: (NSRect) -> IndexSet) -> MousePressResult {
         let mode = mouseSelectionMode
         let modifiers = MouseModifiers(event)
+        clickRenameWait?.cancel()
+        clickRenameWait = nil
+        clickRenameCandidate = nil
         if let index = hit.index, hit.onName {
+            var press = ClickRename.Press()
+            press.enabled = PanelBehavior(defaults: .standard).clickToRename
+            press.clickCount = event.clickCount
+            press.hasModifiers = !event.modifierFlags.isDisjoint(with: [.shift, .command, .control, .option])
+            press.panelWasActive = hit.panelWasActive
+            press.wasCursor = model.cursor == index
+            press.onText = hit.onText
+            press.isParent = model.items.indices.contains(index) && model.items[index].isParent
+            press.renameAvailable = canPerform(.rename)
             let plain = model.mousePressed(at: index, modifiers: modifiers, mode: mode)
             marksChanged()
+            if plain, ClickRename.arms(press) { clickRenameCandidate = index }
             return plain ? .dragOrClick : .handled
         }
         // Empty space, or a row outside its icon and name: a drag draws the rectangle.
@@ -184,6 +233,23 @@ extension PanelViewController {
     func mouseReleasedAfterPlainPress(at index: Int) {
         model.mouseReleased(at: index, mode: mouseSelectionMode)
         marksChanged()
+        if clickRenameCandidate == index, model.items.indices.contains(index) {
+            let pending = ClickRename.Pending(index: index, item: model.items[index].url, scrollOrigin: listScrollOrigin)
+            clickRenameWait = ClickRenameWait(pending) { [weak self] in self?.clickRenameWaitEnded(pending) }
+        }
+        clickRenameCandidate = nil
+    }
+
+    private var listScrollOrigin: CGPoint { listView.enclosingScrollView?.contentView.bounds.origin ?? .zero }
+
+    private func clickRenameWaitEnded(_ pending: ClickRename.Pending) {
+        clickRenameWait = nil
+        let item = model.items.indices.contains(pending.index) ? model.items[pending.index].url : nil
+        let active = isActive && NSApp.isActive && view.window?.isKeyWindow == true
+        guard pending.fires(cursor: model.cursor, item: item, scrollOrigin: listScrollOrigin, panelActive: active,
+                            editing: isRenaming),
+              canPerform(.rename) else { return }
+        perform(.rename)
     }
 
     /// A right press in the list. Returns false when the view should do its default (the context menu):

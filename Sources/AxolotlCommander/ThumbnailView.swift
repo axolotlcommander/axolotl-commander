@@ -91,6 +91,15 @@ final class ThumbnailGridView: PanelGridView {
         return cell.nameZoneContains(cell.convert(point, from: self))
     }
 
+    override func isOnText(_ point: NSPoint, index: Int) -> Bool {
+        guard let cell = item(at: index)?.view as? ThumbnailCellView else { return false }
+        return cell.nameTextContains(cell.convert(point, from: self))
+    }
+
+    override func nameLabel(at index: Int) -> NSTextField? { (item(at: index)?.view as? ThumbnailCellView)?.label }
+
+    override var renameWraps: Bool { true }
+
     override func geometry() -> GridGeometry? { (collectionViewLayout as? ThumbnailGridLayout)?.geometry() }
 
     override func scrollWheel(with event: NSEvent) {
@@ -223,6 +232,11 @@ final class ThumbnailCellView: NSView {
                               width: drawn.width, height: drawn.height)
             if rect.insetBy(dx: -2, dy: -2).contains(point) { return true }
         }
+        return nameTextContains(point)
+    }
+
+    /// The lines of the name.
+    func nameTextContains(_ point: NSPoint) -> Bool {
         guard let cell = label.cell else { return false }
         let text = cell.cellSize(forBounds: NSRect(origin: .zero, size: label.frame.size))
         let zone = NSRect(x: label.frame.midX - min(text.width, label.frame.width) / 2 - 2, y: label.frame.minY,
@@ -364,6 +378,7 @@ extension PanelViewController {
         let size = thumbnailLayout?.size ?? .default
         thumb.cell.side = CGFloat(size.points)
         thumb.cell.toolTip = file.isParent ? ".." : file.name
+        thumb.cell.label.isHidden = gridRenameIndex == indexPath.item
         styleThumbnailCell(thumb.cell, for: file, at: indexPath.item)
         thumb.key = thumbnailKey(for: file, size: size)
         let preview = thumb.key.flatMap { ThumbnailLoader.cached($0) }

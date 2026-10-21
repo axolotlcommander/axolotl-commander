@@ -15,6 +15,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
   Spotlight…) uses, it says who uses it and offers Move to This Command or Assign Anyway. Shortcuts that
   macOS takes are marked in the list, and while recording a hint explains that a key taken by another app
   never arrives. The User Menu editor shows the same warnings.
+- A second, slower click on the name of the item under the cursor renames it in place, as in Finder; a
+  double click still opens it. It works in every view, and F2 in Brief and Thumbnails now also edits the
+  name in place instead of opening a dialog. Settings → Panels can turn the click off.
 
 ## [0.9.0] - 2026-10-16
 

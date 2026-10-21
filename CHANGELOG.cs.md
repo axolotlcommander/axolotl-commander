@@ -15,6 +15,9 @@ Formát vychází z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ve
   Control, Spotlight…), řekne, kdo ji používá, a nabídne Přesunout k tomuto příkazu nebo Přesto přiřadit.
   Zkratky, které si bere macOS, jsou v seznamu označené a při záznamu nápověda vysvětlí, že klávesa zabraná
   jinou aplikací nikdy nedorazí. Editor uživatelského menu ukazuje stejná varování.
+- Druhé, pomalejší kliknutí na jméno položky pod kurzorem ji přejmenuje přímo v panelu jako ve Finderu;
+  dvojklik ji dál otevírá. Funguje ve všech pohledech a F2 ve Stručném pohledu a v Náhledech teď také
+  přepisuje jméno přímo v panelu místo dialogu. Kliknutí lze vypnout v Nastavení → Panely.
 
 ## [0.9.0] - 2026-10-16
 

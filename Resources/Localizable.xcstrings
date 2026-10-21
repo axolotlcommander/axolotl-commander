@@ -1938,6 +1938,17 @@
         }
       }
     },
+    "Click the name of the item under the cursor once more and wait: the name becomes editable, as in Finder. A double click still opens the item.": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klikněte ještě jednou na jméno položky pod kurzorem a chvíli počkejte: jméno půjde přepsat jako ve Finderu. Dvojklik položku dál otevírá."
+          }
+        }
+      }
+    },
     "Click to add or remove the tag.": {
       "localizations": {
         "cs": {
@@ -4315,6 +4326,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Přejmenovat automaticky"
+          }
+        }
+      }
+    },
+    "Rename by clicking the name of the item under the cursor": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přejmenovat kliknutím na jméno položky pod kurzorem"
           }
         }
       }

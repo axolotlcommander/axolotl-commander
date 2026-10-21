@@ -31,6 +31,15 @@ class PanelGridView: NSCollectionView {
     /// Whether `point` is on the part of the item that counts as the item (where drag & drop starts).
     func isOnName(_ point: NSPoint, index: Int) -> Bool { false }
 
+    /// Whether `point` is on the item's name text alone (a slow click there renames, spec 035).
+    func isOnText(_ point: NSPoint, index: Int) -> Bool { false }
+
+    /// The name label of the item at `index` while it is on screen; in-place renaming covers it.
+    func nameLabel(at index: Int) -> NSTextField? { nil }
+
+    /// Whether the rename field wraps the name (Thumbnails) or edits one line (Brief).
+    var renameWraps: Bool { false }
+
     /// The cells of the grid laid out with equal cells, or nil before there is anything to lay out.
     func geometry() -> GridGeometry? { nil }
 
@@ -55,13 +64,15 @@ class PanelGridView: NSCollectionView {
     }
 
     override func mouseDown(with event: NSEvent) {
+        let wasActive = panel?.isActive ?? false
         window?.makeFirstResponder(self)
         let point = convert(event.locationInWindow, from: nil)
         let index = indexPathForItem(at: point)?.item
         dragStart = nil
         pendingRelease = nil
         guard let panel else { return }
-        let hit = MouseHit(index: index, onName: index.map { isOnName(point, index: $0) } ?? false)
+        let hit = MouseHit(index: index, onName: index.map { isOnName(point, index: $0) } ?? false,
+                           onText: index.map { isOnText(point, index: $0) } ?? false, panelWasActive: wasActive)
         let result = panel.mousePressed(event, hit: hit, in: self) { [unowned self] in items(in: $0) }
         guard result == .dragOrClick, let index else { return }
         dragStart = (point, index)
