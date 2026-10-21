@@ -3886,7 +3886,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Přesunout kartu vlevo"
+            "value": "Přesunout záložku vlevo"
           }
         }
       }
@@ -3897,7 +3897,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Přesunout kartu vpravo"
+            "value": "Přesunout záložku vpravo"
           }
         }
       }
@@ -4329,7 +4329,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Výrazný vzhled karty od sebe oddělí a kartu aktivního panelu vyplní barvou zvýraznění."
+            "value": "Výrazný vzhled záložky od sebe oddělí a záložku aktivního panelu vyplní barvou zvýraznění."
           }
         }
       }
@@ -4713,7 +4713,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vzhled karet:"
+            "value": "Vzhled záložek:"
           }
         }
       }

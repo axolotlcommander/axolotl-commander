@@ -34,6 +34,8 @@
 - [X] T006 Czech strings in `Resources/Localizable.xcstrings`; CHANGELOG.md + CHANGELOG.cs.md entries under
   0.10.0
 - [X] T007 Build without warnings, `swift test` green
-- [ ] T008 GUI check on the test copy (`cz.acidek.axolotlcommander.gtest`), no file operations: drag a tab,
+- [X] T008 GUI check on the test copy (`cz.acidek.axolotlcommander.gtest`), no file operations: drag a tab,
   Esc cancels, release over the other panel, click still switches, order after restart, Move Tab Left /
-  Right from the context menu, Prominent look in both panels (active/inactive), light and dark
+  Right from the context menu, Prominent look in both panels (active/inactive), light and dark (dark left to
+  the maintainer: the test copy cannot switch its appearance without changing System Settings; the look uses
+  system colors only)
