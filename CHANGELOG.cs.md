@@ -5,7 +5,7 @@ Formát vychází z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ve
 
 ## [Unreleased]
 
-## [0.10.0] - 2026-10-16
+## [0.10.0] - 2026-10-21
 
 ### Přidáno
 
