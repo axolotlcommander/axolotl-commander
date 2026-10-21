@@ -26,14 +26,17 @@
     scroll wheel event; the timer then checks `Pending.fires` and `canPerform(.rename)` and runs
     `perform(.rename)`.
   - The activating click of an inactive window never reaches the list (the list views do not accept the
-    first mouse), and the panel-was-active check covers the click that activates a panel.
+    first mouse), and the panel-was-active check covers the click that activates a panel: the panel remembers
+  the press that made it active (`activatingPress`), see R1.
 - **In-place editing in Brief and Thumbnails** (`PanelViewController.swift`, new `GridRename.swift`):
   - `.rename` runs `beginRename()` in every view. In a grid view an overlay `NSTextField` is placed over the
     cell's label in the grid's coordinates (it scrolls with the content): Brief single line, at least the
     label's width, as wide as the text needs, kept inside the visible width; Thumbnails wrapping, the cell's
     width (wider for short cells up to the visible width), as tall as the text needs. The field grows while
     typing (`controlTextDidChange`).
-  - The same delegate as in Detailed: Enter commits, Esc cancels, focus elsewhere commits (as today). The
+  - The same delegate as in Detailed: Enter commits, Esc cancels, focus elsewhere commits (as today). Enter
+    and Esc end the rename before the field stops being editable: turning editing off ends the field's
+    editing, which would otherwise count as focus moving away and keep the typed name. The
     overlay is removed when editing ends; focus returns to the list view.
   - `renaming` keeps blocking reloads; the item is scrolled into view before the field appears.
   - The rename dialog (`askRename`) is no longer used by the panel and is removed.
@@ -59,8 +62,10 @@ Swift 6, AppKit + SwiftUI settings, SwiftPM; tests with Swift Testing in `Tests/
 
 - **R1** Click delivery: `NSTableView` and `NSCollectionView` keep the default `acceptsFirstMouse` (false),
   so the click that activates the window or the app is not delivered to the list. The panel becomes active
-  in `becomeFirstResponder` of the list, which runs inside `mouseDown` before the panel sees the press, so
-  "was active" is read before `makeFirstResponder`.
+  in `becomeFirstResponder` of the list, and the window makes the clicked list the first responder before it
+  sends `mouseDown`, so the press cannot read "was active" itself: when the list becomes the first responder
+  during a left press while the panel is inactive, the panel stores that press's time stamp, and a press
+  with that time stamp counts as one the panel was not active for (found in the GUI check).
 - **R2** Double click: the table's `doubleAction` and the grid's click count 2 open the item; the second
   press arrives before the wait ends and the event monitor drops the pending rename. Only a release of a
   press with click count 1 arms.

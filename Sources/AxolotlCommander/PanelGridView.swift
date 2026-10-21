@@ -64,7 +64,7 @@ class PanelGridView: NSCollectionView {
     }
 
     override func mouseDown(with event: NSEvent) {
-        let wasActive = panel?.isActive ?? false
+        let wasActive = panel?.wasActive(before: event) ?? false
         window?.makeFirstResponder(self)
         let point = convert(event.locationInWindow, from: nil)
         let index = indexPathForItem(at: point)?.item
@@ -158,6 +158,7 @@ extension PanelViewController {
         grid.onKey = { [weak self] event in self?.handleKey(event) ?? false }
         grid.onFocus = { [weak self] in
             guard let self else { return }
+            noteFocusFromPress()
             router?.panelDidBecomeFirstResponder(self)
         }
         grid.onMenu = { [weak self] index in self?.contextMenu(at: index) }

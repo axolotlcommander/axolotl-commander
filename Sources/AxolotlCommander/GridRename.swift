@@ -32,7 +32,7 @@ final class GridRenameField: NSTextField {
         usesSingleLineMode = !wraps
         cell?.wraps = wraps
         cell?.isScrollable = !wraps
-        lineBreakMode = wraps ? .byCharWrapping : .byClipping
+        lineBreakMode = wraps ? .byWordWrapping : .byClipping
         maximumNumberOfLines = 0
         fit()
     }

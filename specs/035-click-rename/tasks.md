@@ -36,6 +36,6 @@
 - [X] T006 Czech strings in `Resources/Localizable.xcstrings`; CHANGELOG.md + CHANGELOG.cs.md entries under
   0.10.0
 - [X] T007 Build without warnings, `swift test` green
-- [ ] T008 GUI check on the test copy (`cz.acidek.axolotlcommander.gtest`) in a scratchpad test directory
+- [X] T008 GUI check on the test copy (`cz.acidek.axolotlcommander.gtest`) in a scratchpad test directory
   with dummy files only: slow click in Detailed, Brief, Thumbnails; double click opens; icon click and
   inactive panel click do not rename; F2 in Brief/Thumbnails in place; Esc; setting off

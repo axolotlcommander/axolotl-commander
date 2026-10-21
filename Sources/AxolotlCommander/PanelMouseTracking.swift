@@ -240,6 +240,18 @@ extension PanelViewController {
         clickRenameCandidate = nil
     }
 
+    /// Called when the list becomes the first responder: remembers the left press that is making an inactive
+    /// panel active.
+    func noteFocusFromPress() {
+        guard let event = NSApp.currentEvent, event.type == .leftMouseDown, !isActive else { return }
+        activatingPress = event.timestamp
+    }
+
+    /// Whether the panel was the active panel before `event` (a left press in its list).
+    func wasActive(before event: NSEvent) -> Bool {
+        isActive && activatingPress != event.timestamp
+    }
+
     private var listScrollOrigin: CGPoint { listView.enclosingScrollView?.contentView.bounds.origin ?? .zero }
 
     private func clickRenameWaitEnded(_ pending: ClickRename.Pending) {

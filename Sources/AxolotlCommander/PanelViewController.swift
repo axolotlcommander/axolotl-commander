@@ -60,7 +60,7 @@ final class PanelTableView: NSTableView, NSServicesMenuRequestor {
     override func mouseDown(with event: NSEvent) {
         let point = convert(event.locationInWindow, from: nil)
         let row = row(at: point)
-        let wasActive = panel?.isActive ?? false
+        let wasActive = panel?.wasActive(before: event) ?? false
         if row < 0 { onBackgroundClick?() }
         guard let panel else { return super.mouseDown(with: event) }
         window?.makeFirstResponder(self)
@@ -272,6 +272,7 @@ final class PanelViewController: NSViewController {
         tableView.serviceURLs = { [weak self] in self?.serviceURLs() ?? [] }
         tableView.onFocus = { [weak self] in
             guard let self else { return }
+            noteFocusFromPress()
             router?.panelDidBecomeFirstResponder(self)
         }
         tableView.onBackgroundClick = { [weak self] in self?.activateFromClick() }
@@ -1521,6 +1522,9 @@ final class PanelViewController: NSViewController {
     /// and the wait that follows the release.
     var clickRenameCandidate: Int?
     var clickRenameWait: ClickRenameWait?
+    /// The time stamp of the left press that made this panel active. The window makes the clicked list the
+    /// first responder before the list sees the press, so the press itself cannot tell.
+    var activatingPress: TimeInterval?
 
     var isRenaming: Bool { renaming != nil }
     /// The item whose name is being edited in a grid; its label is hidden under the field.
@@ -1889,15 +1893,17 @@ extension PanelViewController: NSTextFieldDelegate {
 
     func control(_ control: NSControl, textView: NSTextView, doCommandBy selector: Selector) -> Bool {
         if control !== pathField, renaming != nil {
+            // The rename ends first: turning editing off ends the field's editing, which would otherwise count
+            // as focus moving away and keep the typed name.
             if selector == #selector(NSResponder.cancelOperation(_:)) {
-                (control as? NSTextField)?.isEditable = false
                 endRename(commit: false, newName: "")
+                (control as? NSTextField)?.isEditable = false
                 return true
             }
             if selector == #selector(NSResponder.insertNewline(_:)) {
                 let name = control.stringValue
-                (control as? NSTextField)?.isEditable = false
                 endRename(commit: true, newName: name)
+                (control as? NSTextField)?.isEditable = false
                 return true
             }
             return false
