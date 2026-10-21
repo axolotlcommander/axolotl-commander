@@ -179,6 +179,11 @@ public struct TabList: Codable, Hashable, Sendable {
         active = (active - 1 + tabs.count) % tabs.count
     }
 
+    /// Whether the tab at `index` can move `offset` places (Move Tab Left / Right, spec 036).
+    public func canMove(_ index: Int, by offset: Int) -> Bool {
+        tabs.indices.contains(index) && tabs.indices.contains(index + offset) && offset != 0
+    }
+
     /// Drag-and-drop reorder: the tab at `from` ends up at index `to`. The active tab stays active.
     public mutating func move(from: Int, to: Int) {
         guard tabs.indices.contains(from) else { return }

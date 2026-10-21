@@ -14,6 +14,7 @@ public struct PanelBehavior: Equatable, Sendable {
     public static let alwaysShowTabsKey = "panel.alwaysShowTabs"
     public static let tabsNextToCurrentKey = "panel.newTabsNextToCurrent"
     public static let clickToRenameKey = "panel.clickToRename"
+    public static let tabLookKey = "panel.tabLook"
 
     /// Space marks the item and moves the cursor down (off: the cursor stays).
     public var spaceMovesDown = true
@@ -32,6 +33,8 @@ public struct PanelBehavior: Equatable, Sendable {
     public var newTabsNextToCurrent = false
     /// A slow click on the name of the cursor item renames it in place (`specs/035-click-rename`).
     public var clickToRename = true
+    /// How the tabs are drawn (`specs/036-tab-reorder-look`).
+    public var tabLook = TabLook.standard
 
     public var mouseSelectionMode: MouseSelectionMode { rightButtonMarks ? .rightButtonMarks : .standard }
 
@@ -49,7 +52,14 @@ public struct PanelBehavior: Equatable, Sendable {
         alwaysShowTabs = bool(Self.alwaysShowTabsKey, false)
         newTabsNextToCurrent = bool(Self.tabsNextToCurrentKey, false)
         clickToRename = bool(Self.clickToRenameKey, true)
+        tabLook = defaults.string(forKey: Self.tabLookKey).flatMap(TabLook.init(rawValue:)) ?? .standard
     }
+}
+
+/// Settings → Panels → Tab look: Standard (light fills) or Prominent (separated tabs, the active panel's
+/// active tab in the accent color).
+public enum TabLook: String, CaseIterable, Sendable {
+    case standard, prominent
 }
 
 extension Side {

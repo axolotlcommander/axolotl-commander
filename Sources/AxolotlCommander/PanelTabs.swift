@@ -27,6 +27,7 @@ extension PanelViewController {
         }
         tabStrip.onLock = { [weak self] index, mode in self?.toggleLock(mode, at: index) }
         tabStrip.onReopen = { [weak self] in self?.reopenClosedTab() }
+        tabStrip.onMove = { [weak self] index, target in self?.moveTab(at: index, to: target) }
         showTabs()
     }
 
@@ -89,6 +90,16 @@ extension PanelViewController {
         guard tabs.tabs.indices.contains(index) else { return }
         tabs.setLock(tabs.tabs[index].lock?.mode == mode ? nil : mode, at: index)
         tabsChanged()
+    }
+
+    /// Dragging a tab in the strip, Move Tab Left / Right (spec 036): the tab at `index` ends up at `target`;
+    /// the active tab stays active.
+    func moveTab(at index: Int, to target: Int) {
+        guard index != target, tabs.tabs.indices.contains(index), tabs.tabs.indices.contains(target) else { return }
+        tabs.updateCurrent(model.snapshot())
+        tabs.move(from: index, to: target)
+        showTabs()
+        router?.layoutChanged()
     }
 
     /// Duplicate Tab: an unlocked copy right after the tab, active.

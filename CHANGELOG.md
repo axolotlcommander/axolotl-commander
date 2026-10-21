@@ -18,6 +18,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 - A second, slower click on the name of the item under the cursor renames it in place, as in Finder; a
   double click still opens it. It works in every view, and F2 in Brief and Thumbnails now also edits the
   name in place instead of opening a dialog. Settings → Panels can turn the click off.
+- Tabs can be dragged to another place in their panel (Esc cancels the drag), and Move Tab Left / Move Tab
+  Right in the Go menu and in the tab's context menu move them from the keyboard (assign a key in Settings →
+  Keyboard).
+- Settings → Panels → Tab look: Prominent separates the tabs clearly and fills the active panel's tab with
+  the accent color, so it is easy to see which tab and which panel are active. Standard keeps today's look.
 
 ## [0.9.0] - 2026-10-16
 

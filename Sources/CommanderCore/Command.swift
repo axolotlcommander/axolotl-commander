@@ -41,6 +41,7 @@ public enum Command: String, CaseIterable, Hashable, Sendable {
     case newTab, closeTab, nextTab, previousTab
     case openInNewTab, openInBackgroundTab, openInNewTabOtherPanel, reopenClosedTab, closeOtherTabs, tabList
     case duplicateTab, copyTabToOtherPanel, closeTabsToRight, lockTab, lockTabAllowingChanges
+    case moveTabLeft, moveTabRight
     case swapPanelsWithTabs
     case quickFilter, quickFilterLast
 
@@ -275,6 +276,8 @@ public enum CommandRegistry {
         add(.newTab, "New Tab", .go, [ch("t", m), ch("t", [c, s])], sep: true)
         add(.duplicateTab, "Duplicate Tab", .go)
         add(.copyTabToOtherPanel, "Copy Tab to Other Panel", .go)
+        add(.moveTabLeft, "Move Tab Left", .go)
+        add(.moveTabRight, "Move Tab Right", .go)
         add(.closeTab, "Close Tab", .go, [ch("w", [c, s])])
         add(.nextTab, "Next Tab", .go, [ch("]", [m, s]), K(.pageDown, [c, s])])
         add(.previousTab, "Previous Tab", .go, [ch("[", [m, s]), K(.pageUp, [c, s])])

@@ -381,6 +381,7 @@ final class PanelViewController: NSViewController {
 
     private func updateActiveAppearance() {
         pathBar.isActive = isActive
+        tabStrip.panelIsActive = isActive
         tableView.enumerateAvailableRowViews { rowView, _ in
             (rowView as? PanelRowView)?.panelIsActive = isActive
             rowView.needsDisplay = true
@@ -913,7 +914,7 @@ final class PanelViewController: NSViewController {
         .newTab, .closeTab, .nextTab, .previousTab, .hotPaths, .viewModeDetailed, .viewModeBrief,
         .viewModeThumbnails, .thumbnailsLarger, .thumbnailsSmaller,
         .openInNewTab, .openInBackgroundTab, .reopenClosedTab, .closeOtherTabs, .tabList,
-        .duplicateTab, .closeTabsToRight, .lockTab, .lockTabAllowingChanges,
+        .duplicateTab, .closeTabsToRight, .lockTab, .lockTabAllowingChanges, .moveTabLeft, .moveTabRight,
         .quickFilter, .quickFilterLast, .folderHistory,
         .copyAs, .makeDirectoryInOtherPanel, .viewCursorFile, .packAndMove, .testArchives, .splitFile, .combineFiles, .encodeFile, .decodeFile,
         .toggleSelectionInPlace, .selectAllFiles, .deselectAllFiles,
@@ -938,7 +939,7 @@ final class PanelViewController: NSViewController {
         .viewModeThumbnails, .thumbnailsLarger, .thumbnailsSmaller,
         .leftVolumeMenu, .rightVolumeMenu, .newTab, .closeTab, .nextTab, .previousTab, .hotPaths,
         .reopenClosedTab, .closeOtherTabs, .tabList, .folderHistory,
-        .duplicateTab, .closeTabsToRight, .lockTab, .lockTabAllowingChanges,
+        .duplicateTab, .closeTabsToRight, .lockTab, .lockTabAllowingChanges, .moveTabLeft, .moveTabRight,
         .connectToServer, .disconnect, .contextMenu,
         .goDesktop, .goDocuments, .goDownloads, .goApplications,
     ]
@@ -967,6 +968,8 @@ final class PanelViewController: NSViewController {
         case .openInNewTab, .openInBackgroundTab: return model.cursorItem != nil
         case .reopenClosedTab: return !closedTabs.isEmpty
         case .closeTabsToRight: return tabs.active < tabs.tabs.count - 1
+        case .moveTabLeft: return tabs.canMove(tabs.active, by: -1)
+        case .moveTabRight: return tabs.canMove(tabs.active, by: 1)
         // Find results and branch view have no folder of their own to create or paste into.
         case .makeDirectory, .newFile, .duplicate: return !isFlatListing
         case .pasteFiles: return !isFlatListing && Self.pasteboardHasFilesOrPath
@@ -1071,6 +1074,8 @@ final class PanelViewController: NSViewController {
         case .closeOtherTabs: closeOtherTabs()
         case .closeTabsToRight: closeTabsToTheRight()
         case .duplicateTab: duplicateTab()
+        case .moveTabLeft: moveTab(at: tabs.active, to: tabs.active - 1)
+        case .moveTabRight: moveTab(at: tabs.active, to: tabs.active + 1)
         case .lockTab: toggleLock(.locked)
         case .lockTabAllowingChanges: toggleLock(.allowsChanges)
         case .tabList: showTabList()
