@@ -5,6 +5,19 @@ Formát vychází z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ve
 
 ## [Unreleased]
 
+## [0.10.1] - 2026-10-23
+
+### Opraveno
+
+- Mapa disku pro systémový disk (/) počítala většinu souborů dvakrát a ukazovala zhruba dvojnásobek
+  obsazeného místa. macOS ukazuje složky svého datového svazku na obvyklých cestách (/Users, /Applications…)
+  a znovu pod /System/Volumes/Data; mapa je teď počítá jednou, na obvyklých cestách, a složku dostupnou
+  dvěma cestami nikdy nezapočítá dvakrát.
+- Barvy mapy disku: zvukové soubory měly skoro stejnou barvu jako aplikace a teď jsou žluté, a dlaždice
+  v hlubších složkách se už neztmavují tak, že neodpovídaly legendě. Složky, které měly pro obsah místo, ale
+  skončily na šesti úrovních, se ukazovaly jako prázdné šedé plochy; mapa teď jde hlouběji a vynechá jen
+  soubory příliš malé na to, aby byly vidět.
+
 ## [0.10.0] - 2026-10-21
 
 ### Přidáno

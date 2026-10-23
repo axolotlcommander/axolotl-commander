@@ -145,6 +145,53 @@ import Darwin
         }
     }
 
+    @Test func skippedFolderIsLeftOut() async throws {
+        try await withTree { dir in
+            let fm = FileManager.default
+            let users = dir.appendingPathComponent("Users", isDirectory: true)
+            let shadow = dir.appendingPathComponent("Data/Users", isDirectory: true)
+            try fm.createDirectory(at: users, withIntermediateDirectories: true)
+            try fm.createDirectory(at: shadow.appendingPathComponent("deep"), withIntermediateDirectories: true)
+            try write(users.appendingPathComponent("f"), bytes: 4000)
+            try write(shadow.appendingPathComponent("deep/g"), bytes: 4000)
+            try write(dir.appendingPathComponent("Data/kept"), bytes: 10)
+
+            let root = try await DiskUsage.scan(dir, skipping: [shadow.path])
+            let data = try #require(root.children.first { $0.name == "Data" })
+            #expect(data.children.map(\.name) == ["kept"])
+            #expect(root.fileCount == 2)
+            #expect(root.logicalSize == 4010)
+            var st = stat()
+            #expect(lstat(data.url.path, &st) == 0)
+            #expect(data.allocatedSize == Int64(st.st_blocks) * 512 + data.children[0].allocatedSize)
+        }
+    }
+
+    @Test func firmlinkShadowsInsideTheScan() {
+        let firmlinks = """
+            /Applications\tApplications
+            /Users\tUsers
+            /System/Library/Caches\tSystem/Library/Caches
+            /usr/local\tusr/local
+            broken line
+            relative\tx
+
+            """
+        #expect(DiskUsage.firmlinkShadows(root: "/", firmlinks: firmlinks) == [
+            "/System/Volumes/Data/Applications", "/System/Volumes/Data/Users",
+            "/System/Volumes/Data/System/Library/Caches", "/System/Volumes/Data/usr/local",
+        ])
+        // Only firmlinks whose usual path and data copy are both scanned.
+        #expect(DiskUsage.firmlinkShadows(root: "/System", firmlinks: firmlinks)
+            == ["/System/Volumes/Data/System/Library/Caches"])
+        #expect(DiskUsage.firmlinkShadows(root: "/System/", firmlinks: firmlinks)
+            == ["/System/Volumes/Data/System/Library/Caches"])
+        #expect(DiskUsage.firmlinkShadows(root: "/System/Volumes/Data", firmlinks: firmlinks).isEmpty)
+        #expect(DiskUsage.firmlinkShadows(root: "/Users", firmlinks: firmlinks).isEmpty)
+        #expect(DiskUsage.firmlinkShadows(root: "/Sys", firmlinks: firmlinks).isEmpty)
+        #expect(DiskUsage.firmlinkShadows(root: "/", firmlinks: "").isEmpty)
+    }
+
     @Test func reportsProgress() async throws {
         try await withTree { dir in
             try write(dir.appendingPathComponent("f"), bytes: 10)
@@ -270,6 +317,19 @@ private final class Counter: @unchecked Sendable {
             folder(7, "small", [leaf(8, "tiny", 60)]),
             leaf(9, "empty", 0),
         ])
+    }
+
+    @Test func tinyChildrenShareOneBlockWithoutCells() {
+        let root = folder(0, "root", [leaf(1, "big", 1000)] + (2..<102).map { leaf($0, "t\($0)", 1) })
+        let rect = TreemapRect(x: 0, y: 0, width: 10, height: 10)
+        let all = Treemap.cells(for: root, in: rect, maxDepth: 2, inset: 0, header: 0, minSide: 1)
+        #expect(all.count == 101)
+
+        let cells = Treemap.cells(for: root, in: rect, maxDepth: 2, inset: 0, header: 0, minSide: 1, minArea: 1)
+        #expect(cells.map(\.path) == [[0]])
+        // The tiny files keep their share of the area: the big file does not grow into it.
+        let big = cells[0].rect
+        #expect(abs(big.width * big.height - 100 * 1000 / 1100) < 1e-6)
     }
 
     @Test func nestedCellsRespectInsetAndHeader() {

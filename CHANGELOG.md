@@ -5,6 +5,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 
 ## [Unreleased]
 
+## [0.10.1] - 2026-10-23
+
+### Fixed
+
+- The disk map of the startup disk (/) counted most files twice and showed about twice the used space.
+  macOS shows the folders of its data volume at their usual paths (/Users, /Applications…) and again under
+  /System/Volumes/Data; the map now counts them once, at their usual paths, and a folder reached by two
+  paths is never counted twice.
+- Disk map colors: audio files had almost the same color as applications and now are yellow, and tiles in
+  deeper folders are no longer darkened so much that they did not match the legend. Folders that had space
+  for their contents but stopped at six levels showed as empty gray boxes; the map now goes deeper and
+  leaves out only files too small to see.
+
 ## [0.10.0] - 2026-10-21
 
 ### Added
