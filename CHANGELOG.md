@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 
 ## [Unreleased]
 
-## [0.10.1] - 2026-10-23
+## [0.10.1] - 2026-11-16
 
 ### Fixed
 
@@ -17,6 +17,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
   deeper folders are no longer darkened so much that they did not match the legend. Folders that had space
   for their contents but stopped at six levels showed as empty gray boxes; the map now goes deeper and
   leaves out only files too small to see.
+- Copying or moving a folder onto a folder of the same name (for example to a server) put it inside that
+  folder ("js" became "js/js") when the "To:" field was left as offered; it now merges with the folder there.
 
 ## [0.10.0] - 2026-10-21
 

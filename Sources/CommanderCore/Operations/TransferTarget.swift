@@ -15,15 +15,18 @@ public enum TransferTarget {
 
     /// Where the item goes. A trailing "/" or a text naming an existing folder → that folder
     /// (without the trailing slash, except "/") and `sourceName`. Otherwise the last component
-    /// is the new name and the rest the folder ("" without "/"; "/" for "/x").
+    /// is the new name and the rest the folder ("" without "/"; "/" for "/x"). A last component
+    /// equal to `sourceName` always names the item itself, so the prefilled "folder/name" replaces
+    /// or merges with a same-named item there instead of copying into it.
     public static func resolve(_ text: String, sourceName: String,
                                isFolder: (String) -> Bool) -> (folder: String, name: String) {
         let t = text.trimmingCharacters(in: .whitespacesAndNewlines)
         if t.isEmpty { return ("", sourceName) }
         if t.hasSuffix("/") { return (PathText.trimmingTrailingSlashes(t), sourceName) }
-        if isFolder(t) { return (t, sourceName) }
-        guard let slash = t.lastIndex(of: "/") else { return ("", t) }
-        let name = String(t[t.index(after: slash)...])
+        let slash = t.lastIndex(of: "/")
+        let name = slash.map { String(t[t.index(after: $0)...]) } ?? t
+        if name != sourceName, isFolder(t) { return (t, sourceName) }
+        guard let slash else { return ("", t) }
         let folder = String(t[..<slash])
         return (folder.isEmpty ? "/" : folder, name)
     }

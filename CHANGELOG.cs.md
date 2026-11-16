@@ -5,7 +5,7 @@ Formát vychází z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ve
 
 ## [Unreleased]
 
-## [0.10.1] - 2026-10-23
+## [0.10.1] - 2026-11-16
 
 ### Opraveno
 
@@ -17,6 +17,8 @@ Formát vychází z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ve
   v hlubších složkách se už neztmavují tak, že neodpovídaly legendě. Složky, které měly pro obsah místo, ale
   skončily na šesti úrovních, se ukazovaly jako prázdné šedé plochy; mapa teď jde hlouběji a vynechá jen
   soubory příliš malé na to, aby byly vidět.
+- Kopírování nebo přesun složky na stejnojmennou složku (třeba na server) ji vložilo dovnitř té složky
+  („js“ se stalo „js/js“), když pole „Do:“ zůstalo, jak bylo nabídnuto; teď se se složkou v cíli sloučí.
 
 ## [0.10.0] - 2026-10-21
 
