@@ -34,6 +34,20 @@ import Testing
         #expect(go("  /exists  ") == (folder: "/exists", name: "src.txt"))
     }
 
+    /// The prefilled "folder/name" with a same-named folder already there means that folder, not
+    /// a copy inside it ("js" onto an existing "js" must not become "js/js").
+    @Test func sameNamedFolderIsTheTarget() {
+        let folders: Set<String> = ["/dest", "/dest/js", "ftp://h/site/js"]
+        func go(_ t: String) -> (folder: String, name: String) {
+            TransferTarget.resolve(t, sourceName: "js", isFolder: { folders.contains($0) })
+        }
+        #expect(go("/dest/js") == (folder: "/dest", name: "js"))
+        #expect(go("ftp://h/site/js") == (folder: "ftp://h/site", name: "js"))
+        #expect(go("/dest/js/") == (folder: "/dest/js", name: "js"))
+        #expect(go("/dest") == (folder: "/dest", name: "js"))
+        #expect(go("js") == (folder: "", name: "js"))
+    }
+
     @Test func rangesOfFile() {
         let text = "/a/b/x.txt"
         #expect(substring(text, TransferTarget.range(of: .name, in: text, isDirectory: false)) == "x")

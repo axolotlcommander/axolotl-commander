@@ -43,7 +43,7 @@ enum DiskMapKind: CaseIterable {
         case .folder: .systemGray
         case .image: .systemGreen
         case .video: .systemPurple
-        case .audio: .systemPink
+        case .audio: .systemYellow
         case .archive: .systemOrange
         case .code: .systemBlue
         case .document: .systemTeal
@@ -59,7 +59,7 @@ enum DiskMapKind: CaseIterable {
 final class TreemapView: NSView {
     private static let header = 15.0
     private static let inset = 2.0
-    private static let maxDepth = 6
+    private static let maxDepth = 32
 
     /// The whole scan; `location` is the index path of the shown folder in it.
     var root: DiskUsageNode? { didSet { location = []; selected = nil; relayout() } }
@@ -175,7 +175,7 @@ final class TreemapView: NSView {
         guard let node = shownNode else { cells = []; needsDisplay = true; return }
         let rect = TreemapRect(x: 0, y: 0, width: bounds.width, height: bounds.height)
         cells = Treemap.cells(for: node, in: rect, maxDepth: Self.maxDepth, inset: Self.inset,
-                              header: Self.header, minSide: 4)
+                              header: Self.header, minSide: 4, minArea: 4)
         kinds = [:]
         for cell in cells {
             if let child = DiskUsage.node(at: cell.path, in: node) { kinds[cell.path] = DiskMapKind.of(child) }
@@ -197,7 +197,7 @@ final class TreemapView: NSView {
             let rect = NSRect(x: cell.rect.x, y: cell.rect.y, width: cell.rect.width, height: cell.rect.height)
             guard rect.intersects(dirtyRect), rect.width >= 1, rect.height >= 1 else { continue }
             let kind = kinds[cell.path] ?? .other
-            let shade = max(0.35, 1 - Double(cell.depth) * 0.1)
+            let shade = max(0.75, 1 - Double(cell.depth) * 0.05)
             if kind == .folder {
                 NSColor(white: 0.18 + 0.06 * Double(min(cell.depth, 5)), alpha: 1).setFill()
                 rect.fill()
@@ -214,9 +214,15 @@ final class TreemapView: NSView {
                 NSColor.black.withAlphaComponent(0.35).setStroke()
                 NSBezierPath(rect: rect.insetBy(dx: 0.25, dy: 0.25)).stroke()
                 if rect.width > 50, rect.height > 14, let child = DiskUsage.node(at: cell.path, in: node) {
+                    var label = attributes
+                    // Light tiles (yellow) keep the name readable in black.
+                    if let rgb = base.usingColorSpace(.sRGB),
+                       0.299 * rgb.redComponent + 0.587 * rgb.greenComponent + 0.114 * rgb.blueComponent > 0.6 {
+                        label[.foregroundColor] = NSColor.black
+                    }
                     (child.name as NSString).draw(with: rect.insetBy(dx: 3, dy: 2),
                                                   options: [.usesLineFragmentOrigin, .truncatesLastVisibleLine],
-                                                  attributes: attributes)
+                                                  attributes: label)
                 }
             }
         }

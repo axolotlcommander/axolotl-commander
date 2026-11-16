@@ -60,16 +60,55 @@ public struct DiskUsageProgress: Sendable {
 public enum DiskUsage {
     /// Scans `root` with `fts` (physical walk, never follows links, stays on the root's device,
     /// so mounted volumes below it are not entered). Hard-linked files are counted once per
-    /// (device, inode). Unreadable folders are flagged and the scan goes on. Throws
-    /// `CancellationError` when the task is cancelled. `progress` is called at most ~10x/s.
+    /// (device, inode), and so are folders: a folder reached again by another path is left out.
+    /// Unreadable folders are flagged and the scan goes on. Throws `CancellationError` when the
+    /// task is cancelled. `progress` is called at most ~10x/s.
+    ///
+    /// The system and data volumes of macOS share one device, and firmlinks show folders of the
+    /// data volume at their usual paths (`/Users` is `/System/Volumes/Data/Users`). When the scan
+    /// contains both paths, the copy below `/System/Volumes/Data` is skipped, so the files show
+    /// at their usual paths and the total matches the used space of the disk.
     ///
     /// Package detection: only folders with a file name extension are asked for `.isPackageKey`
     /// (one Launch Services lookup each), plain folders are never packages.
     public static func scan(
         _ root: URL, progress: @Sendable (DiskUsageProgress) -> Void = { _ in }
     ) async throws -> DiskUsageNode {
+        try await scan(root, skipping: firmlinkShadows(root: root.path, firmlinks: systemFirmlinks()),
+                       progress: progress)
+    }
+
+    /// `scan` that leaves out the folders at the paths in `skipping` (paths as `fts` spells them).
+    static func scan(
+        _ root: URL, skipping: Set<String>, progress: @Sendable (DiskUsageProgress) -> Void = { _ in }
+    ) async throws -> DiskUsageNode {
         try Task.checkCancellation()
-        return try scanBlocking(root, progress: progress)
+        return try scanBlocking(root, skipping: skipping, progress: progress)
+    }
+
+    /// The data volume copies of firmlinked folders that a scan of `root` would also reach at
+    /// their usual path. `firmlinks` is the text of `/usr/share/firmlinks`: one firmlink per line,
+    /// the usual path, a tab and the path relative to the data volume (`/Users\tUsers`).
+    static func firmlinkShadows(
+        root: String, firmlinks: String, dataVolume: String = "/System/Volumes/Data"
+    ) -> Set<String> {
+        let root = root.count > 1 && root.hasSuffix("/") ? String(root.dropLast()) : root
+        func contains(_ path: String) -> Bool {
+            root == "/" || path == root || path.hasPrefix(root + "/")
+        }
+        var shadows = Set<String>()
+        for line in firmlinks.split(whereSeparator: \.isNewline) {
+            let fields = line.split(separator: "\t", omittingEmptySubsequences: true)
+            guard fields.count == 2, fields[0].hasPrefix("/") else { continue }
+            let visible = String(fields[0])
+            let shadow = dataVolume + "/" + fields[1].trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+            if contains(visible), contains(shadow) { shadows.insert(shadow) }
+        }
+        return shadows
+    }
+
+    private static func systemFirmlinks() -> String {
+        (try? String(contentsOfFile: "/usr/share/firmlinks", encoding: .utf8)) ?? ""
     }
 
     /// Node at an index path from the root (indices into `children`); `[]` is the root.
@@ -124,7 +163,7 @@ public enum DiskUsage {
     private static func nowNanos() -> UInt64 { clock_gettime_nsec_np(CLOCK_UPTIME_RAW) }
 
     private static func scanBlocking(
-        _ root: URL, progress: @Sendable (DiskUsageProgress) -> Void
+        _ root: URL, skipping: Set<String>, progress: @Sendable (DiskUsageProgress) -> Void
     ) throws -> DiskUsageNode {
         let rootPath = root.path
         guard let cRoot = strdup(rootPath) else { throw CocoaError(.fileReadUnknown) }
@@ -141,6 +180,7 @@ public enum DiskUsage {
         var stack: [Builder] = []
         var result: DiskUsageNode?
         var seen = Set<Inode>()
+        var seenFolders = Set<Inode>()
         var files = 0
         var bytes: Int64 = 0
         var lastReport: UInt64 = 0
@@ -167,6 +207,12 @@ public enum DiskUsage {
             switch info {
             case FTS_D:
                 let st = entry.pointee.fts_statp.pointee
+                if level > 0, skipping.contains(path)
+                    || !seenFolders.insert(Inode(dev: st.st_dev, ino: st.st_ino)).inserted {
+                    // Returned once more as FTS_DP, which finds no builder of its own and is ignored.
+                    fts_set(fts, entry, FTS_SKIP)
+                    continue
+                }
                 let allocated = Int64(st.st_blocks) * 512
                 bytes += allocated
                 let url = URL(fileURLWithPath: path, isDirectory: true)
@@ -174,7 +220,7 @@ public enum DiskUsage {
                     id: makeID(), name: name, url: url, isPackage: isPackage(url),
                     allocated: allocated))
             case FTS_DP:
-                finishFolder()
+                if stack.count == level + 1 { finishFolder() }
             case FTS_DNR, FTS_ERR, FTS_NS:
                 // A folder that failed to list is first returned as FTS_D, then again as FTS_DNR.
                 if info == FTS_DNR, stack.count == level + 1, !stack.isEmpty {

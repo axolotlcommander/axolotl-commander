@@ -107,23 +107,34 @@ public enum Treemap {
     /// levels. A folder's children are laid out in its rect inset by `inset` on all sides with an extra
     /// `header` at the top (smaller `y`) for a title; folders are not descended when that inner rect
     /// is narrower or lower than `minSide`. Cells for nodes of size 0 are omitted. Parents precede
-    /// their children in the result. Packages are laid out like any other folder.
+    /// their children in the result. Packages are laid out like any other folder. Children whose
+    /// area would be below `minArea` share one block at the end that gets no cell (the folder shows
+    /// through), so folders with many tiny files do not make a cell per file.
     public static func cells(
         for root: DiskUsageNode, in rect: TreemapRect,
-        maxDepth: Int, inset: Double, header: Double, minSide: Double
+        maxDepth: Int, inset: Double, header: Double, minSide: Double, minArea: Double = 0
     ) -> [Cell] {
         var cells: [Cell] = []
         layout(root, path: [], in: rect, depth: 0, maxDepth: maxDepth, inset: inset, header: header,
-               minSide: minSide, into: &cells)
+               minSide: minSide, minArea: minArea, into: &cells)
         return cells
     }
 
     private static func layout(
         _ node: DiskUsageNode, path: [Int], in rect: TreemapRect, depth: Int, maxDepth: Int,
-        inset: Double, header: Double, minSide: Double, into cells: inout [Cell]
+        inset: Double, header: Double, minSide: Double, minArea: Double, into cells: inout [Cell]
     ) {
         guard depth < maxDepth, !node.children.isEmpty else { return }
-        let rects = squarify(node.children.map { Double($0.allocatedSize) }, in: rect)
+        var sizes = node.children.map { Double(max(0, $0.allocatedSize)) }
+        let unit = rect.width * rect.height / sizes.reduce(0, +)
+        var tail = 0.0
+        if minArea > 0, unit.isFinite {
+            for index in sizes.indices where sizes[index] * unit < minArea {
+                tail += sizes[index]
+                sizes[index] = 0
+            }
+        }
+        let rects = squarify(sizes + [tail], in: rect)
         for (index, child) in node.children.enumerated() where child.allocatedSize > 0 {
             let childRect = rects[index]
             guard !childRect.isEmpty else { continue }
@@ -135,7 +146,7 @@ public enum Treemap {
                 width: childRect.width - 2 * inset, height: childRect.height - 2 * inset - header)
             guard inner.width >= minSide, inner.height >= minSide, !inner.isEmpty else { continue }
             layout(child, path: childPath, in: inner, depth: depth + 1, maxDepth: maxDepth,
-                   inset: inset, header: header, minSide: minSide, into: &cells)
+                   inset: inset, header: header, minSide: minSide, minArea: minArea, into: &cells)
         }
     }
 
