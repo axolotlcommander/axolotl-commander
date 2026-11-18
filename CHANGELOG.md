@@ -5,6 +5,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 
 ## [Unreleased]
 
+## [0.10.2] - 2026-11-18
+
+### Fixed
+
+- Find Files (⌃⌥F7) bringing back the hidden Find window kept "Look in" at the folder of the last search, so the
+  next search did not start in the folder shown in the active panel. "Look in" now follows the active panel's folder;
+  the last results stay in the window until the next search.
+
 ## [0.10.1] - 2026-11-16
 
 ### Fixed

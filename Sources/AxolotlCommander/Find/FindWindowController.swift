@@ -40,11 +40,14 @@ final class FindWindowController: NSWindowController, NSWindowDelegate, NSMenuIt
 
     private static var behavior: FindWindowBehavior { FindWindowBehavior(defaults: .standard) }
 
-    /// Find Files: the hidden window with its results, otherwise a new one.
+    /// Find Files: the hidden window with its results, otherwise a new one. "Look in" follows the
+    /// active panel's folder, so the next search starts where the user is now; a running search keeps
+    /// its folders.
     static func show(from main: MainWindowController) {
         guard let controller = hidden else { return showNew(from: main) }
         hidden = nil
         if controller.main == nil { controller.main = main }
+        if !controller.isSearching { controller.form.lookIn = main.activePanel.diskFolder.displayPath }
         controller.showWindow(nil)
         // The name field takes the focus with its text selected, so typing starts the next search.
         controller.form.nameFocusRequest += 1

@@ -5,6 +5,14 @@ Formát vychází z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ve
 
 ## [Unreleased]
 
+## [0.10.2] - 2026-11-18
+
+### Opraveno
+
+- Hledat soubory (⌃⌥F7) při návratu skrytého okna hledání nechávalo „Hledat v:“ na složce posledního hledání,
+  takže další hledání nezačínalo ve složce zobrazené v aktivním panelu. „Hledat v:“ teď odpovídá složce aktivního
+  panelu; poslední výsledky v okně zůstanou až do dalšího hledání.
+
 ## [0.10.1] - 2026-11-16
 
 ### Opraveno
