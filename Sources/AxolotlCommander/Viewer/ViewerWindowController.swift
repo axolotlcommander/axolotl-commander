@@ -1234,6 +1234,15 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
 
     // MARK: Window
 
+    /// The finder does not retain its client and container, and AppKit keeps using it after the window
+    /// closes (the delayed search of the find bar, the match highlights), when both may be gone.
+    private func detachTextFinder() {
+        textFinder.performAction(.hideFindInterface)
+        textFinder.isIncrementalSearchingEnabled = false
+        textFinder.client = nil
+        textFinder.findBarContainer = nil
+    }
+
     func windowWillClose(_ notification: Notification) {
         loadTask?.cancel()
         decodeTask?.cancel()
@@ -1244,6 +1253,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         imagePreview.clear()
         tablePreview.clear()
         mediaPreview.clear()
+        detachTextFinder()
         if let keyMonitor { NSEvent.removeMonitor(keyMonitor) }
         keyMonitor = nil
         Self.open.removeAll { $0 === self }

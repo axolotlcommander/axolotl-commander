@@ -5,6 +5,12 @@ Formát vychází z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ve
 
 ## [Unreleased]
 
+## [0.10.3] - 2026-11-22
+
+### Opraveno
+
+- Aplikace mohla spadnout po zavření okna prohlížeče (F3), ve kterém se hledalo v liště hledání (⌘F).
+
 ## [0.10.2] - 2026-11-18
 
 ### Opraveno

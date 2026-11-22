@@ -5,6 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 
 ## [Unreleased]
 
+## [0.10.3] - 2026-11-22
+
+### Fixed
+
+- The app could crash after closing a viewer (F3) window in which the find bar (⌘F) had been used.
+
 ## [0.10.2] - 2026-11-18
 
 ### Fixed
