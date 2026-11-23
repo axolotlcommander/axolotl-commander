@@ -29,8 +29,8 @@ final class PictureView: NSImageView {
     }
 }
 
-/// The picture of the image viewer: fitted to the window until the user zooms,
-/// ← → to the previous and next picture while nothing is scrolled sideways.
+/// The picture of the image viewer: fitted to the window until the user zooms (+ and −, also on the
+/// keypad), ← → to the previous and next picture while nothing is scrolled sideways.
 final class ImagePreview: NSScrollView {
     /// A decoded picture, ready for the main actor.
     private struct Decoded: @unchecked Sendable {
@@ -148,13 +148,13 @@ final class ImagePreview: NSScrollView {
 
     var zoom: Double { magnification }
 
-    /// Large pictures shrink to the window; small ones stay at 100 %. A drawing fills the window.
+    /// The picture fills the window: large ones shrink, small ones grow.
     func fit() {
         fits = true
         let size = imageView.frame.size
         guard size.width > 0, size.height > 0 else { return }
         let area = contentSize
-        let scale = min(vectorSize == nil ? 1 : maxMagnification, area.width / size.width, area.height / size.height)
+        let scale = min(maxMagnification, area.width / size.width, area.height / size.height)
         magnification = max(scale, minMagnification)
         onZoomChange?()
     }
@@ -184,9 +184,17 @@ final class ImagePreview: NSScrollView {
     /// Nothing to scroll sideways, so ← → may switch pictures.
     private var fitsHorizontally: Bool { imageView.frame.width * magnification <= contentSize.width + 0.5 }
 
-    /// Viewer keys first, then ← → for the previous and next picture; false lets the view scroll.
+    /// Viewer keys first, then + − to zoom and ← → for the previous and next picture; false lets
+    /// the view scroll.
     func handleKey(_ event: NSEvent) -> Bool {
         if onKey?(event) == true { return true }
+        if event.modifierFlags.intersection([.command, .option, .control]).isEmpty {
+            switch event.characters {
+            case "+", "=": zoomIn(); return true
+            case "-", "\u{2212}": zoomOut(); return true
+            default: break
+            }
+        }
         if let key = event.specialKey, event.modifierFlags.intersection([.command, .option, .control, .shift]).isEmpty,
            key == .leftArrow || key == .rightArrow, fitsHorizontally {
             onArrow?(key == .leftArrow)

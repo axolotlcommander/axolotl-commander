@@ -221,6 +221,9 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
                                                  trackingMode: .selectOne, target: nil, action: nil)
     private let encodingPopup = NSPopUpButton(frame: .zero, pullsDown: false)
     private let wrapBox = NSButton(checkboxWithTitle: String(localized: "Wrap Lines"), target: nil, action: nil)
+    /// Smaller, bigger, fit and actual size of a picture.
+    private let zoomControl = NSSegmentedControl()
+    private static let zoomCommands: [Command] = [.viewerZoomOut, .viewerZoomIn, .viewerZoomToFit, .viewerActualSize]
     private let infoField = NSTextField(labelWithString: "")
     private let positionField = NSTextField(labelWithString: "")
 
@@ -353,6 +356,23 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         wrapBox.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
         wrapBox.target = self
         wrapBox.action = #selector(wrapBoxChanged)
+        zoomControl.segmentCount = Self.zoomCommands.count
+        zoomControl.trackingMode = .momentary
+        zoomControl.controlSize = .small
+        zoomControl.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
+        for (segment, command) in Self.zoomCommands.enumerated() {
+            let symbol = switch command {
+            case .viewerZoomOut: "minus.magnifyingglass"
+            case .viewerZoomIn: "plus.magnifyingglass"
+            case .viewerZoomToFit: "arrow.up.left.and.down.right.magnifyingglass"
+            default: "1.magnifyingglass"
+            }
+            let title = CommandRegistry.spec(command).localizedTitle
+            zoomControl.setImage(NSImage(systemSymbolName: symbol, accessibilityDescription: title), forSegment: segment)
+            zoomControl.setToolTip(title, forSegment: segment)
+        }
+        zoomControl.target = self
+        zoomControl.action = #selector(zoomControlClicked)
         for field in [infoField, positionField] {
             field.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
             field.textColor = .secondaryLabelColor
@@ -360,8 +380,8 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         }
         infoField.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         infoField.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        let status = NSStackView(views: [modeControl, encodingPopup, separatorPopup, headerBox, wrapBox, infoField,
-                                         positionField])
+        let status = NSStackView(views: [modeControl, encodingPopup, separatorPopup, headerBox, wrapBox, zoomControl,
+                                         infoField, positionField])
         status.spacing = 10
         status.edgeInsets = NSEdgeInsets(top: 4, left: 10, bottom: 5, right: 12)
         let separator = NSBox()
@@ -670,6 +690,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         wrapBox.isHidden = mode == .preview && !showsFormattedJSON
         separatorPopup.isHidden = !isTable
         headerBox.isHidden = !isTable
+        zoomControl.isHidden = !(mode == .preview && previewKind?.isPicture == true)
         if isTable {
             let detected = tablePreview.dialect.separator
             separatorPopup.menu?.item(withTag: -1)?.title = tablePreview.separatorChoice == nil
@@ -682,6 +703,10 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
     }
 
     private func updateInfo() {
+        if !zoomControl.isHidden {
+            zoomControl.setEnabled(imagePreview.zoom > imagePreview.minMagnification + 0.001, forSegment: 0)
+            zoomControl.setEnabled(imagePreview.zoom < imagePreview.maxMagnification - 0.001, forSegment: 1)
+        }
         var parts = [Format.grouped(Int64(data.count)) + " B"]
         if mode == .preview, previewKind == .vector {
             if imagePreview.failed {
@@ -957,6 +982,12 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         setMode([Mode.text, .hex, .preview][min(max(modeControl.selectedSegment, 0), 2)])
     }
     @objc private func wrapBoxChanged() { perform(.viewerWrap) }
+    @objc private func zoomControlClicked() {
+        let segment = zoomControl.selectedSegment
+        guard Self.zoomCommands.indices.contains(segment) else { return }
+        perform(Self.zoomCommands[segment])
+        window?.makeFirstResponder(imagePreview.keyView)
+    }
 
     @objc func selectEncoding(_ sender: NSMenuItem) { setEncoding(TextEncoding.allCases[sender.tag]) }
 

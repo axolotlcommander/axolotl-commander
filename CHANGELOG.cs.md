@@ -5,6 +5,14 @@ Formát vychází z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ve
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-11-23
+
+### Změněno
+
+- Náhled obrázku v prohlížeči (F3) po otevření přizpůsobí oknu každý obrázek, i malý (dřív zůstal na 100 %).
+  Klávesy + a − (i na numerické klávesnici) zvětšují a zmenšují bez ⌘ a tlačítka ve spodní liště obrázek zmenší,
+  zvětší, přizpůsobí oknu nebo ukážou ve skutečné velikosti.
+
 ## [0.10.3] - 2026-11-22
 
 ### Opraveno

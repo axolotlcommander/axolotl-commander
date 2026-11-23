@@ -5,6 +5,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-11-23
+
+### Changed
+
+- The image preview of the viewer (F3) fits every picture to the window when it opens, small ones too (they used to
+  stay at 100 %). + and − (also on the numeric keypad) zoom in and out without ⌘, and buttons in the bottom bar make
+  the picture smaller, bigger, fit it to the window or show its actual size.
+
 ## [0.10.3] - 2026-11-22
 
 ### Fixed
