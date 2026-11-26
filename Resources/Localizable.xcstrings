@@ -8392,6 +8392,17 @@
         }
       }
     },
+    "Print…": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tisknout…"
+          }
+        }
+      }
+    },
     "Previous Tab": {
       "extractionState": "manual",
       "localizations": {

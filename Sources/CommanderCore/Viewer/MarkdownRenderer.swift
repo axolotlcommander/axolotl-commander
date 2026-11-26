@@ -367,6 +367,12 @@ public enum MarkdownRenderer {
         .tk-number { color: var(--tk-number); } .tk-comment { color: var(--tk-comment); font-style: italic; }
         .tk-preprocessor { color: var(--tk-preprocessor); } .tk-tag { color: var(--tk-tag); }
         .tk-attribute { color: var(--tk-attribute); } .tk-variable { color: var(--tk-variable); }
+        @media print { :root { color-scheme: light; --fg: #1f2328; --muted: #59636e; --border: #d1d9e0; --code-bg: rgba(129,139,152,.12);
+          --link: #0969da; --quote: #59636e; --row: #f6f8fa;
+          --tk-keyword: #cf222e; --tk-type: #8250df; --tk-string: #0a3069; --tk-number: #0550ae; --tk-comment: #59636e;
+          --tk-preprocessor: #953800; --tk-tag: #116329; --tk-attribute: #0550ae; --tk-variable: #953800; }
+          body { background: #fff; } article { max-width: none; padding: 0; }
+          pre { overflow: visible; } pre code { white-space: pre-wrap; } table { overflow: visible; } }
         """
 }
 

@@ -45,6 +45,8 @@ final class ImagePreview: NSScrollView {
     private let imageView = PictureView()
     /// The view to focus for the viewer keys.
     var keyView: NSView { imageView }
+    /// The picture shown, for printing.
+    var image: NSImage? { imageView.image }
     private(set) var info: ImageInfo?
     /// The size of a vector drawing (SVG); nil for pictures with pixels.
     private(set) var vectorSize: NSSize?

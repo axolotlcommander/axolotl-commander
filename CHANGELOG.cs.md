@@ -7,6 +7,12 @@ Formát vychází z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ve
 
 ## [0.11.0] - 2026-11-23
 
+### Přidáno
+
+- Prohlížeč (F3) umí tisknout přes Soubor → Tisknout… (⌘P): text tak, jak je zobrazený, s barvami syntaxe a dlouhými
+  řádky zalomenými na šířku papíru, náhled Markdownu nebo HTML tak, jak je vykreslený, a obrázky přizpůsobené stránce.
+  Tiskne se vždy na světlý papír, i v tmavém režimu.
+
 ### Změněno
 
 - Náhled obrázku v prohlížeči (F3) po otevření přizpůsobí oknu každý obrázek, i malý (dřív zůstal na 100 %).
