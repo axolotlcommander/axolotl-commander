@@ -221,6 +221,9 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
                                                  trackingMode: .selectOne, target: nil, action: nil)
     private let encodingPopup = NSPopUpButton(frame: .zero, pullsDown: false)
     private let wrapBox = NSButton(checkboxWithTitle: String(localized: "Wrap Lines"), target: nil, action: nil)
+    /// Smaller, bigger, fit and actual size of a picture.
+    private let zoomControl = NSSegmentedControl()
+    private static let zoomCommands: [Command] = [.viewerZoomOut, .viewerZoomIn, .viewerZoomToFit, .viewerActualSize]
     private let infoField = NSTextField(labelWithString: "")
     private let positionField = NSTextField(labelWithString: "")
 
@@ -353,6 +356,23 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         wrapBox.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
         wrapBox.target = self
         wrapBox.action = #selector(wrapBoxChanged)
+        zoomControl.segmentCount = Self.zoomCommands.count
+        zoomControl.trackingMode = .momentary
+        zoomControl.controlSize = .small
+        zoomControl.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
+        for (segment, command) in Self.zoomCommands.enumerated() {
+            let symbol = switch command {
+            case .viewerZoomOut: "minus.magnifyingglass"
+            case .viewerZoomIn: "plus.magnifyingglass"
+            case .viewerZoomToFit: "arrow.up.left.and.down.right.magnifyingglass"
+            default: "1.magnifyingglass"
+            }
+            let title = CommandRegistry.spec(command).localizedTitle
+            zoomControl.setImage(NSImage(systemSymbolName: symbol, accessibilityDescription: title), forSegment: segment)
+            zoomControl.setToolTip(title, forSegment: segment)
+        }
+        zoomControl.target = self
+        zoomControl.action = #selector(zoomControlClicked)
         for field in [infoField, positionField] {
             field.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
             field.textColor = .secondaryLabelColor
@@ -360,8 +380,8 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         }
         infoField.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         infoField.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        let status = NSStackView(views: [modeControl, encodingPopup, separatorPopup, headerBox, wrapBox, infoField,
-                                         positionField])
+        let status = NSStackView(views: [modeControl, encodingPopup, separatorPopup, headerBox, wrapBox, zoomControl,
+                                         infoField, positionField])
         status.spacing = 10
         status.edgeInsets = NSEdgeInsets(top: 4, left: 10, bottom: 5, right: 12)
         let separator = NSBox()
@@ -670,6 +690,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         wrapBox.isHidden = mode == .preview && !showsFormattedJSON
         separatorPopup.isHidden = !isTable
         headerBox.isHidden = !isTable
+        zoomControl.isHidden = !(mode == .preview && previewKind?.isPicture == true)
         if isTable {
             let detected = tablePreview.dialect.separator
             separatorPopup.menu?.item(withTag: -1)?.title = tablePreview.separatorChoice == nil
@@ -682,6 +703,10 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
     }
 
     private func updateInfo() {
+        if !zoomControl.isHidden {
+            zoomControl.setEnabled(imagePreview.zoom > imagePreview.minMagnification + 0.001, forSegment: 0)
+            zoomControl.setEnabled(imagePreview.zoom < imagePreview.maxMagnification - 0.001, forSegment: 1)
+        }
         var parts = [Format.grouped(Int64(data.count)) + " B"]
         if mode == .preview, previewKind == .vector {
             if imagePreview.failed {
@@ -830,6 +855,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
             remoteAllowed = true
             showPreview()
         case .viewerSaveImageAs: Task { await saveImage() }
+        case .viewerPrint: printContent()
         case .viewerZoomToFit: if mode == .preview, previewKind?.isPicture == true { imagePreview.fit() }
         case .viewerWrap:
             wrap.toggle()
@@ -880,6 +906,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         case .viewerLoadRemote:
             return mode == .preview && previewKind?.isPage == true && !remoteAllowed && markdownPreview.remoteCount > 0
         case .viewerSaveImageAs: return previewKind == .image && loadError == nil
+        case .viewerPrint: return canPrint
         case .viewerZoomToFit: return mode == .preview && previewKind?.isPicture == true
         case .viewerFind, .viewerFindNext, .viewerFindPrevious, .viewerUseSelectionForFind:
             return showsFormattedJSON || !(mode == .preview && previewKind?.hasFind != true)
@@ -957,6 +984,12 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
         setMode([Mode.text, .hex, .preview][min(max(modeControl.selectedSegment, 0), 2)])
     }
     @objc private func wrapBoxChanged() { perform(.viewerWrap) }
+    @objc private func zoomControlClicked() {
+        let segment = zoomControl.selectedSegment
+        guard Self.zoomCommands.indices.contains(segment) else { return }
+        perform(Self.zoomCommands[segment])
+        window?.makeFirstResponder(imagePreview.keyView)
+    }
 
     @objc func selectEncoding(_ sender: NSMenuItem) { setEncoding(TextEncoding.allCases[sender.tag]) }
 
@@ -1194,6 +1227,58 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate, NSMenu
 
     /// Saves the picture in a format the user picks; an existing file is replaced only by a
     /// completely written new one.
+    /// Text (and indented JSON), a Markdown or HTML page and pictures can be printed.
+    private var canPrint: Bool {
+        guard loadError == nil else { return false }
+        if usesTextView { return textView.textStorage?.length ?? 0 > 0 }
+        guard mode == .preview else { return false }
+        if previewKind?.isPage == true { return true }
+        return previewKind?.isPicture == true && imagePreview.image != nil
+    }
+
+    /// Prints what the viewer shows: the text as it is highlighted, the page as rendered,
+    /// the picture fitted to the paper. Always on light paper, whatever the appearance.
+    private func printContent() {
+        guard let window, canPrint else { NSSound.beep(); return }
+        let info = NSPrintInfo.shared.copy() as? NSPrintInfo ?? NSPrintInfo()
+        let operation: NSPrintOperation
+        if mode == .preview, previewKind?.isPage == true {
+            operation = markdownPreview.printOperation(with: info)
+        } else if mode == .preview, let image = imagePreview.image {
+            info.horizontalPagination = .fit
+            info.verticalPagination = .fit
+            info.isHorizontallyCentered = true
+            info.isVerticallyCentered = true
+            let view = NSImageView(frame: NSRect(origin: .zero, size: image.size))
+            view.image = image
+            view.imageScaling = .scaleProportionallyUpOrDown
+            operation = NSPrintOperation(view: view, printInfo: info)
+        } else {
+            info.horizontalPagination = .fit
+            info.verticalPagination = .automatic
+            info.isHorizontallyCentered = false
+            info.isVerticallyCentered = false
+            let width = max(info.paperSize.width - info.leftMargin - info.rightMargin, 100)
+            let view = NSTextView(usingTextLayoutManager: false)
+            view.frame = NSRect(x: 0, y: 0, width: width, height: 1)
+            view.appearance = NSAppearance(named: .aqua)
+            view.drawsBackground = false
+            view.isVerticallyResizable = true
+            view.isHorizontallyResizable = false
+            view.textContainer?.widthTracksTextView = true
+            view.textContainer?.lineFragmentPadding = 0
+            if let storage = textView.textStorage { view.textStorage?.setAttributedString(storage) }
+            if let container = view.textContainer { view.layoutManager?.ensureLayout(for: container) }
+            view.sizeToFit()
+            operation = NSPrintOperation(view: view, printInfo: info)
+        }
+        operation.jobTitle = sequence.current.lastPathComponent
+        operation.showsPrintPanel = true
+        operation.showsProgressPanel = true
+        operation.printPanel.options.formUnion([.showsPaperSize, .showsOrientation, .showsScaling, .showsPreview])
+        operation.runModal(for: window, delegate: nil, didRun: nil, contextInfo: nil)
+    }
+
     private func saveImage() async {
         guard let window, previewKind == .image else { return }
         let source = sequence.current

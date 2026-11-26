@@ -76,7 +76,7 @@ public enum Command: String, CaseIterable, Hashable, Sendable {
     case viewerText, viewerHex, viewerWrap, viewerEncoding, viewerAutoEncoding
     case viewerNextEncoding, viewerPreviousEncoding, viewerSetDefaultEncoding
     case viewerZoomIn, viewerZoomOut, viewerActualSize, viewerReload
-    case viewerPreview, viewerHighlight, viewerZoomToFit, viewerSaveImageAs, viewerLoadRemote
+    case viewerPreview, viewerHighlight, viewerZoomToFit, viewerSaveImageAs, viewerLoadRemote, viewerPrint
     case viewerNextMalformed, viewerPreviousMalformed, viewerMalformedOnly, viewerHeaderRow, viewerSeparator
 
     // Find window (⌃⌥F7)
@@ -345,6 +345,7 @@ public enum CommandRegistry {
         viewer(.viewerLastFile, "Last File", .file, [K(.space, s)])
         viewer(.viewerSaveAs, "Copy to File…", .file, [ch("s", m)], sep: true)
         viewer(.viewerSaveImageAs, "Save Image As…", .file, [ch("s", [m, s])])
+        viewer(.viewerPrint, "Print…", .file, [ch("p", m)], sep: true)
         viewer(.viewerClose, "Close Viewer", nil, [K(.escape)])
         viewer(.viewerCopy, "Copy", .edit, [ch("c", m)])
         viewer(.viewerSelectAll, "Select All", .edit, [ch("a", m)])

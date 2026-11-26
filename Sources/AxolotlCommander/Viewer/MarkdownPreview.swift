@@ -142,6 +142,14 @@ final class MarkdownPreview: NSView, WKNavigationDelegate {
             : String(localized: "This document refers to \(remoteCount) image(s) on the internet. They have not been loaded.")
     }
 
+    /// Prints the page as rendered (the stylesheet keeps it on light paper).
+    func printOperation(with info: NSPrintInfo) -> NSPrintOperation {
+        let operation = webView.printOperation(with: info)
+        // Without a frame the web view prints empty pages.
+        operation.view?.frame = webView.bounds
+        return operation
+    }
+
     func clear() {
         handler.page = nil
         document = nil
